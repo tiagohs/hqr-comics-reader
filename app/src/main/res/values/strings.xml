@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MangaR</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_favorite">Favoritos</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="nav_download">Baixar HQ</string>
+</resources>

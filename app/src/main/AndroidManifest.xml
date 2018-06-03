@@ -11,16 +11,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name="com.tiagohs.hqr.ui.views.activities.RootActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
         <activity android:name=".ui.views.activities.ReaderActivity" />
         <activity android:name=".ui.views.activities.ComicDetailsActivity"
-                  android:theme="@style/AppTheme.TransparentTheme">
-            <intent-filter>
-            <action android:name="android.intent.action.MAIN"/>
-
-            <category android:name="android.intent.category.LAUNCHER"/>
-        </intent-filter>
-        </activity>
+                  android:theme="@style/AppTheme.TransparentTheme" />
     </application>
 
 </manifest>

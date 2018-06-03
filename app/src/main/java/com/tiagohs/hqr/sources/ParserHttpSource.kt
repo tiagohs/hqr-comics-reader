@@ -2,6 +2,7 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.sources.SimpleItem
 import com.tiagohs.hqr.service.extensions.asJsoup
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -10,45 +11,63 @@ import org.jsoup.nodes.Element
 abstract class ParserHttpSource(
         private var client: OkHttpClient) : HttpSourceBase(client) {
 
+    abstract val publisherListSelector: String
+    abstract val lastestComicsSelector: String
+    abstract val popularComicsSelector: String
+
+    abstract val comicTitleSelector: String
+    abstract val comicPosterPathSelector: String
+    abstract val comicStatusSelector: String
+    abstract val comicSummarySelector: String
+    abstract val comicPublicationDateSelector: String
+
+    abstract val comicPublisherSelector: String
+    abstract val comicGenresSelector: String
+    abstract val comicWritersSelector: String
+    abstract val comicArtistsSelector: String
+    abstract val comicScanlatorsSelector: String
+    abstract val comicChaptersSelector: String
+
+    abstract val comicPublisherItemSelector: String
+    abstract val comicScanlatorItemSelector: String
+    abstract val comicGenreItemSelector: String
+    abstract val comicWriterItemSelector: String
+    abstract val comicArtistItemSelector: String
+    abstract val comicChapterItemSelector: String
+
     override fun parsePublishersResponse(response: Response): List<Publisher> {
         val document = response.asJsoup()
 
-        val publishers: List<Publisher> = document.select(getPublisherListSelector()).map { element ->
+        val publishers: List<Publisher> = document.select(publisherListSelector).map { element ->
             parsePublisherByElement(element)
         }
 
         return publishers
     }
 
-    abstract fun getPublisherListSelector(): String
-
     abstract fun parsePublisherByElement(element: Element): Publisher
 
     override fun parseLastestComicsResponse(response: Response): List<ComicsItem> {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(getLastestComicsSelector()).map { element ->
+        val comics: List<ComicsItem> = document.select(lastestComicsSelector).map { element ->
             parseLastestComicsByElement(element)
         }
 
         return comics
     }
 
-    abstract fun getLastestComicsSelector(): String
-
     abstract fun parseLastestComicsByElement(element: Element): ComicsItem
 
     override fun parsePopularComicsResponse(response: Response): List<ComicsItem> {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(getPopularComicsSelector()).map { element ->
+        val comics: List<ComicsItem> = document.select(popularComicsSelector).map { element ->
             parsePopularComicsByElement(element)
         }
 
         return comics
     }
-
-    abstract fun getPopularComicsSelector(): String
 
     abstract fun parsePopularComicsByElement(element: Element): ComicsItem
 }

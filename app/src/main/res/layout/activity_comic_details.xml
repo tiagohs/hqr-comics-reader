@@ -47,7 +47,7 @@
                         android:layout_width="120dp"
                         android:layout_height="160dp"
                         android:layout_alignParentTop="true"
-                        android:layout_marginTop="100dp"
+                        android:layout_marginTop="110dp"
                         android:layout_marginLeft="16dp"
                         android:background="@color/colorPrimary"/>
 
@@ -56,9 +56,10 @@
                         android:layout_height="35dp"
                         android:text="Ler HQ"
                         android:textColor="@color/white"
+                        android:textSize="12dp"
                         android:background="@drawable/button_background_default"
                         android:drawableLeft="@drawable/ic_book"
-                        android:drawablePadding="10dp"
+                        android:drawablePadding="5dp"
                         android:layout_marginTop="130dp"
                         android:layout_marginRight="16dp"
                         android:paddingLeft="10dp"
@@ -70,8 +71,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="155dp"
-                        android:layout_marginLeft="150dp">
+                        android:layout_marginTop="160dp"
+                        android:layout_marginLeft="145dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -85,7 +86,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Batman Vs Superman Batman Vs Superman Batman Vs Superman Batman Vs Superman Batman Vs Superman Batman Vs Superman Batman"
+                            android:text="Batman Vs Superman"
                             android:textSize="14dp"
                             android:textColor="@color/colorPrimaryText"
                             android:layout_marginTop="10dp"

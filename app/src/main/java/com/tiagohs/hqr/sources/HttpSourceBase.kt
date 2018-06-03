@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.models.sources.Chapter
+import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.service.extensions.asJsoup
@@ -25,6 +26,10 @@ abstract class HttpSourceBase(
 
     abstract val baseUrl: String
 
+    abstract protected val publishersEndpoint: String
+    abstract protected val lastestComicsEndpoint: String
+    abstract protected val popularComicsEndpoint: String
+
     private fun fetch(request: Request): Observable<Response> {
         return client.newCall(request)
                 .asObservableSuccess()
@@ -32,40 +37,43 @@ abstract class HttpSourceBase(
     }
 
     fun fetchPublishers(): Observable<List<Publisher>> {
-        return fetch(GET(getPublishersEndpoint(), headersBuilder().build()))
+        return fetch(GET(publishersEndpoint, headersBuilder().build()))
                     .map({ response: Response -> parsePublishersResponse(response) })
     }
-
-    abstract protected fun getPublishersEndpoint(): String
 
     abstract protected fun parsePublishersResponse(response: Response) : List<Publisher>
 
     fun fetchLastestComics(): Observable<List<ComicsItem>> {
-        return fetch(GET(getLastestComicsEndpoint(), headersBuilder().build()))
+        return fetch(GET(lastestComicsEndpoint, headersBuilder().build()))
                 .map({ response: Response -> parseLastestComicsResponse(response) })
     }
-
-    abstract protected fun getLastestComicsEndpoint(): String
 
     abstract protected fun parseLastestComicsResponse(response: Response) : List<ComicsItem>
 
     fun fetchPopularComics(): Observable<List<ComicsItem>> {
-        return fetch(GET(getPopularComicsEndpoint(), headersBuilder().build()))
+        return fetch(GET(popularComicsEndpoint, headersBuilder().build()))
                 .map({ response: Response -> parsePopularComicsResponse(response) })
     }
-
-    abstract protected fun getPopularComicsEndpoint(): String
 
     abstract protected fun parsePopularComicsResponse(response: Response) : List<ComicsItem>
 
     fun fetchReaderComics(hqReaderPath: String): Observable<Chapter> {
         return fetch(GET(getReaderEndpoint(hqReaderPath), headersBuilder().build()))
-                .map({ response: Response -> parsReaderResponse(response) })
+                .map({ response: Response -> parseReaderResponse(response) })
     }
 
     abstract protected fun getReaderEndpoint(hqReaderPath: String): String
 
-    abstract protected fun parsReaderResponse(response: Response) : Chapter
+    abstract protected fun parseReaderResponse(response: Response) : Chapter
+
+    fun fetchComicDetails(comicPath: String): Observable<Comic> {
+        return fetch(GET(getComicDetailsEndpoint(comicPath), headersBuilder().build()))
+                .map({ response: Response -> parseComicDetailsResponse(response) })
+    }
+
+    abstract protected fun getComicDetailsEndpoint(comicPath: String): String
+
+    abstract protected fun parseComicDetailsResponse(response: Response) : Comic
 
     protected fun GET(url: String,
             headers: Headers = DEFAULT_HEADERS,

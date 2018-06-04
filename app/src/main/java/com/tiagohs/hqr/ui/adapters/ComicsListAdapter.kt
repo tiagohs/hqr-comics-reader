@@ -7,9 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.ComicsItem
-import com.tiagohs.hqr.ui.views.IComicListCallback
+import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.utils.ImageUtils
-import kotlinx.android.synthetic.main.item_comic.view.*
+import kotlinx.android.synthetic.main.activity_comic_details.view.*
 
 class ComicsListAdapter(private val comics: List<ComicsItem>,
                         private val context: Context?,

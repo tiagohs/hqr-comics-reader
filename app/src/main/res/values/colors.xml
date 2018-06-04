@@ -12,6 +12,11 @@
 
     <color name="white">#FFF</color>
     <color name="blackOpacity">#b3212121</color>
+    <color name="green">#43A047</color>
+    <color name="blue">#0288D1</color>
+    <color name="yellow">#F9A825</color>
+    <color name="gray">#757575</color>
+    <color name="red">#D32F2F</color>
 
     <color name="floating_normal">#b94646</color>
     <color name="floating_riple">#ff8282</color>

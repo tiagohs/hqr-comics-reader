@@ -3,11 +3,18 @@ package com.tiagohs.hqr.ui.views.activities
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Comic
+import com.tiagohs.hqr.models.sources.SimpleItem
 import com.tiagohs.hqr.ui.adapters.ComicDetailsPagerAdapter
+import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
+import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
+import com.tiagohs.hqr.utils.ImageUtils
+import com.tiagohs.hqr.utils.ScreenUtils
 import kotlinx.android.synthetic.main.activity_comic_details.*
 import javax.inject.Inject
 
@@ -50,16 +57,41 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
             presenter.onGetComicData(comicLink)
         }
 
-        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"))
-        tabLayout.setupWithViewPager(comicsDetailsViewpager)
     }
 
     override fun onBindComic(comic: Comic) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic)
+        tabLayout.setupWithViewPager(comicsDetailsViewpager)
+
+        if (!comic.posterPath.isNullOrEmpty()) {
+            ImageUtils.load(comicImage,
+                    "https://hqbr.com.br/" + comic.posterPath,
+                    R.drawable.img_placeholder,
+                    R.drawable.img_placeholder,
+                    false)
+            ImageUtils.loadWithRevealAnimation(this, comicWallpaper,
+                    "https://hqbr.com.br/" + comic.posterPath,
+                    R.drawable.img_placeholder,
+                    R.drawable.img_placeholder)
+        }
+
+        comicTitle.text = comic.title
+
+        comicStatus.text = ScreenUtils.getComicStatusText(this, comic.status)
+        comicStatus.setBackgroundColor(ScreenUtils.generateComicStatusBackground(this, comic.status))
+
+        publishersList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        publishersList.adapter = SimpleItemAdapter(comic.publisher, this, onPublisherSelect())
+
+
     }
 
-    override fun isAdded(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun onPublisherSelect(): ISimpleItemCallback {
+        return object : ISimpleItemCallback {
+            override fun onClick(item: SimpleItem) {
+                Log.d("ComicDetails", "OnClickPublisher")
+            }
+        }
     }
 
 }

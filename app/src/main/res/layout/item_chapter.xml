@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/container"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:padding="5dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="@drawable/background_riple_default">
+
+    <ImageView
+        android:id="@+id/book_icon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_centerVertical="true"
+        android:src="@drawable/ic_open_book"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="5dp"
+        android:layout_toEndOf="@id/book_icon"
+        android:layout_toStartOf="@id/donwloadIcon"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/chapterTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16dp"
+            android:lines="1"
+            android:ellipsize="end"
+            android:textColor="@color/colorPrimaryText"/>
+
+        <TextView
+            android:id="@+id/comicTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12dp"
+            android:lines="1"
+            android:ellipsize="end"
+            android:textColor="@color/colorSecondaryText"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/donwloadIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@drawable/button_background_riple_rounded_color_accent"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_download_white"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

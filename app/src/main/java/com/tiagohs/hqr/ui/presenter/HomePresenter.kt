@@ -15,7 +15,7 @@ class HomePresenter(subscriber: CompositeDisposable,
             HomeContract.IHomePresenter {
 
     override fun onGetPublishers() {
-        source.fetchPublishers()
+        mSubscribers!!.add(source.fetchPublishers()
                 .map({ publishers -> publishers.subList(1, publishers.size) })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -26,12 +26,12 @@ class HomePresenter(subscriber: CompositeDisposable,
                     },
                     { error: Throwable? ->
                         Log.e("HomePresenter", "Error!", error)
-                })
+                }))
     }
 
     override fun onGetHomePageData() {
 
-        source.fetchPopularComics()
+        mSubscribers!!.add(source.fetchPopularComics()
               .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { popularComics: List<ComicsItem>? ->
@@ -39,9 +39,9 @@ class HomePresenter(subscriber: CompositeDisposable,
                     },
                     { error: Throwable? ->
                         Log.e("HomePresenter", "Error!", error)
-               })
+               }))
 
-        source.fetchLastestComics()
+        mSubscribers!!.add(source.fetchLastestComics()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     { lastestComics: List<ComicsItem>? ->
@@ -49,7 +49,7 @@ class HomePresenter(subscriber: CompositeDisposable,
                     },
                     { error: Throwable? ->
                         Log.e("HomePresenter", "Error!", error)
-                })
+                }))
     }
 
 }

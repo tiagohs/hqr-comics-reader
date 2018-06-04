@@ -17,6 +17,7 @@
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/datePublishContainer"
             android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -29,78 +30,40 @@
                 android:src="@drawable/ic_date_accent" />
 
             <TextView
+                android:id="@+id/datePublish"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:text="October 2003"/>
+                android:layout_marginLeft="5dp" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:gravity="center">
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:text="Tom DeFalco"
-                android:textSize="12dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:textColor="@color/white"
-                android:background="@drawable/button_background_default"/>
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:text="Joe Bennett"
-                android:textSize="12dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:layout_marginLeft="5dp"
-                android:textColor="@color/white"
-                android:background="@drawable/button_background_default"/>
-
-        </LinearLayout>
-
-        <TextView
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/authorsList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Scott Free é o maior artista de fuga que já existiu. Ele é tão bom que conseguiu escapar do horrível orfanato da Vovó Bondade e dos perigos de Apokolips, viajando através das galáxias e estabelecendo uma nova vida na Terra com sua esposa, a antiga fúria conhecida como Grande Barda. Usando o alter ego de Senhor Milagre, ele desenvolveu sua carreira demonstrando suas técnicas acrobáticas de fuga. Ele até mesmo chamou a atenção da Liga da Justiça, que o acolheu em sua equipe. Você pode dizer que Scott Free tem tudo…então, por que não é o suficiente? Senhor Milagre dominou todas as ilusões, realizou todas as façanhas, mostrou todos os truques–exceto um. Ele nunca escapou da morte. Seria possível? Nosso herói terá que se matar se quiser descobrir. Esse é um SENHOR MILAGRE diferente de tudo que você já leu." />
+            android:minHeight="30dp"
+            android:clipToPadding="false" />
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="wrap_content"
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/scanlatorsList"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
-            android:gravity="center">
+            android:minHeight="30dp"
+            android:clipToPadding="false" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:text="Action"
-                android:textSize="12dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:textColor="@color/white"
-                android:background="@drawable/button_background_default"/>
+        <TextView
+            android:id="@+id/summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="30dp"
-                android:text="Adventure"
-                android:textSize="12dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:layout_marginLeft="5dp"
-                android:textColor="@color/white"
-                android:background="@drawable/button_background_default"/>
-
-        </LinearLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/genresList"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:minHeight="30dp"
+            android:clipToPadding="false" />
 
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>

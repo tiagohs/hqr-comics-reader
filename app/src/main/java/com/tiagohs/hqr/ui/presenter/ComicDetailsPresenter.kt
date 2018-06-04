@@ -18,9 +18,7 @@ class ComicDetailsPresenter(subscriber: CompositeDisposable,
               .observeOn(AndroidSchedulers.mainThread())
               .subscribe(
                       { comic: Comic? ->
-                            if (comic != null) {
-
-                            }
+                            if (comic != null) mView!!.onBindComic(comic)
                       }
               )
     }

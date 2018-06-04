@@ -4,4 +4,10 @@
     <string name="nav_favorite">Favoritos</string>
     <string name="nav_profile">Perfil</string>
     <string name="nav_download">Baixar HQ</string>
+
+    <string name="completed_status">Concluído</string>
+    <string name="ongoing_status">Em Andamento</string>
+    <string name="canceled_status">Cancelado</string>
+    <string name="unknown_status">Indisponível</string>
+    <string name="action_procurar">Procurar</string>
 </resources>

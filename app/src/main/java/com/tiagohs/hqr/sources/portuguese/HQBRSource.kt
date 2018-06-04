@@ -34,7 +34,7 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
 
     override val comicPublisherItemSelector: String get() = "a"
     override val comicChapterItemSelector: String get() = "td a"
-    override val comicScanlatorItemSelector: String get() = ""
+    override val comicScanlatorItemSelector: String get() = "a"
     override val comicGenreItemSelector: String get() = ""
     override val comicWriterItemSelector: String get() = ""
     override val comicArtistItemSelector: String get() = ""
@@ -128,10 +128,8 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
             }
 
         val summary = if (comicSummarySelector.isNotEmpty()) document.select(comicSummarySelector).first().text() else null
-        val publicationDate = if (comicPublicationDateSelector.isNotEmpty()) document.select(comicPublicationDateSelector).first().text() else null
 
         var publisher: List<SimpleItem> = ArrayList()
-
         if (comicPublisherSelector.isNotEmpty())
             document.select(comicPublisherSelector).forEach { element: Element? ->
                 if (element!!.text().contains("Editora")) {
@@ -139,31 +137,40 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
                 }
             }
 
-        val genres = if (comicGenresSelector.isNotEmpty())
-            document.select(comicGenresSelector).map { element -> parseSimpleItemByElement(comicGenreItemSelector, element)
-            } else ArrayList()
+        var scanlators: List<SimpleItem> = ArrayList()
+        if (comicScanlatorsSelector.isNotEmpty())
+            document.select(comicPublisherSelector).forEach { element: Element? ->
+                if (element!!.text().contains("Equipe responsável")) {
+                    scanlators = element.select(comicScanlatorItemSelector).map { element -> parseSimpleItemByElement(element) }
+                }
+            }
 
         val chapters = if (comicChaptersSelector.isNotEmpty())
-            document.select(comicChaptersSelector).map { element -> parseSimpleItemByElement(comicChapterItemSelector, element)
+            document.select(comicChaptersSelector).map { element -> parseChapterItemByElement(comicChapterItemSelector, element, title)
             } else ArrayList()
 
-        val writers = if (comicWritersSelector.isNotEmpty())
-            document.select(comicWritersSelector).map { element -> parseSimpleItemByElement(comicWriterItemSelector, element)
-            } else ArrayList()
+        /*val authors = arrayListOf(writers, artists)
+        authors.flatten()*/
 
-        val artists = if (comicArtistsSelector.isNotEmpty())
-            document.select(comicArtistsSelector).map { element -> parseSimpleItemByElement(comicArtistItemSelector, element)
-            } else ArrayList()
-
-        val scanlators: List<SimpleItem> = if (comicScanlatorsSelector.isNotEmpty())
-            document.select(comicScanlatorsSelector).map { element -> parseSimpleItemByElement(comicScanlatorItemSelector, element)
-            } else ArrayList()
-
-        return Comic(title, posterPath, status, publisher, genres, writers, artists, chapters, summary, publicationDate, scanlators)
+        return Comic(title, posterPath, status, publisher, ArrayList(), ArrayList(), chapters, summary, null, scanlators)
     }
 
     fun parseSimpleItemByElement(selector: String, element: Element): SimpleItem {
         return this.parseSimpleItemByElement(element.select(selector).first())
+    }
+
+    fun parseChapterItemByElement(selector: String, element: Element, comicTitle: String?): ChapterItem {
+        var title: String = ""
+        var link: String = ""
+
+        val elementSelected = element.select(selector).first()
+
+        if (elementSelected != null) {
+            title = elementSelected.text()
+            link = formatLink(elementSelected.attr("href"))
+        }
+
+        return ChapterItem(title, link, comicTitle)
     }
 
     fun parseSimpleItemByElement(element: Element): SimpleItem {

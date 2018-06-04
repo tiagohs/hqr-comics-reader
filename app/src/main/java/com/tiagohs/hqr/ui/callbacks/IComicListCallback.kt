@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.ui.views
+package com.tiagohs.hqr.ui.callbacks
 
 import com.tiagohs.hqr.models.sources.ComicsItem
 

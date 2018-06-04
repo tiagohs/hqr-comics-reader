@@ -1,20 +1,38 @@
 package com.tiagohs.hqr.ui.views.activities
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Chapter
+import com.tiagohs.hqr.models.sources.ReaderModel
 import com.tiagohs.hqr.ui.adapters.ReaderPagerAdapter
 import com.tiagohs.hqr.ui.contracts.ReaderContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import kotlinx.android.synthetic.main.activity_reader.*
 import javax.inject.Inject
 
+private const val CHAPTER_MODEL = "comic_link"
+
 class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
+
+    companion object {
+
+        fun newIntent(context: Context?, chapterModel: ReaderModel): Intent {
+            val intent: Intent = Intent(context, ReaderActivity::class.java)
+
+            intent.putExtra(CHAPTER_MODEL, chapterModel)
+
+            return intent
+        }
+    }
+
 
     @Inject lateinit var presenter: ReaderContract.IReaderPresenter
 
     lateinit var chapter: Chapter
+    lateinit var readerModel: ReaderModel
 
     override fun onGetLayoutViewId(): Int {
         return R.layout.activity_reader
@@ -24,15 +42,16 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
         return 0
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         getApplicationComponent()!!.inject(this)
 
+        readerModel = intent.getParcelableExtra(CHAPTER_MODEL)
+
         presenter.onBindView(this)
 
-        presenter.onGetChapterDetails("hqs/Detonador%20(2018)/capitulo/2/leitor/0#1")
+        presenter.onGetChapterDetails(readerModel.pathComic)
     }
 
     override fun onBindChapter(ch: Chapter?) {
@@ -57,9 +76,5 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
         }
     }
 
-
-    override fun isAdded(): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
 
 }

@@ -2,6 +2,7 @@ package com.tiagohs.hqr.models.sources
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.tiagohs.hqr.utils.ScreenUtils
 
 const val ONGOING = "ongoing_status"
 const val COMPLETED = "completed_status"
@@ -31,7 +32,7 @@ class Comic() : Parcelable {
     constructor(title: String?, posterPath: String?, status: String?, publisher: List<SimpleItem>?, genres: List<SimpleItem>?, authors: List<SimpleItem>?, chapters: List<ChapterItem>?, summary: String?, publicationDate: String?, scanlators: List<SimpleItem>?) : this() {
         this.title = title
         this.posterPath = posterPath
-        this.status = getStatus(status)
+        this.status = ScreenUtils.getStatusConstant(status)
         this.publisher = publisher
         this.genres = genres
         this.authors = authors
@@ -39,21 +40,6 @@ class Comic() : Parcelable {
         this.summary = summary
         this.publicationDate = publicationDate
         this.scanlators = scanlators
-    }
-
-    private fun getStatus(status: String?): String? {
-
-        if (status != null) {
-            if (status.contains("Concluído") or status.contains("Completed")) {
-                return COMPLETED
-            } else if (status.contains("Em Andamento") or status.contains("Ongoing")) {
-                return ONGOING
-            } else if (status.contains("Cancelado") or status.contains("Canceled")) {
-                return CANCELED
-            }
-        }
-
-        return UNKNOWN
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

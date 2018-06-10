@@ -6,11 +6,17 @@ import android.view.*
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.viewModels.FETCH_ALL
+import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
+import com.tiagohs.hqr.models.viewModels.ListComicsModel
 import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.adapters.PublishersListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
+import com.tiagohs.hqr.ui.callbacks.IPublisherCallback
 import com.tiagohs.hqr.ui.contracts.HomeContract
 import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
+import com.tiagohs.hqr.ui.views.activities.ListComicsActivity
+import com.tiagohs.hqr.ui.views.activities.SearchActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
 import kotlinx.android.synthetic.main.fragment_home.*
 import javax.inject.Inject
@@ -42,6 +48,15 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         inflater!!.inflate(R.menu.menu_home, menu)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+
+        when (item!!.itemId) {
+            R.id.menu_search -> startActivity(SearchActivity.newIntent(context))
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
 
@@ -57,6 +72,13 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
 
         homePresenter.onGetPublishers()
         homePresenter.onGetHomePageData()
+
+        lastestComicsTitleContainer.setOnClickListener({ view -> goToComicsListPage()})
+        popularsComicsTitleContainer.setOnClickListener({ view -> goToComicsListPage() })
+    }
+
+    private fun goToComicsListPage() {
+        startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_ALL, "HQS - HQBR", "")))
     }
 
     override fun getViewID(): Int {
@@ -68,18 +90,26 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
     }
 
     override fun onBindPublishers(publishers: List<Publisher>) {
-        publishersList.adapter = PublishersListAdapter(publishers, context)
+        publishersList.adapter = PublishersListAdapter(publishers, context, onPublisherCallback())
         publishersList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
     }
 
     override fun onBindLastestUpdates(lastestUpdates: List<ComicsItem>) {
-        lastestList.adapter = ComicsListAdapter(lastestUpdates, context, this)
+        lastestList.adapter = ComicsListAdapter(lastestUpdates, context, this, R.layout.item_comic)
         lastestList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
     }
 
     override fun onBindPopulars(populars: List<ComicsItem>) {
-        popularList.adapter = ComicsListAdapter(populars, context, this)
+        popularList.adapter = ComicsListAdapter(populars, context, this, R.layout.item_comic)
         popularList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+    }
+
+    private fun onPublisherCallback(): IPublisherCallback {
+        return object : IPublisherCallback {
+            override fun onClick(item: Publisher) {
+                startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_PUBLISHERS, item.name, item.url)))
+            }
+        }
     }
 
 }

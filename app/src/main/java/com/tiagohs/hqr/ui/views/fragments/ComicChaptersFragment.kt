@@ -7,7 +7,7 @@ import android.view.View
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.ChapterItem
 import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.models.sources.ReaderModel
+import com.tiagohs.hqr.models.viewModels.ReaderModel
 import com.tiagohs.hqr.ui.adapters.ChaptersListAdapter
 import com.tiagohs.hqr.ui.callbacks.IChapterItemCallback
 import com.tiagohs.hqr.ui.views.activities.ReaderActivity

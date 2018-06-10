@@ -20,30 +20,11 @@
             app:titleTextColor="@color/white"
             android:theme="@style/AppTheme.AppBarOverlay" />
 
-        <RelativeLayout
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/contentFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:id="@+id/contentFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <android.support.design.widget.BottomNavigationView
-                android:id="@+id/rootBottomNavigation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                app:elevation="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="@color/colorPrimary"
-                app:itemIconTint="@color/navigation_item_color"
-                app:itemTextColor="@color/navigation_item_color"
-                app:menu="@menu/menu_navigation_bottom" />
-
-        </RelativeLayout>
+            android:layout_height="match_parent" />
 
     </LinearLayout>
 

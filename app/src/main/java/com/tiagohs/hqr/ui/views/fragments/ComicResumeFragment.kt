@@ -8,8 +8,11 @@ import android.view.View
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.SimpleItem
+import com.tiagohs.hqr.models.viewModels.FETCH_BY_SCANLATORS
+import com.tiagohs.hqr.models.viewModels.ListComicsModel
 import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
+import com.tiagohs.hqr.ui.views.activities.ListComicsActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
 import kotlinx.android.synthetic.main.fragment_comic_resume.*
 
@@ -81,7 +84,7 @@ class ComicResumeFragment: BaseFragment() {
     fun onScanlatorSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
             override fun onClick(item: SimpleItem) {
-                Log.d("ComicDetails", "onScanlatorSelect")
+                startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_SCANLATORS, item.title!!, item.link!!)))
             }
         }
     }

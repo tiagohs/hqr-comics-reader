@@ -2,7 +2,7 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
-import com.tiagohs.hqr.models.sources.SimpleItem
+import com.tiagohs.hqr.models.viewModels.ComicsListModel
 import com.tiagohs.hqr.service.extensions.asJsoup
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -14,6 +14,8 @@ abstract class ParserHttpSource(
     abstract val publisherListSelector: String
     abstract val lastestComicsSelector: String
     abstract val popularComicsSelector: String
+    abstract val allComicsListSelector: String
+    abstract val searchComicsSelector: String
 
     abstract val comicTitleSelector: String
     abstract val comicPosterPathSelector: String
@@ -70,4 +72,48 @@ abstract class ParserHttpSource(
     }
 
     abstract fun parsePopularComicsByElement(element: Element): ComicsItem
+
+    override fun parseAllComicsByLetterResponse(response: Response): ComicsListModel {
+        val document = response.asJsoup()
+
+        val comics: List<ComicsItem> = document.select(allComicsListSelector).map { element ->
+            parseAllComicsByLetterByElement(element)
+        }
+
+        return ComicsListModel(comics, false)
+    }
+
+    abstract fun parseAllComicsByLetterByElement(element: Element): ComicsItem
+
+    override fun parseAllComicsByPublisherResponse(response: Response): ComicsListModel {
+        val document = response.asJsoup()
+
+        val comics: List<ComicsItem> = document.select(allComicsListSelector).map { element ->
+            parseAllComicsByLetterByElement(element)
+        }
+
+        return ComicsListModel(comics, false)
+    }
+
+    override fun parseAllComicsByScanlatorResponse(response: Response): ComicsListModel {
+        val document = response.asJsoup()
+
+        val comics: List<ComicsItem> = document.select(allComicsListSelector).map { element ->
+            parseAllComicsByLetterByElement(element)
+        }
+
+        return ComicsListModel(comics, false)
+    }
+
+    override fun parseSearchByQueryResponse(response: Response, query: String): ComicsListModel {
+        val document = response.asJsoup()
+
+        val comics: List<ComicsItem> = document.select(searchComicsSelector).map { element ->
+            parseSearchByQueryByElement(element)
+        }
+
+        return ComicsListModel(comics, false)
+    }
+
+    abstract fun parseSearchByQueryByElement(element: Element): ComicsItem
 }

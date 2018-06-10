@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.models.sources
+package com.tiagohs.hqr.models.viewModels
 
 import android.os.Parcel
 import android.os.Parcelable

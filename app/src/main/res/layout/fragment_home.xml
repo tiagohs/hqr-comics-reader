@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="50dp"
@@ -18,27 +17,20 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp">
 
-            <ImageView
-                android:id="@+id/sourceLogo"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/img_logo_hqbr"
-                android:layout_centerVertical="true"/>
-
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginEnd="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_toEndOf="@id/sourceLogo">
+                android:layout_marginTop="10dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorPrimaryText"
                     android:textSize="15sp"
+                    android:lines="1"
+                    android:ellipsize="end"
                     android:text="HQBR - Leitor Online de Quadrinhos"/>
 
                 <TextView
@@ -46,6 +38,8 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorSecondaryText"
                     android:textSize="12sp"
+                    android:lines="1"
+                    android:ellipsize="end"
                     android:text="https://www.hqbr.com.br/"/>
 
             </LinearLayout>
@@ -70,7 +64,6 @@
                 android:layout_marginTop="10dp"
                 android:textColor="@color/white"
                 android:text="Acessar Site"
-                android:layout_toEndOf="@id/sourceLogo"
                 android:layout_alignParentBottom="true"
                 android:background="@drawable/button_background_default"/>
 
@@ -102,7 +95,7 @@
             android:id="@+id/publishersList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="150dp"
+            android:minHeight="100dp"
             android:clipToPadding="false" />
 
         <LinearLayout
@@ -111,24 +104,48 @@
             android:orientation="vertical">
 
             <RelativeLayout
+                android:id="@+id/lastestComicsTitleContainer"
                 android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:gravity="center"
+                android:layout_height="50dp"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:orientation="horizontal"
-                android:background="@drawable/background_riple_default">
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="Lastest Coomics"/>
+                    android:orientation="vertical"
+                    android:layout_toStartOf="@id/seeAll"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginEnd="5dp"
+                    android:layout_centerVertical="true">
+
+                    <TextView
+                        android:id="@+id/latestTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorPrimaryText"
+                        android:text="Últimas HQs"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorSecondaryText"
+                        android:textSize="12sp"
+                        android:text="Últimas HQs Adicionadas no Acervo"/>
+
+                </LinearLayout>
 
                 <TextView
+                    android:id="@+id/seeAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:textColor="@color/colorAccent"
                     android:text="Ver Todos"/>
 
             </RelativeLayout>
@@ -148,24 +165,48 @@
             android:orientation="vertical">
 
             <RelativeLayout
+                android:id="@+id/popularsComicsTitleContainer"
                 android:layout_width="match_parent"
-                android:layout_height="30dp"
-                android:gravity="center"
+                android:layout_height="50dp"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:orientation="horizontal"
-                android:background="@drawable/background_riple_default">
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="Populares"/>
+                    android:orientation="vertical"
+                    android:layout_toStartOf="@id/seeAllPopulars"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginEnd="5dp"
+                    android:layout_centerVertical="true">
+
+                    <TextView
+                        android:id="@+id/popularsTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorPrimaryText"
+                        android:text="HQs Populares"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorSecondaryText"
+                        android:textSize="12sp"
+                        android:text="As HQs mais acessadas"/>
+
+                </LinearLayout>
 
                 <TextView
+                    android:id="@+id/seeAllPopulars"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:textColor="@color/colorAccent"
                     android:text="Ver Todos"/>
 
             </RelativeLayout>

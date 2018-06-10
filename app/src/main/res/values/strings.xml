@@ -10,4 +10,6 @@
     <string name="canceled_status">Cancelado</string>
     <string name="unknown_status">Indisponível</string>
     <string name="action_procurar">Procurar</string>
+    <string name="filter_dialog_title">Filtrar</string>
+    <string name="action_search">Procurar</string>
 </resources>

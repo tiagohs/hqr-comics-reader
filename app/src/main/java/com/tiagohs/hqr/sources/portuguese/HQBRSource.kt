@@ -1,14 +1,17 @@
 package com.tiagohs.hqr.sources.portuguese
 
 import com.tiagohs.hqr.models.sources.*
+import com.tiagohs.hqr.models.viewModels.ComicsListModel
 import com.tiagohs.hqr.service.extensions.asJsoup
 import com.tiagohs.hqr.sources.ParserHttpSource
+import com.tiagohs.hqr.utils.ScreenUtils
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element
 import java.util.regex.Pattern
 
 class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
+
     override val baseUrl: String get() = "https://hqbr.com.br/"
 
     override val publishersEndpoint: String get() = "$baseUrl/editoras/"
@@ -18,6 +21,8 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
     override val publisherListSelector: String get() = "table > tbody > tr"
     override val lastestComicsSelector: String get() = ".site-content .home-articles"
     override val popularComicsSelector: String get() = ".widget-area > ul li"
+    override val allComicsListSelector: String get() = "table > tbody > tr"
+    override val searchComicsSelector: String get() = "table > tbody > tr"
 
     override val comicPublisherSelector: String get() = ".container div"
     override val comicTitleSelector: String get() = ".container div h2"
@@ -43,8 +48,29 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
         return "$baseUrl/$hqReaderPath"
     }
 
+    override fun getAllComicsByPublisherEndpoint(publisherPath: String): String {
+        return "$baseUrl/$publisherPath"
+    }
+
+    override fun getAllComicsByScanlatorEndpoint(scanlatorPath: String): String {
+        return "$baseUrl/$scanlatorPath"
+    }
+
+    override fun getAllComicsByLetterEndpoint(letter: String): String {
+        return "$baseUrl/hqs?letter=$letter"
+    }
+
     override fun getComicDetailsEndpoint(comicPath: String): String {
-        return comicPath
+        val urlBaseRegex = "https:\\/\\/hqbr.com.br\\/".toRegex()
+
+        if (urlBaseRegex.containsMatchIn(comicPath))
+            return comicPath
+        else
+            return "$baseUrl/$comicPath"
+    }
+
+    override fun getSearchByQueryEndpoint(query: String): String {
+        return "$baseUrl/hqs?letter=all"
     }
 
     override fun parsePublisherByElement(element: Element): Publisher {
@@ -78,7 +104,7 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
             img = elementImageSelector.attr("src")
         }
 
-        return ComicsItem(title, img, link)
+        return ComicsItem(title, img, link, "", "")
     }
 
     override fun parsePopularComicsByElement(element: Element): ComicsItem {
@@ -92,7 +118,57 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
             link = formatLink(elementSelector.attr("href"))
         }
 
-        return ComicsItem(title, "", link)
+        return ComicsItem(title, "", link, "", "")
+    }
+
+
+    override fun parseAllComicsByLetterByElement(element: Element): ComicsItem {
+        var title: String = ""
+        var status: String = ""
+        var link: String = ""
+        var publisher: String = ""
+
+        element.select("td").forEach { element: Element? ->
+            val linkElement = element!!.select("a").first()
+
+            if (linkElement != null) {
+                val titleRegex = "\\/hq\\/".toRegex()
+                val publisherRegex = "\\/editoras\\/".toRegex()
+
+                val linkHref = linkElement.attr("href")
+
+                if (titleRegex.containsMatchIn(linkHref)) {
+                    title = linkElement.text()
+                    link = formatLink(linkElement.attr("href"))
+                } else if (publisherRegex.containsMatchIn(linkHref)) {
+                    publisher = linkElement.text()
+                }
+            }
+
+            val statusElement = element.select("span").first()
+
+            if (statusElement != null) {
+                status = ScreenUtils.getStatusConstant(statusElement.text())!!
+            }
+        }
+
+        return ComicsItem(title, "", link, publisher, status)
+    }
+
+    override fun parseSearchByQueryByElement(element: Element): ComicsItem {
+        return parseAllComicsByLetterByElement(element)
+    }
+
+    override fun parseSearchByQueryResponse(response: Response, query: String): ComicsListModel {
+        val comicsModel = super.parseSearchByQueryResponse(response, query)
+
+        comicsModel.comics = comicsModel.comics.filter({
+                                comicsItem ->
+                                    val titleRegex = query.toLowerCase().toRegex()
+                            titleRegex.containsMatchIn(comicsItem.title.toLowerCase())
+                            })
+
+        return comicsModel
     }
 
     override fun parseReaderResponse(response: Response): Chapter {
@@ -111,7 +187,6 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
 
         return Chapter(pages)
     }
-
 
     override fun parseComicDetailsResponse(response: Response): Comic {
         val document = response.asJsoup()

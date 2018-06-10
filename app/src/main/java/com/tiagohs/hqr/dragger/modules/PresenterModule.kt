@@ -1,12 +1,8 @@
 package com.tiagohs.hqr.dragger.modules
 
 import com.tiagohs.hqr.sources.portuguese.HQBRSource
-import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
-import com.tiagohs.hqr.ui.contracts.HomeContract
-import com.tiagohs.hqr.ui.contracts.ReaderContract
-import com.tiagohs.hqr.ui.presenter.ComicDetailsPresenter
-import com.tiagohs.hqr.ui.presenter.HomePresenter
-import com.tiagohs.hqr.ui.presenter.ReaderPresenter
+import com.tiagohs.hqr.ui.contracts.*
+import com.tiagohs.hqr.ui.presenter.*
 import dagger.Module
 import dagger.Provides
 import io.reactivex.disposables.CompositeDisposable
@@ -27,5 +23,15 @@ class PresenterModule {
     @Provides
     internal fun provideComicDetailsPresenter(compositeDisposable: CompositeDisposable, source: HQBRSource): ComicDetailsContract.IComicDetailsPresenter {
         return ComicDetailsPresenter(compositeDisposable, source)
+    }
+
+    @Provides
+    internal fun provideListComicsPresenter(compositeDisposable: CompositeDisposable, source: HQBRSource): ListComicsContract.IListComicsPresenter {
+        return ListComicsPresenter(compositeDisposable, source)
+    }
+
+    @Provides
+    internal fun provideSearchPresenter(compositeDisposable: CompositeDisposable, source: HQBRSource): SearchContract.ISearchPresenter {
+        return SearchPresenter(compositeDisposable, source)
     }
 }

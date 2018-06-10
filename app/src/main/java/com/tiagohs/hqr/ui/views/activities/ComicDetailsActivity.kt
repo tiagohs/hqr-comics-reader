@@ -4,10 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.SimpleItem
+import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
+import com.tiagohs.hqr.models.viewModels.ListComicsModel
 import com.tiagohs.hqr.ui.adapters.ComicDetailsPagerAdapter
 import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
@@ -59,6 +60,14 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        presenter.onUnbindView()
+    }
+
+
     override fun onBindComic(comic: Comic) {
         comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic)
         tabLayout.setupWithViewPager(comicsDetailsViewpager)
@@ -82,14 +91,12 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
         publishersList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         publishersList.adapter = SimpleItemAdapter(comic.publisher, this, onPublisherSelect())
-
-
     }
 
     fun onPublisherSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
             override fun onClick(item: SimpleItem) {
-                Log.d("ComicDetails", "OnClickPublisher")
+                startActivity(ListComicsActivity.newIntent(this@ComicDetailsActivity, ListComicsModel(FETCH_BY_PUBLISHERS, item.title!!, item.link!!)))
             }
         }
     }

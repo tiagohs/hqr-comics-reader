@@ -14,9 +14,9 @@ class ReaderPresenter(
 ): BasePresenter<ReaderContract.IReaderView>(subscribers), ReaderContract.IReaderPresenter {
 
     override fun onGetChapterDetails(chapterPath: String) {
-        source.fetchReaderComics(chapterPath)
+        mSubscribers!!.add(source.fetchReaderComics(chapterPath)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ chapter: Chapter? -> mView!!.onBindChapter(chapter) },
-                           { error: Throwable? -> Log.e("Reader", "Error", error) })
+                           { error: Throwable? -> Log.e("Reader", "Error", error) }))
     }
 }

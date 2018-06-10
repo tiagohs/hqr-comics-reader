@@ -4,6 +4,7 @@ import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.viewModels.ComicsListModel
 import com.tiagohs.hqr.service.extensions.asJsoup
 import com.tiagohs.hqr.service.extensions.asObservableSuccess
 import io.reactivex.Observable
@@ -75,6 +76,42 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseComicDetailsResponse(response: Response) : Comic
 
+    fun fetchAllComicsByLetter(letter: String): Observable<ComicsListModel> {
+        return fetch(GET(getAllComicsByLetterEndpoint(letter), headersBuilder().build()))
+                .map({ response: Response -> parseAllComicsByLetterResponse(response) })
+    }
+
+    abstract protected fun getAllComicsByLetterEndpoint(letter: String): String
+
+    abstract protected fun parseAllComicsByLetterResponse(response: Response) : ComicsListModel
+
+    fun fetchAllComicsByPublisher(publisherPath: String): Observable<ComicsListModel> {
+        return fetch(GET(getAllComicsByPublisherEndpoint(publisherPath), headersBuilder().build()))
+                .map({ response: Response -> parseAllComicsByPublisherResponse(response) })
+    }
+
+    abstract protected fun getAllComicsByPublisherEndpoint(publisherPath: String): String
+
+    abstract protected fun parseAllComicsByPublisherResponse(response: Response) : ComicsListModel
+
+    fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<ComicsListModel> {
+        return fetch(GET(getAllComicsByScanlatorEndpoint(scanlatorPath), headersBuilder().build()))
+                .map({ response: Response -> parseAllComicsByScanlatorResponse(response) })
+    }
+
+    abstract protected fun getAllComicsByScanlatorEndpoint(scanlatorPath: String): String
+
+    abstract protected fun parseAllComicsByScanlatorResponse(response: Response) : ComicsListModel
+
+    fun fetchSearchByQuery(query: String): Observable<ComicsListModel> {
+        return fetch(GET(getSearchByQueryEndpoint(query), headersBuilder().build()))
+                .map({ response: Response -> parseSearchByQueryResponse(response, query) })
+    }
+
+    abstract protected fun getSearchByQueryEndpoint(query: String): String
+
+    abstract protected fun parseSearchByQueryResponse(response: Response, query: String): ComicsListModel
+
     protected fun GET(url: String,
             headers: Headers = DEFAULT_HEADERS,
             cache: CacheControl = DEFAULT_CACHE_CONTROL): Request {
@@ -86,7 +123,7 @@ abstract class HttpSourceBase(
                 .build()
     }
 
-    fun fetchResaderComics() {
+    fun fetchReaderComics() {
         fetch(GET("https://www.hqbr.com.br/hqs/Detonador%20(2018)/capitulo/2/leitor/0#1", headersBuilder().build()))
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({

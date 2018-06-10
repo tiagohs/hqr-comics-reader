@@ -6,14 +6,14 @@ import android.os.Bundle
 import android.view.View
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.ReaderModel
+import com.tiagohs.hqr.models.viewModels.ReaderModel
 import com.tiagohs.hqr.ui.adapters.ReaderPagerAdapter
 import com.tiagohs.hqr.ui.contracts.ReaderContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import kotlinx.android.synthetic.main.activity_reader.*
 import javax.inject.Inject
 
-private const val CHAPTER_MODEL = "comic_link"
+private const val CHAPTER_MODEL = "CHAPTER_MODEL"
 
 class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
 

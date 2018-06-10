@@ -2,6 +2,7 @@ package com.tiagohs.hqr.utils
 
 import android.content.Context
 import android.support.v4.content.ContextCompat
+import android.widget.ImageView
 import com.amulyakhare.textdrawable.TextDrawable
 import com.amulyakhare.textdrawable.util.ColorGenerator
 import com.tiagohs.hqr.R
@@ -20,13 +21,13 @@ class ScreenUtils {
             return (dpWidth / itemSize).toInt()
         }
 
-        fun generateMaterialColorBackground(context: Context?) : TextDrawable {
+        fun generateMaterialColorBackground(context: Context?, text: String, imageView: ImageView) : TextDrawable {
             val generator = ColorGenerator.MATERIAL
 
             return TextDrawable.builder()
                     .beginConfig()
                     .endConfig()
-                    .buildRoundRect("", generator.getRandomColor(), 20);
+                    .buildRound(text.elementAt(0).toString(), generator.getRandomColor());
         }
 
         fun generateComicStatusBackground(context: Context, status: String?): Int {
@@ -56,6 +57,22 @@ class ScreenUtils {
 
             return context.getString(R.string.unknown_status)
         }
+
+        fun getStatusConstant(status: String?): String? {
+
+            if (status != null) {
+                if (status.contains("Concluído") or status.contains("Completed")) {
+                    return COMPLETED
+                } else if (status.contains("Em Andamento") or status.contains("Ongoing")) {
+                    return ONGOING
+                } else if (status.contains("Cancelado") or status.contains("Canceled")) {
+                    return CANCELED
+                }
+            }
+
+            return UNKNOWN
+        }
+
     }
 
 

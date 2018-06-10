@@ -13,15 +13,13 @@ class ComicDetailsPresenter(subscriber: CompositeDisposable,
         ComicDetailsContract.IComicDetailsPresenter {
 
     override fun onGetComicData(comicPath: String) {
-
-        source.fetchComicDetails(comicPath)
+        mSubscribers!!.add(source.fetchComicDetails(comicPath)
               .observeOn(AndroidSchedulers.mainThread())
               .subscribe(
                       { comic: Comic? ->
                             if (comic != null) mView!!.onBindComic(comic)
                       }
-              )
+              ))
     }
-
 
 }

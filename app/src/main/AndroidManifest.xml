@@ -21,6 +21,7 @@
         <activity android:name=".ui.views.activities.SearchActivity" />
         <activity android:name=".ui.views.activities.ComicDetailsActivity"
                   android:theme="@style/AppTheme.TransparentTheme" />
+        <activity android:name=".ui.views.activities.ListComicsActivity" />
     </application>
 
 </manifest>

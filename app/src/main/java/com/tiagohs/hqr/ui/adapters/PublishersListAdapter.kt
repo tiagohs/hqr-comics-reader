@@ -6,17 +6,21 @@ import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.ui.callbacks.IPublisherCallback
 import com.tiagohs.hqr.utils.ScreenUtils
 import kotlinx.android.synthetic.main.item_publisher.view.*
 
 class PublishersListAdapter(private val publishers: List<Publisher>,
-                            private val context: Context?) : Adapter<PublishersListAdapter.PublisherViewHolder>() {
+                            private val context: Context?,
+                            private val callback: IPublisherCallback) : Adapter<PublishersListAdapter.PublisherViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PublisherViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.item_publisher, parent, false)
-        return PublisherViewHolder(view)
+        return PublisherViewHolder(view, callback, context)
     }
 
     override fun getItemCount(): Int {
@@ -24,18 +28,42 @@ class PublishersListAdapter(private val publishers: List<Publisher>,
     }
 
     override fun onBindViewHolder(holder: PublisherViewHolder, position: Int) {
-        val publisher = publishers[position]
-
-        holder.publisherTitle.text = publisher.name
-
-        val backgroundDrawable = ScreenUtils.generateMaterialColorBackground(context)
-        holder.publisherBackground.setImageDrawable(backgroundDrawable)
+        holder.onBindView(publishers[position])
     }
 
-    class PublisherViewHolder(itemView: View) : ViewHolder(itemView) {
+    class PublisherViewHolder(itemView: View) : ViewHolder(itemView), View.OnClickListener {
 
-        val publisherTitle = itemView.publisherTitle
-        val publisherBackground = itemView.publisherImgBack
+        lateinit var publisherTitle: TextView
+        lateinit var publisherBackground: ImageView
+
+        lateinit var callback: IPublisherCallback
+        lateinit var publisher: Publisher
+        lateinit var context: Context
+
+
+        constructor(itemView: View, callback: IPublisherCallback, context: Context?) : this(itemView) {
+            this.callback = callback
+            this.context = context!!
+
+            itemView.setOnClickListener(this)
+
+            publisherTitle = itemView.publisherTitle
+            publisherBackground = itemView.publisherImgBack
+        }
+
+        fun onBindView(publisher: Publisher) {
+            this.publisher = publisher
+
+            publisherTitle.text = publisher.name
+
+            val backgroundDrawable = ScreenUtils.generateMaterialColorBackground(context, publisher.name, publisherBackground)
+            publisherBackground.setImageDrawable(backgroundDrawable)
+        }
+
+        override fun onClick(p0: View?) {
+            callback.onClick(publisher)
+        }
+
     }
 }
 

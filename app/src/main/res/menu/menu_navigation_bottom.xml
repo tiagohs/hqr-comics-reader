@@ -8,15 +8,21 @@
         android:title="@string/nav_home"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/actionRecent"
+        android:enabled="true"
+        android:icon="@drawable/ic_time_white"
+        android:title="@string/nav_recent"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/actionFavorite"
         android:enabled="true"
         android:icon="@drawable/ic_heart_white"
         android:title="@string/nav_favorite"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/actionProfile"
+        android:id="@+id/actionMore"
         android:enabled="true"
-        android:icon="@drawable/ic_person_white"
-        android:title="@string/nav_profile"
+        android:icon="@drawable/ic_more_white"
+        android:title="@string/nav_more"
         app:showAsAction="ifRoom" />
 </menu>

@@ -32,7 +32,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        activityCallbacks!!.setScreenTitle("Página Inicial")
+        activityCallbacks!!.setScreenTitle("Ínicio")
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

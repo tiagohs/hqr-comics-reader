@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">MangaR</string>
-    <string name="nav_home">Home</string>
+    <string name="nav_home">Ínicio</string>
     <string name="nav_favorite">Favoritos</string>
     <string name="nav_profile">Perfil</string>
     <string name="nav_download">Baixar HQ</string>
@@ -12,4 +12,6 @@
     <string name="action_procurar">Procurar</string>
     <string name="filter_dialog_title">Filtrar</string>
     <string name="action_search">Procurar</string>
+    <string name="nav_recent">Recente</string>
+    <string name="nav_more">Mais</string>
 </resources>

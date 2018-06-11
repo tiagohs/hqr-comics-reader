@@ -2,22 +2,24 @@ package com.tiagohs.hqr.models.viewModels
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.tiagohs.hqr.models.sources.ChapterItem
+import com.tiagohs.hqr.models.sources.Comic
 
 class ReaderModel(
         val pathComic: String,
-        val comicTitle: String?,
-        val comicChapterTitle: String?
+        val comic: Comic,
+        val chapter: ChapterItem
 ): Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),
-            parcel.readString(),
-            parcel.readString()) {
+            parcel.readParcelable(Comic::class.java.classLoader),
+            parcel.readParcelable(ChapterItem::class.java.classLoader)) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(pathComic)
-        parcel.writeString(comicTitle)
-        parcel.writeString(comicChapterTitle)
+        parcel.writeParcelable(comic, flags)
+        parcel.writeParcelable(chapter, flags)
     }
 
     override fun describeContents(): Int {
@@ -33,5 +35,6 @@ class ReaderModel(
             return arrayOfNulls(size)
         }
     }
+
 
 }

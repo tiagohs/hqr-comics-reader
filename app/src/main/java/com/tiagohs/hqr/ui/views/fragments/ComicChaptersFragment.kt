@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.ui.views.fragments
 
 import android.os.Bundle
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.View
@@ -47,11 +48,12 @@ class ComicChaptersFragment: BaseFragment(), IChapterItemCallback {
         super.onViewCreated(view, savedInstanceState)
 
         chaptersList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        chaptersList.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         chaptersList.adapter = ChaptersListAdapter(comic.chapters, context, this)
     }
 
     override fun onChapterSelect(chapter: ChapterItem) {
-        startActivity(ReaderActivity.newIntent(context, ReaderModel(chapter.link!!, chapter.comicTitle, chapter.title)))
+        startActivity(ReaderActivity.newIntent(context, ReaderModel(chapter.link!!, comic, chapter)))
     }
 
     override fun onDownloadSelect(chapter: ChapterItem) {

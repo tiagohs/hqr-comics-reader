@@ -27,14 +27,18 @@ class RootActivity : BaseActivity() {
         rootBottomNavigation!!.setOnNavigationItemSelectedListener({ item ->
             when (item.itemId) {
                 R.id.actionHome -> onSelectFragment("${item.itemId}:${R.id.actionHome}", HomeFragment.newFragment())
-                R.id.actionProfile -> {
+                R.id.actionFavorite -> {
 
                     true
                 }
-                R.id.actionFavorite ->
+                R.id.actionRecent -> {
 
                     true
-            }
+                }
+                R.id.actionMore ->
+
+                    true
+                }
 
             false
         })

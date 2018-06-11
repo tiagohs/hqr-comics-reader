@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="50dp"
@@ -91,12 +92,27 @@
 
         </LinearLayout>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/publishersList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="100dp"
-            android:clipToPadding="false" />
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ProgressBar
+                android:id="@+id/publishersListProgress"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="50dp"
+                android:layout_height="100dp"
+                android:layout_centerHorizontal="true" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/publishersList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="100dp"
+                android:clipToPadding="false" />
+
+        </RelativeLayout>
+
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -150,12 +166,25 @@
 
             </RelativeLayout>
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/lastestList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="150dp"
-                android:clipToPadding="false" />
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ProgressBar
+                    android:id="@+id/lastestListProgress"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="50dp"
+                    android:layout_height="150dp"
+                    android:layout_centerHorizontal="true" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/lastestList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="150dp"
+                    android:clipToPadding="false" />
+
+            </RelativeLayout>
 
         </LinearLayout>
 
@@ -211,12 +240,25 @@
 
             </RelativeLayout>
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/popularList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:minHeight="150dp"
-                android:clipToPadding="false" />
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ProgressBar
+                    android:id="@+id/popularListProgress"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="50dp"
+                    android:layout_height="150dp"
+                    android:layout_centerHorizontal="true" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/popularList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="150dp"
+                    android:clipToPadding="false" />
+
+            </RelativeLayout>
 
         </LinearLayout>
 

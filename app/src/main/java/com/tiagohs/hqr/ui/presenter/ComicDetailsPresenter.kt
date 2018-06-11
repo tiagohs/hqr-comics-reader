@@ -18,6 +18,10 @@ class ComicDetailsPresenter(subscriber: CompositeDisposable,
               .subscribe(
                       { comic: Comic? ->
                             if (comic != null) mView!!.onBindComic(comic)
+                      },
+                      {
+                          t ->
+
                       }
               ))
     }

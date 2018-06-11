@@ -10,12 +10,21 @@
     android:layout_marginStart="5dp"
     android:gravity="center">
 
-    <ImageView
-        android:id="@+id/publisherImgBack"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:scaleType="fitXY"
-        tools:ignore="ContentDescription" />
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <include
+            layout="@layout/placeholder_image_rounded" />
+
+        <ImageView
+            android:id="@+id/publisherImgBack"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:scaleType="fitXY"
+            tools:ignore="ContentDescription"/>
+    </RelativeLayout>
+
 
     <TextView
         android:id="@+id/publisherTitle"

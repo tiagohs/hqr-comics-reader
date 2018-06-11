@@ -6,18 +6,23 @@ import okio.*
 import java.io.IOException
 
 fun Call.asObservable(): Observable<Response> {
-    return Observable.unsafeCreate { subscriber ->
+    return Observable.create { subscriber ->
         // Since Call is a one-shot type, clone it for each new subscriber.
         val call = clone()
 
         try {
             val response = call.execute()
             if (!call.isCanceled) {
-                subscriber.onNext(response)
-                subscriber.onComplete()
+                if (response != null) {
+                    subscriber.onNext(response)
+                    subscriber.onComplete()
+                } else {
+                    subscriber.onError(Exception("Response is null"))
+                }
             }
         } catch (error: Exception) {
             if (!call.isCanceled) {
+                call.cancel()
                 subscriber.onError(error)
             }
         }

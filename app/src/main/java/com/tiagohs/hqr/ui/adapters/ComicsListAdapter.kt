@@ -14,6 +14,7 @@ import com.tiagohs.hqr.utils.ImageUtils
 import com.tiagohs.hqr.utils.ScreenUtils
 import kotlinx.android.synthetic.main.activity_comic_details.view.*
 import kotlinx.android.synthetic.main.item_comic_simple_it.view.*
+import kotlinx.android.synthetic.main.placeholder_comic_it_horizontal.view.*
 
 class ComicsListAdapter(var comics: List<ComicsItem>,
                         private val context: Context?,
@@ -45,7 +46,7 @@ class ComicsListAdapter(var comics: List<ComicsItem>,
         lateinit var comicsImage: ImageView
         lateinit var comicsStatus: TextView
         lateinit var comicsPublisher: TextView
-
+        lateinit var placeholder: View
 
         constructor(itemView: View, callback: IComicListCallback, context: Context) : this(itemView) {
             this.callback = callback
@@ -68,6 +69,9 @@ class ComicsListAdapter(var comics: List<ComicsItem>,
 
             if (itemView.comicPublisher != null)
                 comicsPublisher = itemView.comicPublisher
+
+            if (itemView.placeholderItem != null)
+                placeholder = itemView.placeholderItem
         }
 
         fun onBindView(c: ComicsItem) {
@@ -75,7 +79,11 @@ class ComicsListAdapter(var comics: List<ComicsItem>,
 
             comicTitle.text = comic.title
 
-            if (::comicsImage.isInitialized) {
+            if (::comicsImage.isInitialized && ::placeholder.isInitialized) {
+                ImageUtils.load(comicsImage,
+                        "https://hqbr.com.br/" + comic.imagePath,
+                        R.drawable.img_placeholder, true, placeholder)
+            } else if (::comicsImage.isInitialized) {
                 ImageUtils.load(comicsImage,
                         "https://hqbr.com.br/" + comic.imagePath,
                         R.drawable.img_placeholder,

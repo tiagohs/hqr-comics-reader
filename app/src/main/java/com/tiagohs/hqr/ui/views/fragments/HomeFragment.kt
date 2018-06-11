@@ -73,8 +73,8 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         homePresenter.onGetPublishers()
         homePresenter.onGetHomePageData()
 
-        lastestComicsTitleContainer.setOnClickListener({ view -> goToComicsListPage()})
-        popularsComicsTitleContainer.setOnClickListener({ view -> goToComicsListPage() })
+        lastestComicsTitleContainer.setOnClickListener({ goToComicsListPage()})
+        popularsComicsTitleContainer.setOnClickListener({ goToComicsListPage() })
     }
 
     private fun goToComicsListPage() {
@@ -92,16 +92,22 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
     override fun onBindPublishers(publishers: List<Publisher>) {
         publishersList.adapter = PublishersListAdapter(publishers, context, onPublisherCallback())
         publishersList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+
+        publishersListProgress.visibility = View.GONE
     }
 
     override fun onBindLastestUpdates(lastestUpdates: List<ComicsItem>) {
         lastestList.adapter = ComicsListAdapter(lastestUpdates, context, this, R.layout.item_comic)
         lastestList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+
+        lastestListProgress.visibility = View.GONE
     }
 
     override fun onBindPopulars(populars: List<ComicsItem>) {
         popularList.adapter = ComicsListAdapter(populars, context, this, R.layout.item_comic)
         popularList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+
+        popularListProgress.visibility = View.GONE
     }
 
     private fun onPublisherCallback(): IPublisherCallback {

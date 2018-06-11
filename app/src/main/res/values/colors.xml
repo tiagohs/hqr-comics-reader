@@ -20,4 +20,6 @@
 
     <color name="floating_normal">#b94646</color>
     <color name="floating_riple">#ff8282</color>
+
+    <color name="placeholder_bg">#dddddd</color>
 </resources>

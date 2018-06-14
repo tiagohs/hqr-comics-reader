@@ -1,12 +1,10 @@
 package com.tiagohs.hqr.sources
 
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.models.sources.ComicsItem
-import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.sources.*
 import com.tiagohs.hqr.models.viewModels.ComicsListModel
-import com.tiagohs.hqr.service.extensions.asJsoup
-import com.tiagohs.hqr.service.extensions.asObservableSuccess
+import com.tiagohs.hqr.utils.extensions.asJsoup
+import com.tiagohs.hqr.utils.extensions.asObservableSuccess
+import com.tiagohs.hqr.utils.extensions.newCallWithProgress
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -58,23 +56,23 @@ abstract class HttpSourceBase(
 
     abstract protected fun parsePopularComicsResponse(response: Response) : List<ComicsItem>
 
-    fun fetchReaderComics(hqReaderPath: String): Observable<Chapter> {
+    fun fetchReaderComics(hqReaderPath: String, chapterName: String?): Observable<Chapter> {
         return fetch(GET(getReaderEndpoint(hqReaderPath), headersBuilder().build()))
-                .map({ response: Response -> parseReaderResponse(response) })
+                .map({ response: Response -> parseReaderResponse(response, chapterName, hqReaderPath) })
     }
 
     abstract protected fun getReaderEndpoint(hqReaderPath: String): String
 
-    abstract protected fun parseReaderResponse(response: Response) : Chapter
+    abstract protected fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?) : Chapter
 
     fun fetchComicDetails(comicPath: String): Observable<Comic> {
         return fetch(GET(getComicDetailsEndpoint(comicPath), headersBuilder().build()))
-                .map({ response: Response -> parseComicDetailsResponse(response) })
+                .map({ response: Response -> parseComicDetailsResponse(response, comicPath) })
     }
 
     abstract protected fun getComicDetailsEndpoint(comicPath: String): String
 
-    abstract protected fun parseComicDetailsResponse(response: Response) : Comic
+    abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : Comic
 
     fun fetchAllComicsByLetter(letter: String): Observable<ComicsListModel> {
         return fetch(GET(getAllComicsByLetterEndpoint(letter), headersBuilder().build()))
@@ -122,6 +120,17 @@ abstract class HttpSourceBase(
                 .cacheControl(cache)
                 .build()
     }
+
+
+    fun fetchImage(page: Page): Observable<Response> {
+        return client.newCallWithProgress(imageRequest(page), page)
+                .asObservableSuccess()
+    }
+
+    open protected fun imageRequest(page: Page): Request {
+        return GET(page.imageUrl!!, headers)
+    }
+
 
     fun fetchReaderComics() {
         fetch(GET("https://www.hqbr.com.br/hqs/Detonador%20(2018)/capitulo/2/leitor/0#1", headersBuilder().build()))

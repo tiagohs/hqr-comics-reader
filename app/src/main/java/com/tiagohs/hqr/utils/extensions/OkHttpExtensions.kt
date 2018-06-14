@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.service.extensions
+package com.tiagohs.hqr.utils.extensions
 
 import io.reactivex.Observable
 import okhttp3.*

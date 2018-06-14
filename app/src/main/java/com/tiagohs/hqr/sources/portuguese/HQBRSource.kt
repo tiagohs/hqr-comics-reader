@@ -2,7 +2,7 @@ package com.tiagohs.hqr.sources.portuguese
 
 import com.tiagohs.hqr.models.sources.*
 import com.tiagohs.hqr.models.viewModels.ComicsListModel
-import com.tiagohs.hqr.service.extensions.asJsoup
+import com.tiagohs.hqr.utils.extensions.asJsoup
 import com.tiagohs.hqr.sources.ParserHttpSource
 import com.tiagohs.hqr.utils.ScreenUtils
 import okhttp3.OkHttpClient
@@ -171,7 +171,7 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
         return comicsModel
     }
 
-    override fun parseReaderResponse(response: Response): Chapter {
+    override fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?): Chapter {
         val document = response!!.asJsoup()
         val script = document.select("#chapter_pages script").first() // Get the script part
 
@@ -185,10 +185,10 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
             pages = m.group(1).replace("\"", "").split(",")
         }
 
-        return Chapter(pages)
+        return Chapter(chapterPath, pages, chapterName)
     }
 
-    override fun parseComicDetailsResponse(response: Response): Comic {
+    override fun parseComicDetailsResponse(response: Response, comicPath: String): Comic {
         val document = response.asJsoup()
 
         val title = if (comicTitleSelector.isNotEmpty()) document.select(comicTitleSelector).first().text() else null
@@ -227,7 +227,15 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
         /*val authors = arrayListOf(writers, artists)
         authors.flatten()*/
 
-        return Comic(title, posterPath, status, publisher, ArrayList(), ArrayList(), chapters, summary, null, scanlators)
+        val source = Source()
+
+        source.name = "HQBR"
+        source.baseUrl = baseUrl
+        source.hasPageSupport = false
+        source.hasThumbnailSupport = false
+        source.language = Locale(java.util.Locale.getDefault())
+
+        return Comic(comicPath, source, title, posterPath, status, publisher, ArrayList(), ArrayList(), chapters, summary, null, scanlators)
     }
 
     fun parseSimpleItemByElement(selector: String, element: Element): SimpleItem {

@@ -76,4 +76,5 @@ dependencies {
     implementation 'com.github.clans:fab:1.6.4'
     implementation 'com.facebook.shimmer:shimmer:0.2.0'
     implementation 'com.jaredrummler:material-spinner:1.2.5'
+    implementation 'com.github.seven332:unifile:1.0.0'
 }

@@ -75,7 +75,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
 
         presenter.onBindView(this)
 
-        presenter.onGetChapterDetails(readerModel.pathComic)
+        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.title)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

@@ -10,6 +10,9 @@ const val CANCELED = "canceled_status"
 const val UNKNOWN = "unknown_status"
 
 class Comic() : Parcelable {
+    var id: String? = ""
+    var pathLink: String? = ""
+    var source: Source? = null
     var title: String? = ""
     var posterPath: String?= ""
     var status: String?= ""
@@ -29,7 +32,10 @@ class Comic() : Parcelable {
         publicationDate = parcel.readString()
     }
 
-    constructor(title: String?, posterPath: String?, status: String?, publisher: List<SimpleItem>?, genres: List<SimpleItem>?, authors: List<SimpleItem>?, chapters: List<ChapterItem>?, summary: String?, publicationDate: String?, scanlators: List<SimpleItem>?) : this() {
+    constructor(pathLink: String?, source: Source?, title: String?, posterPath: String?, status: String?, publisher: List<SimpleItem>?, genres: List<SimpleItem>?, authors: List<SimpleItem>?, chapters: List<ChapterItem>?, summary: String?, publicationDate: String?, scanlators: List<SimpleItem>?) : this() {
+        this.id = pathLink
+        this.pathLink = pathLink
+        this.source = source
         this.title = title
         this.posterPath = posterPath
         this.status = ScreenUtils.getStatusConstant(status)

@@ -13,6 +13,6 @@ class ReaderContract {
 
     interface IReaderPresenter: IPresenter<IReaderView> {
 
-        fun onGetChapterDetails(chapterPath: String)
+        fun onGetChapterDetails(chapterPath: String, chapterName: String?)
     }
 }

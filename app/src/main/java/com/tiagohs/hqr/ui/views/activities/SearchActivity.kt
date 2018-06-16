@@ -14,7 +14,7 @@ import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.contracts.SearchContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
-import com.tiagohs.hqr.utils.EndlessRecyclerView
+import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import kotlinx.android.synthetic.main.activity_search.*
 import javax.inject.Inject
 

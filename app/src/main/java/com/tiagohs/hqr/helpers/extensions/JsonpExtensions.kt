@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.utils.extensions
+package com.tiagohs.hqr.helpers.extensions
 
 import okhttp3.Response
 import org.jsoup.Jsoup

@@ -42,6 +42,51 @@
                                 </PersistentState>
                               </value>
                             </entry>
+                            <entry key="notification">
+                              <value>
+                                <PersistentState>
+                                  <option name="children">
+                                    <map>
+                                      <entry key="clipArt">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="trimmed" value="true" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
+                                      <entry key="image">
+                                        <value>
+                                          <PersistentState>
+                                            <option name="values">
+                                              <map>
+                                                <entry key="paddingPercent" value="15" />
+                                                <entry key="trimmed" value="true" />
+                                              </map>
+                                            </option>
+                                          </PersistentState>
+                                        </value>
+                                      </entry>
+                                    </map>
+                                  </option>
+                                  <option name="values">
+                                    <map>
+                                      <entry key="assetType" value="IMAGE" />
+                                      <entry key="imageAsset" value="E:\Usuário\Desktop\ic_launcher.png" />
+                                      <entry key="outputName" value="ic_stat_launcher" />
+                                    </map>
+                                  </option>
+                                </PersistentState>
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
+                        <option name="values">
+                          <map>
+                            <entry key="outputIconType" value="NOTIFICATION" />
                           </map>
                         </option>
                       </PersistentState>
@@ -67,7 +112,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/image/ic_navigate_next_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_clear_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -77,12 +122,10 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="ffffff" />
-                            <entry key="height" value="40" />
-                            <entry key="outputName" value="ic_navigate_next_white" />
+                            <entry key="color" value="afb0b2" />
+                            <entry key="outputName" value="ic_clear_grey" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="E:\Usuário\Desktop\comic.svg" />
-                            <entry key="width" value="40" />
                           </map>
                         </option>
                       </PersistentState>

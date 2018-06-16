@@ -11,7 +11,7 @@ import android.widget.TextView
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.ui.callbacks.IPublisherCallback
-import com.tiagohs.hqr.utils.ScreenUtils
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import kotlinx.android.synthetic.main.item_publisher.view.*
 import kotlinx.android.synthetic.main.placeholder_image_rounded.view.*
 

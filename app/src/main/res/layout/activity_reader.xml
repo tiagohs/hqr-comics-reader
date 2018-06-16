@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <com.tiagohs.hqr.utils.ReaderViewPager
+    <com.tiagohs.hqr.helpers.tools.ReaderViewPager
         android:id="@+id/readerViewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

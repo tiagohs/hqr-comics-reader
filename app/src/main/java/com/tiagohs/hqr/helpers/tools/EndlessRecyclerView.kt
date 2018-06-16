@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.utils
+package com.tiagohs.hqr.helpers.tools
 
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager

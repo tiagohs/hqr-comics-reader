@@ -7,11 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.utils.ImageUtils
+import com.tiagohs.hqr.helpers.utils.ImageUtils
+import com.tiagohs.hqr.models.sources.Page
 import kotlinx.android.synthetic.main.item_reader_image.view.*
 
 class ReaderPagerAdapter(
-        private val imagesPaths: List<String>,
+        private val imagesPaths: List<Page>,
         private val context: Context?,
         private val gestureDetector: GestureDetector
 ): PagerAdapter() {
@@ -22,7 +23,7 @@ class ReaderPagerAdapter(
         val view = LayoutInflater.from(context).inflate(R.layout.item_reader_image, container, false)
         val image = imagesPaths.get(position)
 
-        ImageUtils.load(view.chapterImg,"https://hqbr.com.br/" + image)
+        ImageUtils.load(view.chapterImg,image.imageUrl)
 
         view.chapterImg.setOnTouchListener { _, motionEvent ->
             gestureDetector.onTouchEvent(motionEvent)

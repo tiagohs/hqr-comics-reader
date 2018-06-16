@@ -2,9 +2,9 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.models.sources.*
 import com.tiagohs.hqr.models.viewModels.ComicsListModel
-import com.tiagohs.hqr.utils.extensions.asJsoup
-import com.tiagohs.hqr.utils.extensions.asObservableSuccess
-import com.tiagohs.hqr.utils.extensions.newCallWithProgress
+import com.tiagohs.hqr.helpers.extensions.asJsoup
+import com.tiagohs.hqr.helpers.extensions.asObservableSuccess
+import com.tiagohs.hqr.helpers.extensions.newCallWithProgress
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers

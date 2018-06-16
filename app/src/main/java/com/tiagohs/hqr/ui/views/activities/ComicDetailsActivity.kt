@@ -14,8 +14,8 @@ import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
-import com.tiagohs.hqr.utils.ImageUtils
-import com.tiagohs.hqr.utils.ScreenUtils
+import com.tiagohs.hqr.helpers.utils.ImageUtils
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import kotlinx.android.synthetic.main.activity_comic_details.*
 import javax.inject.Inject
 

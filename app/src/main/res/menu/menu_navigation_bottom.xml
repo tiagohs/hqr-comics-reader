@@ -20,9 +20,9 @@
         android:title="@string/nav_favorite"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/actionMore"
+        android:id="@+id/actionDownloads"
         android:enabled="true"
-        android:icon="@drawable/ic_more_white"
-        android:title="@string/nav_more"
+        android:icon="@drawable/ic_download_white"
+        android:title="@string/nav_downloads"
         app:showAsAction="ifRoom" />
 </menu>

@@ -5,10 +5,10 @@ import android.net.Uri
 import android.os.Environment
 import com.hippo.unifile.UniFile
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.utils.DiskUtils
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.Source
-import com.tiagohs.hqr.utils.DiskUtils
 import java.io.File
 
 // Classe responsável pela manipulação das pastas criadas durante os downloads

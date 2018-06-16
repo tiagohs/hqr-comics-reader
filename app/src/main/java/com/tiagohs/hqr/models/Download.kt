@@ -3,7 +3,7 @@ package com.tiagohs.hqr.models
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.Source
-import io.reactivex.subjects.PublishSubject
+import io.reactivex.processors.PublishProcessor
 
 class Download(
         val source: Source,
@@ -19,7 +19,7 @@ class Download(
         const val ERROR = "ERROR"
     }
 
-    private var statusSubject: PublishSubject<Download>? = null
+    private var statusSubject: PublishProcessor<Download>? = null
 
     var progressTotal: Int = 0
     var numberOfImagesDownloaded: Int = 0
@@ -30,7 +30,7 @@ class Download(
             statusSubject?.onNext(this)
         }
 
-    fun setStatusSubject(statusSubject: PublishSubject<Download>?) {
+    fun setStatusSubject(statusSubject: PublishProcessor<Download>?) {
         this.statusSubject = statusSubject
     }
 }

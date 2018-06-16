@@ -1,11 +1,11 @@
-package com.tiagohs.hqr.models
+package com.tiagohs.hqr.notification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.utils.extensions.notificationManager
+import com.tiagohs.hqr.helpers.extensions.notificationManager
 
 object Notifications {
 

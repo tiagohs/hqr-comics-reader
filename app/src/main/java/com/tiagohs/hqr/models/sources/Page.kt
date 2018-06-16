@@ -1,17 +1,28 @@
 package com.tiagohs.hqr.models.sources
 
 import android.net.Uri
-import com.tiagohs.hqr.utils.extensions.ProgressListener
-import io.reactivex.subjects.Subject
+import android.os.Parcel
+import android.os.Parcelable
+import com.tiagohs.hqr.helpers.extensions.ProgressListener
+import io.reactivex.subjects.PublishSubject
 
 class Page(
         val index: Int,
         val url: String = "",
         var imageUrl: String? = null,
         var uri: Uri? = null
-): ProgressListener {
+): ProgressListener, Parcelable {
 
-    companion object {
+    companion object CREATOR : Parcelable.Creator<Page> {
+
+        override fun createFromParcel(parcel: Parcel): Page {
+            return Page(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Page?> {
+            return arrayOfNulls(size)
+        }
+
         const val QUEUE = "QUEUE"
         const val LOAD_PAGE = "LOAD_PAGE"
         const val DOWNLOAD_IMAGE = "DOWNLOAD_IMAGE"
@@ -33,7 +44,14 @@ class Page(
 
     @Transient @Volatile var progress: Int = 0
 
-    @Transient private var statusSubject: Subject<String>? = null
+    @Transient private var statusSubject: PublishSubject<String>? = null
+
+    constructor(parcel: Parcel) : this(
+            parcel.readInt(),
+            parcel.readString(),
+            parcel.readString(),
+            parcel.readParcelable(Uri::class.java.classLoader)) {
+    }
 
     override fun update(bytesRead: Long, contentLength: Long, done: Boolean) {
         progress = if (contentLength > 0) {
@@ -43,9 +61,19 @@ class Page(
         }
     }
 
-    fun setStatusSubject(subject: Subject<String>?) {
+    fun setStatusSubject(subject: PublishSubject<String>) {
         this.statusSubject = subject
     }
 
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeInt(index)
+        parcel.writeString(url)
+        parcel.writeString(imageUrl)
+        parcel.writeParcelable(uri, flags)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
 
 }

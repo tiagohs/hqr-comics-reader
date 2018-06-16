@@ -8,7 +8,7 @@ import android.view.MenuItem
 import com.tiagohs.hqr.App
 import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.ui.views.IActivityCallbacks
-import com.tiagohs.hqr.utils.ServerUtils
+import com.tiagohs.hqr.helpers.utils.ServerUtils
 import kotlinx.android.synthetic.main.activity_root.*
 
 abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {

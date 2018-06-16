@@ -2,7 +2,7 @@ package com.tiagohs.hqr.models.sources
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.tiagohs.hqr.utils.ScreenUtils
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 
 const val ONGOING = "ongoing_status"
 const val COMPLETED = "completed_status"

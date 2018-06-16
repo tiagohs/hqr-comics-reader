@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.utils
+package com.tiagohs.hqr.helpers.utils
 
 import android.animation.Animator
 import android.view.View

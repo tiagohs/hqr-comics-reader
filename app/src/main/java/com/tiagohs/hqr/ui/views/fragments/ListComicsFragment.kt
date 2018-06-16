@@ -16,7 +16,7 @@ import com.tiagohs.hqr.ui.contracts.ListComicsContract
 import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
 import com.tiagohs.hqr.ui.views.activities.SearchActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
-import com.tiagohs.hqr.utils.EndlessRecyclerView
+import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import kotlinx.android.synthetic.main.fragment_list_comics.*
 import javax.inject.Inject
 

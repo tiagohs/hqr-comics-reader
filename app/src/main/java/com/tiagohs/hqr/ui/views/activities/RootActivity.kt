@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.ui.views.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import com.tiagohs.hqr.R
@@ -8,6 +9,15 @@ import com.tiagohs.hqr.ui.views.fragments.HomeFragment
 import kotlinx.android.synthetic.main.activity_root.*
 
 class RootActivity : BaseActivity() {
+
+    companion object {
+        // Shortcut actions
+        const val SHORTCUT_RECENTLY_UPDATED = "com.tiagohs.hqr.SHOW_RECENTLY_UPDATED"
+        const val SHORTCUT_RECENTLY_READ = "com.tiagohs.hqr.SHOW_RECENTLY_READ"
+        const val SHORTCUT_DOWNLOADS = "com.tiagohs.hqr.SHOW_DOWNLOADS"
+        const val SHORTCUT_COMIC = "com.tiagohs.hqr.SHOW_MANGA"
+    }
+
     override fun onGetMenuLayoutId(): Int {
         return 0
     }
@@ -24,28 +34,40 @@ class RootActivity : BaseActivity() {
     }
 
     private fun onSetupBottomNavigation() {
-        rootBottomNavigation!!.setOnNavigationItemSelectedListener({ item ->
-            when (item.itemId) {
-                R.id.actionHome -> onSelectFragment("${item.itemId}:${R.id.actionHome}", HomeFragment.newFragment())
-                R.id.actionFavorite -> {
-
-                    true
-                }
-                R.id.actionRecent -> {
-
-                    true
-                }
-                R.id.actionMore ->
-
-                    true
-                }
-
-            false
-        })
-
+        rootBottomNavigation!!.setOnNavigationItemSelectedListener({ item -> setItemSelected(item.itemId) })
         rootBottomNavigation!!.setSelectedItemId(R.id.actionHome)
     }
 
+    override fun onNewIntent(intent: Intent) {
+        if (!handleIntentReceiver(intent)) {
+            super.onNewIntent(intent)
+        }
+    }
+
+    private fun handleIntentReceiver(intent: Intent): Boolean {
+
+        when (intent.action) {
+            SHORTCUT_COMIC -> {}
+            SHORTCUT_DOWNLOADS -> setItemSelected(R.id.actionDownload)
+            SHORTCUT_RECENTLY_READ -> setItemSelected(R.id.actionRecent)
+
+            else -> false
+        }
+
+        return true
+
+    }
+
+    private fun setItemSelected(itemId: Int): Boolean {
+        when (itemId) {
+            R.id.actionHome -> onSelectFragment("$itemId}:${R.id.actionHome}", HomeFragment.newFragment())
+            R.id.actionFavorite -> {}
+            R.id.actionRecent -> {}
+            R.id.actionDownload -> {}
+        }
+
+        return true
+    }
 
     private fun onSelectFragment(tag: String, fragmentSelect: Fragment) {
         val fm = supportFragmentManager

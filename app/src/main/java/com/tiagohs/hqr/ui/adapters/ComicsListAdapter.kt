@@ -10,8 +10,8 @@ import android.widget.TextView
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
-import com.tiagohs.hqr.utils.ImageUtils
-import com.tiagohs.hqr.utils.ScreenUtils
+import com.tiagohs.hqr.helpers.utils.ImageUtils
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import kotlinx.android.synthetic.main.activity_comic_details.view.*
 import kotlinx.android.synthetic.main.item_comic_simple_it.view.*
 import kotlinx.android.synthetic.main.placeholder_comic_it_horizontal.view.*

@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import com.tiagohs.hqr.App
 import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.ui.views.IActivityCallbacks
-import com.tiagohs.hqr.utils.ServerUtils
+import com.tiagohs.hqr.helpers.utils.ServerUtils
 
 abstract class BaseFragment: Fragment() {
 

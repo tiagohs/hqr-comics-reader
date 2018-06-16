@@ -1,10 +1,10 @@
 package com.tiagohs.hqr.sources.portuguese
 
+import com.tiagohs.hqr.helpers.extensions.asJsoup
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.sources.*
 import com.tiagohs.hqr.models.viewModels.ComicsListModel
-import com.tiagohs.hqr.utils.extensions.asJsoup
 import com.tiagohs.hqr.sources.ParserHttpSource
-import com.tiagohs.hqr.utils.ScreenUtils
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element
@@ -178,11 +178,16 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
         val p = Pattern.compile("pages = \\[((.*))\\]") // Regex for the value of the html
         val m = p.matcher(script.html())
 
-        var pages: List<String> = ArrayList()
+        var pages: ArrayList<Page> = ArrayList()
 
         while( m.find() )
         {
-            pages = m.group(1).replace("\"", "").split(",")
+            val imagesUrl = m.group(1).replace("\"", "").split(",")
+
+            imagesUrl.forEach { imageUrl: String ->
+                pages.add(Page(pages.size, chapterPath!!, "$baseUrl$imageUrl"))
+            }
+
         }
 
         return Chapter(chapterPath, pages, chapterName)

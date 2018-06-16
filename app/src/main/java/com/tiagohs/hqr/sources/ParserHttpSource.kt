@@ -3,7 +3,7 @@ package com.tiagohs.hqr.sources
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.viewModels.ComicsListModel
-import com.tiagohs.hqr.utils.extensions.asJsoup
+import com.tiagohs.hqr.helpers.extensions.asJsoup
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element

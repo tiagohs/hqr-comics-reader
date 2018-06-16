@@ -5,6 +5,21 @@
     <string name="nav_profile">Perfil</string>
     <string name="nav_download">Baixar HQ</string>
 
+    <string name="download_paused">Download Paused</string>
+
+    <string name="chapter_downloading_progress">Downloading (%1$d/%2$d)</string>
+
+    <string name="action_resume">Resume</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_clear">Clear</string>
+
+    <string name="download_in_progress">Download in progress</string>
+    <string name="download_complete">Download complete</string>
+    <string name="download_error">Download error</string>
+
+    <string name="download_notification_downloader_title">HQR Downloader</string>
+    <string name="download_notification_unkown_error">An unexpected error occurred while downloading chapter</string>
+
     <string name="completed_status">Concluído</string>
     <string name="ongoing_status">Em Andamento</string>
     <string name="canceled_status">Cancelado</string>
@@ -15,4 +30,6 @@
     <string name="nav_recent">Recente</string>
     <string name="nav_more">Mais</string>
     <string name="channel_downloader">Downloader</string>
+    <string name="nav_downloads">Downloads</string>
+
 </resources>

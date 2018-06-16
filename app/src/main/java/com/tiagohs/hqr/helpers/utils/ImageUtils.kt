@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.utils
+package com.tiagohs.hqr.helpers.utils
 
 import android.app.Activity
 import android.content.Context
@@ -8,6 +8,7 @@ import android.widget.ImageView
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.RequestCreator
+import com.tiagohs.hqr.helpers.tools.BitmapCreator
 import java.lang.Exception
 
 class ImageUtils {

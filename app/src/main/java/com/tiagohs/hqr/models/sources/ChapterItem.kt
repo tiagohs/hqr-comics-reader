@@ -2,22 +2,26 @@ package com.tiagohs.hqr.models.sources
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.tiagohs.hqr.R.id.comicTitle
 
-class ChapterItem(
-        val title: String?,
-        val link: String?,
-        val comicTitle: String?): Parcelable {
+class ChapterItem(): Parcelable {
+    var title: String? = ""
+    var link: String? = ""
+    var comicTitle: String? = ""
+    var source_order: Int? = 0
 
-    constructor(parcel: Parcel) : this(
-            parcel.readString(),
-            parcel.readString(),
-            parcel.readString()) {
+    constructor(parcel: Parcel) : this() {
+        title = parcel.readString()
+        link = parcel.readString()
+        comicTitle = parcel.readString()
+        source_order = parcel.readValue(Int::class.java.classLoader) as? Int
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(title)
         parcel.writeString(link)
         parcel.writeString(comicTitle)
+        parcel.writeValue(source_order)
     }
 
     override fun describeContents(): Int {
@@ -33,4 +37,5 @@ class ChapterItem(
             return arrayOfNulls(size)
         }
     }
+
 }

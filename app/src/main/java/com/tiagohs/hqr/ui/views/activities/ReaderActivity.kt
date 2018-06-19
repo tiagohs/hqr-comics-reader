@@ -75,7 +75,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
 
         presenter.onBindView(this)
 
-        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.title)
+        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.title, readerModel.comic.id)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -90,7 +90,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
 
         if (ch != null) {
             chapter = ch
-            readerViewPager.adapter = ReaderPagerAdapter(chapter.pages, this, gestureDetector)
+            readerViewPager.adapter = ReaderPagerAdapter(chapter.pages!!, this, gestureDetector)
             readerViewPager.setCurrentItem(0)
 
             configurePagesOnSpinner()
@@ -99,7 +99,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
     }
 
     private fun configurePagesOnSpinner() {
-        pagesSpinner.setItems(chapter.pages.mapIndexed { index, s -> index + 1 })
+        pagesSpinner.setItems(chapter.pages!!.mapIndexed { index, s -> index + 1 })
         pagesSpinner.setOnItemSelectedListener({
             view, position, id, page -> readerViewPager.setCurrentItem(position)
         })

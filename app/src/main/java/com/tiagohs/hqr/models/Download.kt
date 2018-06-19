@@ -2,11 +2,11 @@ package com.tiagohs.hqr.models
 
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.models.sources.Source
+import com.tiagohs.hqr.sources.HttpSourceBase
 import io.reactivex.processors.PublishProcessor
 
 class Download(
-        val source: Source,
+        val source: HttpSourceBase,
         val comic: Comic,
         val chapter: Chapter
 ) {

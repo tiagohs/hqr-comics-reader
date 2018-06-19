@@ -12,46 +12,41 @@ const val UNKNOWN = "unknown_status"
 class Comic() : Parcelable {
     var id: String? = ""
     var pathLink: String? = ""
-    var source: Source? = null
     var title: String? = ""
     var posterPath: String?= ""
-    var status: String?= ""
+    var sourceId: Long = 0L
+
     var publisher: List<SimpleItem>? = ArrayList()
     var genres: List<SimpleItem>? = ArrayList()
     var authors: List<SimpleItem>? = ArrayList()
-    var chapters: List<ChapterItem>? = ArrayList()
+    var chapters: List<Chapter>? = ArrayList()
     var summary: String?= ""
     var publicationDate: String?= ""
     var scanlators: List<SimpleItem>? = ArrayList()
 
+    var status: String? = ""
+        set(value) {
+            field = ScreenUtils.getStatusConstant(value)
+        }
+
     constructor(parcel: Parcel) : this() {
+        id = parcel.readString()
+        pathLink = parcel.readString()
         title = parcel.readString()
         posterPath = parcel.readString()
-        status = parcel.readString()
+        sourceId = parcel.readLong()
+        chapters = parcel.createTypedArrayList(Chapter)
         summary = parcel.readString()
         publicationDate = parcel.readString()
     }
 
-    constructor(pathLink: String?, source: Source?, title: String?, posterPath: String?, status: String?, publisher: List<SimpleItem>?, genres: List<SimpleItem>?, authors: List<SimpleItem>?, chapters: List<ChapterItem>?, summary: String?, publicationDate: String?, scanlators: List<SimpleItem>?) : this() {
-        this.id = pathLink
-        this.pathLink = pathLink
-        this.source = source
-        this.title = title
-        this.posterPath = posterPath
-        this.status = ScreenUtils.getStatusConstant(status)
-        this.publisher = publisher
-        this.genres = genres
-        this.authors = authors
-        this.chapters = chapters
-        this.summary = summary
-        this.publicationDate = publicationDate
-        this.scanlators = scanlators
-    }
-
     override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(id)
+        parcel.writeString(pathLink)
         parcel.writeString(title)
         parcel.writeString(posterPath)
-        parcel.writeString(status)
+        parcel.writeLong(sourceId)
+        parcel.writeTypedList(chapters)
         parcel.writeString(summary)
         parcel.writeString(publicationDate)
     }

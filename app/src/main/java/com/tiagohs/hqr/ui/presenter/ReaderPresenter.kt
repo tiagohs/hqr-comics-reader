@@ -13,8 +13,8 @@ class ReaderPresenter(
         private val source: HQBRSource
 ): BasePresenter<ReaderContract.IReaderView>(subscribers), ReaderContract.IReaderPresenter {
 
-    override fun onGetChapterDetails(chapterPath: String, chapterName: String?) {
-        mSubscribers!!.add(source.fetchReaderComics(chapterPath, chapterName)
+    override fun onGetChapterDetails(chapterPath: String, chapterName: String?, comicId: String?) {
+        mSubscribers!!.add(source.fetchReaderComics(chapterPath, chapterName, comicId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ chapter: Chapter? -> mView!!.onBindChapter(chapter) },
                            { error: Throwable? -> Log.e("Reader", "Error", error) }))

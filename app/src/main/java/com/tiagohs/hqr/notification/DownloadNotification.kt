@@ -18,9 +18,10 @@ class DownloadNotification(
                                         .setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher))
 
     private var isDownloading = false
-    private var initialQueueSize = 0
-    private var isErrorThrow = false
-    private var isPaused = false
+
+    var initialQueueSize = 0
+    var isErrorThrow = false
+    var paused = false
 
     private fun NotificationCompat.Builder.show(id: Int = Notifications.ID_DOWNLOAD_CHAPTER) {
         context.notificationManager.notify(id, build())
@@ -32,12 +33,12 @@ class DownloadNotification(
         }
     }
 
-    private fun dimissNotification(id: Int = Notifications.ID_DOWNLOAD_CHAPTER) {
-        context.notificationManager.cancel(id)
-    }
-
     private fun isFirstCall(): Boolean {
         return !isDownloading
+    }
+
+    fun dimissNotification(id: Int = Notifications.ID_DOWNLOAD_CHAPTER) {
+        context.notificationManager.cancel(id)
     }
 
     fun onDownloadProgressChange(download: Download) {
@@ -59,14 +60,14 @@ class DownloadNotification(
 
             setContentTitle(notificationTitle)
             setContentText(context.getString(R.string.chapter_downloading_progress)
-                    .format(download.numberOfImagesDownloaded, download.chapter.pages.size))
-            setProgress(download.chapter.pages.size, download.numberOfImagesDownloaded, false)
+                    .format(download.numberOfImagesDownloaded, download.chapter.pages!!.size))
+            setProgress(download.chapter.pages!!.size, download.numberOfImagesDownloaded, false)
         }
 
         notification.show()
     }
 
-    fun onDownloadPaused(download: Download) {
+    fun onDownloadPaused() {
 
         with(notification) {
             setContentTitle(context.getString(R.string.download_paused))

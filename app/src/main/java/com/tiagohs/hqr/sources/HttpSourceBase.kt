@@ -1,29 +1,26 @@
 package com.tiagohs.hqr.sources
 
-import com.tiagohs.hqr.models.sources.*
-import com.tiagohs.hqr.models.viewModels.ComicsListModel
-import com.tiagohs.hqr.helpers.extensions.asJsoup
+import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asObservableSuccess
 import com.tiagohs.hqr.helpers.extensions.newCallWithProgress
+import com.tiagohs.hqr.models.sources.*
+import com.tiagohs.hqr.models.viewModels.ComicsListModel
 import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import okhttp3.*
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 
 
 abstract class HttpSourceBase(
-        private var client: OkHttpClient
-) {
+        private var client: OkHttpClient,
+        private val chapterCache: ChapterCache
+): ISource {
 
     private val DEFAULT_CACHE_CONTROL = CacheControl.Builder().maxAge(10, TimeUnit.MINUTES).build()
     private val DEFAULT_HEADERS = Headers.Builder().build()
     private val DEFAULT_BODY: RequestBody = FormBody.Builder().build()
 
     private val headers: Headers by lazy { headersBuilder().build() }
-
-    abstract val baseUrl: String
 
     abstract protected val publishersEndpoint: String
     abstract protected val lastestComicsEndpoint: String
@@ -56,14 +53,14 @@ abstract class HttpSourceBase(
 
     abstract protected fun parsePopularComicsResponse(response: Response) : List<ComicsItem>
 
-    fun fetchReaderComics(hqReaderPath: String, chapterName: String?): Observable<Chapter> {
+    fun fetchReaderComics(hqReaderPath: String, chapterName: String?, comicId: String?): Observable<Chapter> {
         return fetch(GET(getReaderEndpoint(hqReaderPath), headersBuilder().build()))
-                .map({ response: Response -> parseReaderResponse(response, chapterName, hqReaderPath) })
+                .map({ response: Response -> parseReaderResponse(response, chapterName, hqReaderPath, comicId) })
     }
 
     abstract protected fun getReaderEndpoint(hqReaderPath: String): String
 
-    abstract protected fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?) : Chapter
+    abstract protected fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?, comicId: String?) : Chapter
 
     fun fetchComicDetails(comicPath: String): Observable<Comic> {
         return fetch(GET(getComicDetailsEndpoint(comicPath), headersBuilder().build()))
@@ -121,6 +118,18 @@ abstract class HttpSourceBase(
                 .build()
     }
 
+    fun fetchPageList(chapter: Chapter): Observable<List<Page>> {
+        return client.newCall(pageListRequest(chapter))
+                .asObservableSuccess()
+                .map { response -> pageListParse(response, chapter.chapterPath) }
+    }
+
+    abstract protected fun pageListParse(response: Response, chapterPath: String?): List<Page>
+
+    open protected fun pageListRequest(chapter: Chapter): Request {
+        return GET(baseUrl + chapter.chapterPath, headers)
+    }
+
 
     fun fetchImage(page: Page): Observable<Response> {
         return client.newCallWithProgress(imageRequest(page), page)
@@ -131,24 +140,41 @@ abstract class HttpSourceBase(
         return GET(page.imageUrl!!, headers)
     }
 
+    fun getCachedImage(page: Page): Observable<Page> {
+        val imageUrl = page.imageUrl ?: return Observable.just(page)
 
-    fun fetchReaderComics() {
-        fetch(GET("https://www.hqbr.com.br/hqs/Detonador%20(2018)/capitulo/2/leitor/0#1", headersBuilder().build()))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    response: Response? ->
-                        val document = response!!.asJsoup()
-                        val script = document.select("#chapter_pages script").first() // Get the script part
-
-                        val p = Pattern.compile("pages = \\[((.*))\\]") // Regex for the value of the html
-                        val m = p.matcher(script.html())
-
-                    while( m.find() )
-                    {
-                        System.out.println(m.group()); // the whole key ('key = value')
-                        System.out.println(m.group(1)); // value only
+        return Observable.just(page)
+                .flatMap {
+                    if (!chapterCache.isImageInCache(imageUrl)) {
+                        cacheImage(page)
+                    } else {
+                        Observable.just(page)
                     }
-                })
+                }
+                .doOnNext {
+                    page.uri = android.net.Uri.fromFile(chapterCache.getImageFile(imageUrl))
+                    page.status = Page.READY
+                }
+                .doOnError { page.status = Page.ERROR }
+                .onErrorReturn { page }
+    }
+
+    private fun cacheImage(page: Page): Observable<Page> {
+        page.status = Page.DOWNLOAD_IMAGE
+        return fetchImage(page)
+                .doOnNext { chapterCache.putImageToCache(page.imageUrl!!, it) }
+                .map { page }
+    }
+
+    fun fetchAllImageUrlsFromPageList(pages: List<Page>): Observable<Page> {
+        return Observable.fromIterable(pages)
+                .filter { !it.imageUrl.isNullOrEmpty() }
+                .mergeWith(fetchRemainingImageUrlsFromPageList(pages))
+    }
+
+    fun fetchRemainingImageUrlsFromPageList(pages: List<Page>): Observable<Page> {
+        return Observable.fromIterable(pages)
+                .filter { it.imageUrl.isNullOrEmpty() }
     }
 
     open protected fun headersBuilder() = Headers.Builder().apply {

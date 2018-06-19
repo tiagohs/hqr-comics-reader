@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.sources.portuguese
 
+import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.sources.*
@@ -10,8 +11,14 @@ import okhttp3.Response
 import org.jsoup.nodes.Element
 import java.util.regex.Pattern
 
-class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
-
+class HQBRSource(
+        client: OkHttpClient,
+        chapterCache: ChapterCache): ParserHttpSource(client, chapterCache) {
+    override val id: Long = 0L
+    override val name: String = "HQBR"
+    override val language: Locale = Locale(java.util.Locale.getDefault())
+    override val hasPageSupport: Boolean = false
+    override val hasThumbnailSupport: Boolean = false
     override val baseUrl: String get() = "https://hqbr.com.br/"
 
     override val publishersEndpoint: String get() = "$baseUrl/editoras/"
@@ -23,26 +30,6 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
     override val popularComicsSelector: String get() = ".widget-area > ul li"
     override val allComicsListSelector: String get() = "table > tbody > tr"
     override val searchComicsSelector: String get() = "table > tbody > tr"
-
-    override val comicPublisherSelector: String get() = ".container div"
-    override val comicTitleSelector: String get() = ".container div h2"
-    override val comicPosterPathSelector: String get() = ".container blockquote imgLeft img"
-    override val comicStatusSelector: String get() = ".container div"
-    override val comicSummarySelector: String get() = ".container blockquote"
-    override val comicPublicationDateSelector: String get() = ""
-
-    override val comicChaptersSelector: String get() = ".container table tbody tr"
-    override val comicGenresSelector: String get() = ""
-    override val comicWritersSelector: String get() = ""
-    override val comicArtistsSelector: String get() = ""
-    override val comicScanlatorsSelector: String get() = ".container div:nth-child(1) a"
-
-    override val comicPublisherItemSelector: String get() = "a"
-    override val comicChapterItemSelector: String get() = "td a"
-    override val comicScanlatorItemSelector: String get() = "a"
-    override val comicGenreItemSelector: String get() = ""
-    override val comicWriterItemSelector: String get() = ""
-    override val comicArtistItemSelector: String get() = ""
 
     override fun getReaderEndpoint(hqReaderPath: String): String {
         return "$baseUrl/$hqReaderPath"
@@ -171,14 +158,25 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
         return comicsModel
     }
 
-    override fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?): Chapter {
-        val document = response!!.asJsoup()
+    override fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?, comicId: String?): Chapter {
+        val pages = pageListParse(response, chapterPath)
+
+        return Chapter().apply {
+            this.id = chapterPath
+            this.comicId = comicId
+            this.name = chapterName
+            this.pages = pages
+        }
+    }
+
+    override fun pageListParse(response: Response, chapterPath: String?): List<Page> {
+        val document = response.asJsoup()
         val script = document.select("#chapter_pages script").first() // Get the script part
 
         val p = Pattern.compile("pages = \\[((.*))\\]") // Regex for the value of the html
         val m = p.matcher(script.html())
 
-        var pages: ArrayList<Page> = ArrayList()
+        val pages: ArrayList<Page> = ArrayList()
 
         while( m.find() )
         {
@@ -190,64 +188,63 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
 
         }
 
-        return Chapter(chapterPath, pages, chapterName)
+        return pages
     }
 
     override fun parseComicDetailsResponse(response: Response, comicPath: String): Comic {
         val document = response.asJsoup()
 
-        val title = if (comicTitleSelector.isNotEmpty()) document.select(comicTitleSelector).first().text() else null
-        val posterPath = if (comicPosterPathSelector.isNotEmpty()) document.select(comicPosterPathSelector).first().attr("src") else null
+        val title = document.select(".container div h2").first().text()
+        val posterPath = document.select(".container blockquote imgLeft img").first().attr("src")
 
         var status: String = ""
-        if (comicStatusSelector.isNotEmpty())
-            document.select(comicStatusSelector).forEach { element: Element? ->
-                if (element!!.text().contains("Status:")) {
-                    status = element.select("span").text()
-                }
+        document.select(".container div").forEach { element: Element? ->
+            if (element!!.text().contains("Status:")) {
+                status = element.select("span").text()
             }
+        }
 
-        val summary = if (comicSummarySelector.isNotEmpty()) document.select(comicSummarySelector).first().text() else null
+        val summary = document.select(".container blockquote").first().text()
 
         var publisher: List<SimpleItem> = ArrayList()
-        if (comicPublisherSelector.isNotEmpty())
-            document.select(comicPublisherSelector).forEach { element: Element? ->
-                if (element!!.text().contains("Editora")) {
-                    publisher = element.select(comicPublisherItemSelector).map { element -> parseSimpleItemByElement(element) }
-                }
+        document.select(".container div").forEach { element: Element? ->
+            if (element!!.text().contains("Editora")) {
+                publisher = element.select("a").map { element -> parseSimpleItemByElement(element) }
             }
+        }
 
         var scanlators: List<SimpleItem> = ArrayList()
-        if (comicScanlatorsSelector.isNotEmpty())
-            document.select(comicPublisherSelector).forEach { element: Element? ->
-                if (element!!.text().contains("Equipe responsável")) {
-                    scanlators = element.select(comicScanlatorItemSelector).map { element -> parseSimpleItemByElement(element) }
-                }
+        document.select(".container div").forEach { element: Element? ->
+            if (element!!.text().contains("Equipe responsável")) {
+                scanlators = element.select("a").map { element -> parseSimpleItemByElement(element) }
             }
+        }
 
-        val chapters = if (comicChaptersSelector.isNotEmpty())
-            document.select(comicChaptersSelector).map { element -> parseChapterItemByElement(comicChapterItemSelector, element, title)
-            } else ArrayList()
+        val chapters = ArrayList<Chapter>()
+        var i = 0
+        document.select(".container table tbody tr").map { element ->
+            parseChapterItemByElement("td a", element, title, i++)
+        }
 
-        /*val authors = arrayListOf(writers, artists)
-        authors.flatten()*/
-
-        val source = Source()
-
-        source.name = "HQBR"
-        source.baseUrl = baseUrl
-        source.hasPageSupport = false
-        source.hasThumbnailSupport = false
-        source.language = Locale(java.util.Locale.getDefault())
-
-        return Comic(comicPath, source, title, posterPath, status, publisher, ArrayList(), ArrayList(), chapters, summary, null, scanlators)
+        return Comic().apply {
+            this.id = comicPath
+            this.title = title
+            this.pathLink = comicPath
+            this.posterPath = posterPath
+            this.status = status
+            this.publisher = publisher
+            this.chapters = chapters
+            this.summary = summary
+            this.scanlators = scanlators
+            this.sourceId = this@HQBRSource.id
+        }
     }
 
     fun parseSimpleItemByElement(selector: String, element: Element): SimpleItem {
         return this.parseSimpleItemByElement(element.select(selector).first())
     }
 
-    fun parseChapterItemByElement(selector: String, element: Element, comicTitle: String?): ChapterItem {
+    fun parseChapterItemByElement(selector: String, element: Element, comicTitle: String?, sourceOrder: Int): Chapter {
         var title: String = ""
         var link: String = ""
 
@@ -258,7 +255,11 @@ class HQBRSource(client: OkHttpClient): ParserHttpSource(client) {
             link = formatLink(elementSelected.attr("href"))
         }
 
-        return ChapterItem(title, link, comicTitle)
+        return Chapter().apply {
+            this.name = title
+            this.chapterPath = link
+            this.sourceOrder = sourceOrder
+        }
     }
 
     fun parseSimpleItemByElement(element: Element): SimpleItem {

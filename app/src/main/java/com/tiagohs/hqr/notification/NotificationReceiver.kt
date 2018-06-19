@@ -58,7 +58,7 @@ class NotificationReceiver(
 
         when (intent?.action) {
             ACTION_OPEN_CHAPTER -> openChapter(context, intent.getParcelableExtra(EXTRA_COMIC), intent.getParcelableExtra(EXTRA_CHAPTER))
-            ACTION_RESUME_DOWNLOADS -> DownloaderService.startDownloadService(context)
+            ACTION_RESUME_DOWNLOADS -> DownloaderService.startDownloaderService(context)
             ACTION_CLEAR_DOWNLOADS -> downloadManager.clearQueue(true)
             ACTION_DISMISS_NOTIFICATION -> dimiss(context, intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
         }

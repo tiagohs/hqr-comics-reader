@@ -24,6 +24,12 @@ android {
     }
 }
 
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -32,6 +38,10 @@ dependencies {
     implementation 'com.android.support:exifinterface:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'me.zhanghai.android.systemuihelper:library:1.0.0'
+
+    final coroutines_version = '0.23.3'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
@@ -78,4 +88,5 @@ dependencies {
     implementation 'com.facebook.shimmer:shimmer:0.2.0'
     implementation 'com.jaredrummler:material-spinner:1.2.5'
     implementation 'com.github.seven332:unifile:1.0.0'
+    implementation 'com.jakewharton:disklrucache:2.0.2'
 }

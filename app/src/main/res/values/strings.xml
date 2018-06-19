@@ -20,6 +20,11 @@
     <string name="download_notification_downloader_title">HQR Downloader</string>
     <string name="download_notification_unkown_error">An unexpected error occurred while downloading chapter</string>
 
+    <string name="download_queue_error">An error occurred while downloading chapters. You can try again in the downloads section</string>
+
+    <string name="no_wifi">No wifi connection available</string>
+    <string name="no_network">No network connection available</string>
+
     <string name="completed_status">Concluído</string>
     <string name="ongoing_status">Em Andamento</string>
     <string name="canceled_status">Cancelado</string>

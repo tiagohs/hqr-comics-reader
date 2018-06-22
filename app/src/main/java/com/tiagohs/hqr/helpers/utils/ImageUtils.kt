@@ -15,6 +15,17 @@ class ImageUtils {
 
     companion object {
 
+        fun load(imageView: ImageView, url: String?, callback: Callback) {
+
+            val loader = Picasso.get()
+            var request: RequestCreator? = null
+
+            if (url != null)
+                request = loader.load(url)
+
+            request!!.into(imageView, callback)
+        }
+
         fun load(imageView: ImageView, url: String?) {
             load(imageView, url, null, null, false)
         }

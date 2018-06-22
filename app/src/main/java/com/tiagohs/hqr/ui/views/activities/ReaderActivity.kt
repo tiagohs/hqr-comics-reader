@@ -4,12 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import com.github.chrisbanes.photoview.OnViewTapListener
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.viewModels.ReaderModel
@@ -43,8 +42,6 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
     }
 
     @Inject lateinit var presenter: ReaderContract.IReaderPresenter
-
-    lateinit var gestureDetector: GestureDetector
 
     lateinit var chapter: Chapter
     lateinit var readerModel: ReaderModel
@@ -86,15 +83,31 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
     }
 
     override fun onBindChapter(ch: Chapter?) {
-        gestureDetector = GestureDetector(this, ImageGestureListener())
 
         if (ch != null) {
             chapter = ch
-            readerViewPager.adapter = ReaderPagerAdapter(chapter.pages!!, this, gestureDetector)
+            readerViewPager.adapter = ReaderPagerAdapter(chapter.pages!!, this, onPageTapListener())
             readerViewPager.setCurrentItem(0)
 
             configurePagesOnSpinner()
             configureNavigationButton()
+        }
+    }
+
+    private fun onPageTapListener(): OnViewTapListener {
+        return object: OnViewTapListener {
+            override fun onViewTap(view: View?, x: Float, y: Float) {
+                val positionX = x
+
+                if (positionX < readerViewPager.width * LEFT_REGION) {
+                    moveLeft()
+                } else if (positionX > readerViewPager.width * RIGHT_REGION) {
+                    moveRight()
+                } else {
+                    toggleMenu()
+                }
+            }
+
         }
     }
 
@@ -187,20 +200,4 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
         }
     }
 
-    inner class ImageGestureListener : GestureDetector.SimpleOnGestureListener() {
-
-        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-            val positionX = e.x
-
-            if (positionX < readerViewPager.width * LEFT_REGION) {
-                moveLeft()
-            } else if (positionX > readerViewPager.width * RIGHT_REGION) {
-                moveRight()
-            } else {
-                toggleMenu()
-            }
-
-            return true
-        }
-    }
 }

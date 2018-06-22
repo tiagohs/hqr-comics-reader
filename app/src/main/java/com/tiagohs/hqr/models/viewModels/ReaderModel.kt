@@ -2,13 +2,14 @@ package com.tiagohs.hqr.models.viewModels
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.ChapterItem
 import com.tiagohs.hqr.models.sources.Comic
 
 class ReaderModel(
         val pathComic: String,
         val comic: Comic,
-        val chapter: ChapterItem
+        val chapter: Chapter
 ): Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readString(),

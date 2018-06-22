@@ -17,6 +17,7 @@ import com.tiagohs.hqr.ui.contracts.HomeContract
 import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
 import com.tiagohs.hqr.ui.views.activities.ListComicsActivity
 import com.tiagohs.hqr.ui.views.activities.SearchActivity
+import com.tiagohs.hqr.ui.views.activities.SourcesActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
 import kotlinx.android.synthetic.main.fragment_home.*
 import javax.inject.Inject
@@ -75,10 +76,16 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
 
         lastestComicsTitleContainer.setOnClickListener({ goToComicsListPage()})
         popularsComicsTitleContainer.setOnClickListener({ goToComicsListPage() })
+
+        changeSource.setOnClickListener({ goToSources() })
     }
 
     private fun goToComicsListPage() {
         startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_ALL, "HQS - HQBR", "")))
+    }
+
+    private fun goToSources() {
+        startActivity(SourcesActivity.newIntent(context))
     }
 
     override fun getViewID(): Int {

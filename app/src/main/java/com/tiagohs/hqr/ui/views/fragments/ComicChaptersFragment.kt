@@ -6,7 +6,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.View
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.ChapterItem
+import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.viewModels.ReaderModel
 import com.tiagohs.hqr.ui.adapters.ChaptersListAdapter
@@ -49,14 +49,14 @@ class ComicChaptersFragment: BaseFragment(), IChapterItemCallback {
 
         chaptersList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         chaptersList.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-        chaptersList.adapter = ChaptersListAdapter(comic.chapters, context, this)
+        chaptersList.adapter = ChaptersListAdapter(comic, context, this)
     }
 
-    override fun onChapterSelect(chapter: ChapterItem) {
-        startActivity(ReaderActivity.newIntent(context, ReaderModel(chapter.link!!, comic, chapter)))
+    override fun onChapterSelect(chapter: Chapter) {
+        startActivity(ReaderActivity.newIntent(context, ReaderModel(chapter.chapterPath!!, comic, chapter)))
     }
 
-    override fun onDownloadSelect(chapter: ChapterItem) {
+    override fun onDownloadSelect(chapter: Chapter) {
         Log.d("ComicDetails", "onDownloadSelect")
     }
 

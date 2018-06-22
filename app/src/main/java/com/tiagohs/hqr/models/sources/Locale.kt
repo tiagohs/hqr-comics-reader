@@ -1,9 +1,17 @@
 package com.tiagohs.hqr.models.sources
 
-import java.util.Locale
+import java.util.*
 
-class Locale(
+class LocaleDTO(
+        val displayCountryName: String,
+        val displayCountryLanguage: String,
+        val isoCountry: String,
+        val isoLanguage: String,
         val locale: Locale
-) {
+): Comparable<LocaleDTO> {
+
+    override fun compareTo(o: LocaleDTO): Int {
+        return displayCountryName.compareTo(o.displayCountryName)
+    }
 
 }

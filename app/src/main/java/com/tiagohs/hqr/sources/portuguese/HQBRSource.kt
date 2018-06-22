@@ -9,14 +9,15 @@ import com.tiagohs.hqr.sources.ParserHttpSource
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element
+import java.util.*
 import java.util.regex.Pattern
 
 class HQBRSource(
         client: OkHttpClient,
         chapterCache: ChapterCache): ParserHttpSource(client, chapterCache) {
     override val id: Long = 0L
-    override val name: String = "HQBR"
-    override val language: Locale = Locale(java.util.Locale.getDefault())
+    override val name: String = "HQBR - Leitor Online de Quadrinhos"
+    override val language: LocaleDTO = LocaleDTO("Brazil", "Portuguese", "BR", "PT", Locale("PT", "BR"))
     override val hasPageSupport: Boolean = false
     override val hasThumbnailSupport: Boolean = false
     override val baseUrl: String get() = "https://hqbr.com.br/"
@@ -220,9 +221,9 @@ class HQBRSource(
             }
         }
 
-        val chapters = ArrayList<Chapter>()
+        var chapters: List<Chapter> = ArrayList()
         var i = 0
-        document.select(".container table tbody tr").map { element ->
+        chapters = document.select(".container table tbody tr").map { element ->
             parseChapterItemByElement("td a", element, title, i++)
         }
 

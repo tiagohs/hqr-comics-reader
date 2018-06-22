@@ -112,7 +112,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_clear_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_check_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -122,8 +122,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="afb0b2" />
-                            <entry key="outputName" value="ic_clear_grey" />
+                            <entry key="color" value="ff5252" />
+                            <entry key="outputName" value="ic_check_accent" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="E:\Usuário\Desktop\comic.svg" />
                           </map>

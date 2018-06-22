@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.dragger.modules
 
+import com.tiagohs.hqr.database.repository.ISourceRepository
 import com.tiagohs.hqr.sources.portuguese.HQBRSource
 import com.tiagohs.hqr.ui.contracts.*
 import com.tiagohs.hqr.ui.presenter.*
@@ -33,5 +34,10 @@ class PresenterModule {
     @Provides
     internal fun provideSearchPresenter(compositeDisposable: CompositeDisposable, source: HQBRSource): SearchContract.ISearchPresenter {
         return SearchPresenter(compositeDisposable, source)
+    }
+
+    @Provides
+    internal fun provideSourcePresenter(sourceRepository: ISourceRepository): SourcesContract.ISourcesPresenter {
+        return SourcesPresenter(sourceRepository)
     }
 }

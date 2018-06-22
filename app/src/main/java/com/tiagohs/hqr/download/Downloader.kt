@@ -35,11 +35,11 @@ class Downloader(
         val downloadNotification: DownloadNotification
 ) {
 
-    private val queue = DownloadQueueList(store)
     private val subscriptions = CompositeDisposable()
     private val relay = PublishRelay.create<List<Download>>()
     private var isRunning: Boolean = false
 
+    val queue: DownloadQueueList = DownloadQueueList(store)
     val runningRelay: BehaviorRelay<Boolean> = BehaviorRelay.create()
 
     init {

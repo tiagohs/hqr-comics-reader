@@ -41,6 +41,7 @@
                     android:textSize="12sp"
                     android:lines="1"
                     android:ellipsize="end"
+                    android:textStyle="italic"
                     android:text="https://www.hqbr.com.br/"/>
 
             </LinearLayout>
@@ -55,7 +56,6 @@
                 android:src="@drawable/ic_brazil" />
 
             <Button
-                xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/item"
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"
@@ -69,7 +69,6 @@
                 android:background="@drawable/button_background_default"/>
 
             <Button
-                xmlns:android="http://schemas.android.com/apk/res/android"
                 android:id="@+id/changeSource"
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"

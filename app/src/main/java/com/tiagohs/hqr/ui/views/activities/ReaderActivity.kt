@@ -71,11 +71,11 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
         readerModel = intent.getParcelableExtra(CHAPTER_MODEL)
 
         setScreenTitle(readerModel.comic.title)
-        setScreenSubtitle(readerModel.chapter.title)
+        setScreenSubtitle(readerModel.chapter.name)
 
         presenter.onBindView(this)
 
-        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.title, readerModel.comic.id)
+        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.name, readerModel.comic.id)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

@@ -36,5 +36,7 @@
     <string name="nav_more">Mais</string>
     <string name="channel_downloader">Downloader</string>
     <string name="nav_downloads">Downloads</string>
+    <string name="portuguese">BR - Português Brasil</string>
+    <string name="english">EN - Inglês</string>
 
 </resources>

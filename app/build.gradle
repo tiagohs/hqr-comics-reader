@@ -1,10 +1,9 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
-
 apply plugin: 'kotlin-kapt'
+apply plugin: 'realm-android'
+
 
 android {
     compileSdkVersion 27
@@ -28,6 +27,10 @@ kotlin {
     experimental {
         coroutines 'enable'
     }
+}
+
+realm {
+    syncEnabled = true;
 }
 
 dependencies {
@@ -80,6 +83,7 @@ dependencies {
     kapt 'com.google.dagger:dagger-compiler:2.6'
     implementation 'org.glassfish:javax.annotation:10.0-b28'
 
+
     //UI
     implementation 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     implementation 'com.squareup.picasso:picasso:2.71828'
@@ -89,4 +93,5 @@ dependencies {
     implementation 'com.jaredrummler:material-spinner:1.2.5'
     implementation 'com.github.seven332:unifile:1.0.0'
     implementation 'com.jakewharton:disklrucache:2.0.2'
+    implementation 'io.github.luizgrp.sectionedrecyclerviewadapter:sectionedrecyclerviewadapter:1.2.0'
 }

@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.service
+package com.tiagohs.hqr.helpers.tools
 
 import android.util.Log
 import okhttp3.Interceptor

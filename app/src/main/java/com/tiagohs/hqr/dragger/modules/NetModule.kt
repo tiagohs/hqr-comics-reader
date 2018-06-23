@@ -2,7 +2,7 @@ package com.tiagohs.hqr.dragger.modules
 
 import android.app.Application
 import com.tiagohs.hqr.dragger.scopes.PerFragment
-import com.tiagohs.hqr.service.CallInterceptor
+import com.tiagohs.hqr.helpers.tools.CallInterceptor
 import dagger.Module
 import dagger.Provides
 import okhttp3.Cache

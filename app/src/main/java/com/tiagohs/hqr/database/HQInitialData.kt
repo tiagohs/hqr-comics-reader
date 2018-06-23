@@ -18,6 +18,11 @@ object HQRInitialData {
                     this.id = 2L
                     this.language = "EN"
                     this.sources = getEnglishCatalogue(realm)
+                },
+                CatalogueSource().apply {
+                    this.id = 3L
+                    this.language = "ES"
+                    this.sources = getSpanishCatalogue(realm)
                 }
         )
     }
@@ -47,13 +52,47 @@ object HQRInitialData {
     private fun getEnglishCatalogue(realm: Realm?): RealmList<Source> {
         val list = RealmList<Source>()
 
-        list.add(realm!!.createObject(Source::class.java, 3L).apply {
-            this.name = "Read Comic Online"
-            this.hasPageSupport= true
-            this.hasThumbnailSupport = false
-            this.baseUrl = "http://readcomiconline.to/"
-            this.language = "EN"
-        })
+        if (realm != null) {
+            list.add(realm.createObject(Source::class.java, 3L).apply {
+                this.name = "Read Comic Online"
+                this.hasPageSupport= true
+                this.hasThumbnailSupport = false
+                this.baseUrl = "http://readcomiconline.to/"
+                this.language = "EN"
+            })
+
+            list.add(realm.createObject(Source::class.java, 4L).apply {
+                this.name = "Read Comics Book Online"
+                this.hasPageSupport= false
+                this.hasThumbnailSupport = false
+                this.baseUrl = "https://readcomicbooksonline.org/"
+                this.language = "EN"
+            })
+
+            list.add(realm.createObject(Source::class.java, 5L).apply {
+                this.name = "Comics Online"
+                this.hasPageSupport= true
+                this.hasThumbnailSupport = true
+                this.baseUrl = "http://comiconline.me/"
+                this.language = "EN"
+            })
+        }
+
+        return list
+    }
+
+    private fun getSpanishCatalogue(realm: Realm?): RealmList<Source> {
+        val list = RealmList<Source>()
+
+        if (realm != null) {
+            list.add(realm.createObject(Source::class.java, 6L).apply {
+                this.name = "Leer DC Comics Online"
+                this.hasPageSupport= false
+                this.hasThumbnailSupport = false
+                this.baseUrl = "https://leerdccomicsonline.blogspot.com/"
+                this.language = "ES"
+            })
+        }
 
         return list
     }

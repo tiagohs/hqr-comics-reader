@@ -6,9 +6,11 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import com.tiagohs.hqr.App
+import com.tiagohs.hqr.R
 import com.tiagohs.hqr.dragger.components.HQRComponent
-import com.tiagohs.hqr.ui.views.IActivityCallbacks
 import com.tiagohs.hqr.helpers.utils.ServerUtils
+import com.tiagohs.hqr.ui.views.IActivityCallbacks
+import com.tiagohs.hqr.ui.views.activities.SettingsActivity
 import kotlinx.android.synthetic.main.activity_root.*
 
 abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
@@ -44,6 +46,11 @@ abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
                 finish()
                 return true
             }
+            R.id.menu_setting -> {
+                startActivity(SettingsActivity.newIntent(this))
+                return true
+            }
+
             else -> return false
         }
     }

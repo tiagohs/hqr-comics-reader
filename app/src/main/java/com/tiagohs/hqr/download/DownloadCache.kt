@@ -2,24 +2,38 @@ package com.tiagohs.hqr.download
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import com.hippo.unifile.UniFile
-import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.sources.SourceManager
-import java.io.File
 import java.util.concurrent.TimeUnit
 
 class DownloadCache(
         private val context: Context,
         private val sourceManager: SourceManager,
-        private val provider: DownloadProvider
+        private val provider: DownloadProvider,
+        private val preferences: PreferenceHelper
 ) {
 
     private val renewInterval = TimeUnit.HOURS.toMillis(1)
     private var lastRenew = 0L
-    private var rootDir = RootDir(getDirectory())
+    private var rootDir = RootDir(getDirectoryFromPreference())
+
+    init {
+        preferences.downloadsDirectory().asObservable()
+                .skip(1)
+                .subscribe {
+                    lastRenew = 0L // invalidate cache
+                    rootDir = RootDir(getDirectoryFromPreference())
+                }
+    }
+
+    private fun getDirectoryFromPreference(): UniFile {
+        val dir = preferences.downloadsDirectory().getOrDefault()
+        return UniFile.fromUri(context, Uri.parse(dir))
+    }
 
     fun isChapterDownloaded(comic: Comic, chapter: Chapter, skipCache: Boolean): Boolean {
 
@@ -134,12 +148,6 @@ class DownloadCache(
                 comicDir.files = chapterDirs
             }
         }
-    }
-
-    private fun getDirectory(): UniFile {
-        return UniFile.fromUri(context, Uri.fromFile(
-                File(Environment.getExternalStorageDirectory().absolutePath + File.separator +
-                        context?.getString(R.string.app_name), "downloads")))
     }
 
     private class RootDir(val dir: UniFile,

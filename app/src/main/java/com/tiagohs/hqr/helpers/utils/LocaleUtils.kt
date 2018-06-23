@@ -13,6 +13,7 @@ class LocaleUtils {
             when (language) {
                 "PT-BR" -> return context.getString(R.string.portuguese)
                 "EN" -> return context.getString(R.string.english)
+                "ES" -> return context.getString(R.string.spanish)
 
                 else -> return context.getString(R.string.english)
             }

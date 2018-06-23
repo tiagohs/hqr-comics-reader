@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/pref_title_general">
+
+        <ListPreference
+            android:defaultValue="1"
+            android:dialogTitle="@string/title_language"
+            android:entries="@array/pref_upload_quality_values"
+            android:entryValues="@array/pref_upload_quality_values"
+            android:key="@string/key_language"
+            android:summary="@string/summary_language"
+            android:title="@string/title_language" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/key_update_hqs_in_progress"
+            android:summary="@string/summary_update_hqs_in_progress"
+            android:title="@string/title_update_hqs_in_progress" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_title_downloads">
+
+        <ListPreference
+            android:dialogTitle="@string/title_download_directory"
+            android:key="@string/key_download_directory"
+            android:summary="@string/summary_download_directory"
+            android:title="@string/title_download_directory" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/key_download_only_wifi"
+            android:summary="@string/download_only_wifi"
+            android:title="@string/title_download_only_wifi" />
+
+        <Preference
+            android:summary="@string/storage_used"
+            android:title="@string/title_storage_used" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_header_about">
+
+        <Preference
+            android:selectable="false"
+            android:summary="@string/summary_about" />
+
+        <Preference
+            android:summary="@string/app_version"
+            android:title="@string/title_version" />
+
+        <Preference
+            android:summary="@string/summary_github"
+            android:title="@string/title_github">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="@string/url_github" />
+        </Preference>
+
+    </PreferenceCategory>
+</PreferenceScreen>

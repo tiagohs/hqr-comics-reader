@@ -14,6 +14,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -35,9 +36,10 @@ realm {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.1'
+    implementation 'com.android.support:preference-v7:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     implementation 'com.android.support:exifinterface:27.1.1'
     implementation 'com.android.support:design:27.1.1'
     implementation 'me.zhanghai.android.systemuihelper:library:1.0.0'
@@ -46,11 +48,12 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
+    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.android.support:support-vector-drawable:27.1.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
-
 
     // ReactiveX
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
@@ -83,7 +86,6 @@ dependencies {
     kapt 'com.google.dagger:dagger-compiler:2.6'
     implementation 'org.glassfish:javax.annotation:10.0-b28'
 
-
     //UI
     implementation 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     implementation 'com.squareup.picasso:picasso:2.71828'
@@ -94,4 +96,5 @@ dependencies {
     implementation 'com.github.seven332:unifile:1.0.0'
     implementation 'com.jakewharton:disklrucache:2.0.2'
     implementation 'io.github.luizgrp.sectionedrecyclerviewadapter:sectionedrecyclerviewadapter:1.2.0'
+    implementation 'com.nononsenseapps:filepicker:4.1.0'
 }

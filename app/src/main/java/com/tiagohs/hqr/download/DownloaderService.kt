@@ -12,19 +12,20 @@ import android.support.v4.app.NotificationCompat
 import com.github.pwittchen.reactivenetwork.library.rx2.Connectivity
 import com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork
 import com.jakewharton.rxrelay2.BehaviorRelay
+import com.tiagohs.hqr.App
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.helpers.extensions.connectivityManager
 import com.tiagohs.hqr.helpers.extensions.powerManager
 import com.tiagohs.hqr.helpers.extensions.toast
+import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.notification.Notifications
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import javax.inject.Inject
 
-class DownloaderService(
-    val downloadManager: DownloadManager
-
-): Service() {
+class DownloaderService: Service() {
 
     companion object {
 
@@ -46,6 +47,12 @@ class DownloaderService(
 
     }
 
+    @Inject
+    lateinit var downloadManager: DownloadManager
+
+    @Inject
+    lateinit var preferences: PreferenceHelper
+
     private lateinit var subscriptions: CompositeDisposable
     private val wakeLock by lazy {
         powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DownloadService:WakeLock")
@@ -58,12 +65,18 @@ class DownloaderService(
     override fun onCreate() {
         super.onCreate()
 
+        getApplicationComponent()?.inject(this)
+
         startForeground(Notifications.ID_DOWNLOAD_CHAPTER, getPlaceholderNotification())
         runningRelay.accept(true)
         subscriptions = CompositeDisposable()
 
         watchNetworkState()
         watchDownloadState()
+    }
+
+    protected fun getApplicationComponent(): HQRComponent? {
+        return (application as App).getHQRComponent()
     }
 
     override fun onDestroy() {
@@ -123,7 +136,7 @@ class DownloaderService(
     }
 
     private fun isWifiConnected(): Boolean {
-        return connectivityManager.isActiveNetworkMetered
+        return preferences.downloadOnlyOverWifi() && connectivityManager.isActiveNetworkMetered
     }
 
 

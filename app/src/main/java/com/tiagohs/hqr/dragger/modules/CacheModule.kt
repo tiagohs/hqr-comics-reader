@@ -13,11 +13,6 @@ import dagger.Provides
 class CacheModule {
 
     @Provides
-    fun providerDownloadCache(context: Context, sourceManager: SourceManager, provider: DownloadProvider): DownloadCache {
-        return DownloadCache(context, sourceManager, provider)
-    }
-
-    @Provides
     fun providerChapterCache(context: Context): ChapterCache {
         return ChapterCache(context)
     }

@@ -34,11 +34,11 @@ class SourcesActivity: BaseActivity(), ISourcesCallback, SourcesContract.ISource
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         getApplicationComponent()!!.inject(this)
 
-        presenter.onBindView(this)
+        setScreenTitle(getString(R.string.sources_activity_title))
 
+        presenter.onBindView(this)
         presenter.getAllSources()
     }
 

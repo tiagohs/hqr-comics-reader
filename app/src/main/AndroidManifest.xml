@@ -2,10 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.tiagohs.hqr">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:name=".App"
@@ -15,27 +15,37 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.tiagohs.hqr.ui.views.activities.RootActivity">
+        <activity android:name=".ui.views.activities.RootActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.views.activities.ReaderActivity" />
-        <activity android:name=".ui.views.activities.SearchActivity" />
-        <activity android:name=".ui.views.activities.ComicDetailsActivity"
-                  android:theme="@style/AppTheme.TransparentTheme" />
-        <activity android:name=".ui.views.activities.ListComicsActivity" />
-        <activity android:name=".ui.views.activities.SourcesActivity" />
+        <activity android:name=".ui.views.activities.ReaderActivity"/>
+        <activity android:name=".ui.views.activities.SearchActivity"/>
+        <activity
+            android:name=".ui.views.activities.ComicDetailsActivity"
+            android:theme="@style/AppTheme.TransparentTheme"/>
+        <activity android:name=".ui.views.activities.ListComicsActivity"/>
+        <activity
+            android:name=".ui.views.activities.SourcesActivity"/>
+        <activity
+            android:name=".ui.views.activities.CustomLayoutPickerActivity"/>
+
 
         <receiver
             android:name=".notification.NotificationReceiver"
-            android:exported="false" />
+            android:exported="false"/>
 
         <service
             android:name=".download.DownloaderService"
-            android:exported="false" />
+            android:exported="false"/>
+
+        <activity
+            android:name=".ui.views.activities.SettingsActivity"
+            android:label="@string/title_activity_settings">
+        </activity>
     </application>
 
 </manifest>

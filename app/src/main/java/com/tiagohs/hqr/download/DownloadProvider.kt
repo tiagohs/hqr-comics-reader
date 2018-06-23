@@ -2,24 +2,30 @@ package com.tiagohs.hqr.download
 
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import com.hippo.unifile.UniFile
-import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.helpers.utils.DiskUtils
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.sources.ISource
-import java.io.File
 
 // Classe responsável pela manipulação das pastas criadas durante os downloads
 
 class DownloadProvider(
-        context: Context?
+        private val context: Context?,
+        private val preferences: PreferenceHelper
 ) {
 
-    val downloadDirectory = UniFile.fromUri(context, Uri.fromFile(
-            File(Environment.getExternalStorageDirectory().absolutePath + File.separator +
-                    context?.getString(R.string.app_name), "downloads")))
+    private var downloadDirectory = preferences.downloadsDirectory().getOrDefault().let {
+        UniFile.fromUri(context, Uri.parse(it))
+    }
+
+    init {
+        preferences.downloadsDirectory().asObservable()
+                .skip(1)
+                .subscribe { downloadDirectory = UniFile.fromUri(context, Uri.parse(it)) }
+    }
 
     fun getComicDirectory(comic: Comic, source: ISource): UniFile? {
         return downloadDirectory

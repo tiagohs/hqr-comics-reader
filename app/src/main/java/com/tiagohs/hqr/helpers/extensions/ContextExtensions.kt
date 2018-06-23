@@ -16,6 +16,8 @@ import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
 import android.widget.Toast
+import com.nononsenseapps.filepicker.FilePickerActivity
+import com.tiagohs.hqr.ui.views.activities.CustomLayoutPickerActivity
 
 fun Context.toast(@StringRes resource: Int, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, resource, duration).show()
@@ -78,4 +80,12 @@ fun Context.isServiceRunning(serviceClass: Class<*>): Boolean {
     @Suppress("DEPRECATION")
     return manager.getRunningServices(Integer.MAX_VALUE)
             .any { className == it.service.className }
+}
+
+fun Context.getFilePicker(currentDir: String): Intent {
+    return Intent(this, CustomLayoutPickerActivity::class.java)
+            .putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false)
+            .putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true)
+            .putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR)
+            .putExtra(FilePickerActivity.EXTRA_START_PATH, currentDir)
 }

@@ -43,7 +43,7 @@ class App : Application() {
                         HQRInitialData.initialData(realm).forEach { catalogueSource: CatalogueSource ->
                             realm.createObject(CatalogueSource::class.java, catalogueSource.id).apply {
                                 this.language = catalogueSource.language
-                                this.sources= catalogueSource.sources
+                                this.sourceDBS = catalogueSource.sourceDBS
                             }
                         }
 

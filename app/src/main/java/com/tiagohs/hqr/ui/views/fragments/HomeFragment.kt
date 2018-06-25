@@ -1,9 +1,14 @@
 package com.tiagohs.hqr.ui.views.fragments
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.v7.widget.StaggeredGridLayoutManager
+import android.util.Log
 import android.view.*
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.utils.LocaleUtils
+import com.tiagohs.hqr.models.base.ISource
 import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.viewModels.FETCH_ALL
@@ -22,6 +27,7 @@ import com.tiagohs.hqr.ui.views.config.BaseFragment
 import kotlinx.android.synthetic.main.fragment_home.*
 import javax.inject.Inject
 
+
 class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback {
 
     companion object Factory {
@@ -29,6 +35,9 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
     }
 
     @Inject lateinit var homePresenter: HomeContract.IHomePresenter
+    @Inject lateinit var localeUtils: LocaleUtils
+
+    private lateinit var source: ISource
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,21 +80,12 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
 
         homePresenter.onBindView(this)
 
-        homePresenter.onGetPublishers()
-        homePresenter.onGetHomePageData()
+        homePresenter.observeSourcesChanges()
 
         lastestComicsTitleContainer.setOnClickListener({ goToComicsListPage()})
         popularsComicsTitleContainer.setOnClickListener({ goToComicsListPage() })
 
         changeSource.setOnClickListener({ goToSources() })
-    }
-
-    private fun goToComicsListPage() {
-        startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_ALL, "HQS - HQBR", "")))
-    }
-
-    private fun goToSources() {
-        startActivity(SourcesActivity.newIntent(context))
     }
 
     override fun getViewID(): Int {
@@ -94,6 +94,18 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
 
     override fun onComicSelect(comic: ComicsItem) {
         startActivity(ComicDetailsActivity.newIntent(context, comic.link))
+    }
+
+    override fun onBindSourceInfo(source: ISource) {
+        this.source = source
+
+        sourceName.text = source.name
+        sourceUrl.text = source.baseUrl
+
+        languageLogo.setImageDrawable(localeUtils.getLocaleImage(source.language, context))
+        languageLogo.visibility = View.VISIBLE
+
+        goToSiteButton.setOnClickListener { goToSourcePage(source.baseUrl) }
     }
 
     override fun onBindPublishers(publishers: List<Publisher>) {
@@ -115,6 +127,19 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         popularList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
 
         popularListProgress.visibility = View.GONE
+    }
+
+    private fun goToComicsListPage() {
+        startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_ALL, "HQS - HQBR", "")))
+    }
+
+    private fun goToSources() {
+        startActivity(SourcesActivity.newIntent(context))
+    }
+
+    private fun goToSourcePage(baseUrl: String) {
+        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(baseUrl))
+        startActivity(browserIntent)
     }
 
     private fun onPublisherCallback(): IPublisherCallback {

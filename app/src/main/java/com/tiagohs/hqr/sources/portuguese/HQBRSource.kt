@@ -15,7 +15,7 @@ import java.util.regex.Pattern
 class HQBRSource(
         client: OkHttpClient,
         chapterCache: ChapterCache): ParserHttpSource(client, chapterCache) {
-    override val id: Long = 0L
+    override val id: Long = 1L
     override val name: String = "HQBR - Leitor Online de Quadrinhos"
     override val language: LocaleDTO = LocaleDTO("Brazil", "Portuguese", "BR", "PT", Locale("PT", "BR"))
     override val hasPageSupport: Boolean = false

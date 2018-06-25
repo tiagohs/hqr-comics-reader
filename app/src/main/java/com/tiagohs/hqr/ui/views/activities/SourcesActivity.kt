@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.database.CatalogueSource
-import com.tiagohs.hqr.models.database.Source
+import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.ui.adapters.SourceSection
 import com.tiagohs.hqr.ui.callbacks.ISourcesCallback
 import com.tiagohs.hqr.ui.contracts.SourcesContract
@@ -46,15 +46,15 @@ class SourcesActivity: BaseActivity(), ISourcesCallback, SourcesContract.ISource
         val sectionAdapter = SectionedRecyclerViewAdapter()
 
         catalogueSources.forEach { catalogueSource: CatalogueSource ->
-            sectionAdapter.addSection(SourceSection(this, catalogueSource.language, catalogueSource.sources , this))
+            sectionAdapter.addSection(SourceSection(this, catalogueSource.language, catalogueSource.sourceDBS , this))
         }
 
         sourcesList.adapter = sectionAdapter
         sourcesList.layoutManager = LinearLayoutManager(this)
     }
 
-    override fun onSourceSelect(source: Source) {
-
+    override fun onSourceSelect(sourceDB: SourceDB) {
+        finish()
     }
 
 }

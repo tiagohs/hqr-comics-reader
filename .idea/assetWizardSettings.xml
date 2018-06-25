@@ -122,10 +122,13 @@
                         </option>
                         <option name="values">
                           <map>
+                            <entry key="assetSourceType" value="FILE" />
                             <entry key="color" value="ff5252" />
-                            <entry key="outputName" value="ic_folder_accent" />
+                            <entry key="height" value="512" />
+                            <entry key="outputName" value="ic_spain" />
                             <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="E:\Usuário\Desktop\comic.svg" />
+                            <entry key="sourceFile" value="E:\Usuário\Desktop\ic_spain.svg" />
+                            <entry key="width" value="512" />
                           </map>
                         </option>
                       </PersistentState>

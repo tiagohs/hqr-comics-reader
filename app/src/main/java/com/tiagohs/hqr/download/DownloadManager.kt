@@ -5,7 +5,7 @@ import com.tiagohs.hqr.models.DownloadQueueList
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.Page
-import com.tiagohs.hqr.sources.ISource
+import com.tiagohs.hqr.sources.IHttpSource
 import io.reactivex.Observable
 
 class DownloadManager(
@@ -37,7 +37,7 @@ class DownloadManager(
         downloader.queuerChapters(comic, chapter, autoStart)
     }
 
-    fun buildListOfPages(source: ISource, comic: Comic, chapter: Chapter): Observable<List<Page>> {
+    fun buildListOfPages(source: IHttpSource, comic: Comic, chapter: Chapter): Observable<List<Page>> {
         val chapterDir = provider.findChapterDirectory(chapter, comic, source)
 
         return Observable.fromCallable {
@@ -63,12 +63,12 @@ class DownloadManager(
         return cache.getDownloadCount(comic)
     }
 
-    fun deleteChapter(chapter: Chapter, comic: Comic, source: ISource) {
+    fun deleteChapter(chapter: Chapter, comic: Comic, source: IHttpSource) {
         provider.findChapterDirectory(chapter, comic, source)?.delete()
         cache.removeChapter(chapter, comic)
     }
 
-    fun deleteComic(comic: Comic, source: ISource) {
+    fun deleteComic(comic: Comic, source: IHttpSource) {
         provider.findComicDirectory(comic, source)?.delete()
         cache.removeManga(comic)
     }

@@ -9,7 +9,7 @@ class SourceManager(
         private val chapterCache: ChapterCache
 ) {
 
-    private val mapOfSouces = mutableMapOf<Long, ISource>()
+    private val mapOfSouces = mutableMapOf<Long, IHttpSource>()
 
     init {
         createSources().forEach { register(it) }
@@ -17,7 +17,7 @@ class SourceManager(
 
     fun getHttpSouces() = mapOfSouces.values.filterIsInstance<HttpSourceBase>()
 
-    fun get(sourceId: Long): ISource? {
+    fun get(sourceId: Long): IHttpSource? {
         return mapOfSouces.get(sourceId)
     }
 
@@ -25,12 +25,12 @@ class SourceManager(
         mapOfSouces.remove(sourceId)
     }
 
-    private fun register(source: ISource) {
+    private fun register(source: IHttpSource) {
         if (!mapOfSouces.containsKey(source.id))
             mapOfSouces.put(source.id, source)
     }
 
-    private fun createSources(): List<ISource> = listOf(
+    private fun createSources(): List<IHttpSource> = listOf(
             HQBRSource(client, chapterCache)
     )
 }

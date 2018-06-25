@@ -9,7 +9,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
+import android.os.Build
 import android.os.PowerManager
 import android.support.annotation.StringRes
 import android.support.v4.app.NotificationCompat
@@ -36,11 +38,22 @@ inline fun Context.notification(channelId: String, func: NotificationCompat.Buil
 fun Context.hasPermission(permission: String)
         = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
 
-fun Context.getResourceColor(@StringRes resource: Int): Int {
-    val typedArray = obtainStyledAttributes(intArrayOf(resource))
-    val attrValue = typedArray.getColor(0, 0)
-    typedArray.recycle()
-    return attrValue
+fun Context.getResourceColor(resource: Int): Int {
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        return getColor(resource)
+    } else {
+        return resources.getColor(resource)
+    }
+}
+
+fun Context.getResourceDrawable(resource: Int): Drawable? {
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        return getDrawable(resource)
+    } else {
+        return resources.getDrawable(resource)
+    }
 }
 
 val Int.pxToDp: Int

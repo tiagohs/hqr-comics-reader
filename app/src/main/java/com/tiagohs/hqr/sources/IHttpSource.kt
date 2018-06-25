@@ -2,7 +2,7 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.models.sources.LocaleDTO
 
-interface ISource {
+interface IHttpSource {
     val id: Long
     val name: String
     val baseUrl: String

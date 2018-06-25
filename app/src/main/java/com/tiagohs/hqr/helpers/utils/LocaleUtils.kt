@@ -1,111 +1,110 @@
 package com.tiagohs.hqr.helpers.utils
 
+import android.app.Application
 import android.content.Context
-import android.content.res.Resources
+import android.content.res.Configuration
+import android.graphics.drawable.Drawable
+import android.os.Build
+import android.os.LocaleList
+import android.view.ContextThemeWrapper
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.LocaleDTO
+import com.tiagohs.hqr.helpers.extensions.getResourceDrawable
+import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import java.util.*
 
-class LocaleUtils {
-    companion object {
+class LocaleUtils(
+        private val preferences: PreferenceHelper
+) {
 
-        fun getDisplayLanguageAndCountryName(context: Context, language: String): String {
-            when (language) {
-                "PT-BR" -> return context.getString(R.string.portuguese)
-                "EN" -> return context.getString(R.string.english)
-                "ES" -> return context.getString(R.string.spanish)
+    private var systemLocale: Locale? = null
 
-                else -> return context.getString(R.string.english)
+    private var appLocale = getLocaleFromString(preferences.laguage())
+
+    private var currentLocale: Locale? = null
+
+    fun getLocaleFromString(pref: String): Locale? {
+        if (pref.isNullOrEmpty()) {
+            return null
+        }
+        return getLocale(pref)
+    }
+
+    fun getLocaleImage(lang: String?, context: Context?): Drawable? {
+        return when(lang) {
+            "pt-BR" -> context?.getResourceDrawable(R.drawable.ic_brazil)
+            "en" -> context?.getResourceDrawable(R.drawable.ic_eua)
+            "es" -> context?.getResourceDrawable(R.drawable.ic_spain)
+            else -> null
+        }
+    }
+
+    fun getDisplayName(lang: String?, context: Context): String {
+        return when (lang) {
+            null -> ""
+            "" -> context.getString(R.string.other_source)
+            "all" -> context.getString(R.string.all_lang)
+            else -> {
+                val locale = getLocale(lang)
+                locale.getDisplayName(locale).capitalize()
             }
         }
+    }
 
-        fun getLocaleAtual(): Locale {
-            return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                Resources.getSystem().configuration.locales.get(0)
-            else
-                Resources.getSystem().configuration.locale
+    private fun getLocale(lang: String): Locale {
+        val sp = lang.split("_", "-")
+        return when (sp.size) {
+            2 -> Locale(sp[0], sp[1])
+            3 -> Locale(sp[0], sp[1], sp[2])
+            else -> Locale(lang)
         }
+    }
 
-        fun getLocaleLanguageISO(): String {
-            return getLocaleAtual().language
+    fun changeLocale(pref: String) {
+        appLocale = getLocaleFromString(pref)
+    }
+
+    fun updateConfiguration(wrapper: ContextThemeWrapper) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && appLocale != null) {
+            val config = Configuration(preferences.context.resources.configuration)
+            config.setLocale(appLocale)
+            wrapper.applyOverrideConfiguration(config)
         }
+    }
 
-        fun getLocaleLanguageISO(locale: Locale): String {
-            return getLocaleAtual().language
+    fun updateConfiguration(app: Application, config: Configuration, configChange: Boolean = false) {
+        if (systemLocale == null) {
+            systemLocale = getConfigLocale(config)
         }
-
-        fun getLocaleLanguageName(languageIso: String): String {
-            return getLocaleAtual().getDisplayLanguage(Locale(languageIso))
-        }
-
-        fun getLocaleLanguageName(): String {
-            return getLocaleAtual().displayLanguage
-        }
-
-        fun getLocaleCountryISO(): String {
-            return getLocaleAtual().country
-        }
-
-        fun getLocaleCountryISO(locale: Locale): String {
-            return locale.country
-        }
-
-        fun getLocaleCountryName(): String {
-            return getLocaleAtual().displayCountry
-        }
-
-        fun getLocaleCountryName(languageIso: String): String {
-            return getLocaleAtual().getDisplayCountry(Locale(languageIso))
-        }
-
-        fun getLocaleLanguageAndCountry(): String {
-            return getLocaleLanguageISO() + "-" + getLocaleCountryISO()
-        }
-
-        fun getLocaleLanguageAndCountry(locale: Locale): String {
-            return getLocaleLanguageISO(locale) + "-" + getLocaleCountryISO(locale)
-        }
-
-        fun getAllCountrys(): List<String> {
-            val locales = Locale.getAvailableLocales()
-            val countries = ArrayList<String>()
-            for (locale in locales) {
-                val country = locale.displayCountry
-                if (country.trim { it <= ' ' }.length > 0 && !countries.contains(country)) {
-                    countries.add(country)
-                }
+        if (configChange) {
+            val configLocale = getConfigLocale(config)
+            if (currentLocale == configLocale) {
+                return
             }
-
-            Collections.sort(countries)
-
-            return countries
+            systemLocale = configLocale
         }
+        currentLocale = appLocale ?: systemLocale ?: Locale.getDefault()
+        val newConfig = updateConfigLocale(config, currentLocale!!)
+        val resources = app.resources
+        resources.updateConfiguration(newConfig, resources.displayMetrics)
 
-        fun getAllCountrysDTO(): List<LocaleDTO> {
-            val locales = Locale.getAvailableLocales()
-            val countries: ArrayList<LocaleDTO> = ArrayList()
+        Locale.setDefault(currentLocale)
+    }
 
-            var localeDTO: LocaleDTO
-            for (locale in locales) {
-                try {
-                    val country = locale.displayCountry
-                    val iso = locale.isO3Country
-                    val code = locale.country
-                    val name = locale.displayCountry
-                    if (country.trim { it <= ' ' }.length > 0 && "" != iso && "" != code && "" != name) {
-                        localeDTO = LocaleDTO(name, locale.displayLanguage, iso, locale.isO3Language, locale)
-                        if (!countries.contains(localeDTO))
-                            countries.add(localeDTO)
-                    }
-                } catch (e: MissingResourceException) {
-
-                }
-
-            }
-
-            Collections.sort(countries)
-
-            return countries
+    private fun getConfigLocale(config: Configuration): Locale {
+        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            config.locale
+        } else {
+            config.locales[0]
         }
+    }
+
+    private fun updateConfigLocale(config: Configuration, locale: Locale): Configuration {
+        val newConfig = Configuration(config)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            newConfig.locale = locale
+        } else {
+            newConfig.locales = LocaleList(locale)
+        }
+        return newConfig
     }
 }

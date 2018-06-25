@@ -1,47 +1,70 @@
 package com.tiagohs.hqr.database.repository
 
-import android.os.HandlerThread
+import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.models.database.CatalogueSource
-import com.tiagohs.hqr.models.database.Source
-import io.reactivex.Scheduler
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import com.tiagohs.hqr.models.database.SourceDB
+import io.reactivex.Observable
 import io.realm.Realm
-import io.realm.RealmResults
-import java.util.concurrent.Executors
 
 
+class SourceRepository() : BaseRepository(), ISourceRepository {
 
-
-class SourceRepository: ISourceRepository {
-
-    var looperScheduler: Scheduler? = null
-    var writeScheduler: Scheduler? = null
-
-    constructor() {
-        var handlerThread = HandlerThread("LOOPER_SCHEDULER");
-        handlerThread.start();
-
-        synchronized(handlerThread) {
-            looperScheduler = AndroidSchedulers.from(handlerThread.getLooper());
-        }
-
-        writeScheduler = Schedulers.from(Executors.newSingleThreadExecutor());
+    override fun insertSource(sourceDB: SourceDB): Observable<SourceDB> {
+        return insert(sourceDB)
     }
 
-    override fun insert(source: Source) {
-        val realm = Realm.getDefaultInstance()
-        realm.executeTransaction { r -> r.insertOrUpdate(source) }
+    override fun getAllSources(): Observable<List<SourceDB>> {
+        return startGetTransaction()
+                .map { realm ->
+                    val results = realm.where(SourceDB::class.java)
+                            .findAll()
+                    val sources = SourceDB().createList(results.toList())
+
+                    finishTransaction(realm)
+
+                    sources
+                }
     }
 
-    override fun getSources(): RealmResults<Source> {
-        val realm = Realm.getDefaultInstance()
-        return realm.where(Source::class.java).findAllAsync()
+    override fun getAllCatalogueSources(): Observable<List<CatalogueSource>> {
+        return startGetTransaction()
+                .map { realm ->
+                    val results = realm.where(CatalogueSource::class.java).findAll()
+                    val catalogueSources = CatalogueSource().createList(results.toList())
+
+                    finishTransaction(realm)
+
+                    catalogueSources
+                }
     }
 
-    override fun getSourcesAndLanguages(): RealmResults<CatalogueSource> {
-        val realm = Realm.getDefaultInstance()
-        return realm.where(CatalogueSource::class.java).findAllAsync()
+    override fun getCatalogueSourceById(catalogueSourceId: Long): Observable<CatalogueSource> {
+        return startGetTransaction()
+                .map { realm ->
+                    val result = realm.where(CatalogueSource::class.java)
+                                .equalTo("id", catalogueSourceId)
+                                .findFirst()
+                    val catalogueSource = CatalogueSource().create(result!!)
+
+                    finishTransaction(realm)
+
+                    catalogueSource
+                }
+    }
+
+    override fun getSourceById(sourceId: Long): Observable<SourceDB> {
+        return startGetTransaction()
+                .map { realm ->
+                    val result = realm.where(SourceDB::class.java)
+                                    .equalTo("id", sourceId)
+                            .findFirst()
+
+                    val source = SourceDB().create(result!!)
+
+                    finishTransaction(realm)
+
+                    source
+                }
     }
 
 }

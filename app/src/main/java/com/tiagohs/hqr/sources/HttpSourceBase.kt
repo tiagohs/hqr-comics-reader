@@ -14,8 +14,7 @@ import java.util.concurrent.TimeUnit
 abstract class HttpSourceBase(
         private var client: OkHttpClient,
         private val chapterCache: ChapterCache
-): ISource {
-
+): IHttpSource {
     private val DEFAULT_CACHE_CONTROL = CacheControl.Builder().maxAge(10, TimeUnit.MINUTES).build()
     private val DEFAULT_HEADERS = Headers.Builder().build()
     private val DEFAULT_BODY: RequestBody = FormBody.Builder().build()

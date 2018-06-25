@@ -70,7 +70,7 @@ abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
         }
     }
 
-    protected fun getApplicationComponent(): HQRComponent? {
+    fun getApplicationComponent(): HQRComponent? {
         return (application as App).getHQRComponent()
     }
 

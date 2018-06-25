@@ -8,7 +8,7 @@ import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.helpers.utils.DiskUtils
 import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.sources.ISource
+import com.tiagohs.hqr.sources.IHttpSource
 
 // Classe responsável pela manipulação das pastas criadas durante os downloads
 
@@ -27,27 +27,27 @@ class DownloadProvider(
                 .subscribe { downloadDirectory = UniFile.fromUri(context, Uri.parse(it)) }
     }
 
-    fun getComicDirectory(comic: Comic, source: ISource): UniFile? {
+    fun getComicDirectory(comic: Comic, source: IHttpSource): UniFile? {
         return downloadDirectory
                         .createDirectory(getSourceDirectoryName(source))
                         .createDirectory(getComicDirectoryName(comic))
     }
 
-    fun findSourceDirectory(source: ISource): UniFile? {
+    fun findSourceDirectory(source: IHttpSource): UniFile? {
         return downloadDirectory.findFile(getSourceDirectoryName(source))
     }
 
-    fun findComicDirectory(comic: Comic, source: ISource): UniFile? {
+    fun findComicDirectory(comic: Comic, source: IHttpSource): UniFile? {
         val sourceFile = findSourceDirectory(source)
         return sourceFile?.findFile(getComicDirectoryName(comic))
     }
 
-    fun findChapterDirectory(chapter: Chapter, comic: Comic, source: ISource): UniFile? {
+    fun findChapterDirectory(chapter: Chapter, comic: Comic, source: IHttpSource): UniFile? {
         val comicFile = findComicDirectory(comic, source)
         return comicFile?.findFile(getChapterDirectoryName(chapter))
     }
 
-    fun getSourceDirectoryName(source: ISource): String {
+    fun getSourceDirectoryName(source: IHttpSource): String {
         return DiskUtils.buildValidFilename(source.name)
     }
 

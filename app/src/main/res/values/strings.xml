@@ -78,6 +78,9 @@
     <string name="dir_name">Nome</string>
     <string name="spanish">ES - Espanhol</string>
     <string name="sources_activity_title">Selecionar Source</string>
+    <string name="key_default_source">key_current_source</string>
+    <string name="other_source">Outros</string>
+    <string name="all_lang">Todas</string>
 
 
 </resources>

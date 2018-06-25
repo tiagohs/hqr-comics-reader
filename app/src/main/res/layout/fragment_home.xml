@@ -26,23 +26,23 @@
                 android:layout_marginTop="10dp">
 
                 <TextView
+                    android:id="@+id/sourceName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorPrimaryText"
                     android:textSize="15sp"
                     android:lines="1"
-                    android:ellipsize="end"
-                    android:text="HQBR - Leitor Online de Quadrinhos"/>
+                    android:ellipsize="end"/>
 
                 <TextView
+                    android:id="@+id/sourceUrl"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorSecondaryText"
                     android:textSize="12sp"
                     android:lines="1"
                     android:ellipsize="end"
-                    android:textStyle="italic"
-                    android:text="https://www.hqbr.com.br/"/>
+                    android:textStyle="italic"/>
 
             </LinearLayout>
 
@@ -52,11 +52,10 @@
                 android:layout_height="25dp"
                 android:scaleType="fitCenter"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="10dp"
-                android:src="@drawable/ic_brazil" />
+                android:layout_marginTop="10dp" />
 
             <Button
-                android:id="@+id/item"
+                android:id="@+id/goToSiteButton"
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"
                 android:textSize="12sp"

@@ -8,7 +8,6 @@ import io.realm.RealmObject
 
 abstract class BaseRepository {
 
-
     protected fun startGetTransaction(): Observable<Realm> {
         return Observable.create<Realm> { emitter ->
             val realm = Realm.getDefaultInstance()

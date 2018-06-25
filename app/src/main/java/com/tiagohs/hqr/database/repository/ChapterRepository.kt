@@ -4,20 +4,10 @@ import com.tiagohs.hqr.database.IChapterRepository
 import com.tiagohs.hqr.models.database.comics.Chapter
 import com.tiagohs.hqr.models.database.comics.Comic
 import io.reactivex.Observable
-import io.realm.Realm
 
 class ChapterRepository: BaseRepository(), IChapterRepository {
     override fun insertChapter(chapter: Chapter): Observable<Chapter> {
-        val realm = Realm.getDefaultInstance()
-        val result = realm.where(Chapter::class.java)
-                                  .findFirst()
-        if (result != null) {
-            return insert(result)
-        } else {
-            chapter.id = getDataId<Chapter>(realm)
-
-            return insert(chapter)
-        }
+        return insert(chapter)
     }
 
     override fun insertChapters(chapters: List<Chapter>): Observable<List<Chapter>> {

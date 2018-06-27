@@ -12,9 +12,22 @@ interface IComicHistory{
     var chapter: Chapter?
 
     fun copyFrom(other: IComicHistory) {
-        this.id = other.id
-        this.lastTimeRead = other.lastTimeRead
-        this.comic = other.comic
-        this.chapter = other.chapter
+
+        if (other.id != -1L) {
+            this.id = other.id
+        }
+
+        if (other.lastTimeRead != null) {
+            this.lastTimeRead = other.lastTimeRead
+        }
+
+        if (other.comic != null) {
+            this.comic = other.comic
+        }
+
+        if (other.chapter != null) {
+            this.chapter = other.chapter
+        }
+
     }
 }

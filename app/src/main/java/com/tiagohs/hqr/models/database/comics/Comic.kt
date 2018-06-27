@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.models.database.comics
 
 import com.tiagohs.hqr.helpers.tools.RealmUtils
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.database.SourceDB
@@ -8,12 +9,17 @@ import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 
+const val ONGOING = "ongoing_status"
+const val COMPLETED = "completed_status"
+const val CANCELED = "canceled_status"
+const val UNKNOWN = "unknown_status"
+
 open class Comic: RealmObject(), IComic {
 
     @PrimaryKey
     override var id: Long = -1L
     override var name: String? = ""
-    override var pathLink: String = ""
+    override var pathLink: String? = ""
     override var posterPath: String? = ""
     override var summary: String? = ""
     override var publicationDate: String? = ""
@@ -28,6 +34,11 @@ open class Comic: RealmObject(), IComic {
     override var favorite: Boolean = false
     override var lastUpdate: String? = ""
 
+    override var status: String? = ""
+        set(value) {
+            field = ScreenUtils.getStatusConstant(value)
+        }
+
     override var tags: RealmList<String>? = null
 
     override var source: SourceDB? = null
@@ -41,6 +52,14 @@ open class Comic: RealmObject(), IComic {
     fun create(other: Comic): Comic {
         return Comic().apply {
             copyFrom(other)
+        }
+    }
+
+    fun create(name: String?, posterPath: String?): Comic {
+        return Comic().apply {
+            this.id = RealmUtils.getDataId<Comic>()
+            this.name = name
+            this.posterPath = posterPath
         }
     }
 

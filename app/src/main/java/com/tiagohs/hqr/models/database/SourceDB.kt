@@ -8,7 +8,7 @@ import io.realm.annotations.PrimaryKey
 open class SourceDB: ISource,  RealmObject() {
 
     @PrimaryKey
-    override var id: Long = 0L
+    override var id: Long = -1L
 
     override var name: String? = ""
     override var baseUrl: String = ""
@@ -16,6 +16,9 @@ open class SourceDB: ISource,  RealmObject() {
 
     override var hasPageSupport: Boolean = false
     override var hasThumbnailSupport: Boolean = false
+
+    override var lastPopularUpdate: String? = null
+    override var lastLastestUpdate: String? = null
 
     fun create(): SourceDB {
         return SourceDB().apply {

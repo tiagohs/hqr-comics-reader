@@ -24,7 +24,8 @@ import dagger.Component
         DownloadModule::class,
         NotificationModule::class,
         SourcesModule::class,
-        RepositoryModule::class
+        RepositoryModule::class,
+        InterceptorModule::class
         )
 )
 interface HQRComponent {

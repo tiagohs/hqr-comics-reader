@@ -2,6 +2,7 @@ package com.tiagohs.hqr.dragger.modules
 
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.sources.SourceManager
 import com.tiagohs.hqr.sources.portuguese.HQBRSource
 import com.tiagohs.hqr.ui.contracts.*
@@ -14,8 +15,8 @@ import io.reactivex.disposables.CompositeDisposable
 class PresenterModule {
 
     @Provides
-    internal fun provideHomePresenter(compositeDisposable: CompositeDisposable, sourceManager: SourceManager, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository): HomeContract.IHomePresenter {
-        return HomePresenter(compositeDisposable, sourceManager, preferenceHelper, sourceRepository)
+    internal fun provideHomePresenter(comicsInterceptor: Contracts.IComicsInterceptor, compositeDisposable: CompositeDisposable, sourceManager: SourceManager, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository): HomeContract.IHomePresenter {
+        return HomePresenter(compositeDisposable, sourceManager, preferenceHelper, sourceRepository, comicsInterceptor)
     }
 
     @Provides

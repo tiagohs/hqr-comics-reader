@@ -31,28 +31,28 @@ abstract class HttpSourceBase(
                 .subscribeOn(Schedulers.io())
     }
 
-    fun fetchPublishers(): Observable<List<Publisher>> {
+    override fun fetchPublishers(): Observable<List<Publisher>> {
         return fetch(GET(publishersEndpoint, headersBuilder().build()))
                     .map({ response: Response -> parsePublishersResponse(response) })
     }
 
     abstract protected fun parsePublishersResponse(response: Response) : List<Publisher>
 
-    fun fetchLastestComics(): Observable<List<ComicsItem>> {
+    override fun fetchLastestComics(): Observable<List<ComicsItem>> {
         return fetch(GET(lastestComicsEndpoint, headersBuilder().build()))
                 .map({ response: Response -> parseLastestComicsResponse(response) })
     }
 
     abstract protected fun parseLastestComicsResponse(response: Response) : List<ComicsItem>
 
-    fun fetchPopularComics(): Observable<List<ComicsItem>> {
+    override fun fetchPopularComics(): Observable<List<ComicsItem>> {
         return fetch(GET(popularComicsEndpoint, headersBuilder().build()))
                 .map({ response: Response -> parsePopularComicsResponse(response) })
     }
 
     abstract protected fun parsePopularComicsResponse(response: Response) : List<ComicsItem>
 
-    fun fetchReaderComics(hqReaderPath: String, chapterName: String?, comicId: String?): Observable<Chapter> {
+    override fun fetchReaderComics(hqReaderPath: String, chapterName: String?, comicId: String?): Observable<Chapter> {
         return fetch(GET(getReaderEndpoint(hqReaderPath), headersBuilder().build()))
                 .map({ response: Response -> parseReaderResponse(response, chapterName, hqReaderPath, comicId) })
     }
@@ -61,7 +61,7 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?, comicId: String?) : Chapter
 
-    fun fetchComicDetails(comicPath: String): Observable<Comic> {
+    override fun fetchComicDetails(comicPath: String): Observable<Comic> {
         return fetch(GET(getComicDetailsEndpoint(comicPath), headersBuilder().build()))
                 .map({ response: Response -> parseComicDetailsResponse(response, comicPath) })
     }
@@ -70,7 +70,7 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : Comic
 
-    fun fetchAllComicsByLetter(letter: String): Observable<ComicsListModel> {
+    override fun fetchAllComicsByLetter(letter: String): Observable<ComicsListModel> {
         return fetch(GET(getAllComicsByLetterEndpoint(letter), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByLetterResponse(response) })
     }
@@ -79,7 +79,7 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseAllComicsByLetterResponse(response: Response) : ComicsListModel
 
-    fun fetchAllComicsByPublisher(publisherPath: String): Observable<ComicsListModel> {
+    override fun fetchAllComicsByPublisher(publisherPath: String): Observable<ComicsListModel> {
         return fetch(GET(getAllComicsByPublisherEndpoint(publisherPath), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByPublisherResponse(response) })
     }
@@ -88,7 +88,7 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseAllComicsByPublisherResponse(response: Response) : ComicsListModel
 
-    fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<ComicsListModel> {
+    override fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<ComicsListModel> {
         return fetch(GET(getAllComicsByScanlatorEndpoint(scanlatorPath), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByScanlatorResponse(response) })
     }
@@ -97,7 +97,7 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseAllComicsByScanlatorResponse(response: Response) : ComicsListModel
 
-    fun fetchSearchByQuery(query: String): Observable<ComicsListModel> {
+    override fun fetchSearchByQuery(query: String): Observable<ComicsListModel> {
         return fetch(GET(getSearchByQueryEndpoint(query), headersBuilder().build()))
                 .map({ response: Response -> parseSearchByQueryResponse(response, query) })
     }
@@ -117,7 +117,7 @@ abstract class HttpSourceBase(
                 .build()
     }
 
-    fun fetchPageList(chapter: Chapter): Observable<List<Page>> {
+    override fun fetchPageList(chapter: Chapter): Observable<List<Page>> {
         return client.newCall(pageListRequest(chapter))
                 .asObservableSuccess()
                 .map { response -> pageListParse(response, chapter.chapterPath) }
@@ -130,7 +130,7 @@ abstract class HttpSourceBase(
     }
 
 
-    fun fetchImage(page: Page): Observable<Response> {
+    override fun fetchImage(page: Page): Observable<Response> {
         return client.newCallWithProgress(imageRequest(page), page)
                 .asObservableSuccess()
     }
@@ -139,7 +139,7 @@ abstract class HttpSourceBase(
         return GET(page.imageUrl!!, headers)
     }
 
-    fun getCachedImage(page: Page): Observable<Page> {
+    override fun getCachedImage(page: Page): Observable<Page> {
         val imageUrl = page.imageUrl ?: return Observable.just(page)
 
         return Observable.just(page)
@@ -165,13 +165,13 @@ abstract class HttpSourceBase(
                 .map { page }
     }
 
-    fun fetchAllImageUrlsFromPageList(pages: List<Page>): Observable<Page> {
+    override fun fetchAllImageUrlsFromPageList(pages: List<Page>): Observable<Page> {
         return Observable.fromIterable(pages)
                 .filter { !it.imageUrl.isNullOrEmpty() }
                 .mergeWith(fetchRemainingImageUrlsFromPageList(pages))
     }
 
-    fun fetchRemainingImageUrlsFromPageList(pages: List<Page>): Observable<Page> {
+    override fun fetchRemainingImageUrlsFromPageList(pages: List<Page>): Observable<Page> {
         return Observable.fromIterable(pages)
                 .filter { it.imageUrl.isNullOrEmpty() }
     }

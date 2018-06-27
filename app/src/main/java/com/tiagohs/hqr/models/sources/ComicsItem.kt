@@ -9,6 +9,7 @@ class ComicsItem(
         val link: String,
         val publisher: String,
         val status: String): Parcelable {
+
     constructor(parcel: Parcel) : this(
             parcel.readString(),
             parcel.readString(),

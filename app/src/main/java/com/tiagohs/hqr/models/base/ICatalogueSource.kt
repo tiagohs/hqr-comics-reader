@@ -9,14 +9,19 @@ interface ICatalogueSource<T: ISource>{
     var sourceDBS: RealmList<T>?
 
     fun copyFrom(other: ICatalogueSource<T>) {
-        id = other.id
+
+        if (other.id != -1L) {
+            this.id = other.id
+        }
 
         if (other.language != null) {
-            language = other.language
+            this.language = other.language
         }
 
         if (other.sourceDBS != null) {
-            sourceDBS = other.sourceDBS
+            this.sourceDBS = other.sourceDBS
         }
+
     }
+
 }

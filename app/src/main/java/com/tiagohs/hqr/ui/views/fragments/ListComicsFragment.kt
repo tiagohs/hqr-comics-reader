@@ -5,18 +5,15 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.ComicsItem
-import com.tiagohs.hqr.models.viewModels.FETCH_ALL
-import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
-import com.tiagohs.hqr.models.viewModels.FETCH_BY_SCANLATORS
-import com.tiagohs.hqr.models.viewModels.ListComicsModel
+import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
+import com.tiagohs.hqr.models.base.IComic
+import com.tiagohs.hqr.models.viewModels.*
 import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.contracts.ListComicsContract
 import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
 import com.tiagohs.hqr.ui.views.activities.SearchActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
-import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import kotlinx.android.synthetic.main.fragment_list_comics.*
 import javax.inject.Inject
 
@@ -98,7 +95,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         presenter.onUnbindView()
     }
 
-    override fun onBindComics(comics: List<ComicsItem>?) {
+    override fun onBindComics(comics: List<ComicViewModel>?) {
         layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         listComicsAdapter = ComicsListAdapter(comics!!, context, this, R.layout.item_comic_simple_it)
 
@@ -108,7 +105,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         comicsList.setNestedScrollingEnabled(false)
     }
 
-    override fun onBindMoreComics(comics: List<ComicsItem>) {
+    override fun onBindMoreComics(comics: List<ComicViewModel>) {
         listComicsAdapter.comics = comics
         listComicsAdapter.notifyDataSetChanged()
     }
@@ -124,7 +121,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         }
     }
 
-    override fun onComicSelect(comic: ComicsItem) {
-        startActivity(ComicDetailsActivity.newIntent(context, comic.link))
+    override fun onComicSelect(comic: ComicViewModel) {
+        startActivity(ComicDetailsActivity.newIntent(context, comic.pathLink!!))
     }
 }

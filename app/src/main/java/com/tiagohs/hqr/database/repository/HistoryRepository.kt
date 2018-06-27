@@ -3,6 +3,7 @@ package com.tiagohs.hqr.database.repository
 import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.models.database.comics.ComicHistory
 import io.reactivex.Observable
+import io.realm.Realm
 
 class HistoryRepository: BaseRepository(), IHistoryRepository {
 
@@ -19,29 +20,52 @@ class HistoryRepository: BaseRepository(), IHistoryRepository {
     }
 
     override fun getAllComicHistory(): Observable<List<ComicHistory>> {
-        return startGetTransaction()
-                .map { realm ->
-                    val results = realm.where(ComicHistory::class.java).findAll()
+        return Observable.create<List<ComicHistory>> { emitter ->
+            val realm = Realm.getDefaultInstance()
+
+            try {
+                val results = realm.where(ComicHistory::class.java)
+                            .findAll()
+                if (results != null) {
                     val comicsHistories= ComicHistory().createList(results.toList())
-
-                    finishTransaction(realm)
-
-                    comicsHistories
+                    emitter.onNext(comicsHistories)
                 }
+
+                finishTransaction(realm)
+
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                if (!realm.isClosed)
+                    realm.close()
+
+                emitter.onError(ex)
+            }
+        }
     }
 
     override fun getComicHistory(id: Long): Observable<ComicHistory> {
-        return startGetTransaction()
-                .map { realm ->
-                    val result = realm.where(ComicHistory::class.java)
-                            .equalTo("id", id)
-                            .findFirst()
-                    val comicHistory = ComicHistory().create(result!!)
+        return Observable.create<ComicHistory> { emitter ->
+            val realm = Realm.getDefaultInstance()
 
-                    finishTransaction(realm)
-
-                    comicHistory
+            try {
+                val result = realm.where(ComicHistory::class.java)
+                        .equalTo("id", id)
+                        .findFirst()
+                if (result != null) {
+                    val comicHistory = ComicHistory().create(result)
+                    emitter.onNext(comicHistory)
                 }
+
+                finishTransaction(realm)
+
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                if (!realm.isClosed)
+                    realm.close()
+
+                emitter.onError(ex)
+            }
+        }
     }
 
 }

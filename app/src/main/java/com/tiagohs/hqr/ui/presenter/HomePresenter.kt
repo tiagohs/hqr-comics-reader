@@ -3,9 +3,11 @@ package com.tiagohs.hqr.ui.presenter
 import android.util.Log
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.interceptors.config.Contracts
+import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.SourceDB
-import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import com.tiagohs.hqr.sources.HttpSourceBase
 import com.tiagohs.hqr.sources.SourceManager
 import com.tiagohs.hqr.ui.contracts.HomeContract
@@ -17,9 +19,34 @@ import io.reactivex.schedulers.Schedulers
 class HomePresenter(subscriber: CompositeDisposable,
                     private val sourceManager: SourceManager,
                     private val preferenceHelper: PreferenceHelper,
-                    private val sourceRepository: ISourceRepository):
+                    private val sourceRepository: ISourceRepository,
+                    private val comicsInterceptor: Contracts.IComicsInterceptor):
             BasePresenter<HomeContract.IHomeView>(subscriber),
             HomeContract.IHomePresenter {
+
+    override fun onBindView(view: HomeContract.IHomeView) {
+        super.onBindView(view)
+
+        comicsInterceptor.onBind()
+        comicsInterceptor.subscribeComicDetailSubject()
+                         .observeOn(AndroidSchedulers.mainThread())
+                         .subscribe({ comic: ComicViewModel? ->
+                             if (comic?.tags!!.contains(IComic.POPULARS)) {
+                                 mView?.onBindPopularItem(comic)
+                             }
+                             if (comic.tags!!.contains(IComic.RECENTS)) {
+                                 mView?.onBindLastestItem(comic)
+                             }
+                         }, { error ->
+                             Log.e("Home", "Inicialização Falhou ", error)
+                         })
+    }
+
+    override fun onUnbindView() {
+        super.onUnbindView()
+
+        comicsInterceptor.onUnbind()
+    }
 
     override fun onGetHomeData(sourceId: Long) {
         sourceRepository.getSourceById(sourceId)
@@ -36,9 +63,6 @@ class HomePresenter(subscriber: CompositeDisposable,
                     }
 
                 })
-
-
-
     }
 
     override fun onGetPublishers(source: HttpSourceBase) {
@@ -61,25 +85,21 @@ class HomePresenter(subscriber: CompositeDisposable,
 
     override fun onGetHomePageData(source: HttpSourceBase) {
 
-        mSubscribers!!.add(source.fetchPopularComics()
+        mSubscribers!!.add(comicsInterceptor.onGetPopularComics()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { popularComics: List<ComicsItem>? ->
-                            if (popularComics!!.isNotEmpty()) mView!!.onBindPopulars(popularComics)
-                        },
-                        { error: Throwable? ->
-                            Log.e("HomePresenter", "Error!", error)
-                        }))
+                .subscribe({ popularComics: List<ComicViewModel>? ->
+                    if (popularComics != null) mView!!.onBindPopulars(popularComics)
+                }, { error ->
+                    Log.e("HomePresenter", "Error!", error)
+                }))
 
-        mSubscribers!!.add(source.fetchLastestComics()
+        mSubscribers!!.add(comicsInterceptor.onGetLastestComics()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { lastestComics: List<ComicsItem>? ->
-                            if (lastestComics!!.isNotEmpty()) mView!!.onBindLastestUpdates(lastestComics)
-                        },
-                        { error: Throwable? ->
-                            Log.e("HomePresenter", "Error!", error)
-                        }))
+                .subscribe({ lastestsComics: List<ComicViewModel>? ->
+                    if (lastestsComics != null) mView!!.onBindLastestUpdates(lastestsComics)
+                }, { error ->
+                    Log.e("HomePresenter", "Error!", error)
+                }))
     }
 
     override fun observeSourcesChanges() {

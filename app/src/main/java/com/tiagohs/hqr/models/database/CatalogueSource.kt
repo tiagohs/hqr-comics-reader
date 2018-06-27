@@ -8,7 +8,7 @@ import io.realm.annotations.PrimaryKey
 open class CatalogueSource() : ICatalogueSource<SourceDB>, RealmObject() {
 
     @PrimaryKey
-    override var id: Long = 0L
+    override var id: Long = -1L
     override var language: String? = null
     override var sourceDBS: RealmList<SourceDB>? = null
 

@@ -11,13 +11,31 @@ interface ISource{
     var hasPageSupport: Boolean
     var hasThumbnailSupport: Boolean
 
+    var lastPopularUpdate: String?
+    var lastLastestUpdate: String?
+
     fun isCurrentSelect(currrentSourceId: Long): Boolean {
         return id == currrentSourceId
     }
 
     fun copyFrom(other: ISource) {
-        this.id = other.id
-        this.name = other.name
+
+        if (other.id != -1L) {
+            this.id = other.id
+        }
+
+        if (other.name != null) {
+            this.name = other.name
+        }
+
+        if (other.lastLastestUpdate != null) {
+            this.lastLastestUpdate = other.lastLastestUpdate
+        }
+
+        if (other.lastPopularUpdate != null) {
+            this.lastPopularUpdate = other.lastPopularUpdate
+        }
+
         this.baseUrl = other.baseUrl
         this.language = other.language
         this.hasPageSupport = other.hasPageSupport

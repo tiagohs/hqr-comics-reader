@@ -8,15 +8,15 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.ComicsItem
-import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import kotlinx.android.synthetic.main.activity_comic_details.view.*
 import kotlinx.android.synthetic.main.item_comic_simple_it.view.*
 import kotlinx.android.synthetic.main.placeholder_comic_it_horizontal.view.*
 
-class ComicsListAdapter(var comics: List<ComicsItem>,
+class ComicsListAdapter(var comics: List<ComicViewModel>,
                         private val context: Context?,
                         private val callback: IComicListCallback,
                         private val layoutId: Int) : RecyclerView.Adapter<ComicsListAdapter.ComicViewHolder>() {
@@ -24,6 +24,23 @@ class ComicsListAdapter(var comics: List<ComicsItem>,
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ComicViewHolder {
         val view = LayoutInflater.from(context).inflate(layoutId, parent, false)
         return ComicViewHolder(view, callback, context!!)
+    }
+
+    fun getComic(comic: ComicViewModel): ComicViewModel? {
+        return comics.find {it.pathLink == comic.pathLink }
+    }
+
+    fun getComicIndex(comic: ComicViewModel): Int? {
+        var index: Int? = null
+
+        for ((i, it) in comics.withIndex()) {
+            if (it.pathLink == comic.pathLink) {
+                index = i
+                break
+            }
+        }
+
+        return index
     }
 
     override fun getItemCount(): Int {
@@ -38,7 +55,7 @@ class ComicsListAdapter(var comics: List<ComicsItem>,
 
     class ComicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
-        lateinit var comic: ComicsItem
+        lateinit var comic: ComicViewModel
         lateinit var callback: IComicListCallback
         lateinit var context: Context
 
@@ -74,32 +91,28 @@ class ComicsListAdapter(var comics: List<ComicsItem>,
                 placeholder = itemView.placeholderItem
         }
 
-        fun onBindView(c: ComicsItem) {
+        fun onBindView(c: ComicViewModel) {
             comic = c
 
-            comicTitle.text = comic.title
+            comicTitle.text = comic.name
 
-            if (::comicsImage.isInitialized && ::placeholder.isInitialized) {
+            if (::comicsImage.isInitialized) {
                 ImageUtils.load(comicsImage,
-                        "https://hqbr.com.br/" + comic.imagePath,
-                        R.drawable.img_placeholder, true, placeholder)
-            } else if (::comicsImage.isInitialized) {
-                ImageUtils.load(comicsImage,
-                        "https://hqbr.com.br/" + comic.imagePath,
+                        "https://hqbr.com.br/" + comic.posterPath,
                         R.drawable.img_placeholder,
                         R.drawable.img_placeholder,
                         true)
             }
 
-            if (c.status.isNotEmpty() && ::comicsStatus.isInitialized) {
+            if (c.status != null && ::comicsStatus.isInitialized) {
                 comicsStatus.text = ScreenUtils.getComicStatusText(context, c.status)
                 comicsStatus.setBackgroundColor(ScreenUtils.generateComicStatusBackground(context, comic.status))
             } else if (::comicsStatus.isInitialized) {
                 comicsStatus.visibility = View.GONE
             }
 
-            if (c.publisher.isNotEmpty() && ::comicsPublisher.isInitialized) {
-                comicsPublisher.text = c.publisher
+            if (c.publisher != null && ::comicsPublisher.isInitialized) {
+                comicsPublisher.text = c.publisher!!.joinToString(", ")
             } else if (::comicsPublisher.isInitialized) {
                 comicsPublisher.visibility = View.GONE
             }

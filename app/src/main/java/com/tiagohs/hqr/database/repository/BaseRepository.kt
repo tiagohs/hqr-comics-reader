@@ -32,16 +32,9 @@ abstract class BaseRepository {
     protected inline fun <reified T: RealmObject> insert(data: T): Observable<T> {
         return startGetTransaction()
                     .map { realm: Realm ->
-                        val result = realm.where(T::class.java).findFirst()
+                        realm.executeTransaction {
+                            r -> r.insertOrUpdate(data) }
 
-                        realm.executeTransaction { r ->
-
-                            if (result == null) {
-                                r.insertOrUpdate(data)
-                            }
-                        }
-
-                        realm.commitTransaction()
                         finishTransaction(realm)
                         data
                     }
@@ -52,59 +45,79 @@ abstract class BaseRepository {
                 .map { realm: Realm ->
                     realm.executeTransaction { r -> r.insertOrUpdate(data) }
 
-                    realm.commitTransaction()
                     finishTransaction(realm)
                     data
                 }
     }
 
     protected inline fun <reified T: RealmObject> deleteAll(): Observable<Void?> {
-        return startGetTransaction()
-                .map { realm: Realm ->
-                    val results = realm
-                            .where(T::class.java)
-                            .findAll()
+        return Observable.create<Void> { emitter ->
+            val realm = Realm.getDefaultInstance()
 
-                    realm.executeTransaction { r ->
-                        results?.deleteAllFromRealm()
-                    }
+            try {
+                val results = realm
+                        .where(T::class.java)
+                        .findAll()
 
-                    realm.commitTransaction()
-                    finishTransaction(realm)
-
-                    null
+                realm.executeTransaction { r ->
+                    results?.deleteAllFromRealm()
                 }
+
+                finishTransaction(realm)
+
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                if (!realm.isClosed)
+                    realm.close()
+
+                emitter.onError(ex)
+            }
+        }
     }
 
     protected inline fun <reified T: RealmObject> delete(id: Long): Observable<Void> {
-        return startGetTransaction()
-                .map { realm: Realm ->
-                    val results = realm
-                            .where(T::class.java)
-                            .equalTo("id", id)
-                            .findFirst()
+        return Observable.create<Void> { emitter ->
+            val realm = Realm.getDefaultInstance()
 
-                    realm.executeTransaction { r ->
-                        results?.deleteFromRealm()
-                    }
+            try {
+                val results = realm
+                        .where(T::class.java)
+                        .equalTo("id", id)
+                        .findFirst()
 
-                    realm.commitTransaction()
-                    finishTransaction(realm)
-
-                    null
+                realm.executeTransaction { r ->
+                    results?.deleteFromRealm()
                 }
+
+                finishTransaction(realm)
+
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                if (!realm.isClosed)
+                    realm.close()
+
+                emitter.onError(ex)
+            }
+        }
     }
 
     protected inline fun <reified T: RealmObject> delete(itemsId: List<Long>): Observable<Void> {
-        return startGetTransaction()
-                .map { realm: Realm ->
-                    realm.executeTransaction { r -> findAndDelete<T>(r, itemsId)}
+        return Observable.create<Void> { emitter ->
+            val realm = Realm.getDefaultInstance()
 
-                    realm.commitTransaction()
-                    finishTransaction(realm)
+            try {
+                realm.executeTransaction { r -> findAndDelete<T>(r, itemsId)}
 
-                    null
-                }
+                finishTransaction(realm)
+
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                if (!realm.isClosed)
+                    realm.close()
+
+                emitter.onError(ex)
+            }
+        }
     }
 
     protected inline fun <reified T: RealmObject> findAndDelete(realm: Realm, itemsId: List<Long>) {

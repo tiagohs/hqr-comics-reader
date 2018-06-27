@@ -28,6 +28,7 @@ class ListComicsPresenter(
     var totalPage: Int = 0
 
     override fun onGetComics(listType: String, flag: String) {
+
         mSubscribers!!.add(onCheckListType(listType, flag)
               .observeOn(AndroidSchedulers.mainThread())
               .map({ model: ComicsListModel ->
@@ -39,7 +40,9 @@ class ListComicsPresenter(
                       onCreatePagination(model.comics) })
                 .subscribe({ comics: List<ComicsItem>? ->
                     comicsList = comics!!
-                    mView!!.onBindComics(comicsList)}))
+                    //mView!!.onBindComics(comicsList)
+                }))
+
     }
 
     override fun hasPagesSupport(): Boolean {
@@ -74,7 +77,7 @@ class ListComicsPresenter(
                     .subscribe({ comics ->
                         comicsList = comics
 
-                        mView!!.onBindMoreComics(comics)
+                        //mView!!.onBindMoreComics(comics)
                     }))
         }
 

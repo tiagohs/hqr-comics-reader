@@ -13,7 +13,7 @@ class SourceRepository() : BaseRepository(), ISourceRepository {
         return insert(sourceDB)
     }
 
-    override fun getAllSources(): Observable<List<SourceDB>> {
+    override fun getAllSources(): Observable<List<SourceDB>?> {
         return startGetTransaction()
                 .map { realm ->
                     val results = realm.where(SourceDB::class.java)
@@ -26,7 +26,7 @@ class SourceRepository() : BaseRepository(), ISourceRepository {
                 }
     }
 
-    override fun getAllCatalogueSources(): Observable<List<CatalogueSource>> {
+    override fun getAllCatalogueSources(): Observable<List<CatalogueSource>?> {
         return startGetTransaction()
                 .map { realm ->
                     val results = realm.where(CatalogueSource::class.java).findAll()
@@ -38,13 +38,17 @@ class SourceRepository() : BaseRepository(), ISourceRepository {
                 }
     }
 
-    override fun getCatalogueSourceById(catalogueSourceId: Long): Observable<CatalogueSource> {
+    override fun getCatalogueSourceById(catalogueSourceId: Long): Observable<CatalogueSource?> {
         return startGetTransaction()
                 .map { realm ->
                     val result = realm.where(CatalogueSource::class.java)
                                 .equalTo("id", catalogueSourceId)
                                 .findFirst()
-                    val catalogueSource = CatalogueSource().create(result!!)
+                    var catalogueSource: CatalogueSource? = null
+
+                    if (result != null) {
+                        catalogueSource = CatalogueSource().create(result)
+                    }
 
                     finishTransaction(realm)
 
@@ -52,19 +56,55 @@ class SourceRepository() : BaseRepository(), ISourceRepository {
                 }
     }
 
-    override fun getSourceById(sourceId: Long): Observable<SourceDB> {
-        return startGetTransaction()
-                .map { realm ->
-                    val result = realm.where(SourceDB::class.java)
-                                    .equalTo("id", sourceId)
-                            .findFirst()
+    override fun getSourceByIdRealm(sourceId: Long): SourceDB? {
+        val realm = Realm.getDefaultInstance()
 
-                    val source = SourceDB().create(result!!)
+        try {
+            val result = realm.where(SourceDB::class.java)
+                    .equalTo("id", sourceId)
+                    .findFirst()
+            var source: SourceDB? = null
 
-                    finishTransaction(realm)
+            if (result != null) {
+                source = SourceDB().create(result)
+            }
 
-                    source
+            finishTransaction(realm)
+
+            return source
+        } catch (ex: Exception) {
+            if (!realm.isClosed)
+                realm.close()
+        }
+
+        return null
+    }
+
+    override fun getSourceById(sourceId: Long): Observable<SourceDB?> {
+        return Observable.create<SourceDB> { emitter ->
+            val realm = Realm.getDefaultInstance()
+
+            try {
+                val result = realm.where(SourceDB::class.java)
+                        .equalTo("id", sourceId)
+                        .findFirst()
+                var source: SourceDB? = null
+
+                if (result != null) {
+                    source = SourceDB().create(result)
+                    emitter.onNext(source)
                 }
+
+                finishTransaction(realm)
+
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                if (!realm.isClosed)
+                    realm.close()
+
+                emitter.onError(ex)
+            }
+        }
     }
 
 }

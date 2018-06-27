@@ -25,8 +25,8 @@ class RepositoryModule {
     }
 
     @Provides
-    fun providerComicRepository(): IComicsRepository {
-        return ComicsRepository()
+    fun providerComicRepository(sourceRepository: ISourceRepository): IComicsRepository {
+        return ComicsRepository(sourceRepository)
     }
 
     @Provides

@@ -37,7 +37,7 @@ class SearchPresenter(
                         onCreatePagination(model.comics) })
                 .subscribe({ comicsList ->
                     this.comicsList = comicsList
-                    mView!!.onBindComics(comicsList)
+                    //mView!!.onBindComics(comicsList)
                 }))
     }
 
@@ -58,7 +58,7 @@ class SearchPresenter(
                     .subscribe({ comics ->
                         comicsList = comics
 
-                        mView!!.onBindComics(comics)
+                        //mView!!.onBindComics(comics)
                     }))
         }
     }

@@ -11,9 +11,19 @@ interface IChapter{
     var comic: Comic?
 
     fun copyFrom(other: IChapter) {
-        this.id = other.id
-        this.chapterPath = other.chapterPath
-        this.comic = other.comic
+
+        if (other.id != -1L) {
+            this.id = other.id
+        }
+
+        if (other.chapterPath != null) {
+            this.chapterPath = other.chapterPath
+        }
+
+        if (other.comic != null) {
+            this.comic = other.comic
+        }
+
         this.lastPageRead = other.lastPageRead
     }
 

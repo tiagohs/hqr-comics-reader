@@ -8,6 +8,10 @@ class RealmUtils {
     companion object {
 
         inline fun <reified T: RealmObject> getDataId(): Long {
+            return getDataId<T>(Realm.getDefaultInstance())
+        }
+
+        inline fun <reified T: RealmObject> getDataId(realm: Realm): Long {
             val realm = Realm.getDefaultInstance()
             var nextId = 1L
 

@@ -4,13 +4,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.widget.StaggeredGridLayoutManager
-import android.util.Log
 import android.view.*
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
 import com.tiagohs.hqr.models.base.ISource
-import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import com.tiagohs.hqr.models.viewModels.FETCH_ALL
 import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
 import com.tiagohs.hqr.models.viewModels.ListComicsModel
@@ -38,6 +37,9 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
     @Inject lateinit var localeUtils: LocaleUtils
 
     private lateinit var source: ISource
+
+    private var lastestUpdatesAdapter: ComicsListAdapter? = null
+    private var popularComicsAdapter: ComicsListAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,8 +94,8 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         return R.layout.fragment_home
     }
 
-    override fun onComicSelect(comic: ComicsItem) {
-        startActivity(ComicDetailsActivity.newIntent(context, comic.link))
+    override fun onComicSelect(comic: ComicViewModel) {
+        startActivity(ComicDetailsActivity.newIntent(context, comic.pathLink!!))
     }
 
     override fun onBindSourceInfo(source: ISource) {
@@ -115,18 +117,54 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         publishersListProgress.visibility = View.GONE
     }
 
-    override fun onBindLastestUpdates(lastestUpdates: List<ComicsItem>) {
-        lastestList.adapter = ComicsListAdapter(lastestUpdates, context, this, R.layout.item_comic)
+    override fun onBindLastestUpdates(lastestUpdates: List<ComicViewModel>) {
+        lastestUpdatesAdapter = ComicsListAdapter(lastestUpdates, context, this, R.layout.item_comic)
+
+        lastestList.adapter = lastestUpdatesAdapter
         lastestList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
 
         lastestListProgress.visibility = View.GONE
     }
 
-    override fun onBindPopulars(populars: List<ComicsItem>) {
-        popularList.adapter = ComicsListAdapter(populars, context, this, R.layout.item_comic)
+    override fun onBindPopulars(populars: List<ComicViewModel>) {
+        popularComicsAdapter = ComicsListAdapter(populars, context, this, R.layout.item_comic)
+
+        popularList.adapter = popularComicsAdapter
         popularList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
 
         popularListProgress.visibility = View.GONE
+    }
+
+    override fun onBindPopularItem(comic: ComicViewModel) {
+        if (popularComicsAdapter != null) {
+            val c = popularComicsAdapter!!.getComic(comic)
+
+            if (c != null) {
+                c.copyFrom(comic)
+                val index = popularComicsAdapter!!.getComicIndex(comic)
+
+                if (index != null) {
+                    popularComicsAdapter!!.notifyItemChanged(index)
+                }
+
+            }
+        }
+    }
+
+    override fun onBindLastestItem(comic: ComicViewModel) {
+
+        if (lastestUpdatesAdapter != null) {
+            val c = lastestUpdatesAdapter!!.getComic(comic)
+
+            if (c != null) {
+                c.copyFrom(comic)
+                val index = lastestUpdatesAdapter!!.getComicIndex(comic)
+
+                if (index != null) {
+                    lastestUpdatesAdapter!!.notifyItemChanged(index)
+                }
+            }
+        }
     }
 
     private fun goToComicsListPage() {

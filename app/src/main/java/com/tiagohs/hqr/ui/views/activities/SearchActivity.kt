@@ -9,12 +9,13 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SearchView
 import android.view.Menu
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.ComicsItem
+import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
+import com.tiagohs.hqr.models.base.IComic
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.contracts.SearchContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
-import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import kotlinx.android.synthetic.main.activity_search.*
 import javax.inject.Inject
 
@@ -67,13 +68,13 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
         comicsListRecyclerView.layoutManager
     }
 
-    override fun onBindComics(comics: List<ComicsItem>?) {
+    override fun onBindComics(comics: List<ComicViewModel>?) {
         listComicsAdapter.comics = comics!!
         listComicsAdapter.notifyDataSetChanged()
     }
 
-    override fun onComicSelect(comic: ComicsItem) {
-        startActivity(ComicDetailsActivity.newIntent(this, comic.link))
+    override fun onComicSelect(comic: ComicViewModel) {
+        startActivity(ComicDetailsActivity.newIntent(this, comic.pathLink!!))
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

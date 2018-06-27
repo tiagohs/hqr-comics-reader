@@ -10,6 +10,7 @@ open class Chapter: RealmObject(), IChapter {
     @PrimaryKey
     override var id: Long = -1L
 
+    override var chapterName: String? = ""
     override var chapterPath: String? = ""
     override var lastPageRead: Int = 0
 

@@ -3,8 +3,12 @@ package com.tiagohs.hqr.sources
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asObservableSuccess
 import com.tiagohs.hqr.helpers.extensions.newCallWithProgress
-import com.tiagohs.hqr.models.sources.*
-import com.tiagohs.hqr.models.viewModels.ComicsListModel
+import com.tiagohs.hqr.models.sources.Chapter
+import com.tiagohs.hqr.models.sources.Page
+import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.viewModels.ChapterViewModel
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.viewModels.ComicsListViewModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.*
@@ -38,73 +42,73 @@ abstract class HttpSourceBase(
 
     abstract protected fun parsePublishersResponse(response: Response) : List<Publisher>
 
-    override fun fetchLastestComics(): Observable<List<ComicsItem>> {
+    override fun fetchLastestComics(): Observable<List<ComicViewModel>> {
         return fetch(GET(lastestComicsEndpoint, headersBuilder().build()))
                 .map({ response: Response -> parseLastestComicsResponse(response) })
     }
 
-    abstract protected fun parseLastestComicsResponse(response: Response) : List<ComicsItem>
+    abstract protected fun parseLastestComicsResponse(response: Response) : List<ComicViewModel>
 
-    override fun fetchPopularComics(): Observable<List<ComicsItem>> {
+    override fun fetchPopularComics(): Observable<List<ComicViewModel>> {
         return fetch(GET(popularComicsEndpoint, headersBuilder().build()))
                 .map({ response: Response -> parsePopularComicsResponse(response) })
     }
 
-    abstract protected fun parsePopularComicsResponse(response: Response) : List<ComicsItem>
+    abstract protected fun parsePopularComicsResponse(response: Response) : List<ComicViewModel>
 
-    override fun fetchReaderComics(hqReaderPath: String, chapterName: String?, comicId: String?): Observable<Chapter> {
+    override fun fetchReaderComics(hqReaderPath: String, chapterName: String?): Observable<ChapterViewModel> {
         return fetch(GET(getReaderEndpoint(hqReaderPath), headersBuilder().build()))
-                .map({ response: Response -> parseReaderResponse(response, chapterName, hqReaderPath, comicId) })
+                .map({ response: Response -> parseReaderResponse(response, chapterName, hqReaderPath) })
     }
 
     abstract protected fun getReaderEndpoint(hqReaderPath: String): String
 
-    abstract protected fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?, comicId: String?) : Chapter
+    abstract protected fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?) : ChapterViewModel
 
-    override fun fetchComicDetails(comicPath: String): Observable<Comic> {
+    override fun fetchComicDetails(comicPath: String): Observable<ComicViewModel> {
         return fetch(GET(getComicDetailsEndpoint(comicPath), headersBuilder().build()))
                 .map({ response: Response -> parseComicDetailsResponse(response, comicPath) })
     }
 
     abstract protected fun getComicDetailsEndpoint(comicPath: String): String
 
-    abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : Comic
+    abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : ComicViewModel
 
-    override fun fetchAllComicsByLetter(letter: String): Observable<ComicsListModel> {
+    override fun fetchAllComicsByLetter(letter: String): Observable<ComicsListViewModel> {
         return fetch(GET(getAllComicsByLetterEndpoint(letter), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByLetterResponse(response) })
     }
 
     abstract protected fun getAllComicsByLetterEndpoint(letter: String): String
 
-    abstract protected fun parseAllComicsByLetterResponse(response: Response) : ComicsListModel
+    abstract protected fun parseAllComicsByLetterResponse(response: Response) : ComicsListViewModel
 
-    override fun fetchAllComicsByPublisher(publisherPath: String): Observable<ComicsListModel> {
+    override fun fetchAllComicsByPublisher(publisherPath: String): Observable<ComicsListViewModel> {
         return fetch(GET(getAllComicsByPublisherEndpoint(publisherPath), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByPublisherResponse(response) })
     }
 
     abstract protected fun getAllComicsByPublisherEndpoint(publisherPath: String): String
 
-    abstract protected fun parseAllComicsByPublisherResponse(response: Response) : ComicsListModel
+    abstract protected fun parseAllComicsByPublisherResponse(response: Response) : ComicsListViewModel
 
-    override fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<ComicsListModel> {
+    override fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<ComicsListViewModel> {
         return fetch(GET(getAllComicsByScanlatorEndpoint(scanlatorPath), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByScanlatorResponse(response) })
     }
 
     abstract protected fun getAllComicsByScanlatorEndpoint(scanlatorPath: String): String
 
-    abstract protected fun parseAllComicsByScanlatorResponse(response: Response) : ComicsListModel
+    abstract protected fun parseAllComicsByScanlatorResponse(response: Response) : ComicsListViewModel
 
-    override fun fetchSearchByQuery(query: String): Observable<ComicsListModel> {
+    override fun fetchSearchByQuery(query: String): Observable<ComicsListViewModel> {
         return fetch(GET(getSearchByQueryEndpoint(query), headersBuilder().build()))
                 .map({ response: Response -> parseSearchByQueryResponse(response, query) })
     }
 
     abstract protected fun getSearchByQueryEndpoint(query: String): String
 
-    abstract protected fun parseSearchByQueryResponse(response: Response, query: String): ComicsListModel
+    abstract protected fun parseSearchByQueryResponse(response: Response, query: String): ComicsListViewModel
 
     protected fun GET(url: String,
             headers: Headers = DEFAULT_HEADERS,

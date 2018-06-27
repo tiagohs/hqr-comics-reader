@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.ui.presenter
 
-import com.tiagohs.hqr.models.sources.Comic
+import android.util.Log
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import com.tiagohs.hqr.sources.portuguese.HQBRSource
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
@@ -16,12 +17,11 @@ class ComicDetailsPresenter(subscriber: CompositeDisposable,
         mSubscribers!!.add(source.fetchComicDetails(comicPath)
               .observeOn(AndroidSchedulers.mainThread())
               .subscribe(
-                      { comic: Comic? ->
+                      { comic: ComicViewModel? ->
                             if (comic != null) mView!!.onBindComic(comic)
                       },
-                      {
-                          t ->
-
+                      { error ->
+                          Log.e("ComicDetails", "Error", error)
                       }
               ))
     }

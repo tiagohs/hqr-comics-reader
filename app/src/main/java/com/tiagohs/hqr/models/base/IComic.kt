@@ -4,6 +4,7 @@ import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Chapter
 import com.tiagohs.hqr.models.sources.ComicsItem
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import io.realm.RealmList
 import com.tiagohs.hqr.models.sources.Comic as NetworkComic
 
@@ -116,10 +117,10 @@ interface IComic: IDefaultModel {
         this.source = sourceDB
     }
 
-    fun copyFrom(other: NetworkComic) {
+    fun copyFrom(other: ComicViewModel) {
 
-        if (other.title != null) {
-            this.name = other.title
+        if (other.name != null) {
+            this.name = other.name
         }
 
         if (other.pathLink != null) {

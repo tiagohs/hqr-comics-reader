@@ -53,7 +53,7 @@ class ComicsInterceptor(
                 .flatMap {
                     onGetComics(
                             sourceHttp?.fetchLastestComics()!!,
-                            comicsRepository.getRecentsComics(),
+                            comicsRepository.getRecentsComics(sourceId),
                             it.lastLastestUpdate,
                             it,
                             sourceHttp,
@@ -70,7 +70,7 @@ class ComicsInterceptor(
                 .flatMap {
                     onGetComics(
                             sourceHttp?.fetchPopularComics()!!,
-                            comicsRepository.getPopularComics(),
+                            comicsRepository.getPopularComics(sourceId),
                             it.lastLastestUpdate,
                             it,
                             sourceHttp,
@@ -78,12 +78,12 @@ class ComicsInterceptor(
                 }
     }
 
-    private fun onGetComics(networkFetcher: Observable<List<NetworkComicItem>>, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, source: ISource, sourceHttp: IHttpSource, type: String): Observable<List<ComicViewModel>> {
+    private fun onGetComics(networkFetcher: Observable<List<ComicViewModel>>, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, source: ISource, sourceHttp: IHttpSource, type: String): Observable<List<ComicViewModel>> {
         return fromNetworkOrLocal(networkFetcher, source, sourceHttp, localFetcher, lastUpdate, type)
                             .doOnNext { comics -> initializeComics(comics) }
     }
 
-    private fun fromNetworkOrLocal(networkFetcher: Observable<List<NetworkComicItem>>, source: ISource, httpSource: IHttpSource, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, type: String): Observable<List<ComicViewModel>> {
+    private fun fromNetworkOrLocal(networkFetcher: Observable<List<ComicViewModel>>, source: ISource, httpSource: IHttpSource, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, type: String): Observable<List<ComicViewModel>> {
         return if (lastUpdate != null && !needToUpdate(lastUpdate))
             fetchComicsFromLocal(source, localFetcher, type)
         else
@@ -103,14 +103,14 @@ class ComicsInterceptor(
                 .doOnNext { onUpdateCatalogueSource(source, type) }
     }
 
-    private fun fetchComicsFromNetwork(networkFetcher: Observable<List<NetworkComicItem>>, source: ISource, sourceHttp: IHttpSource, type: String): Observable<List<ComicViewModel>> {
+    private fun fetchComicsFromNetwork(networkFetcher: Observable<List<ComicViewModel>>, source: ISource, sourceHttp: IHttpSource, type: String): Observable<List<ComicViewModel>> {
         return networkFetcher
                          .map { networkComics -> networkComics.map { networkToLocalComic(it, sourceHttp.id, type) } }
                          .doOnNext { onUpdateCatalogueSource(source, type) }
     }
 
-    private fun networkToLocalComic(comicNetwork: NetworkComicItem, sourceId: Long, type: String) : ComicViewModel {
-        var comic = comicsRepository.getComicRealm(comicNetwork.link, sourceId)
+    private fun networkToLocalComic(comicNetwork: ComicViewModel, sourceId: Long, type: String) : ComicViewModel {
+        var comic = comicsRepository.findByPathUrlRealm(comicNetwork.pathLink!!, sourceId)
 
         if (comic == null) {
             var tags: List<String>? = null
@@ -120,11 +120,14 @@ class ComicsInterceptor(
                 IComic.RECENTS -> tags = listOf(IComic.RECENTS)
             }
 
-            val newComic = comicsRepository.insertRealm(comicNetwork, sourceId, tags, false)
+            comicNetwork.tags = tags
+            comicNetwork.inicialized = false
+
+            val newComic = comicsRepository.insertRealm(comicNetwork, sourceId)
             comic = newComic
         }
 
-        return ComicViewModel().create(comic!!)
+        return comic!!
     }
 
     private fun onUpdateCatalogueSource(currentSource: ISource, type: String) {
@@ -145,7 +148,10 @@ class ComicsInterceptor(
 
     private fun getComicDetailsObservable(comic: ComicViewModel, sourceId: Long, httpSource: IHttpSource): Observable<ComicViewModel> {
         return httpSource.fetchComicDetails(comic.pathLink!!)
-                         .flatMap { networkComic -> comicsRepository.insertOrUpdateComic(networkComic, sourceId) }
+                         .flatMap { networkComic ->
+                             networkComic.inicialized = true
+                             comicsRepository.insertOrUpdateComic(networkComic, sourceId)
+                         }
                          .doOnNext { Observable.just(it) }
     }
 }

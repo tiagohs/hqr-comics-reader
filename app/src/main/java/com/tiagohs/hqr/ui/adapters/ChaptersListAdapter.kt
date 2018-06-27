@@ -6,12 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
+import com.tiagohs.hqr.models.viewModels.ChapterViewModel
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import com.tiagohs.hqr.ui.callbacks.IChapterItemCallback
 import kotlinx.android.synthetic.main.item_chapter.view.*
 
-class ChaptersListAdapter(private val comic: Comic,
+class ChaptersListAdapter(private val comic: ComicViewModel,
                           private val context: Context?,
                           private val callback: IChapterItemCallback) : RecyclerView.Adapter<ChaptersListAdapter.ChaptersItemrViewHolder>() {
 
@@ -25,13 +25,13 @@ class ChaptersListAdapter(private val comic: Comic,
     }
 
     override fun onBindViewHolder(holder: ChaptersItemrViewHolder, position: Int) {
-        holder.onBindItem(comic.chapters!![position], comic.title!!)
+        holder.onBindItem(comic.chapters!![position], comic.name!!)
     }
 
     class ChaptersItemrViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
         lateinit var callback: IChapterItemCallback
-        lateinit var chapter: Chapter
+        lateinit var chapter: ChapterViewModel
 
         val chapterTitle = itemView.chapterTitle
         val comicTitle = itemView.comicTitle
@@ -43,16 +43,16 @@ class ChaptersListAdapter(private val comic: Comic,
             itemView.setOnClickListener(this)
         }
 
-        fun onBindItem(chapter: Chapter, comicName: String) {
+        fun onBindItem(chapter: ChapterViewModel, comicName: String) {
             this.chapter = chapter
 
-            chapterTitle.text = chapter.name
+            chapterTitle.text = chapter.chapterName
             comicTitle.text = comicName
 
             downloadContainer.setOnClickListener(onGenreSelect(chapter))
         }
 
-        fun onGenreSelect(chapter: Chapter): View.OnClickListener {
+        fun onGenreSelect(chapter: ChapterViewModel): View.OnClickListener {
             return object : View.OnClickListener {
                 override fun onClick(p0: View?) {
                     callback.onDownloadSelect(chapter)

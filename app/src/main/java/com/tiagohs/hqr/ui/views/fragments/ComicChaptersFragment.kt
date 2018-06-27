@@ -6,8 +6,9 @@ import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.View
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
+import com.tiagohs.hqr.R.id.chaptersList
+import com.tiagohs.hqr.models.viewModels.ChapterViewModel
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import com.tiagohs.hqr.models.viewModels.ReaderModel
 import com.tiagohs.hqr.ui.adapters.ChaptersListAdapter
 import com.tiagohs.hqr.ui.callbacks.IChapterItemCallback
@@ -20,7 +21,7 @@ private const val COMIC = "comic_link"
 class ComicChaptersFragment: BaseFragment(), IChapterItemCallback {
 
     companion object {
-        fun newFragment(comic: Comic): ComicChaptersFragment {
+        fun newFragment(comic: ComicViewModel): ComicChaptersFragment {
             val bundle = Bundle()
             bundle.putParcelable(COMIC, comic)
 
@@ -31,7 +32,7 @@ class ComicChaptersFragment: BaseFragment(), IChapterItemCallback {
         }
     }
 
-    lateinit var comic: Comic
+    lateinit var comic: ComicViewModel
 
     override fun getViewID(): Int {
         return R.layout.fragment_comic_chapters
@@ -52,11 +53,11 @@ class ComicChaptersFragment: BaseFragment(), IChapterItemCallback {
         chaptersList.adapter = ChaptersListAdapter(comic, context, this)
     }
 
-    override fun onChapterSelect(chapter: Chapter) {
+    override fun onChapterSelect(chapter: ChapterViewModel) {
         startActivity(ReaderActivity.newIntent(context, ReaderModel(chapter.chapterPath!!, comic, chapter)))
     }
 
-    override fun onDownloadSelect(chapter: Chapter) {
+    override fun onDownloadSelect(chapter: ChapterViewModel) {
         Log.d("ComicDetails", "onDownloadSelect")
     }
 

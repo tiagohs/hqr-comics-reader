@@ -1,10 +1,6 @@
 package com.tiagohs.hqr.ui.presenter
 
-import com.tiagohs.hqr.models.sources.ComicsItem
-import com.tiagohs.hqr.models.viewModels.ComicsListModel
-import com.tiagohs.hqr.models.viewModels.FETCH_ALL
-import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
-import com.tiagohs.hqr.models.viewModels.FETCH_BY_SCANLATORS
+import com.tiagohs.hqr.models.viewModels.*
 import com.tiagohs.hqr.sources.portuguese.HQBRSource
 import com.tiagohs.hqr.ui.contracts.ListComicsContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
@@ -19,11 +15,13 @@ class ListComicsPresenter(
         val source: HQBRSource
 ): BasePresenter<ListComicsContract.IListComicsView>(subscribers), ListComicsContract.IListComicsPresenter {
 
-    var originalComicsList: List<ComicsItem> = ArrayList()
-    var comicsListsByPage: List<List<ComicsItem>> = ArrayList()
-    var comicsList: List<ComicsItem> = ArrayList()
+    var originalComicsList: List<ComicViewModel> = ArrayList()
+    var comicsListsByPage: List<List<ComicViewModel>> = ArrayList()
+    var comicsList: List<ComicViewModel> = ArrayList()
+
     var hasMorePages: Boolean = false
     var hasPagesSupport: Boolean = false
+
     var currentPage: Int = 0
     var totalPage: Int = 0
 
@@ -31,16 +29,16 @@ class ListComicsPresenter(
 
         mSubscribers!!.add(onCheckListType(listType, flag)
               .observeOn(AndroidSchedulers.mainThread())
-              .map({ model: ComicsListModel ->
+              .map({ model: ComicsListViewModel ->
                   if (model.hasPagesSupport) {
                       hasPagesSupport = model.hasPagesSupport
                       originalComicsList = model.comics
                       model.comics
                   } else
                       onCreatePagination(model.comics) })
-                .subscribe({ comics: List<ComicsItem>? ->
+                .subscribe({ comics: List<ComicViewModel>? ->
                     comicsList = comics!!
-                    //mView!!.onBindComics(comicsList)
+                    mView!!.onBindComics(comicsList)
                 }))
 
     }
@@ -49,11 +47,11 @@ class ListComicsPresenter(
         return hasPagesSupport
     }
 
-    override fun getOriginalList(): List<ComicsItem> {
+    override fun getOriginalList(): List<ComicViewModel> {
         return originalComicsList
     }
 
-    fun onCheckListType(listType: String, flag: String): Observable<ComicsListModel> {
+    fun onCheckListType(listType: String, flag: String): Observable<ComicsListViewModel> {
 
         when (listType) {
             FETCH_ALL -> return source.fetchAllComicsByLetter(flag)
@@ -77,24 +75,24 @@ class ListComicsPresenter(
                     .subscribe({ comics ->
                         comicsList = comics
 
-                        //mView!!.onBindMoreComics(comics)
+                        mView!!.onBindMoreComics(comics)
                     }))
         }
 
     }
 
-    private fun onCreatePagination(comicsList: List<ComicsItem>): List<ComicsItem> {
+    private fun onCreatePagination(comicsList: List<ComicViewModel>): List<ComicViewModel> {
         originalComicsList = comicsList
-        comicsListsByPage = ListUtils.partition<ComicsItem>(comicsList, 20)
+        comicsListsByPage = ListUtils.partition<ComicViewModel>(comicsList, 20)
         totalPage = comicsListsByPage.size
         hasMorePages = currentPage < totalPage - 1
 
         return comicsListsByPage.get(currentPage++)
     }
 
-    private fun onGetNextPageComics(): Observable<List<ComicsItem>> {
+    private fun onGetNextPageComics(): Observable<List<ComicViewModel>> {
         return Observable
-                .create<List<ComicsItem>>({ emitter ->
+                .create<List<ComicViewModel>>({ emitter ->
                     if (currentPage < totalPage - 1) {
                         hasMorePages = ++currentPage < totalPage - 1
                         val newComics = ListUtils.union(comicsList, comicsListsByPage.get(currentPage))

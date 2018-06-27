@@ -18,4 +18,6 @@ abstract class BaseInterceptor {
     fun addSubscriber(disposable: Disposable) {
         subscribers?.add(disposable)
     }
+
+
 }

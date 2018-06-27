@@ -1,9 +1,9 @@
 package com.tiagohs.hqr.ui.callbacks
 
-import com.tiagohs.hqr.models.sources.Chapter
+import com.tiagohs.hqr.models.viewModels.ChapterViewModel
 
 interface IChapterItemCallback {
 
-    fun onChapterSelect(chapter: Chapter)
-    fun onDownloadSelect(chapter: Chapter)
+    fun onChapterSelect(chapter: ChapterViewModel)
+    fun onDownloadSelect(chapter: ChapterViewModel)
 }

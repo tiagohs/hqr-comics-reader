@@ -1,14 +1,15 @@
 package com.tiagohs.hqr.models.viewModels
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.tiagohs.hqr.helpers.tools.RealmUtils
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.database.SourceDB
-import com.tiagohs.hqr.models.database.comics.Chapter
 import com.tiagohs.hqr.models.database.comics.Comic
 
-class ComicViewModel {
+class ComicViewModel() : Parcelable {
     var id: Long = -1L
     var name: String? = ""
     var pathLink: String? = ""
@@ -20,7 +21,7 @@ class ComicViewModel {
     var genres: List<DefaultModel>? = null
     var authors: List<DefaultModel>? = null
     var scanlators: List<DefaultModel>? = null
-    var chapters: List<Chapter>? = null
+    var chapters: List<ChapterViewModel>? = null
 
     var inicialized: Boolean = false
     var favorite: Boolean = false
@@ -33,6 +34,19 @@ class ComicViewModel {
 
     var tags: List<String>? = null
     var source: SourceDB? = null
+
+    constructor(parcel: Parcel) : this() {
+        id = parcel.readLong()
+        name = parcel.readString()
+        pathLink = parcel.readString()
+        posterPath = parcel.readString()
+        summary = parcel.readString()
+        publicationDate = parcel.readString()
+        inicialized = parcel.readByte() != 0.toByte()
+        favorite = parcel.readByte() != 0.toByte()
+        lastUpdate = parcel.readString()
+        tags = parcel.createStringArrayList()
+    }
 
     fun create(other: Comic): ComicViewModel {
         return ComicViewModel().apply {
@@ -105,18 +119,17 @@ class ComicViewModel {
         }
 
         if (other.chapters != null) {
-            this.chapters = other.chapters!!.toList()
-        }
-
-        if (other.lastUpdate != null) {
-            this.lastUpdate = other.lastUpdate
+            this.chapters = other.chapters!!.toList().map { ChapterViewModel().create(it) }
         }
 
         if (other.tags != null) {
             this.tags = other.tags!!.toList()
         }
 
-        this.pathLink = other.pathLink
+        if (other.lastUpdate != null) {
+            this.lastUpdate = other.lastUpdate
+        }
+
         this.inicialized = other.inicialized
         this.favorite = other.favorite
 
@@ -180,10 +193,36 @@ class ComicViewModel {
             this.tags = other.tags!!.toList()
         }
 
-        this.pathLink = other.pathLink
         this.inicialized = other.inicialized
         this.favorite = other.favorite
 
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeLong(id)
+        parcel.writeString(name)
+        parcel.writeString(pathLink)
+        parcel.writeString(posterPath)
+        parcel.writeString(summary)
+        parcel.writeString(publicationDate)
+        parcel.writeByte(if (inicialized) 1 else 0)
+        parcel.writeByte(if (favorite) 1 else 0)
+        parcel.writeString(lastUpdate)
+        parcel.writeStringList(tags)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    companion object CREATOR : Parcelable.Creator<ComicViewModel> {
+        override fun createFromParcel(parcel: Parcel): ComicViewModel {
+            return ComicViewModel(parcel)
+        }
+
+        override fun newArray(size: Int): Array<ComicViewModel?> {
+            return arrayOfNulls(size)
+        }
     }
 
 }

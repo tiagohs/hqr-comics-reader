@@ -10,7 +10,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import com.github.chrisbanes.photoview.OnViewTapListener
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.Chapter
+import com.tiagohs.hqr.models.viewModels.ChapterViewModel
 import com.tiagohs.hqr.models.viewModels.ReaderModel
 import com.tiagohs.hqr.ui.adapters.ReaderPagerAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleAnimationListener
@@ -43,7 +43,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
 
     @Inject lateinit var presenter: ReaderContract.IReaderPresenter
 
-    lateinit var chapter: Chapter
+    lateinit var chapter: ChapterViewModel
     lateinit var readerModel: ReaderModel
 
     private var menuVisible = false
@@ -67,12 +67,12 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
 
         readerModel = intent.getParcelableExtra(CHAPTER_MODEL)
 
-        setScreenTitle(readerModel.comic.title)
-        setScreenSubtitle(readerModel.chapter.name)
+        setScreenTitle(readerModel.comic.name)
+        setScreenSubtitle(readerModel.chapter.chapterName)
 
         presenter.onBindView(this)
 
-        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.name, readerModel.comic.id)
+        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.chapterName)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -82,7 +82,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
         }
     }
 
-    override fun onBindChapter(ch: Chapter?) {
+    override fun onBindChapter(ch: ChapterViewModel?) {
 
         if (ch != null) {
             chapter = ch

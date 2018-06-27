@@ -5,8 +5,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.models.sources.SimpleItem
+import com.tiagohs.hqr.helpers.utils.ImageUtils
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
+import com.tiagohs.hqr.models.database.DefaultModel
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
 import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
 import com.tiagohs.hqr.models.viewModels.ListComicsModel
 import com.tiagohs.hqr.ui.adapters.ComicDetailsPagerAdapter
@@ -14,8 +16,6 @@ import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
-import com.tiagohs.hqr.helpers.utils.ImageUtils
-import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import kotlinx.android.synthetic.main.activity_comic_details.*
 import javax.inject.Inject
 
@@ -68,7 +68,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     }
 
 
-    override fun onBindComic(comic: Comic) {
+    override fun onBindComic(comic: ComicViewModel) {
         comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic)
         tabLayout.setupWithViewPager(comicsDetailsViewpager)
 
@@ -84,7 +84,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
                     R.drawable.img_placeholder)
         }
 
-        comicTitle.text = comic.title
+        comicTitle.text = comic.name
 
         comicStatus.text = ScreenUtils.getComicStatusText(this, comic.status)
         comicStatus.setBackgroundColor(ScreenUtils.generateComicStatusBackground(this, comic.status))
@@ -95,8 +95,8 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     fun onPublisherSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
-            override fun onClick(item: SimpleItem) {
-                startActivity(ListComicsActivity.newIntent(this@ComicDetailsActivity, ListComicsModel(FETCH_BY_PUBLISHERS, item.title!!, item.link!!)))
+            override fun onClick(item: DefaultModel) {
+                startActivity(ListComicsActivity.newIntent(this@ComicDetailsActivity, ListComicsModel(FETCH_BY_PUBLISHERS, item.name!!, item.pathLink!!)))
             }
         }
     }

@@ -31,12 +31,17 @@ class HomePresenter(subscriber: CompositeDisposable,
         comicsInterceptor.subscribeComicDetailSubject()
                          .observeOn(AndroidSchedulers.mainThread())
                          .subscribe({ comic: ComicViewModel? ->
-                             if (comic?.tags!!.contains(IComic.POPULARS)) {
-                                 mView?.onBindPopularItem(comic)
+                             Log.d("HOME", "Inicialização: " + comic?.name)
+
+                             if (comic?.tags != null) {
+                                 if (comic.tags!!.contains(IComic.POPULARS)) {
+                                     mView?.onBindPopularItem(comic)
+                                 }
+                                 if (comic.tags!!.contains(IComic.RECENTS)) {
+                                     mView?.onBindLastestItem(comic)
+                                 }
                              }
-                             if (comic.tags!!.contains(IComic.RECENTS)) {
-                                 mView?.onBindLastestItem(comic)
-                             }
+
                          }, { error ->
                              Log.e("Home", "Inicialização Falhou ", error)
                          })

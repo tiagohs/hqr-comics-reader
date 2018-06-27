@@ -12,14 +12,11 @@ class RealmUtils {
         }
 
         inline fun <reified T: RealmObject> getDataId(realm: Realm): Long {
-            val realm = Realm.getDefaultInstance()
             var nextId = 1L
 
             if (realm.where(T::class.java).max("id") != null) {
                 nextId = realm.where(T::class.java).max("id")!!.toLong() + 1
             }
-
-            realm.close()
 
             return nextId
         }

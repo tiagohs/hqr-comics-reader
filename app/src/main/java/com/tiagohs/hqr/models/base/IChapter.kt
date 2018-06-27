@@ -5,6 +5,7 @@ import com.tiagohs.hqr.models.database.comics.Comic
 interface IChapter{
 
     var id: Long
+    var chapterName: String?
     var chapterPath: String?
     var lastPageRead: Int
 
@@ -14,6 +15,10 @@ interface IChapter{
 
         if (other.id != -1L) {
             this.id = other.id
+        }
+
+        if (other.chapterName != null) {
+            this.chapterName = other.chapterName
         }
 
         if (other.chapterPath != null) {

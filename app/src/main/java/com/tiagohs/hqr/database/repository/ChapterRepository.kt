@@ -12,7 +12,6 @@ class ChapterRepository: BaseRepository(), IChapterRepository {
     }
 
     override fun insertChapters(chapters: List<Chapter>): Observable<List<Chapter>> {
-
         return insert(chapters)
     }
 
@@ -103,5 +102,4 @@ class ChapterRepository: BaseRepository(), IChapterRepository {
             }
         }
     }
-
 }

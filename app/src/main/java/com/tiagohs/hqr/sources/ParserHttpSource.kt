@@ -2,9 +2,9 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
-import com.tiagohs.hqr.models.sources.ComicsItem
 import com.tiagohs.hqr.models.sources.Publisher
-import com.tiagohs.hqr.models.viewModels.ComicsListModel
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.viewModels.ComicsListViewModel
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element
@@ -31,71 +31,71 @@ abstract class ParserHttpSource(
 
     abstract fun parsePublisherByElement(element: Element): Publisher
 
-    override fun parseLastestComicsResponse(response: Response): List<ComicsItem> {
+    override fun parseLastestComicsResponse(response: Response): List<ComicViewModel> {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(lastestComicsSelector).map { element ->
+        val comics: List<ComicViewModel> = document.select(lastestComicsSelector).map { element ->
             parseLastestComicsByElement(element)
         }
 
         return comics
     }
 
-    abstract fun parseLastestComicsByElement(element: Element): ComicsItem
+    abstract fun parseLastestComicsByElement(element: Element): ComicViewModel
 
-    override fun parsePopularComicsResponse(response: Response): List<ComicsItem> {
+    override fun parsePopularComicsResponse(response: Response): List<ComicViewModel> {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(popularComicsSelector).map { element ->
+        val comics: List<ComicViewModel> = document.select(popularComicsSelector).map { element ->
             parsePopularComicsByElement(element)
         }
 
         return comics
     }
 
-    abstract fun parsePopularComicsByElement(element: Element): ComicsItem
+    abstract fun parsePopularComicsByElement(element: Element): ComicViewModel
 
-    override fun parseAllComicsByLetterResponse(response: Response): ComicsListModel {
+    override fun parseAllComicsByLetterResponse(response: Response): ComicsListViewModel {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(allComicsListSelector).map { element ->
+        val comics: List<ComicViewModel> = document.select(allComicsListSelector).map { element ->
             parseAllComicsByLetterByElement(element)
         }
 
-        return ComicsListModel(comics, false)
+        return ComicsListViewModel(comics, false)
     }
 
-    abstract fun parseAllComicsByLetterByElement(element: Element): ComicsItem
+    abstract fun parseAllComicsByLetterByElement(element: Element): ComicViewModel
 
-    override fun parseAllComicsByPublisherResponse(response: Response): ComicsListModel {
+    override fun parseAllComicsByPublisherResponse(response: Response): ComicsListViewModel {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(allComicsListSelector).map { element ->
+        val comics: List<ComicViewModel> = document.select(allComicsListSelector).map { element ->
             parseAllComicsByLetterByElement(element)
         }
 
-        return ComicsListModel(comics, false)
+        return ComicsListViewModel(comics, false)
     }
 
-    override fun parseAllComicsByScanlatorResponse(response: Response): ComicsListModel {
+    override fun parseAllComicsByScanlatorResponse(response: Response): ComicsListViewModel {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(allComicsListSelector).map { element ->
+        val comics: List<ComicViewModel> = document.select(allComicsListSelector).map { element ->
             parseAllComicsByLetterByElement(element)
         }
 
-        return ComicsListModel(comics, false)
+        return ComicsListViewModel(comics, false)
     }
 
-    override fun parseSearchByQueryResponse(response: Response, query: String): ComicsListModel {
+    override fun parseSearchByQueryResponse(response: Response, query: String): ComicsListViewModel {
         val document = response.asJsoup()
 
-        val comics: List<ComicsItem> = document.select(searchComicsSelector).map { element ->
+        val comics: List<ComicViewModel> = document.select(searchComicsSelector).map { element ->
             parseSearchByQueryByElement(element)
         }
 
-        return ComicsListModel(comics, false)
+        return ComicsListViewModel(comics, false)
     }
 
-    abstract fun parseSearchByQueryByElement(element: Element): ComicsItem
+    abstract fun parseSearchByQueryByElement(element: Element): ComicViewModel
 }

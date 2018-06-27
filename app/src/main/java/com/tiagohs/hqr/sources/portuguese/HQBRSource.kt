@@ -3,14 +3,20 @@ package com.tiagohs.hqr.sources.portuguese
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
-import com.tiagohs.hqr.models.sources.*
-import com.tiagohs.hqr.models.viewModels.ComicsListModel
+import com.tiagohs.hqr.models.database.DefaultModel
+import com.tiagohs.hqr.models.sources.LocaleDTO
+import com.tiagohs.hqr.models.sources.Page
+import com.tiagohs.hqr.models.sources.Publisher
+import com.tiagohs.hqr.models.viewModels.ChapterViewModel
+import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.viewModels.ComicsListViewModel
 import com.tiagohs.hqr.sources.ParserHttpSource
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.ArrayList
 
 class HQBRSource(
         client: OkHttpClient,
@@ -75,7 +81,7 @@ class HQBRSource(
         return Publisher(title, link)
     }
 
-    override fun parseLastestComicsByElement(element: Element): ComicsItem {
+    override fun parseLastestComicsByElement(element: Element): ComicViewModel {
         var title: String = ""
         var img: String = ""
         var link: String = ""
@@ -92,10 +98,14 @@ class HQBRSource(
             img = elementImageSelector.attr("src")
         }
 
-        return ComicsItem(title, img, link, "", "")
+        return ComicViewModel().apply {
+            this.name = title
+            this.posterPath = img
+            this.pathLink = link
+        }
     }
 
-    override fun parsePopularComicsByElement(element: Element): ComicsItem {
+    override fun parsePopularComicsByElement(element: Element): ComicViewModel {
         var title: String = ""
         var link: String = ""
 
@@ -106,15 +116,18 @@ class HQBRSource(
             link = formatLink(elementSelector.attr("href"))
         }
 
-        return ComicsItem(title, "", link, "", "")
+        return ComicViewModel().apply {
+            this.name = title
+            this.pathLink = link
+        }
     }
 
 
-    override fun parseAllComicsByLetterByElement(element: Element): ComicsItem {
+    override fun parseAllComicsByLetterByElement(element: Element): ComicViewModel {
         var title: String = ""
         var status: String = ""
         var link: String = ""
-        var publisher: String = ""
+        var publisher: ArrayList<DefaultModel>? = null
 
         element.select("td").forEach { element: Element? ->
             val linkElement = element!!.select("a").first()
@@ -125,11 +138,15 @@ class HQBRSource(
 
                 val linkHref = linkElement.attr("href")
 
-                if (titleRegex.containsMatchIn(linkHref)) {
+                if (titleRegex.containsMatchIn(linkHref)) {linkElement.text()
                     title = linkElement.text()
                     link = formatLink(linkElement.attr("href"))
                 } else if (publisherRegex.containsMatchIn(linkHref)) {
-                    publisher = linkElement.text()
+                    publisher = ArrayList()
+                    publisher?.add(DefaultModel().apply {
+                        this.name = linkElement.text()
+                        this.pathLink = formatLink(linkElement.attr("href"))
+                    })
                 }
             }
 
@@ -140,32 +157,35 @@ class HQBRSource(
             }
         }
 
-        return ComicsItem(title, "", link, publisher, status)
+        return ComicViewModel().apply {
+            this.name = title
+            this.pathLink = link
+            this.publisher = publisher
+        }
     }
 
-    override fun parseSearchByQueryByElement(element: Element): ComicsItem {
+    override fun parseSearchByQueryByElement(element: Element): ComicViewModel {
         return parseAllComicsByLetterByElement(element)
     }
 
-    override fun parseSearchByQueryResponse(response: Response, query: String): ComicsListModel {
+    override fun parseSearchByQueryResponse(response: Response, query: String): ComicsListViewModel {
         val comicsModel = super.parseSearchByQueryResponse(response, query)
 
         comicsModel.comics = comicsModel.comics.filter({
                                 comicsItem ->
                                     val titleRegex = query.toLowerCase().toRegex()
-                            titleRegex.containsMatchIn(comicsItem.title.toLowerCase())
+                            titleRegex.containsMatchIn(comicsItem.name!!.toLowerCase())
                             })
 
         return comicsModel
     }
 
-    override fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?, comicId: String?): Chapter {
+    override fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?): ChapterViewModel {
         val pages = pageListParse(response, chapterPath)
 
-        return Chapter().apply {
-            this.id = chapterPath
-            this.comicId = comicId
-            this.name = chapterName
+        return ChapterViewModel().apply {
+            this.chapterPath = chapterPath
+            this.chapterName = chapterName
             this.pages = pages
         }
     }
@@ -192,11 +212,11 @@ class HQBRSource(
         return pages
     }
 
-    override fun parseComicDetailsResponse(response: Response, comicPath: String): Comic {
+    override fun parseComicDetailsResponse(response: Response, comicPath: String): ComicViewModel {
         val document = response.asJsoup()
 
-        val title = document.select(".container div h2").first().text()
-        val posterPath = document.select(".container blockquote imgLeft img").first().attr("src")
+        val title = document.select(".container div h2").first()?.text()
+        val posterPath = document.select(".container blockquote imgLeft img").first()?.attr("src")
 
         var status: String = ""
         document.select(".container div").forEach { element: Element? ->
@@ -205,65 +225,62 @@ class HQBRSource(
             }
         }
 
-        val summary = document.select(".container blockquote").first().text()
+        val summary = document.select(".container blockquote").first()?.text()
 
-        var publisher: List<SimpleItem> = ArrayList()
+        var publisher: List<DefaultModel> = ArrayList()
         document.select(".container div").forEach { element: Element? ->
             if (element!!.text().contains("Editora")) {
                 publisher = element.select("a").map { element -> parseSimpleItemByElement(element) }
             }
         }
 
-        var scanlators: List<SimpleItem> = ArrayList()
+        var scanlators: List<DefaultModel> = ArrayList()
         document.select(".container div").forEach { element: Element? ->
             if (element!!.text().contains("Equipe responsável")) {
                 scanlators = element.select("a").map { element -> parseSimpleItemByElement(element) }
             }
         }
 
-        var chapters: List<Chapter> = ArrayList()
+        var chapters: List<ChapterViewModel> = ArrayList()
         var i = 0
         chapters = document.select(".container table tbody tr").map { element ->
             parseChapterItemByElement("td a", element, title, i++)
         }
 
-        return Comic().apply {
-            this.id = comicPath
-            this.title = title
+        return ComicViewModel().apply {
             this.pathLink = comicPath
             this.posterPath = posterPath
+            this.name = title
             this.status = status
+            this.summary = summary
             this.publisher = publisher
             this.chapters = chapters
-            this.summary = summary
             this.scanlators = scanlators
-            this.sourceId = this@HQBRSource.id
+
+
         }
     }
 
-    fun parseSimpleItemByElement(selector: String, element: Element): SimpleItem {
+    fun parseSimpleItemByElement(selector: String, element: Element): DefaultModel {
         return this.parseSimpleItemByElement(element.select(selector).first())
     }
 
-    fun parseChapterItemByElement(selector: String, element: Element, comicTitle: String?, sourceOrder: Int): Chapter {
+    fun parseChapterItemByElement(selector: String, element: Element, comicTitle: String?, sourceOrder: Int): ChapterViewModel {
         var title: String = ""
         var link: String = ""
 
         val elementSelected = element.select(selector).first()
 
         if (elementSelected != null) {
-            title = elementSelected.text()
             link = formatLink(elementSelected.attr("href"))
         }
 
-        return Chapter().apply {
-            this.name = title
+        return ChapterViewModel().apply {
             this.chapterPath = link
-            this.sourceOrder = sourceOrder
         }
     }
 
-    fun parseSimpleItemByElement(element: Element): SimpleItem {
+    fun parseSimpleItemByElement(element: Element?): DefaultModel {
         var title: String = ""
         var link: String = ""
 
@@ -272,7 +289,10 @@ class HQBRSource(
             link = formatLink(element.attr("href"))
         }
 
-        return SimpleItem(title, link)
+        return DefaultModel().apply {
+            this.name = title
+            this.pathLink = link
+        }
     }
 
     fun formatLink(link: String): String {

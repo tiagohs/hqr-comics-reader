@@ -9,10 +9,10 @@ import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
 import com.tiagohs.hqr.models.base.ISource
 import com.tiagohs.hqr.models.sources.Publisher
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
-import com.tiagohs.hqr.models.viewModels.FETCH_ALL
-import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
-import com.tiagohs.hqr.models.viewModels.ListComicsModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.FETCH_ALL
+import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
+import com.tiagohs.hqr.models.view_models.ListComicsModel
 import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.adapters.PublishersListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback

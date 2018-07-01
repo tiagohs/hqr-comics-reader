@@ -7,10 +7,10 @@ import android.support.v7.widget.LinearLayoutManager
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
-import com.tiagohs.hqr.models.database.DefaultModel
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
-import com.tiagohs.hqr.models.viewModels.FETCH_BY_PUBLISHERS
-import com.tiagohs.hqr.models.viewModels.ListComicsModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
+import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
+import com.tiagohs.hqr.models.view_models.ListComicsModel
 import com.tiagohs.hqr.ui.adapters.ComicDetailsPagerAdapter
 import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
@@ -95,7 +95,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     fun onPublisherSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
-            override fun onClick(item: DefaultModel) {
+            override fun onClick(item: DefaultModelView) {
                 startActivity(ListComicsActivity.newIntent(this@ComicDetailsActivity, ListComicsModel(FETCH_BY_PUBLISHERS, item.name!!, item.pathLink!!)))
             }
         }

@@ -6,9 +6,9 @@ import com.hippo.unifile.UniFile
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.helpers.utils.DiskUtils
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.sources.IHttpSource
+import com.tiagohs.hqr.models.database.SourceDB
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 
 // Classe responsável pela manipulação das pastas criadas durante os downloads
 
@@ -27,35 +27,34 @@ class DownloadProvider(
                 .subscribe { downloadDirectory = UniFile.fromUri(context, Uri.parse(it)) }
     }
 
-    fun getComicDirectory(comic: Comic, source: IHttpSource): UniFile? {
-        return downloadDirectory
-                        .createDirectory(getSourceDirectoryName(source))
-                        .createDirectory(getComicDirectoryName(comic))
+    fun getComicDirectory(comic: ComicViewModel, source: SourceDB): UniFile? {
+        return downloadDirectory.createDirectory(getSourceDirectoryName(source))
+                                .createDirectory(getComicDirectoryName(comic))
     }
 
-    fun findSourceDirectory(source: IHttpSource): UniFile? {
+    fun findSourceDirectory(source: SourceDB): UniFile? {
         return downloadDirectory.findFile(getSourceDirectoryName(source))
     }
 
-    fun findComicDirectory(comic: Comic, source: IHttpSource): UniFile? {
+    fun findComicDirectory(comic: ComicViewModel, source: SourceDB): UniFile? {
         val sourceFile = findSourceDirectory(source)
         return sourceFile?.findFile(getComicDirectoryName(comic))
     }
 
-    fun findChapterDirectory(chapter: Chapter, comic: Comic, source: IHttpSource): UniFile? {
+    fun findChapterDirectory(chapter: ChapterViewModel, comic: ComicViewModel, source: SourceDB): UniFile? {
         val comicFile = findComicDirectory(comic, source)
         return comicFile?.findFile(getChapterDirectoryName(chapter))
     }
 
-    fun getSourceDirectoryName(source: IHttpSource): String {
-        return DiskUtils.buildValidFilename(source.name)
+    fun getSourceDirectoryName(source: SourceDB): String {
+        return DiskUtils.buildValidFilename(source.name!!)
     }
 
-    fun getComicDirectoryName(comic: Comic): String {
-        return DiskUtils.buildValidFilename(comic.title!!)
+    fun getComicDirectoryName(comic: ComicViewModel): String {
+        return DiskUtils.buildValidFilename(comic.name!!)
     }
 
-    fun getChapterDirectoryName(chapter: Chapter): String {
-        return DiskUtils.buildValidFilename(chapter.name!!)
+    fun getChapterDirectoryName(chapter: ChapterViewModel): String {
+        return DiskUtils.buildValidFilename(chapter.chapterName!!)
     }
 }

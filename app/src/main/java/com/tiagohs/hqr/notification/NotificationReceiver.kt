@@ -7,8 +7,8 @@ import android.content.Intent
 import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.download.DownloaderService
 import com.tiagohs.hqr.helpers.extensions.notificationManager
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 
 class NotificationReceiver(
     val downloadManager: DownloadManager
@@ -34,7 +34,7 @@ class NotificationReceiver(
             return createNotificationPendingBroadcast(context, ACTION_CLEAR_DOWNLOADS)
         }
 
-        fun openChapterPedingBroadcast(context: Context, comic: Comic, chapter: Chapter): PendingIntent {
+        fun openChapterPedingBroadcast(context: Context, comic: ComicViewModel, chapter: ChapterViewModel): PendingIntent {
             val intent = Intent(context, NotificationReceiver::class.java).apply {
                 action = ACTION_OPEN_CHAPTER
 
@@ -68,7 +68,7 @@ class NotificationReceiver(
         context.notificationManager.cancel(notificationId)
     }
 
-    private fun openChapter(context: Context, comic: Comic, chapter: Chapter) {
+    private fun openChapter(context: Context, comic: ComicViewModel, chapter: ChapterViewModel) {
 
     }
 }

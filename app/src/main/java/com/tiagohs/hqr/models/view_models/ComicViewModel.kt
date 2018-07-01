@@ -1,13 +1,17 @@
-package com.tiagohs.hqr.models.viewModels
+package com.tiagohs.hqr.models.view_models
 
 import android.os.Parcel
 import android.os.Parcelable
 import com.tiagohs.hqr.helpers.tools.RealmUtils
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.base.IComic
-import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Comic
+
+const val ONGOING = "ongoing_status"
+const val COMPLETED = "completed_status"
+const val CANCELED = "canceled_status"
+const val UNKNOWN = "unknown_status"
 
 class ComicViewModel() : Parcelable {
     var id: Long = -1L
@@ -17,10 +21,10 @@ class ComicViewModel() : Parcelable {
     var summary: String? = ""
     var publicationDate: String? = ""
 
-    var publisher: List<DefaultModel>? = null
-    var genres: List<DefaultModel>? = null
-    var authors: List<DefaultModel>? = null
-    var scanlators: List<DefaultModel>? = null
+    var publisher: List<DefaultModelView>? = null
+    var genres: List<DefaultModelView>? = null
+    var authors: List<DefaultModelView>? = null
+    var scanlators: List<DefaultModelView>? = null
     var chapters: List<ChapterViewModel>? = null
 
     var inicialized: Boolean = false
@@ -87,7 +91,9 @@ class ComicViewModel() : Parcelable {
         }
 
         if (other.source != null) {
-            this.source = other.source
+            val source = SourceDB()
+            source.create(other.source!!)
+            this.source = source
         }
 
         if (other.posterPath != null) {
@@ -103,19 +109,19 @@ class ComicViewModel() : Parcelable {
         }
 
         if (other.publisher != null) {
-            this.publisher = other.publisher!!.toList()
+            this.publisher = other.publisher!!.map { DefaultModelView().create(it) }
         }
 
         if (other.genres != null) {
-            this.genres = other.genres!!.toList()
+            this.genres = other.genres!!.map { DefaultModelView().create(it) }
         }
 
         if (other.authors != null) {
-            this.authors = other.authors!!.toList()
+            this.authors = other.authors!!.map { DefaultModelView().create(it) }
         }
 
         if (other.scanlators != null) {
-            this.scanlators = other.scanlators!!.toList()
+            this.scanlators = other.scanlators!!.map { DefaultModelView().create(it) }
         }
 
         if (other.chapters != null) {
@@ -128,6 +134,10 @@ class ComicViewModel() : Parcelable {
 
         if (other.lastUpdate != null) {
             this.lastUpdate = other.lastUpdate
+        }
+
+        if (other.status != null) {
+            this.status = other.status
         }
 
         this.inicialized = other.inicialized
@@ -155,6 +165,10 @@ class ComicViewModel() : Parcelable {
 
         if (other.posterPath != null) {
             this.posterPath = other.posterPath
+        }
+
+        if (other.status != null) {
+            this.status = other.status
         }
 
         if (other.summary != null) {

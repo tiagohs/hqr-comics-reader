@@ -10,7 +10,7 @@ import android.widget.TextView
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import kotlinx.android.synthetic.main.activity_comic_details.view.*
 import kotlinx.android.synthetic.main.item_comic_simple_it.view.*
@@ -112,7 +112,7 @@ class ComicsListAdapter(var comics: List<ComicViewModel>,
             }
 
             if (c.publisher != null && ::comicsPublisher.isInitialized) {
-                comicsPublisher.text = c.publisher!!.joinToString(", ")
+                comicsPublisher.text = c.publisher!!.map { it.name }.joinToString(", ")
             } else if (::comicsPublisher.isInitialized) {
                 comicsPublisher.visibility = View.GONE
             }

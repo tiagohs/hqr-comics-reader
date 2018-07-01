@@ -2,15 +2,19 @@ package com.tiagohs.hqr.download
 
 import android.content.Context
 import com.google.gson.Gson
+import com.tiagohs.hqr.database.ISourceRepository
+import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.models.Download
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.sources.HttpSourceBase
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.sources.SourceManager
 
 class DownloadStore(
         context: Context?,
-        val sourceManager: SourceManager
+        val sourceManager: SourceManager,
+        val sourceRepository: ISourceRepository,
+        val preferenceHelper: PreferenceHelper
 ) {
     private val preferences = context?.getSharedPreferences("active_downloads", Context.MODE_PRIVATE)
     private val gson: Gson = Gson()
@@ -30,7 +34,7 @@ class DownloadStore(
     }
 
     private fun getKey(download: Download): String {
-        return download.chapter.id!!
+        return download.chapter.id.toString()
     }
 
     private fun serialize(download: Download): String {
@@ -51,9 +55,11 @@ class DownloadStore(
 
         if (downloadObject.isNotEmpty()) {
             for (( comic, chapter, sourceId) in downloadObject) {
-                val source = sourceManager.get(sourceId) as HttpSourceBase
+                val sourceId = preferenceHelper.currentSource().getOrDefault()
+                val sourceHttp = sourceManager.get(sourceId)
+                val source = sourceRepository.getSourceByIdRealm(sourceId)
 
-                downloads.add(Download(source, comic, chapter))
+                downloads.add(Download(sourceHttp!!, source!!, comic, chapter))
             }
         }
 
@@ -61,5 +67,5 @@ class DownloadStore(
         return downloads
     }
 
-    data class DownloadObject(val comic: Comic, val chapter: Chapter, var sourceId: Long)
+    data class DownloadObject(val comic: ComicViewModel, val chapter: ChapterViewModel, var sourceId: Long)
 }

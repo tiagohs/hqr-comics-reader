@@ -7,8 +7,8 @@ import com.google.gson.Gson
 import com.jakewharton.disklrucache.DiskLruCache
 import com.tiagohs.hqr.helpers.extensions.saveTo
 import com.tiagohs.hqr.helpers.utils.DiskUtils
-import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Page
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import io.reactivex.Observable
 import okhttp3.Response
 import okio.Okio
@@ -58,7 +58,7 @@ class ChapterCache(
         }
     }
 
-    fun getPageListFromCache(chapter: Chapter): Observable<List<Page>> {
+    fun getPageListFromCache(chapter: ChapterViewModel): Observable<List<Page>> {
         return Observable.fromCallable {
             onGetPageListFromGson(DiskUtils.hashKeyForDisk(getKey(chapter)))
         }
@@ -70,7 +70,7 @@ class ChapterCache(
         }
     }
 
-    fun putPageListToCache(chapter: Chapter, pages: List<Page>) {
+    fun putPageListToCache(chapter: ChapterViewModel, pages: List<Page>) {
         val pageListJson = gson.toJson(pages)
         var editor: DiskLruCache.Editor? = null
 
@@ -125,7 +125,7 @@ class ChapterCache(
         }
     }
 
-    private fun getKey(chapter: Chapter): String {
-        return "${chapter.comicId}${chapter.chapterPath}"
+    private fun getKey(chapter: ChapterViewModel): String {
+        return "${chapter.comic?.id}${chapter.chapterPath}"
     }
 }

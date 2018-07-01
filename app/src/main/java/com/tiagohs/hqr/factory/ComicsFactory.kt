@@ -2,17 +2,14 @@ package com.tiagohs.hqr.factory
 
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Comic
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.realm.Realm
 import io.realm.RealmList
 
 object ComicsFactory {
 
     fun createComicViewModel(comicDb: Comic): ComicViewModel {
-        val comicViewModel = ComicViewModel()
-        comicViewModel.copyFrom(comicDb)
-
-        return comicViewModel
+        return ComicViewModel().create(comicDb)
     }
 
     fun copyFromComicViewModel(comic: Comic, comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
@@ -69,6 +66,10 @@ object ComicsFactory {
 
         if (comicViewModel.lastUpdate != null) {
             comic.lastUpdate = comicViewModel.lastUpdate
+        }
+
+        if (comicViewModel.status != null) {
+            comic.status = comicViewModel.status
         }
 
         if (comicViewModel.tags != null) {

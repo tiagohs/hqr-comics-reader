@@ -5,18 +5,21 @@ import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
+import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.extensions.launchNow
 import com.tiagohs.hqr.helpers.extensions.launchUI
 import com.tiagohs.hqr.helpers.extensions.saveTo
+import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.RetryWithDelay
+import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.helpers.utils.DiskUtils
 import com.tiagohs.hqr.models.Download
 import com.tiagohs.hqr.models.DownloadQueueList
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
 import com.tiagohs.hqr.models.sources.Page
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.notification.DownloadNotification
-import com.tiagohs.hqr.sources.HttpSourceBase
+import com.tiagohs.hqr.sources.IHttpSource
 import com.tiagohs.hqr.sources.SourceManager
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
@@ -25,15 +28,19 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.async
 import okhttp3.Response
+import javax.inject.Singleton
 
+@Singleton
 class Downloader(
         val context: Context,
         val provider: DownloadProvider,
         val sourceManager: SourceManager,
         val store: DownloadStore,
         val cache: DownloadCache,
-        val downloadNotification: DownloadNotification
-) {
+        val downloadNotification: DownloadNotification,
+        val sourceRepository: ISourceRepository,
+        val preferenceHelper: PreferenceHelper
+        ) {
 
     private val subscriptions = CompositeDisposable()
     private val relay = PublishRelay.create<List<Download>>()
@@ -51,6 +58,9 @@ class Downloader(
 
     fun start(): Boolean {
         if (isRunning || queue.isEmpty()) return false
+
+        if (subscriptions.size() == 0)
+            initializeSubscriptions()
 
         val pedingDownloads = queue.filter { download -> download.status != Download.DOWNLOADED }
         pedingDownloads.forEach { download: Download ->
@@ -102,22 +112,23 @@ class Downloader(
         downloadNotification.dimissNotification()
     }
 
-    fun queuerChapters(comic: Comic, chaptersToDownload: List<Chapter>, autoStart: Boolean) = launchUI {
-        val source = sourceManager.get(comic.sourceId) as? HttpSourceBase ?: return@launchUI
+    fun queuerChapters(comic: ComicViewModel, chaptersToDownload: List<ChapterViewModel>, autoStart: Boolean) = launchUI {
+        val sourceId = preferenceHelper.currentSource().getOrDefault()
+        val sourceHttp = sourceManager.get(sourceId)
+        val source = sourceRepository.getSourceByIdRealm(sourceId)
 
         val chaptersNotDownloaded = async {
-            val comicDir = provider.findComicDirectory(comic, source)
+            val comicDir = provider.findComicDirectory(comic, source!!)
 
             chaptersToDownload
-                    .distinctBy { it.name }
+                    .distinctBy { it.chapterName }
                     .filter { isChapterNotDownloaded(it, comicDir) }
-                    .sortedByDescending { it.sourceOrder }
+                    .reversed()
         }
 
         val chaptersToQueue = chaptersNotDownloaded
-                                                        .await()
-                                                        .filter { chapter -> filterChaptersAlreadyEnqueued(queue, chapter) }
-                                                        .map { Download(source, comic, it) }
+                                    .await()
+                                    .map { Download(sourceHttp!!, source!!, comic, it) }
 
         if (chaptersToQueue.isNotEmpty()) {
             queue.addAll(chaptersToQueue)
@@ -129,11 +140,11 @@ class Downloader(
         }
     }
 
-    private fun isChapterNotDownloaded(chapter: Chapter, comicDir: UniFile?): Boolean {
+    private fun isChapterNotDownloaded(chapter: ChapterViewModel, comicDir: UniFile?): Boolean {
         return comicDir?.findFile(provider.getChapterDirectoryName(chapter)) == null
     }
 
-    private fun filterChaptersAlreadyEnqueued(queue: DownloadQueueList, chapter: Chapter): Boolean {
+    private fun filterChaptersAlreadyEnqueued(queue: DownloadQueueList, chapter: ChapterViewModel): Boolean {
         return queue.none { it.chapter.id == chapter.id }
     }
 
@@ -169,7 +180,7 @@ class Downloader(
         return Observable.defer {
             val chapterDirName = provider.getChapterDirectoryName(download.chapter)
 
-            val comicDir = provider.getComicDirectory(download.comic, download.source)
+            val comicDir = provider.getComicDirectory(download.comic, download.sourceDB)
             val tempDir = comicDir?.createDirectory("${chapterDirName}_tmp")
 
             val pageListObservable = if (download.chapter.pages == null) {
@@ -196,11 +207,13 @@ class Downloader(
                         .flatMap { download.source.fetchAllImageUrlsFromPageList(it) }
                         .concatMap { page -> getOrDownloadPage(page, download, tempDir) }
                         .doOnNext { page: Page? -> downloadNotification.onDownloadProgressChange(download) }
+                        .toList()
                         .map { _ -> download }
+                        .toObservable()
                         .doOnNext { onCheckDownloads(download, comicDir, tempDir, chapterDirName) }
                         .onErrorReturn { error ->
                             download.status = Download.ERROR
-                            downloadNotification.onError(error.message, download.chapter.name)
+                            downloadNotification.onError(error.message, download.chapter.chapterName)
                             download
                         }
         }
@@ -236,7 +249,7 @@ class Downloader(
                 }
     }
 
-    private fun downloadImage(page: Page, httpSource: HttpSourceBase?, tmpDirectory: UniFile?, pageFileName: String): Observable<UniFile?> {
+    private fun downloadImage(page: Page, httpSource: IHttpSource?, tmpDirectory: UniFile?, pageFileName: String): Observable<UniFile?> {
         page.status = Page.DOWNLOAD_IMAGE
         page.progress = 0
 
@@ -270,7 +283,7 @@ class Downloader(
 
         if (download.status == Download.DOWNLOADED) {
             tempDir.renameTo(chapterDirName)
-            cache.addChapter(chapterDirName, comicDir!!, download.comic)
+            //cache.addChapter(chapterDirName, comicDir!!, download.comic)
         }
     }
 

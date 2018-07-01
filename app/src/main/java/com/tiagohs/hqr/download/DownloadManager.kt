@@ -2,12 +2,14 @@ package com.tiagohs.hqr.download
 
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.tiagohs.hqr.models.DownloadQueueList
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
+import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.sources.Page
-import com.tiagohs.hqr.sources.IHttpSource
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.reactivex.Observable
+import javax.inject.Singleton
 
+@Singleton
 class DownloadManager(
         val downloader: Downloader,
         val cache: DownloadCache,
@@ -33,11 +35,11 @@ class DownloadManager(
         downloader.clearQueue(isNotification)
     }
 
-    fun downloadChapters(comic: Comic, chapter: List<Chapter>, autoStart: Boolean = true) {
+    fun downloadChapters(comic: ComicViewModel, chapter: List<ChapterViewModel>, autoStart: Boolean = true) {
         downloader.queuerChapters(comic, chapter, autoStart)
     }
 
-    fun buildListOfPages(source: IHttpSource, comic: Comic, chapter: Chapter): Observable<List<Page>> {
+    fun buildListOfPages(source: SourceDB, comic: ComicViewModel, chapter: ChapterViewModel): Observable<List<Page>> {
         val chapterDir = provider.findChapterDirectory(chapter, comic, source)
 
         return Observable.fromCallable {
@@ -55,20 +57,20 @@ class DownloadManager(
         }
     }
 
-    fun isChapterDownloaded(chapter: Chapter, comic: Comic, skipCache: Boolean = false): Boolean {
+    fun isChapterDownloaded(chapter: ChapterViewModel, comic: ComicViewModel, skipCache: Boolean = false): Boolean {
         return cache.isChapterDownloaded(comic, chapter, skipCache)
     }
 
-    fun getDownloadCount(comic: Comic): Int {
+    fun getDownloadCount(comic: ComicViewModel): Int {
         return cache.getDownloadCount(comic)
     }
 
-    fun deleteChapter(chapter: Chapter, comic: Comic, source: IHttpSource) {
+    fun deleteChapter(chapter: ChapterViewModel, comic: ComicViewModel, source: SourceDB) {
         provider.findChapterDirectory(chapter, comic, source)?.delete()
         cache.removeChapter(chapter, comic)
     }
 
-    fun deleteComic(comic: Comic, source: IHttpSource) {
+    fun deleteComic(comic: ComicViewModel, source: SourceDB) {
         provider.findComicDirectory(comic, source)?.delete()
         cache.removeManga(comic)
     }

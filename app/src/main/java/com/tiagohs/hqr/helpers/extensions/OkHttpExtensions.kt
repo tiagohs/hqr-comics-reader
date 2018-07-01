@@ -23,7 +23,6 @@ fun Call.asObservable(): Observable<Response> {
         } catch (error: Exception) {
             if (!call.isCanceled) {
                 call.cancel()
-                subscriber.onError(error)
             }
         }
     }

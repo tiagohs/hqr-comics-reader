@@ -10,8 +10,8 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import com.github.chrisbanes.photoview.OnViewTapListener
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.viewModels.ChapterViewModel
-import com.tiagohs.hqr.models.viewModels.ReaderModel
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ReaderModel
 import com.tiagohs.hqr.ui.adapters.ReaderPagerAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleAnimationListener
 import com.tiagohs.hqr.ui.contracts.ReaderContract

@@ -6,11 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.database.DefaultModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import kotlinx.android.synthetic.main.item_simple_item.view.*
 
-class SimpleItemAdapter(private val items: List<DefaultModel>?,
+class SimpleItemAdapter(private val items: List<DefaultModelView>?,
                         private val context: Context?,
                         private val callback: ISimpleItemCallback) : RecyclerView.Adapter<SimpleItemAdapter.SimpleItemrViewHolder>() {
 
@@ -30,7 +30,7 @@ class SimpleItemAdapter(private val items: List<DefaultModel>?,
     class SimpleItemrViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
 
         lateinit var callback: ISimpleItemCallback
-        lateinit var item: DefaultModel
+        lateinit var item: DefaultModelView
 
         val button = itemView.item
 
@@ -40,7 +40,7 @@ class SimpleItemAdapter(private val items: List<DefaultModel>?,
             itemView.setOnClickListener(this)
         }
 
-        fun onBindItem(item: DefaultModel) {
+        fun onBindItem(item: DefaultModelView) {
             this.item = item
 
             button.text = item.name

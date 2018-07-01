@@ -7,28 +7,26 @@ import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.sources.Publisher
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.sources.HttpSourceBase
 import com.tiagohs.hqr.sources.SourceManager
 import com.tiagohs.hqr.ui.contracts.HomeContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
-class HomePresenter(subscriber: CompositeDisposable,
-                    private val sourceManager: SourceManager,
-                    private val preferenceHelper: PreferenceHelper,
-                    private val sourceRepository: ISourceRepository,
-                    private val comicsInterceptor: Contracts.IComicsInterceptor):
-            BasePresenter<HomeContract.IHomeView>(subscriber),
-            HomeContract.IHomePresenter {
+class HomePresenter(
+        private val sourceManager: SourceManager,
+        private val preferenceHelper: PreferenceHelper,
+        private val sourceRepository: ISourceRepository,
+        private val homeInterceptor: Contracts.IHomeInterceptor
+): BasePresenter<HomeContract.IHomeView>(), HomeContract.IHomePresenter {
 
     override fun onBindView(view: HomeContract.IHomeView) {
         super.onBindView(view)
 
-        comicsInterceptor.onBind()
-        comicsInterceptor.subscribeComicDetailSubject()
+        homeInterceptor.onBind()
+        homeInterceptor.subscribeComicDetailSubject()
                          .observeOn(AndroidSchedulers.mainThread())
                          .subscribe({ comic: ComicViewModel? ->
                              Log.d("HOME", "Inicialização: " + comic?.name)
@@ -50,7 +48,7 @@ class HomePresenter(subscriber: CompositeDisposable,
     override fun onUnbindView() {
         super.onUnbindView()
 
-        comicsInterceptor.onUnbind()
+        homeInterceptor.onUnbind()
     }
 
     override fun onGetHomeData(sourceId: Long) {
@@ -90,7 +88,7 @@ class HomePresenter(subscriber: CompositeDisposable,
 
     override fun onGetHomePageData(source: HttpSourceBase) {
 
-        mSubscribers!!.add(comicsInterceptor.onGetPopularComics()
+        mSubscribers!!.add(homeInterceptor.onGetPopularComics()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ popularComics: List<ComicViewModel>? ->
                     if (popularComics != null) mView!!.onBindPopulars(popularComics)
@@ -98,7 +96,7 @@ class HomePresenter(subscriber: CompositeDisposable,
                     Log.e("HomePresenter", "Error!", error)
                 }))
 
-        mSubscribers!!.add(comicsInterceptor.onGetLastestComics()
+        mSubscribers!!.add(homeInterceptor.onGetLastestComics()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ lastestsComics: List<ComicViewModel>? ->
                     if (lastestsComics != null) mView!!.onBindLastestUpdates(lastestsComics)

@@ -11,6 +11,7 @@ interface ISource{
     var hasPageSupport: Boolean
     var hasThumbnailSupport: Boolean
 
+    var lastAllComicsUpdate: String?
     var lastPopularUpdate: String?
     var lastLastestUpdate: String?
 
@@ -34,6 +35,10 @@ interface ISource{
 
         if (other.lastPopularUpdate != null) {
             this.lastPopularUpdate = other.lastPopularUpdate
+        }
+
+        if (other.lastAllComicsUpdate != null) {
+            this.lastAllComicsUpdate = other.lastAllComicsUpdate
         }
 
         this.baseUrl = other.baseUrl

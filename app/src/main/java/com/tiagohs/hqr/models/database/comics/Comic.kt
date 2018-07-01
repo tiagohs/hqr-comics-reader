@@ -9,11 +9,6 @@ import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 
-const val ONGOING = "ongoing_status"
-const val COMPLETED = "completed_status"
-const val CANCELED = "canceled_status"
-const val UNKNOWN = "unknown_status"
-
 open class Comic: RealmObject(), IComic {
 
     @PrimaryKey

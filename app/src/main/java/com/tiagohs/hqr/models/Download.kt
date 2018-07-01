@@ -1,14 +1,16 @@
 package com.tiagohs.hqr.models
 
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
-import com.tiagohs.hqr.sources.HttpSourceBase
+import com.tiagohs.hqr.models.database.SourceDB
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.sources.IHttpSource
 import io.reactivex.processors.PublishProcessor
 
 class Download(
-        val source: HttpSourceBase,
-        val comic: Comic,
-        val chapter: Chapter
+        val source: IHttpSource,
+        val sourceDB: SourceDB,
+        val comic: ComicViewModel,
+        val chapter: ChapterViewModel
 ) {
 
     companion object {

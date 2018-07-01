@@ -6,8 +6,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.*
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
-import com.tiagohs.hqr.models.base.IComic
-import com.tiagohs.hqr.models.viewModels.*
+import com.tiagohs.hqr.models.view_models.*
 import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.contracts.ListComicsContract
@@ -40,7 +39,8 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
 
     lateinit var listComicsModel: ListComicsModel
     lateinit var layoutManager: RecyclerView.LayoutManager
-    lateinit var listComicsAdapter: ComicsListAdapter
+
+    var listComicsAdapter: ComicsListAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,8 +106,24 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     }
 
     override fun onBindMoreComics(comics: List<ComicViewModel>) {
-        listComicsAdapter.comics = comics
-        listComicsAdapter.notifyDataSetChanged()
+        listComicsAdapter?.comics = comics
+        listComicsAdapter?.notifyDataSetChanged()
+    }
+
+    override fun onBindItem(comic: ComicViewModel) {
+        if (listComicsAdapter != null) {
+            val c = listComicsAdapter!!.getComic(comic)
+
+            if (c != null) {
+                c.copyFrom(comic)
+                val index = listComicsAdapter!!.getComicIndex(comic)
+
+                if (index != null) {
+                    listComicsAdapter!!.notifyItemChanged(index)
+                }
+
+            }
+        }
     }
 
     private fun createOnScrollListener(): RecyclerView.OnScrollListener {

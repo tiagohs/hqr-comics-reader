@@ -10,7 +10,7 @@ import io.reactivex.schedulers.Schedulers
 
 class SourcesPresenter(
         val sourcesRepository: ISourceRepository
-): BasePresenter<SourcesContract.ISourcesView>(CompositeDisposable()), SourcesContract.ISourcesPresenter {
+): BasePresenter<SourcesContract.ISourcesView>(), SourcesContract.ISourcesPresenter {
 
     override fun getAllSources() {
 

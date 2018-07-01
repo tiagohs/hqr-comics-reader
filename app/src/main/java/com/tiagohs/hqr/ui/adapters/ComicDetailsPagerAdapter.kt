@@ -3,7 +3,7 @@ package com.tiagohs.hqr.ui.adapters
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.views.fragments.ComicChaptersFragment
 import com.tiagohs.hqr.ui.views.fragments.ComicResumeFragment
 

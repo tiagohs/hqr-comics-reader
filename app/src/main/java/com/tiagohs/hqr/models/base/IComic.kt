@@ -3,10 +3,8 @@ package com.tiagohs.hqr.models.base
 import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Chapter
-import com.tiagohs.hqr.models.sources.ComicsItem
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.realm.RealmList
-import com.tiagohs.hqr.models.sources.Comic as NetworkComic
 
 interface IComic: IDefaultModel {
 
@@ -72,6 +70,10 @@ interface IComic: IDefaultModel {
             this.lastUpdate = other.lastUpdate
         }
 
+        if (other.status != null) {
+            this.status = other.status
+        }
+
         if (other.tags != null) {
             this.tags = other.tags
         }
@@ -80,41 +82,6 @@ interface IComic: IDefaultModel {
         this.inicialized = other.inicialized
         this.favorite = other.favorite
 
-    }
-
-    fun copyFrom(other: ComicsItem) {
-        this.name = other.title
-        this.pathLink = other.link
-    }
-
-    fun copyFrom(other: NetworkComic, sourceDB: SourceDB) {
-
-        if (other.title != null) {
-            this.name = other.title
-        }
-
-        if (other.pathLink != null) {
-            this.pathLink = other.pathLink
-        }
-
-        if (other.posterPath != null) {
-            this.posterPath = other.posterPath
-        }
-
-        if (other.summary != null) {
-            this.summary = other.summary
-        }
-
-        if (other.publicationDate != null) {
-            this.publicationDate = other.publicationDate
-        }
-
-        if (other.status != null) {
-            this.status = other.status
-        }
-
-        this.pathLink = other.pathLink
-        this.source = sourceDB
     }
 
     fun copyFrom(other: ComicViewModel) {

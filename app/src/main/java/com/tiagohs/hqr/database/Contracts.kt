@@ -2,14 +2,10 @@ package com.tiagohs.hqr.database
 
 import com.tiagohs.hqr.models.database.CatalogueSource
 import com.tiagohs.hqr.models.database.SourceDB
-import com.tiagohs.hqr.models.database.comics.Chapter
-import com.tiagohs.hqr.models.database.comics.Comic
 import com.tiagohs.hqr.models.database.comics.ComicHistory
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.reactivex.Observable
-import com.tiagohs.hqr.models.sources.Chapter as NetworkChapter
-import com.tiagohs.hqr.models.sources.Comic as NetworkComic
-import com.tiagohs.hqr.models.sources.ComicsItem as NetworkComicsItem
 
 interface ISourceRepository {
 
@@ -51,16 +47,10 @@ interface IComicsRepository {
 
 interface IChapterRepository {
 
-    fun insertChapter(chapter: Chapter): Observable<Chapter>
-    fun insertChapters(chapters: List<Chapter>): Observable<List<Chapter>>
-    fun deleteChapter(chapter: Chapter): Observable<Void>
-    fun deleteChapters(chapters: List<Chapter>): Observable<Void>
+    fun getAllChapters(comicId: Long): Observable<List<ChapterViewModel>>
 
-    fun deleteAllChapters(): Observable<Void?>
-    fun getAllChapters(comic: Comic): Observable<List<Chapter>>
-
-    fun getChapter(chapterId: Long): Observable<Chapter>
-    fun getChapter(pathLink: String, comicId: Long): Observable<Chapter>
+    fun getChapter(chapterId: Long): Observable<ChapterViewModel>
+    fun getChapter(pathLink: String, comicId: Long): Observable<ChapterViewModel>
 }
 
 interface IHistoryRepository {

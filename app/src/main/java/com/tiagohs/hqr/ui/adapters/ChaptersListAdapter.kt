@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.viewModels.ChapterViewModel
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.callbacks.IChapterItemCallback
 import kotlinx.android.synthetic.main.item_chapter.view.*
 
@@ -48,6 +48,12 @@ class ChaptersListAdapter(private val comic: ComicViewModel,
 
             chapterTitle.text = chapter.chapterName
             comicTitle.text = comicName
+
+            /*if (chapter.isDownloaded) {
+                downloadContainer.visibility = View.VISIBLE
+            } else {
+                downloadContainer.visibility = View.GONE
+            }*/
 
             downloadContainer.setOnClickListener(onGenreSelect(chapter))
         }

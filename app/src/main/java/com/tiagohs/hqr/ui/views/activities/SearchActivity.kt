@@ -10,13 +10,13 @@ import android.support.v7.widget.SearchView
 import android.view.Menu
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
-import com.tiagohs.hqr.models.base.IComic
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.contracts.SearchContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import kotlinx.android.synthetic.main.activity_search.*
+import java.util.*
 import javax.inject.Inject
 
 class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicListCallback, SearchContract.ISearchView {
@@ -35,9 +35,13 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
 
     lateinit var mSearchView: SearchView
     lateinit var layoutManager: RecyclerView.LayoutManager
-    lateinit var listComicsAdapter: ComicsListAdapter
 
-    var mQuery: String = ""
+    var listComicsAdapter: ComicsListAdapter? = null
+
+    var mQuery: String? = null
+
+    private var timer = Timer()
+    private val DELAY: Long = 2000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,8 +73,24 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
     }
 
     override fun onBindComics(comics: List<ComicViewModel>?) {
-        listComicsAdapter.comics = comics!!
-        listComicsAdapter.notifyDataSetChanged()
+        listComicsAdapter?.comics = comics!!
+        listComicsAdapter?.notifyDataSetChanged()
+    }
+
+    override fun onBindItem(comic: ComicViewModel) {
+        if (listComicsAdapter != null) {
+            val c = listComicsAdapter!!.getComic(comic)
+
+            if (c != null) {
+                c.copyFrom(comic)
+                val index = listComicsAdapter!!.getComicIndex(comic)
+
+                if (index != null) {
+                    listComicsAdapter!!.notifyItemChanged(index)
+                }
+
+            }
+        }
     }
 
     override fun onComicSelect(comic: ComicViewModel) {
@@ -106,20 +126,24 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
-        mQuery = query!!
-
-        if (!mQuery.isNullOrEmpty()) {
-            presenter.onSearchComics(mQuery)
-        }
-
-        return true
+        return onTextChange(query)
     }
 
-    override fun onQueryTextChange(newText: String?): Boolean {
-        mQuery = newText!!
+    override fun onQueryTextChange(query: String?): Boolean {
+        return onTextChange(query)
+    }
 
-        if (!mQuery.isNullOrEmpty()) {
-            presenter.onSearchComics(mQuery)
+    private fun onTextChange(query: String?): Boolean {
+        mQuery = query
+
+        if (mQuery != null && mQuery!!.isNotEmpty()) {
+            timer.cancel()
+            timer = Timer()
+            timer.schedule( object : TimerTask() {
+                override fun run() {
+                    presenter.onSearchComics(mQuery!!)
+                }
+            }, DELAY)
         }
 
         return true

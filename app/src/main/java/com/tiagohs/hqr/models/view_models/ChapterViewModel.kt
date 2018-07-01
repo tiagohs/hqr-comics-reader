@@ -1,7 +1,8 @@
-package com.tiagohs.hqr.models.viewModels
+package com.tiagohs.hqr.models.view_models
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.tiagohs.hqr.models.Download
 import com.tiagohs.hqr.models.base.IChapter
 import com.tiagohs.hqr.models.database.comics.Comic
 import com.tiagohs.hqr.models.sources.Page
@@ -15,6 +16,17 @@ class ChapterViewModel() : Parcelable {
 
     var pages: List<Page>? = null
     var comic: Comic? = null
+
+    private var _status: String = "NOT_DOWNLOADED"
+
+    var status: String
+        get() = download?.status ?: _status
+        set(value) { _status = value }
+
+    @Transient var download: Download? = null
+
+    val isDownloaded: Boolean
+        get() = status == Download.DOWNLOADED
 
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
@@ -59,6 +71,10 @@ class ChapterViewModel() : Parcelable {
 
         if (other.id != -1L) {
             this.id = other.id
+        }
+
+        if (other.chapterName != null) {
+            this.chapterName = other.chapterName
         }
 
         if (other.chapterPath != null) {

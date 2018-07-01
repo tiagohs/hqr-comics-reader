@@ -3,13 +3,12 @@ package com.tiagohs.hqr.sources.portuguese
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
-import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.sources.LocaleDTO
 import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.models.sources.Publisher
-import com.tiagohs.hqr.models.viewModels.ChapterViewModel
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
-import com.tiagohs.hqr.models.viewModels.ComicsListViewModel
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.sources.ParserHttpSource
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -127,7 +126,7 @@ class HQBRSource(
         var title: String = ""
         var status: String = ""
         var link: String = ""
-        var publisher: ArrayList<DefaultModel>? = null
+        var publisher: ArrayList<DefaultModelView>? = null
 
         element.select("td").forEach { element: Element? ->
             val linkElement = element!!.select("a").first()
@@ -143,7 +142,7 @@ class HQBRSource(
                     link = formatLink(linkElement.attr("href"))
                 } else if (publisherRegex.containsMatchIn(linkHref)) {
                     publisher = ArrayList()
-                    publisher?.add(DefaultModel().apply {
+                    publisher?.add(DefaultModelView().apply {
                         this.name = linkElement.text()
                         this.pathLink = formatLink(linkElement.attr("href"))
                     })
@@ -161,6 +160,7 @@ class HQBRSource(
             this.name = title
             this.pathLink = link
             this.publisher = publisher
+            this.status = ScreenUtils.getStatusConstant(status)
         }
     }
 
@@ -168,16 +168,14 @@ class HQBRSource(
         return parseAllComicsByLetterByElement(element)
     }
 
-    override fun parseSearchByQueryResponse(response: Response, query: String): ComicsListViewModel {
-        val comicsModel = super.parseSearchByQueryResponse(response, query)
+    override fun parseSearchByQueryResponse(response: Response, query: String): List<ComicViewModel> {
+        val comics = super.parseSearchByQueryResponse(response, query)
 
-        comicsModel.comics = comicsModel.comics.filter({
-                                comicsItem ->
-                                    val titleRegex = query.toLowerCase().toRegex()
-                            titleRegex.containsMatchIn(comicsItem.name!!.toLowerCase())
-                            })
-
-        return comicsModel
+        return comics.filter({
+                    comicsItem ->
+                    val titleRegex = query.toLowerCase().toRegex()
+                    titleRegex.containsMatchIn(comicsItem.name!!.toLowerCase())
+                })
     }
 
     override fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?): ChapterViewModel {
@@ -219,27 +217,19 @@ class HQBRSource(
         val posterPath = document.select(".container blockquote imgLeft img").first()?.attr("src")
 
         var status: String = ""
+        var publisher: List<DefaultModelView> = ArrayList()
+        var scanlators: List<DefaultModelView> = ArrayList()
         document.select(".container div").forEach { element: Element? ->
-            if (element!!.text().contains("Status:")) {
+            if (element!!.text().contains("Status")) {
                 status = element.select("span").text()
+            } else if (element.text().contains("Editora")) {
+                publisher = element.select("a").map { element -> parseSimpleItemByElement(element) }
+            } else if (element.text().contains("Equipe responsável")) {
+                scanlators = element.select("a").map { element -> parseSimpleItemByElement(element) }
             }
         }
 
         val summary = document.select(".container blockquote").first()?.text()
-
-        var publisher: List<DefaultModel> = ArrayList()
-        document.select(".container div").forEach { element: Element? ->
-            if (element!!.text().contains("Editora")) {
-                publisher = element.select("a").map { element -> parseSimpleItemByElement(element) }
-            }
-        }
-
-        var scanlators: List<DefaultModel> = ArrayList()
-        document.select(".container div").forEach { element: Element? ->
-            if (element!!.text().contains("Equipe responsável")) {
-                scanlators = element.select("a").map { element -> parseSimpleItemByElement(element) }
-            }
-        }
 
         var chapters: List<ChapterViewModel> = ArrayList()
         var i = 0
@@ -251,17 +241,17 @@ class HQBRSource(
             this.pathLink = comicPath
             this.posterPath = posterPath
             this.name = title
-            this.status = status
+            this.status = ScreenUtils.getStatusConstant(status)
             this.summary = summary
             this.publisher = publisher
             this.chapters = chapters
             this.scanlators = scanlators
 
-
+            this.inicialized = true
         }
     }
 
-    fun parseSimpleItemByElement(selector: String, element: Element): DefaultModel {
+    fun parseSimpleItemByElement(selector: String, element: Element): DefaultModelView {
         return this.parseSimpleItemByElement(element.select(selector).first())
     }
 
@@ -271,16 +261,18 @@ class HQBRSource(
 
         val elementSelected = element.select(selector).first()
 
-        if (elementSelected != null) {
+        if (elementSelected != null && elementSelected.attr("href") != null) {
             link = formatLink(elementSelected.attr("href"))
+            title = elementSelected.text()
         }
 
         return ChapterViewModel().apply {
+            this.chapterName = title
             this.chapterPath = link
         }
     }
 
-    fun parseSimpleItemByElement(element: Element?): DefaultModel {
+    fun parseSimpleItemByElement(element: Element?): DefaultModelView {
         var title: String = ""
         var link: String = ""
 
@@ -289,7 +281,7 @@ class HQBRSource(
             link = formatLink(element.attr("href"))
         }
 
-        return DefaultModel().apply {
+        return DefaultModelView().apply {
             this.name = title
             this.pathLink = link
         }
@@ -299,7 +291,6 @@ class HQBRSource(
         val p = Pattern.compile("http:\\/\\/adf.ly\\/([a-zA-Z0-9]*)\\/")
         val m = p.matcher(link)
 
-        var pages: List<String> = ArrayList()
         var linkFormated = link
 
         while( m.find() )

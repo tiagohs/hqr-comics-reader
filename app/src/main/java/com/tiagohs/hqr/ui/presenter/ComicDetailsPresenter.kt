@@ -1,20 +1,19 @@
 package com.tiagohs.hqr.ui.presenter
 
 import android.util.Log
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
-import com.tiagohs.hqr.sources.portuguese.HQBRSource
+import com.tiagohs.hqr.interceptors.config.Contracts
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 
-class ComicDetailsPresenter(subscriber: CompositeDisposable,
-                            private val source: HQBRSource):
-        BasePresenter<ComicDetailsContract.IComicDetailsView>(subscriber),
+class ComicDetailsPresenter(
+        private val interceptor: Contracts.IComicsDetailsInterceptor
+): BasePresenter<ComicDetailsContract.IComicDetailsView>(),
         ComicDetailsContract.IComicDetailsPresenter {
 
     override fun onGetComicData(comicPath: String) {
-        mSubscribers!!.add(source.fetchComicDetails(comicPath)
+        mSubscribers!!.add(interceptor.onGetComicData(comicPath)
               .observeOn(AndroidSchedulers.mainThread())
               .subscribe(
                       { comic: ComicViewModel? ->

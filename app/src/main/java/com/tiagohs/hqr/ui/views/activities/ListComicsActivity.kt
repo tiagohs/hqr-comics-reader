@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.viewModels.ListComicsModel
+import com.tiagohs.hqr.models.view_models.ListComicsModel
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import com.tiagohs.hqr.ui.views.fragments.ListComicsFragment
 

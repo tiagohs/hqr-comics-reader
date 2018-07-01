@@ -8,12 +8,10 @@ import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Chapter
 import com.tiagohs.hqr.models.database.comics.Comic
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.reactivex.Observable
 import io.realm.Realm
 import io.realm.RealmQuery
-import com.tiagohs.hqr.models.sources.Comic as NetworkComic
-import com.tiagohs.hqr.models.sources.ComicsItem as NetworkComicsItem
 
 class ComicsRepository(
         private val sourceRepository: ISourceRepository
@@ -103,7 +101,7 @@ class ComicsRepository(
             try {
                 val realm = Realm.getDefaultInstance()
                 val results = findAll(realm, realm.where(Comic::class.java)
-                                            .equalTo("comic.id", sourceId) )
+                                            .equalTo("source.id", sourceId) )
 
                 if (results != null) {
                     emitter.onNext(results)
@@ -142,8 +140,8 @@ class ComicsRepository(
                 val realm = Realm.getDefaultInstance()
 
                 val result = find(realm, realm.where(Comic::class.java)
-                        .equalTo("pathLink", pathLink)
-                        .equalTo("source.id", sourceId))
+                                                                .equalTo("pathLink", pathLink)
+                                                                .equalTo("source.id", sourceId))
 
                 if (result != null) {
                     emitter.onNext(result)

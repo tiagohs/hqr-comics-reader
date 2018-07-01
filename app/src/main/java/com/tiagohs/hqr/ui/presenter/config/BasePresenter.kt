@@ -4,9 +4,10 @@ import com.tiagohs.hqr.ui.views.config.IView
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-abstract class BasePresenter<V : IView>(protected var mSubscribers: CompositeDisposable?) : IPresenter<V> {
+abstract class BasePresenter<V : IView>() : IPresenter<V> {
 
     protected var mView: V? = null
+    protected var mSubscribers: CompositeDisposable = CompositeDisposable()
 
     override fun onBindView(view: V) {
         mView = view
@@ -17,13 +18,11 @@ abstract class BasePresenter<V : IView>(protected var mSubscribers: CompositeDis
         if (mView != null)
             mView = null
 
-        if (mSubscribers != null)
-            mSubscribers!!.clear()
+        mSubscribers.clear()
     }
 
     fun addSubscriber(disposable: Disposable) {
-        if (mSubscribers != null)
-            mSubscribers!!.add(disposable)
+        mSubscribers.add(disposable)
     }
 
 }

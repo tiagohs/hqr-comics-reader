@@ -2,8 +2,8 @@ package com.tiagohs.hqr.models
 
 import com.jakewharton.rxrelay2.PublishRelay
 import com.tiagohs.hqr.download.DownloadStore
-import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Page
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.processors.PublishProcessor
@@ -38,7 +38,7 @@ class DownloadQueueList(
             updatedRelay.accept(Unit)
     }
 
-    fun remove(chapter: Chapter) {
+    fun remove(chapter: ChapterViewModel) {
         find { download -> download.chapter.id === chapter.id }?.let { download -> remove(download) }
     }
 

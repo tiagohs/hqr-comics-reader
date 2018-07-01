@@ -3,10 +3,11 @@ package com.tiagohs.hqr.download
 import android.content.Context
 import android.net.Uri
 import com.hippo.unifile.UniFile
+import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
-import com.tiagohs.hqr.models.sources.Chapter
-import com.tiagohs.hqr.models.sources.Comic
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.sources.SourceManager
 import java.util.concurrent.TimeUnit
 
@@ -14,7 +15,9 @@ class DownloadCache(
         private val context: Context,
         private val sourceManager: SourceManager,
         private val provider: DownloadProvider,
-        private val preferences: PreferenceHelper
+        private val preferences: PreferenceHelper,
+        val sourceRepository: ISourceRepository,
+        val preferenceHelper: PreferenceHelper
 ) {
 
     private val renewInterval = TimeUnit.HOURS.toMillis(1)
@@ -35,16 +38,18 @@ class DownloadCache(
         return UniFile.fromUri(context, Uri.parse(dir))
     }
 
-    fun isChapterDownloaded(comic: Comic, chapter: Chapter, skipCache: Boolean): Boolean {
+    fun isChapterDownloaded(comic: ComicViewModel, chapter: ChapterViewModel, skipCache: Boolean): Boolean {
 
         if (skipCache) {
-            val source = sourceManager.get(comic.sourceId) ?: return false
-            return provider.findChapterDirectory(chapter, comic, source) != null
+            val sourceId = preferenceHelper.currentSource().getOrDefault()
+            val source = sourceRepository.getSourceByIdRealm(sourceId)
+
+            return provider.findChapterDirectory(chapter, comic, source!!) != null
         }
 
         checkRenew()
 
-        val sourceDir = rootDir.files[comic.sourceId]
+        val sourceDir = rootDir.files[comic.source!!.id]
 
         if (sourceDir != null) {
             val comicDir = sourceDir.files[provider.getComicDirectoryName(comic)]
@@ -57,10 +62,10 @@ class DownloadCache(
         return false
     }
 
-    fun getDownloadCount(comic: Comic): Int {
+    fun getDownloadCount(comic: ComicViewModel): Int {
         checkRenew()
 
-        val sourceDir = rootDir.files[comic.sourceId]
+        val sourceDir = rootDir.files[comic.source!!.id]
         if (sourceDir != null) {
             val comicDir = sourceDir.files[provider.getComicDirectoryName(comic)]
 
@@ -71,14 +76,16 @@ class DownloadCache(
     }
 
     @Synchronized
-    fun addChapter(chapterDirName: String, comicFile: UniFile, comic: Comic) {
-        var sourceDir = rootDir.files[comic.sourceId]
+    fun addChapter(chapterDirName: String, comicFile: UniFile, comic: ComicViewModel) {
+        var sourceDir = rootDir.files[comic.source!!.id]
 
         if (sourceDir == null) {
-            val source = sourceManager.get(comic.sourceId) ?: return
-            val sourceUniFile = provider.findSourceDirectory(source) ?: return
+            val sourceId = preferenceHelper.currentSource().getOrDefault()
+            val source = sourceRepository.getSourceByIdRealm(sourceId)
+
+            val sourceUniFile = provider.findSourceDirectory(source!!) ?: return
             sourceDir = SourceDir(sourceUniFile)
-            rootDir.files += comic.sourceId to sourceDir
+            rootDir.files += comic.source!!.id to sourceDir
         }
 
         val comicDirName = provider.getComicDirectoryName(comic)
@@ -93,8 +100,8 @@ class DownloadCache(
     }
 
     @Synchronized
-    fun removeChapter(chapter: Chapter, comic: Comic) {
-        val sourceDir = rootDir.files[comic.sourceId] ?: return
+    fun removeChapter(chapter: ChapterViewModel, comic: ComicViewModel) {
+        val sourceDir = rootDir.files[comic.source!!.id] ?: return
         val comicDir = sourceDir.files[provider.getComicDirectoryName(comic)] ?: return
         val chapterDirName = provider.getChapterDirectoryName(chapter)
 
@@ -104,8 +111,8 @@ class DownloadCache(
     }
 
     @Synchronized
-    fun removeManga(comic: Comic) {
-        val sourceDir = rootDir.files[comic.sourceId] ?: return
+    fun removeManga(comic: ComicViewModel) {
+        val sourceDir = rootDir.files[comic.source!!.id] ?: return
         val comicDirName = provider.getComicDirectoryName(comic)
         if (comicDirName in sourceDir.files) {
             sourceDir.files -= comicDirName
@@ -115,11 +122,11 @@ class DownloadCache(
     @Synchronized
     private fun checkRenew() {
         if (lastRenew + renewInterval < System.currentTimeMillis()) {
-            renew()
+            //renew()
             lastRenew = System.currentTimeMillis()
         }
     }
-
+/*
     private fun renew() {
         val sources = sourceManager.getHttpSouces()
 
@@ -149,7 +156,7 @@ class DownloadCache(
             }
         }
     }
-
+*/
     private class RootDir(val dir: UniFile,
                                 var files: Map<Long, SourceDir> = hashMapOf())
 

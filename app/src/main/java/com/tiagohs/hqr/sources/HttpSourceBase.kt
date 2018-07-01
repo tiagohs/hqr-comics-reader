@@ -3,12 +3,10 @@ package com.tiagohs.hqr.sources
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asObservableSuccess
 import com.tiagohs.hqr.helpers.extensions.newCallWithProgress
-import com.tiagohs.hqr.models.sources.Chapter
 import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.models.sources.Publisher
-import com.tiagohs.hqr.models.viewModels.ChapterViewModel
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
-import com.tiagohs.hqr.models.viewModels.ComicsListViewModel
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.*
@@ -74,41 +72,41 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : ComicViewModel
 
-    override fun fetchAllComicsByLetter(letter: String): Observable<ComicsListViewModel> {
+    override fun fetchAllComicsByLetter(letter: String): Observable<List<ComicViewModel>> {
         return fetch(GET(getAllComicsByLetterEndpoint(letter), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByLetterResponse(response) })
     }
 
     abstract protected fun getAllComicsByLetterEndpoint(letter: String): String
 
-    abstract protected fun parseAllComicsByLetterResponse(response: Response) : ComicsListViewModel
+    abstract protected fun parseAllComicsByLetterResponse(response: Response) : List<ComicViewModel>
 
-    override fun fetchAllComicsByPublisher(publisherPath: String): Observable<ComicsListViewModel> {
+    override fun fetchAllComicsByPublisher(publisherPath: String): Observable<List<ComicViewModel>> {
         return fetch(GET(getAllComicsByPublisherEndpoint(publisherPath), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByPublisherResponse(response) })
     }
 
     abstract protected fun getAllComicsByPublisherEndpoint(publisherPath: String): String
 
-    abstract protected fun parseAllComicsByPublisherResponse(response: Response) : ComicsListViewModel
+    abstract protected fun parseAllComicsByPublisherResponse(response: Response) : List<ComicViewModel>
 
-    override fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<ComicsListViewModel> {
+    override fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<List<ComicViewModel>> {
         return fetch(GET(getAllComicsByScanlatorEndpoint(scanlatorPath), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByScanlatorResponse(response) })
     }
 
     abstract protected fun getAllComicsByScanlatorEndpoint(scanlatorPath: String): String
 
-    abstract protected fun parseAllComicsByScanlatorResponse(response: Response) : ComicsListViewModel
+    abstract protected fun parseAllComicsByScanlatorResponse(response: Response) : List<ComicViewModel>
 
-    override fun fetchSearchByQuery(query: String): Observable<ComicsListViewModel> {
+    override fun fetchSearchByQuery(query: String): Observable<List<ComicViewModel>> {
         return fetch(GET(getSearchByQueryEndpoint(query), headersBuilder().build()))
                 .map({ response: Response -> parseSearchByQueryResponse(response, query) })
     }
 
     abstract protected fun getSearchByQueryEndpoint(query: String): String
 
-    abstract protected fun parseSearchByQueryResponse(response: Response, query: String): ComicsListViewModel
+    abstract protected fun parseSearchByQueryResponse(response: Response, query: String): List<ComicViewModel>
 
     protected fun GET(url: String,
             headers: Headers = DEFAULT_HEADERS,
@@ -121,7 +119,7 @@ abstract class HttpSourceBase(
                 .build()
     }
 
-    override fun fetchPageList(chapter: Chapter): Observable<List<Page>> {
+    override fun fetchPageList(chapter: ChapterViewModel): Observable<List<Page>> {
         return client.newCall(pageListRequest(chapter))
                 .asObservableSuccess()
                 .map { response -> pageListParse(response, chapter.chapterPath) }
@@ -129,7 +127,7 @@ abstract class HttpSourceBase(
 
     abstract protected fun pageListParse(response: Response, chapterPath: String?): List<Page>
 
-    open protected fun pageListRequest(chapter: Chapter): Request {
+    open protected fun pageListRequest(chapter: ChapterViewModel): Request {
         return GET(baseUrl + chapter.chapterPath, headers)
     }
 

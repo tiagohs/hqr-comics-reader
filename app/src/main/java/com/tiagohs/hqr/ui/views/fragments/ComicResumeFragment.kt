@@ -6,10 +6,10 @@ import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.View
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.database.DefaultModel
-import com.tiagohs.hqr.models.viewModels.ComicViewModel
-import com.tiagohs.hqr.models.viewModels.FETCH_BY_SCANLATORS
-import com.tiagohs.hqr.models.viewModels.ListComicsModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
+import com.tiagohs.hqr.models.view_models.FETCH_BY_SCANLATORS
+import com.tiagohs.hqr.models.view_models.ListComicsModel
 import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.views.activities.ListComicsActivity
@@ -54,12 +54,12 @@ class ComicResumeFragment: BaseFragment() {
         onBindList(comic.genres, genresList, onGenreSelect())
         onBindList(comic.scanlators, scanlatorsList, onScanlatorSelect())
 
-        if (comic.summary != null) summary.text = comic.summary
+        if (comic.summary != null && comic.summary!!.isNotEmpty()) summary.text = comic.summary
         else summary.text = "Sinopse Indisponível"
     }
 
-    private fun onBindList(list: List<DefaultModel>?, listItem: RecyclerView, callback: ISimpleItemCallback) {
-        if (list!!.isNotEmpty()) {
+    private fun onBindList(list: List<DefaultModelView>?, listItem: RecyclerView, callback: ISimpleItemCallback) {
+        if (list != null && list.isNotEmpty()) {
             listItem.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             listItem.adapter = SimpleItemAdapter(list, context, callback)
         } else listItem.visibility = android.view.View.GONE
@@ -67,7 +67,7 @@ class ComicResumeFragment: BaseFragment() {
 
     fun onAuthorSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
-            override fun onClick(item: DefaultModel) {
+            override fun onClick(item: DefaultModelView) {
                 Log.d("ComicDetails", "onAuthorSelect")
             }
         }
@@ -75,7 +75,7 @@ class ComicResumeFragment: BaseFragment() {
 
     fun onGenreSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
-            override fun onClick(item: DefaultModel) {
+            override fun onClick(item: DefaultModelView) {
                 Log.d("ComicDetails", "onGenreSelect")
             }
         }
@@ -83,7 +83,7 @@ class ComicResumeFragment: BaseFragment() {
 
     fun onScanlatorSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
-            override fun onClick(item: DefaultModel) {
+            override fun onClick(item: DefaultModelView) {
                 startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_SCANLATORS, item.name!!, item.pathLink!!)))
             }
         }

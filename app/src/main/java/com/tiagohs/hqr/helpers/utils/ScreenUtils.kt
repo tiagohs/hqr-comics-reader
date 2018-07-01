@@ -6,10 +6,7 @@ import android.widget.ImageView
 import com.amulyakhare.textdrawable.TextDrawable
 import com.amulyakhare.textdrawable.util.ColorGenerator
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.sources.CANCELED
-import com.tiagohs.hqr.models.sources.COMPLETED
-import com.tiagohs.hqr.models.sources.ONGOING
-import com.tiagohs.hqr.models.sources.UNKNOWN
+import com.tiagohs.hqr.models.view_models.*
 
 class ScreenUtils {
 
@@ -61,11 +58,11 @@ class ScreenUtils {
         fun getStatusConstant(status: String?): String? {
 
             if (status != null) {
-                if (status.contains("Concluído") or status.contains("Completed")) {
+                if (status.contains("Concluído") or status.contains("Completed") or status.contains(COMPLETED)) {
                     return COMPLETED
-                } else if (status.contains("Em Andamento") or status.contains("Ongoing")) {
+                } else if (status.contains("Em Andamento") or status.contains("Ongoing") or status.contains(ONGOING)) {
                     return ONGOING
-                } else if (status.contains("Cancelado") or status.contains("Canceled")) {
+                } else if (status.contains("Cancelado") or status.contains("Canceled") or status.contains(CANCELED)) {
                     return CANCELED
                 }
             }

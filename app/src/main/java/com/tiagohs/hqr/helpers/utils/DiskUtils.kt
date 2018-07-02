@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Environment
 import android.support.v4.content.ContextCompat
 import android.support.v4.os.EnvironmentCompat
+import com.hippo.unifile.UniFile
 import java.io.File
 import java.io.InputStream
 import java.net.URLConnection
@@ -63,6 +64,10 @@ object DiskUtils {
             size = f.length()
         }
         return size
+    }
+
+    fun getDirectorySize(f: UniFile): Long {
+        return getDirectorySize(File(f.filePath))
     }
 
     fun getExternalStorages(context: Context): Collection<File> {

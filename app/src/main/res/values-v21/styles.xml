@@ -4,5 +4,9 @@
     <style name="AppTheme.TransparentTheme">
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">#80000000</item>
+
+        <item name="windowActionModeOverlay">true</item>
+
+        <item name="selectable_list_drawable">@drawable/background_item_selector_light</item>
     </style>
 </resources>

@@ -14,10 +14,10 @@
         android:title="@string/nav_recent"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/actionFavorite"
+        android:id="@+id/actionLibrarie"
         android:enabled="true"
-        android:icon="@drawable/ic_heart_white"
-        android:title="@string/nav_favorite"
+        android:icon="@drawable/ic_book_mark_white"
+        android:title="@string/nav_librarie"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/actionDownloads"

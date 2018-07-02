@@ -2,17 +2,30 @@ package com.tiagohs.hqr.database.repository
 
 import com.tiagohs.hqr.database.IChapterRepository
 import com.tiagohs.hqr.factory.ChapterFactory
-import com.tiagohs.hqr.factory.ComicsFactory
-import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Chapter
-import com.tiagohs.hqr.models.database.comics.Comic
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
-import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.reactivex.Observable
 import io.realm.Realm
 import io.realm.RealmQuery
 
 class ChapterRepository: BaseRepository(), IChapterRepository {
+
+    override fun getChapterRealm(pathLink: String, comicId: Long): ChapterViewModel? {
+        val realm = Realm.getDefaultInstance()
+
+        var chapter: ChapterViewModel? = null
+        try {
+            chapter = find(realm, realm.where(Chapter::class.java)
+                    .equalTo("chapterPath", pathLink)
+                    .equalTo("comic.id", comicId))
+        } catch (ex: Exception) {
+            if (!realm.isClosed)
+                realm.close()
+        }
+
+        return chapter
+    }
+
 
     override fun getAllChapters(comicId: Long): Observable<List<ChapterViewModel>> {
         return Observable.create<List<ChapterViewModel>> { emitter ->

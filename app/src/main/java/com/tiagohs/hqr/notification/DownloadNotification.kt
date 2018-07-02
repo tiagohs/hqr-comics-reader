@@ -56,7 +56,7 @@ class DownloadNotification(
 
             val title = download.comic.name!!.chop(20)
             val chapterTitle = download.chapter.chapterName
-            val notificationTitle = "$title - $chapterTitle".chop(30)
+            val notificationTitle = "$chapterTitle - $title".chop(30)
 
             setContentTitle(notificationTitle)
             setContentText(context.getString(R.string.chapter_downloading_progress)

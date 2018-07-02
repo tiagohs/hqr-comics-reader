@@ -78,6 +78,13 @@ class ComicsRepository(
                 .equalTo("source.id", sourceId))
     }
 
+    override fun findByIdRealm(comicId: Long): ComicViewModel? {
+        val realm = Realm.getDefaultInstance()
+
+        return find(realm, realm.where(Comic::class.java)
+                                .equalTo("id", comicId))
+    }
+
     override fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel> {
         return sourceRepository.getSourceById(sourceId)
                 .map { source -> insertRealm(comic, sourceId) }

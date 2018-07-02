@@ -5,7 +5,10 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.ui.views.config.BaseActivity
+import com.tiagohs.hqr.ui.views.fragments.DownloadManagerFragment
 import com.tiagohs.hqr.ui.views.fragments.HomeFragment
+import com.tiagohs.hqr.ui.views.fragments.LibrarieFragment
+import com.tiagohs.hqr.ui.views.fragments.RecentFragment
 import kotlinx.android.synthetic.main.activity_root.*
 
 class RootActivity : BaseActivity() {
@@ -50,8 +53,7 @@ class RootActivity : BaseActivity() {
             SHORTCUT_COMIC -> {}
             SHORTCUT_DOWNLOADS -> setItemSelected(R.id.actionDownload)
             SHORTCUT_RECENTLY_READ -> setItemSelected(R.id.actionRecent)
-
-            else -> false
+            else -> return false
         }
 
         return true
@@ -60,10 +62,11 @@ class RootActivity : BaseActivity() {
 
     private fun setItemSelected(itemId: Int): Boolean {
         when (itemId) {
-            R.id.actionHome -> onSelectFragment("$itemId}:${R.id.actionHome}", HomeFragment.newFragment())
-            R.id.actionFavorite -> {}
-            R.id.actionRecent -> {}
-            R.id.actionDownload -> {}
+            R.id.actionHome -> startFragment(R.id.contentFragment, HomeFragment.newFragment())
+            R.id.actionLibrarie -> startFragment(R.id.contentFragment, LibrarieFragment.newFragment())
+            R.id.actionRecent -> startFragment(R.id.contentFragment, RecentFragment.newFragment())
+            R.id.actionDownloads -> startFragment(R.id.contentFragment, DownloadManagerFragment.newFragment())
+            else -> return false
         }
 
         return true

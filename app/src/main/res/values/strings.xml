@@ -49,6 +49,11 @@
         <item>Espanhol</item>
     </string-array>
 
+    <plurals name="confirm_delete_chapters">
+        <item quantity="one">Tem certeza de que deseja excluir o capítulo selecionado?</item>
+        <item quantity="other">Tem certeza de que deseja excluir os capítulos selecionados?</item>
+    </plurals>
+
     <string name="action_settings">Configurações</string>
     <string name="settings_activity_title">Configurações</string>
     <string name="title_language">Idioma</string>
@@ -65,7 +70,7 @@
     <string name="title_download_only_wifi">Fazer download apenas via Wi-Fi</string>
     <string name="download_only_wifi">Fazer download apenas via Wi-Fi</string>
     <string name="key_download_only_wifi">Fazer download apenas via Wi-Fi</string>
-    <string name="storage_used">Espaço utilizado</string>
+    <string name="storage_used">Espaço utilizado: %1$s</string>
     <string name="title_storage_used">Espaço utilizado</string>
     <string name="pref_header_about">Sobre</string>
     <string name="app_version">0.0.1</string>
@@ -81,6 +86,14 @@
     <string name="key_default_source">key_current_source</string>
     <string name="other_source">Outros</string>
     <string name="all_lang">Todas</string>
+    <string name="key_storage_used">key_storage_used</string>
+    <string name="action_download">Download</string>
+    <string name="action_delete">Deletar</string>
+    <string name="action_select_all">Selecionar tudo</string>
+    <string name="action_clear_all">Limpar tudo</string>
+    <string name="deleting">Excluindo capítulos...</string>
 
-
+    <string name="chapters_selected">Selecionado: %1$d</string>
+    <string name="chapters_selected_title">Selecione Abaixo: </string>
+    <string name="nav_librarie">Minha Biblioteca</string>
 </resources>

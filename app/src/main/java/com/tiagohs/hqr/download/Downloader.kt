@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.download
 
 import android.content.Context
+import android.util.Log
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay2.BehaviorRelay
@@ -128,6 +129,7 @@ class Downloader(
 
         val chaptersToQueue = chaptersNotDownloaded
                                     .await()
+                                    .filter { chapter -> queue.none { it.chapter.chapterPath == chapter.chapterPath } }
                                     .map { Download(sourceHttp!!, source!!, comic, it) }
 
         if (chaptersToQueue.isNotEmpty()) {
@@ -212,6 +214,7 @@ class Downloader(
                         .toObservable()
                         .doOnNext { onCheckDownloads(download, comicDir, tempDir, chapterDirName) }
                         .onErrorReturn { error ->
+                            Log.e("Eror", "Error", error)
                             download.status = Download.ERROR
                             downloadNotification.onError(error.message, download.chapter.chapterName)
                             download
@@ -283,7 +286,7 @@ class Downloader(
 
         if (download.status == Download.DOWNLOADED) {
             tempDir.renameTo(chapterDirName)
-            //cache.addChapter(chapterDirName, comicDir!!, download.comic)
+            cache.addChapter(chapterDirName, comicDir!!, download.comic)
         }
     }
 

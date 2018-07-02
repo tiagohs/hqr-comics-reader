@@ -91,9 +91,7 @@ class ComicViewModel() : Parcelable {
         }
 
         if (other.source != null) {
-            val source = SourceDB()
-            source.create(other.source!!)
-            this.source = source
+            this.source = SourceDB().create(other.source!!)
         }
 
         if (other.posterPath != null) {

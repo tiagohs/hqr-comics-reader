@@ -34,7 +34,7 @@
             android:title="@string/title_download_only_wifi" />
 
         <Preference
-            android:summary="@string/storage_used"
+            android:key="@string/key_storage_used"
             android:title="@string/title_storage_used" />
 
     </PreferenceCategory>

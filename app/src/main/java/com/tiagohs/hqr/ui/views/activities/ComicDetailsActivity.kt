@@ -37,9 +37,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     @Inject
     lateinit var presenter: ComicDetailsContract.IComicDetailsPresenter
 
-    override fun onGetMenuLayoutId(): Int {
-        return R.menu.menu_comic_details
-    }
+    override fun onGetMenuLayoutId(): Int = 0
 
     override fun onGetLayoutViewId(): Int {
         return R.layout.activity_comic_details
@@ -60,13 +58,11 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
 
         presenter.onUnbindView()
     }
-
 
     override fun onBindComic(comic: ComicViewModel) {
         comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic)

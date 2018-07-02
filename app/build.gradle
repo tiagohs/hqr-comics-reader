@@ -86,6 +86,12 @@ dependencies {
     kapt 'com.google.dagger:dagger-compiler:2.6'
     implementation 'org.glassfish:javax.annotation:10.0-b28'
 
+    // Flexible Adapter
+    implementation 'eu.davidea:flexible-adapter:5.0.5'
+    implementation 'eu.davidea:flexible-adapter-ui:1.0.0-b5'
+    implementation 'eu.davidea:flexible-adapter-livedata:1.0.0-b2'
+    implementation 'eu.davidea:flexible-adapter-databinding:1.0.0-b3'
+
     //UI
     implementation 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     implementation 'com.squareup.picasso:picasso:2.71828'
@@ -97,4 +103,5 @@ dependencies {
     implementation 'com.jakewharton:disklrucache:2.0.2'
     implementation 'io.github.luizgrp.sectionedrecyclerviewadapter:sectionedrecyclerviewadapter:1.2.0'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
+    implementation 'com.afollestad.material-dialogs:core:0.9.6.0'
 }

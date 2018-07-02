@@ -2,18 +2,19 @@ package com.tiagohs.hqr.download
 
 import android.content.Context
 import com.google.gson.Gson
+import com.tiagohs.hqr.database.IChapterRepository
+import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
-import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.models.Download
-import com.tiagohs.hqr.models.view_models.ChapterViewModel
-import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.sources.SourceManager
 
 class DownloadStore(
         context: Context?,
         val sourceManager: SourceManager,
         val sourceRepository: ISourceRepository,
+        val comicsRepository: IComicsRepository,
+        val chapterRepository: IChapterRepository,
         val preferenceHelper: PreferenceHelper
 ) {
     private val preferences = context?.getSharedPreferences("active_downloads", Context.MODE_PRIVATE)
@@ -38,7 +39,7 @@ class DownloadStore(
     }
 
     private fun serialize(download: Download): String {
-        val obj = DownloadObject(download.comic, download.chapter, download.source.id)
+        val obj = DownloadObject(download.comic.id, download.chapter.chapterPath!!, download.source.id)
         return gson.toJson(obj)
     }
 
@@ -54,12 +55,13 @@ class DownloadStore(
         val downloads = mutableListOf<Download>()
 
         if (downloadObject.isNotEmpty()) {
-            for (( comic, chapter, sourceId) in downloadObject) {
-                val sourceId = preferenceHelper.currentSource().getOrDefault()
+            for (( comicId, chapterPath, sourceId) in downloadObject) {
                 val sourceHttp = sourceManager.get(sourceId)
                 val source = sourceRepository.getSourceByIdRealm(sourceId)
+                val comic = comicsRepository.findByIdRealm(comicId)
+                val chapter = chapterRepository.getChapterRealm(chapterPath, comicId)
 
-                downloads.add(Download(sourceHttp!!, source!!, comic, chapter))
+                downloads.add(Download(sourceHttp!!, source!!, comic!!, chapter!!))
             }
         }
 
@@ -67,5 +69,5 @@ class DownloadStore(
         return downloads
     }
 
-    data class DownloadObject(val comic: ComicViewModel, val chapter: ChapterViewModel, var sourceId: Long)
+    data class DownloadObject(val comicId: Long, val chapterPath: String, var sourceId: Long)
 }

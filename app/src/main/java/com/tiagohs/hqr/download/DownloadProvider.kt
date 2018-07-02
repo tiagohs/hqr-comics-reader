@@ -2,6 +2,7 @@ package com.tiagohs.hqr.download
 
 import android.content.Context
 import android.net.Uri
+import android.text.format.Formatter
 import com.hippo.unifile.UniFile
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
@@ -25,6 +26,10 @@ class DownloadProvider(
         preferences.downloadsDirectory().asObservable()
                 .skip(1)
                 .subscribe { downloadDirectory = UniFile.fromUri(context, Uri.parse(it)) }
+    }
+
+    fun getDownloadDirectorySize(): String {
+        return Formatter.formatFileSize(context, DiskUtils.getDirectorySize(downloadDirectory))
     }
 
     fun getComicDirectory(comic: ComicViewModel, source: SourceDB): UniFile? {
@@ -56,5 +61,9 @@ class DownloadProvider(
 
     fun getChapterDirectoryName(chapter: ChapterViewModel): String {
         return DiskUtils.buildValidFilename(chapter.chapterName!!)
+    }
+
+    fun deleteAll() {
+        downloadDirectory.listFiles()?.forEach {it.delete() }
     }
 }

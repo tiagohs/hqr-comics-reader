@@ -2,10 +2,10 @@ package com.tiagohs.hqr.models.view_models
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.tiagohs.hqr.models.Download
 import com.tiagohs.hqr.models.base.IChapter
 import com.tiagohs.hqr.models.database.comics.Comic
 import com.tiagohs.hqr.models.sources.Page
+import com.tiagohs.hqr.ui.adapters.chapters.ChapterItem
 
 class ChapterViewModel() : Parcelable {
 
@@ -17,17 +17,6 @@ class ChapterViewModel() : Parcelable {
     var pages: List<Page>? = null
     var comic: Comic? = null
 
-    private var _status: String = "NOT_DOWNLOADED"
-
-    var status: String
-        get() = download?.status ?: _status
-        set(value) { _status = value }
-
-    @Transient var download: Download? = null
-
-    val isDownloaded: Boolean
-        get() = status == Download.DOWNLOADED
-
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
         chapterName = parcel.readString()
@@ -36,9 +25,41 @@ class ChapterViewModel() : Parcelable {
         pages = parcel.createTypedArrayList(Page)
     }
 
+    fun create(other: ChapterItem): ChapterViewModel {
+        return ChapterViewModel().apply {
+            copyFrom(other)
+        }
+    }
+
     fun create(other: IChapter): ChapterViewModel {
         return ChapterViewModel().apply {
             copyFrom(other)
+        }
+    }
+
+    fun copyFrom(other: ChapterItem) {
+        this.lastPageRead = other.chapter.lastPageRead
+
+        if (other.chapter.id != -1L) {
+            this.id = other.chapter.id
+        }
+
+        if (other.chapter.chapterName != null) {
+            this.chapterName = other.chapter.chapterName
+        }
+
+        if (other.chapter.chapterPath != null) {
+            this.chapterPath = other.chapter.chapterPath
+        }
+
+        if (other.comic != null) {
+            val comic = Comic()
+            comic.copyFrom(other.comic)
+            this.comic = comic
+        }
+
+        if (other.chapter.pages != null) {
+            this.pages = other.chapter.pages
         }
     }
 

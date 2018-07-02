@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container"
     android:orientation="horizontal"
     android:layout_width="match_parent"
@@ -8,16 +9,16 @@
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
     android:padding="5dp"
-    android:clickable="true"
-    android:focusable="true"
-    android:background="@drawable/background_riple_default">
+    android:background="?attr/selectable_list_drawable">
 
     <ImageView
         android:id="@+id/book_icon"
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:layout_centerVertical="true"
-        android:src="@drawable/ic_open_book"/>
+        app:srcCompat="@drawable/ic_open_book"/>
+
+
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -26,7 +27,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginEnd="5dp"
         android:layout_toEndOf="@id/book_icon"
-        android:layout_toStartOf="@id/donwloadIcon"
+        android:layout_toStartOf="@id/downloadIconContainer"
         android:gravity="center_vertical">
 
         <TextView
@@ -49,22 +50,41 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/donwloadIcon"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="@drawable/button_background_riple_rounded_color_accent"
-        android:layout_alignParentEnd="true"
+    <RelativeLayout
+        android:id="@+id/downloadIconContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:gravity="center">
+        android:layout_alignParentEnd="true"
+        android:visibility="gone">
 
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_download_white"/>
+        <ProgressBar
+            android:id="@+id/downloadingProgress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerHorizontal="true" />
 
-    </LinearLayout>
+        <LinearLayout
+            android:id="@+id/donwloadIconBackground"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/button_background_riple_rounded_color_accent"
+            android:gravity="center"
+            android:layout_centerVertical="true">
+
+            <ImageView
+                android:id="@+id/donwloadIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                app:srcCompat="@drawable/ic_download_white"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+
 
 </RelativeLayout>

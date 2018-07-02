@@ -1,6 +1,8 @@
 package com.tiagohs.hqr.dragger.modules
 
 import android.content.Context
+import com.tiagohs.hqr.database.IChapterRepository
+import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.download.*
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
@@ -36,9 +38,8 @@ class DownloadModule {
     }
 
     @Provides
-    fun providerDownloadStore(context: Context, sourceManager: SourceManager, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository): DownloadStore {
-        return DownloadStore(context, sourceManager, sourceRepository, preferenceHelper)
+    fun providerDownloadStore(context: Context, sourceManager: SourceManager, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository, comicsRepository: IComicsRepository, chapterRepository: IChapterRepository): DownloadStore {
+        return DownloadStore(context, sourceManager, sourceRepository, comicsRepository, chapterRepository, preferenceHelper)
     }
-
 
 }

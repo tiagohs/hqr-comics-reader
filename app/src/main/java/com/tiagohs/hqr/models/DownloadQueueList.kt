@@ -39,7 +39,7 @@ class DownloadQueueList(
     }
 
     fun remove(chapter: ChapterViewModel) {
-        find { download -> download.chapter.id === chapter.id }?.let { download -> remove(download) }
+        find { download -> download.chapter.chapterPath === chapter.chapterPath }?.let { download -> remove(download) }
     }
 
     fun clear() {

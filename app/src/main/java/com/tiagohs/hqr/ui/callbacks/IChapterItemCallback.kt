@@ -1,9 +1,8 @@
 package com.tiagohs.hqr.ui.callbacks
 
-import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.ui.adapters.chapters.ChapterItem
+import eu.davidea.flexibleadapter.FlexibleAdapter
 
-interface IChapterItemCallback {
-
-    fun onChapterSelect(chapter: ChapterViewModel)
-    fun onDownloadSelect(chapter: ChapterViewModel)
+interface IChapterItemCallback: FlexibleAdapter.OnItemClickListener, FlexibleAdapter.OnItemLongClickListener {
+    fun onDownloadSelect(chapter: ChapterItem)
 }

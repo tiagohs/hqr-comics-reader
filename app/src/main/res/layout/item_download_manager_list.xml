@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="90dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="5dp">
+
+    <ImageView
+        android:id="@+id/comicPoster"
+        android:layout_width="70dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="5dp"
+        android:src="@drawable/img_placeholder"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_toEndOf="@id/comicPoster">
+
+        <TextView
+            android:id="@+id/chapterTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capítulo 01 Capítulo 01 Capítulo 01 Capítulo 01 Capítulo 01 Capítulo 01 "
+            android:textSize="14sp"
+            android:ellipsize="end"
+            android:textColor="@color/colorPrimaryText"
+            android:lines="1"
+            android:layout_marginTop="3dp"/>
+
+        <TextView
+            android:id="@+id/comicTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Batman Vs Superman Batman Vs Superman atman Vs Superman"
+            android:textSize="12sp"
+            android:ellipsize="end"
+            android:textColor="@color/colorSecondaryText"
+            android:lines="1"
+            android:layout_marginTop="3dp"/>
+
+        <TextView
+            android:id="@+id/downloadStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Downloading (01/30)"
+            android:textSize="12sp"
+            android:ellipsize="end"
+            android:textColor="@color/colorSecondaryText"
+            android:lines="1"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/downloadProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@id/comicPoster"
+        style="?android:attr/progressBarStyleHorizontal"/>
+
+</RelativeLayout>

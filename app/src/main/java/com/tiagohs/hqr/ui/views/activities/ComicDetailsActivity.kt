@@ -1,18 +1,21 @@
 package com.tiagohs.hqr.ui.views.activities
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.ImageUtils
+import com.tiagohs.hqr.helpers.utils.PermissionUtils
+import com.tiagohs.hqr.helpers.utils.PermissionsCallback
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
 import com.tiagohs.hqr.models.view_models.ListComicsModel
-import com.tiagohs.hqr.ui.adapters.ComicDetailsPagerAdapter
 import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
+import com.tiagohs.hqr.ui.adapters.pagers.ComicDetailsPagerAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
@@ -21,7 +24,7 @@ import javax.inject.Inject
 
 private const val COMIC_LINK = "comic_link"
 
-class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsView {
+class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsView, PermissionsCallback {
 
     companion object {
 
@@ -37,6 +40,8 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     @Inject
     lateinit var presenter: ComicDetailsContract.IComicDetailsPresenter
 
+    val permissions: PermissionUtils = PermissionUtils(this)
+
     override fun onGetMenuLayoutId(): Int = 0
 
     override fun onGetLayoutViewId(): Int {
@@ -48,6 +53,8 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
         getApplicationComponent()!!.inject(this)
 
+        permissions.onCheckAndRequestPermissions(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), this)
+
         presenter.onBindView(this)
 
         val comicLink = intent.getStringExtra(COMIC_LINK) ?: ""
@@ -55,7 +62,12 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         if (comicLink.isNotEmpty()) {
             presenter.onGetComicData(comicLink)
         }
+    }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        this.permissions.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     override fun onDestroy() {
@@ -70,12 +82,12 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
         if (!comic.posterPath.isNullOrEmpty()) {
             ImageUtils.load(comicImage,
-                    "https://hqbr.com.br/" + comic.posterPath,
+                    comic.posterPath,
                     R.drawable.img_placeholder,
                     R.drawable.img_placeholder,
                     false)
             ImageUtils.loadWithRevealAnimation(this, comicWallpaper,
-                    "https://hqbr.com.br/" + comic.posterPath,
+                    comic.posterPath,
                     R.drawable.img_placeholder,
                     R.drawable.img_placeholder)
         }
@@ -96,5 +108,18 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
             }
         }
     }
+
+    override fun onPermissionsGranted() {
+
+    }
+
+    override fun onPermissionsDenied() {
+
+    }
+
+    override fun onNeverAskAgain(requestCode: Int) {
+
+    }
+
 
 }

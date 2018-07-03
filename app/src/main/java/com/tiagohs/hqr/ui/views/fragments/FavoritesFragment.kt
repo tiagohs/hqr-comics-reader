@@ -8,16 +8,9 @@ import com.tiagohs.hqr.ui.views.config.BaseFragment
 class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView {
 
     companion object {
-        fun newFragment(): LibrarieFragment = LibrarieFragment()
+        fun newFragment(): FavoritesFragment = FavoritesFragment()
     }
 
     override fun getViewID(): Int = R.layout.fragment_favorites
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-
-        activityCallbacks!!.setScreenTitle("Favoritos")
-    }
 
 }

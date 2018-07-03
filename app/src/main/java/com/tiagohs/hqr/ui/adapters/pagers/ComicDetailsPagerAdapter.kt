@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.ui.adapters
+package com.tiagohs.hqr.ui.adapters.pagers
 
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager

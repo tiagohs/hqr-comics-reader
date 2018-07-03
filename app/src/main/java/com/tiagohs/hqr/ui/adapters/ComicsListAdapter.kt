@@ -96,9 +96,9 @@ class ComicsListAdapter(var comics: List<ComicViewModel>,
 
             comicTitle.text = comic.name
 
-            if (::comicsImage.isInitialized) {
+            if (::comicsImage.isInitialized && !comic.posterPath.isNullOrEmpty()) {
                 ImageUtils.load(comicsImage,
-                        "https://hqbr.com.br/" + comic.posterPath,
+                        comic.posterPath,
                         R.drawable.img_placeholder,
                         R.drawable.img_placeholder,
                         true)

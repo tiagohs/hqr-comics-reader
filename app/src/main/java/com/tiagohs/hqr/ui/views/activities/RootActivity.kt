@@ -1,9 +1,15 @@
 package com.tiagohs.hqr.ui.views.activities
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.internal.BottomNavigationItemView
+import android.support.design.internal.BottomNavigationMenuView
 import android.support.v4.app.Fragment
+import android.view.LayoutInflater
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.utils.PermissionUtils
+import com.tiagohs.hqr.helpers.utils.PermissionsCallback
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import com.tiagohs.hqr.ui.views.fragments.DownloadManagerFragment
 import com.tiagohs.hqr.ui.views.fragments.HomeFragment
@@ -11,7 +17,9 @@ import com.tiagohs.hqr.ui.views.fragments.LibrarieFragment
 import com.tiagohs.hqr.ui.views.fragments.RecentFragment
 import kotlinx.android.synthetic.main.activity_root.*
 
-class RootActivity : BaseActivity() {
+
+
+class RootActivity: BaseActivity(), PermissionsCallback {
 
     companion object {
         // Shortcut actions
@@ -20,6 +28,8 @@ class RootActivity : BaseActivity() {
         const val SHORTCUT_DOWNLOADS = "com.tiagohs.hqr.SHOW_DOWNLOADS"
         const val SHORTCUT_COMIC = "com.tiagohs.hqr.SHOW_MANGA"
     }
+
+    val permissions: PermissionUtils = PermissionUtils(this)
 
     override fun onGetMenuLayoutId(): Int {
         return 0
@@ -34,12 +44,35 @@ class RootActivity : BaseActivity() {
 
         onSetupBottomNavigation()
         supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+
+        permissions.onCheckAndRequestPermissions(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), this)
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        this.permissions.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
 
     private fun onSetupBottomNavigation() {
         rootBottomNavigation!!.setOnNavigationItemSelectedListener({ item -> setItemSelected(item.itemId) })
         rootBottomNavigation!!.setSelectedItemId(R.id.actionHome)
+
+        configreDownloadBadge()
     }
+
+    private fun configreDownloadBadge() {
+        val bottomNavigationMenuView = rootBottomNavigation.getChildAt(0) as BottomNavigationMenuView
+        val v = bottomNavigationMenuView.getChildAt(2)
+        val itemView = v as BottomNavigationItemView
+
+        val badge = LayoutInflater.from(this)
+                .inflate(R.layout.notification_download_badge, bottomNavigationMenuView, false)
+
+        itemView.addView(badge)
+    }
+
 
     override fun onNewIntent(intent: Intent) {
         if (!handleIntentReceiver(intent)) {
@@ -93,6 +126,18 @@ class RootActivity : BaseActivity() {
         fmTransaction.setPrimaryNavigationFragment(fragment)
                 .setReorderingAllowed(true)
                 .commitNowAllowingStateLoss()
+    }
+
+    override fun onPermissionsGranted() {
+
+    }
+
+    override fun onPermissionsDenied() {
+
+    }
+
+    override fun onNeverAskAgain(requestCode: Int) {
+
     }
 
 

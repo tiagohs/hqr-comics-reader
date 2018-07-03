@@ -99,7 +99,7 @@ class HQBRSource(
 
         return ComicViewModel().apply {
             this.name = title
-            this.posterPath = img
+            this.posterPath = "https://hqbr.com.br/${img}"
             this.pathLink = link
         }
     }
@@ -239,7 +239,7 @@ class HQBRSource(
 
         return ComicViewModel().apply {
             this.pathLink = comicPath
-            this.posterPath = posterPath
+            this.posterPath = "https://hqbr.com.br/${posterPath}"
             this.name = title
             this.status = ScreenUtils.getStatusConstant(status)
             this.summary = summary

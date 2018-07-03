@@ -7,10 +7,7 @@ import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
 import com.tiagohs.hqr.ui.views.activities.ReaderActivity
 import com.tiagohs.hqr.ui.views.activities.SearchActivity
 import com.tiagohs.hqr.ui.views.activities.SourcesActivity
-import com.tiagohs.hqr.ui.views.fragments.ComicChaptersFragment
-import com.tiagohs.hqr.ui.views.fragments.HomeFragment
-import com.tiagohs.hqr.ui.views.fragments.ListComicsFragment
-import com.tiagohs.hqr.ui.views.fragments.SettingsMainFragment
+import com.tiagohs.hqr.ui.views.fragments.*
 import dagger.Component
 import javax.inject.Singleton
 
@@ -40,6 +37,7 @@ interface HQRComponent {
     fun inject(sourcesActivity: SourcesActivity)
     fun inject(settingsMainFragment: SettingsMainFragment)
     fun inject(comicChaptersFragment: ComicChaptersFragment)
+    fun inject(downloadManagerFragment: DownloadManagerFragment)
 
     fun inject(downloaderService: DownloaderService)
     fun inject(sourceSection: SourceSection)

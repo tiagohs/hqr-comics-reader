@@ -28,8 +28,6 @@ class ComicChaptersPresenter(
     override fun onCreate(comic: ComicViewModel) {
         this.comicViewModel = comic
 
-        downloadManager.startDownloads()
-
         chaptersRelay.toFlowable(BackpressureStrategy.BUFFER)
                     .onBackpressureBuffer()
                     .observeOn(AndroidSchedulers.mainThread())

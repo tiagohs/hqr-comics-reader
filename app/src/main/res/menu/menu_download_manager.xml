@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="@string/action_start"
+        android:id="@+id/actionStartDownload"
+        android:icon="@drawable/ic_play_white"
+        android:visible="false"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
+        android:title="@string/action_pause"
+        android:id="@+id/actionPauseDownload"
+        android:icon="@drawable/ic_pause_white"
+        android:visible="false"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
+        android:title="@string/action_clear_all"
+        android:id="@+id/actionClearDownloads"
+        android:icon="@drawable/ic_clear_all_white"
+        android:visible="false"
+        app:showAsAction="ifRoom"
+        />
+</menu>

@@ -49,4 +49,10 @@ class PresenterModule {
     internal fun provideComicChaptersPresenter(downloadManager: DownloadManager, chapterRepository: IChapterRepository): ComicChaptersContract.IComicChaptersPresenter{
         return ComicChaptersPresenter(downloadManager, chapterRepository)
     }
+
+    @Provides
+    internal fun provideDownloadManagerPresenter(downloadManager: DownloadManager): DownloadManagerContract.IDownloadManagerPresenter{
+        return DownloadManagerPresenter(downloadManager)
+    }
+
 }

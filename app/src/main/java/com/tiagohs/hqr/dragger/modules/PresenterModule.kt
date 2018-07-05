@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.dragger.modules
 
 import com.tiagohs.hqr.database.IChapterRepository
+import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
@@ -16,8 +17,8 @@ import dagger.Provides
 class PresenterModule {
 
     @Provides
-    internal fun provideHomePresenter(homeInterceptor: Contracts.IHomeInterceptor, sourceManager: SourceManager, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository): HomeContract.IHomePresenter {
-        return HomePresenter(sourceManager, preferenceHelper, sourceRepository, homeInterceptor)
+    internal fun provideHomePresenter(homeInterceptor: Contracts.IHomeInterceptor, sourceManager: SourceManager, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository, comicsRepository: IComicsRepository): HomeContract.IHomePresenter {
+        return HomePresenter(sourceManager, preferenceHelper, sourceRepository, homeInterceptor, comicsRepository)
     }
 
     @Provides
@@ -31,13 +32,13 @@ class PresenterModule {
     }
 
     @Provides
-    internal fun provideListComicsPresenter(interceptor: Contracts.IListComicsInterceptor): ListComicsContract.IListComicsPresenter {
-        return ListComicsPresenter(interceptor)
+    internal fun provideListComicsPresenter(interceptor: Contracts.IListComicsInterceptor, preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository): ListComicsContract.IListComicsPresenter {
+        return ListComicsPresenter(interceptor, comicsRepository, preferenceHelper)
     }
 
     @Provides
-    internal fun provideSearchPresenter(searchInterceptor: Contracts.ISearchInterceptor): SearchContract.ISearchPresenter {
-        return SearchPresenter(searchInterceptor)
+    internal fun provideSearchPresenter(searchInterceptor: Contracts.ISearchInterceptor, preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository): SearchContract.ISearchPresenter {
+        return SearchPresenter(searchInterceptor, comicsRepository, preferenceHelper)
     }
 
     @Provides

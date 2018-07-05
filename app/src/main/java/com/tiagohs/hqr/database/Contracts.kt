@@ -29,6 +29,8 @@ interface IComicsRepository {
     fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>
     fun insertOrUpdateComics(comics: List<ComicViewModel>, sourceId: Long): Observable<List<ComicViewModel>>
 
+    fun addOrRemoveFromFavorite(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>
+
     fun deleteComic(comic: ComicViewModel): Observable<Void>
 
     fun deleteAllComics(): Observable<Void?>

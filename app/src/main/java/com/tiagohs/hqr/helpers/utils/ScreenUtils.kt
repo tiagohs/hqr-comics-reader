@@ -6,7 +6,10 @@ import android.widget.ImageView
 import com.amulyakhare.textdrawable.TextDrawable
 import com.amulyakhare.textdrawable.util.ColorGenerator
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.view_models.*
+import com.tiagohs.hqr.models.view_models.CANCELED
+import com.tiagohs.hqr.models.view_models.COMPLETED
+import com.tiagohs.hqr.models.view_models.ONGOING
+import com.tiagohs.hqr.models.view_models.UNKNOWN
 
 class ScreenUtils {
 

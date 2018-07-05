@@ -20,10 +20,6 @@ object ChapterFactory {
 
     fun copyFromChapterViewModel(chapter: Chapter, chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
 
-        if (chapterViewModel.id != -1L) {
-            chapter.id = chapterViewModel.id
-        }
-
         if (chapterViewModel.chapterName != null) {
             chapter.chapterName = chapterViewModel.chapterName
         }

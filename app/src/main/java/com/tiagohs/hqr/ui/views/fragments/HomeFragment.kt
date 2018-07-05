@@ -13,8 +13,10 @@ import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.FETCH_ALL
 import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
 import com.tiagohs.hqr.models.view_models.ListComicsModel
-import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
 import com.tiagohs.hqr.ui.adapters.PublishersListAdapter
+import com.tiagohs.hqr.ui.adapters.comics.ComicHolder
+import com.tiagohs.hqr.ui.adapters.comics.ComicItem
+import com.tiagohs.hqr.ui.adapters.comics.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.callbacks.IPublisherCallback
 import com.tiagohs.hqr.ui.contracts.HomeContract
@@ -27,7 +29,7 @@ import kotlinx.android.synthetic.main.fragment_home.*
 import javax.inject.Inject
 
 
-class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback {
+class HomeFragment : BaseFragment(), HomeContract.IHomeView {
 
     companion object Factory {
         fun newFragment(): HomeFragment = HomeFragment()
@@ -94,10 +96,6 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         return R.layout.fragment_home
     }
 
-    override fun onComicSelect(comic: ComicViewModel) {
-        startActivity(ComicDetailsActivity.newIntent(context, comic.pathLink!!))
-    }
-
     override fun onBindSourceInfo(source: ISource) {
         this.source = source
 
@@ -117,8 +115,9 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         publishersListProgress.visibility = View.GONE
     }
 
-    override fun onBindLastestUpdates(lastestUpdates: List<ComicViewModel>) {
-        lastestUpdatesAdapter = ComicsListAdapter(lastestUpdates, context, this, R.layout.item_comic)
+    override fun onBindLastestUpdates(lastestUpdates: List<ComicItem>) {
+        lastestUpdatesAdapter = ComicsListAdapter(onLastestCallback())
+        lastestUpdatesAdapter?.updateDataSet(lastestUpdates)
 
         lastestList.adapter = lastestUpdatesAdapter
         lastestList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
@@ -126,8 +125,9 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         lastestListProgress.visibility = View.GONE
     }
 
-    override fun onBindPopulars(populars: List<ComicViewModel>) {
-        popularComicsAdapter = ComicsListAdapter(populars, context, this, R.layout.item_comic)
+    override fun onBindPopulars(populars: List<ComicItem>) {
+        popularComicsAdapter = ComicsListAdapter(onPopularsCallback())
+        popularComicsAdapter?.updateDataSet(populars)
 
         popularList.adapter = popularComicsAdapter
         popularList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
@@ -135,36 +135,50 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView, IComicListCallback 
         popularListProgress.visibility = View.GONE
     }
 
-    override fun onBindPopularItem(comic: ComicViewModel) {
-        if (popularComicsAdapter != null) {
-            val c = popularComicsAdapter!!.getComic(comic)
+    private fun onPopularsCallback(): IComicListCallback {
+        return object : IComicListCallback {
+            override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
+                homePresenter.addOrRemoveFromFavorite(comic)
+            }
 
-            if (c != null) {
-                c.copyFrom(comic)
-                val index = popularComicsAdapter!!.getComicIndex(comic)
+            override fun onItemClick(view: View?, position: Int): Boolean {
+                val comic = popularComicsAdapter?.getItem(position) ?: return false
+                startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!))
 
-                if (index != null) {
-                    popularComicsAdapter!!.notifyItemChanged(index)
-                }
-
+                return true
             }
         }
     }
 
-    override fun onBindLastestItem(comic: ComicViewModel) {
+    private fun onLastestCallback(): IComicListCallback {
+        return object : IComicListCallback {
+            override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
+                homePresenter.addOrRemoveFromFavorite(comic)
+            }
 
-        if (lastestUpdatesAdapter != null) {
-            val c = lastestUpdatesAdapter!!.getComic(comic)
+            override fun onItemClick(view: View?, position: Int): Boolean {
+                val comic = lastestUpdatesAdapter?.getItem(position) ?: return false
+                startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!))
 
-            if (c != null) {
-                c.copyFrom(comic)
-                val index = lastestUpdatesAdapter!!.getComicIndex(comic)
-
-                if (index != null) {
-                    lastestUpdatesAdapter!!.notifyItemChanged(index)
-                }
+                return true
             }
         }
+    }
+
+    private fun getPopularHolder(comic: ComicItem): ComicHolder? {
+        return popularList?.findViewHolderForItemId(comic.comic.id) as? ComicHolder
+    }
+
+    private fun getLastestHolder(comic: ComicItem): ComicHolder? {
+        return lastestList?.findViewHolderForItemId(comic.comic.id) as? ComicHolder
+    }
+
+    override fun onBindPopularItem(comic: ComicItem) {
+        getPopularHolder(comic)?.bind(comic)
+    }
+
+    override fun onBindLastestItem(comic: ComicItem) {
+        getLastestHolder(comic)?.bind(comic)
     }
 
     private fun goToComicsListPage() {

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="50dp"
     android:layout_marginStart="16dp"
@@ -12,7 +13,7 @@
         android:id="@+id/comicIcon"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:src="@drawable/ic_comic_secondary_color"
+        app:srcCompat="@drawable/ic_comic_secondary_color"
         android:layout_centerVertical="true"
         />
 
@@ -21,13 +22,13 @@
         android:layout_height="50dp"
         android:orientation="vertical"
         android:layout_toEndOf="@id/comicIcon"
-        android:layout_toStartOf="@id/favoriteIcon"
+        android:layout_toStartOf="@id/addToFavBtn"
         android:layout_marginEnd="5dp"
         android:layout_marginStart="10dp"
         android:gravity="center_vertical">
 
         <TextView
-            android:id="@+id/comicSTitle"
+            android:id="@+id/comicTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:lines="1"
@@ -70,22 +71,17 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/favoriteIcon"
+    <ToggleButton
+        android:id="@+id/addToFavBtn"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="@drawable/button_background_riple_rounded_color_accent"
+        android:layout_gravity="center"
+        android:background="@drawable/button_favorite"
+        android:checked="false"
+        android:text=""
+        android:textOff=""
+        android:textOn=""
         android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:gravity="center">
-
-        <ImageView
-            android:layout_width="15dp"
-            android:layout_height="15dp"
-            android:src="@drawable/ic_heart_white"/>
-
-    </LinearLayout>
+        android:layout_centerVertical="true" />
 
 </RelativeLayout>

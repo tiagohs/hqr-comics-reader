@@ -112,7 +112,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/av/ic_pause_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/file/ic_folder_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -122,10 +122,11 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_pause_white" />
+                            <entry key="height" value="15" />
+                            <entry key="outputName" value="ic_folder_black_15dp" />
                             <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="E:\Usuário\Desktop\ic_spain.svg" />
+                            <entry key="sourceFile" value="E:\Usuário\Desktop\bookmark_added.svg" />
+                            <entry key="width" value="15" />
                           </map>
                         </option>
                       </PersistentState>

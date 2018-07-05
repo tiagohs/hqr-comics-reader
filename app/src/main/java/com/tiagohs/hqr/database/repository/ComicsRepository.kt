@@ -95,6 +95,14 @@ class ComicsRepository(
                 .map { source -> insertRealm(comics, sourceId) }
     }
 
+    override fun addOrRemoveFromFavorite(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel> {
+        return sourceRepository.getSourceById(sourceId)
+                .map { source ->
+                    comic.favorite = !comic.favorite
+                    insertRealm(comic, sourceId)
+                }
+    }
+
     override fun deleteComic(comic: ComicViewModel): Observable<Void> {
         return delete<Comic>(comic.id)
     }

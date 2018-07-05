@@ -1,8 +1,11 @@
 package com.tiagohs.hqr.ui.presenter
 
 import android.util.Log
+import com.tiagohs.hqr.R
+import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.SourceDB
@@ -10,6 +13,7 @@ import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.sources.HttpSourceBase
 import com.tiagohs.hqr.sources.SourceManager
+import com.tiagohs.hqr.ui.adapters.comics.ComicItem
 import com.tiagohs.hqr.ui.contracts.HomeContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -19,7 +23,8 @@ class HomePresenter(
         private val sourceManager: SourceManager,
         private val preferenceHelper: PreferenceHelper,
         private val sourceRepository: ISourceRepository,
-        private val homeInterceptor: Contracts.IHomeInterceptor
+        private val homeInterceptor: Contracts.IHomeInterceptor,
+        private val comicRepository: IComicsRepository
 ): BasePresenter<HomeContract.IHomeView>(), HomeContract.IHomePresenter {
 
     override fun onBindView(view: HomeContract.IHomeView) {
@@ -27,15 +32,16 @@ class HomePresenter(
 
         homeInterceptor.onBind()
         homeInterceptor.subscribeComicDetailSubject()
+                        .map { it.toModel() }
                          .observeOn(AndroidSchedulers.mainThread())
-                         .subscribe({ comic: ComicViewModel? ->
-                             Log.d("HOME", "Inicialização: " + comic?.name)
+                         .subscribe({ comic ->
+                             Log.d("HOME", "Inicialização: " + comic?.comic?.name)
 
-                             if (comic?.tags != null) {
-                                 if (comic.tags!!.contains(IComic.POPULARS)) {
+                             if (comic?.comic?.tags != null) {
+                                 if (comic.comic.tags!!.contains(IComic.POPULARS)) {
                                      mView?.onBindPopularItem(comic)
                                  }
-                                 if (comic.tags!!.contains(IComic.RECENTS)) {
+                                 if (comic.comic.tags!!.contains(IComic.RECENTS)) {
                                      mView?.onBindLastestItem(comic)
                                  }
                              }
@@ -70,7 +76,7 @@ class HomePresenter(
 
     override fun onGetPublishers(source: HttpSourceBase) {
 
-        mSubscribers!!.add(source.fetchPublishers()
+        mSubscribers.add(source.fetchPublishers()
                 .map({ publishers -> publishers.subList(1, publishers.size) })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -88,17 +94,19 @@ class HomePresenter(
 
     override fun onGetHomePageData(source: HttpSourceBase) {
 
-        mSubscribers!!.add(homeInterceptor.onGetPopularComics()
+        mSubscribers.add(homeInterceptor.onGetPopularComics()
+                .map { it.map { it.toModel() } }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ popularComics: List<ComicViewModel>? ->
+                .subscribe({ popularComics ->
                     if (popularComics != null) mView!!.onBindPopulars(popularComics)
                 }, { error ->
                     Log.e("HomePresenter", "Error!", error)
                 }))
 
-        mSubscribers!!.add(homeInterceptor.onGetLastestComics()
+        mSubscribers.add(homeInterceptor.onGetLastestComics()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ lastestsComics: List<ComicViewModel>? ->
+                .map { it.map { it.toModel() } }
+                .subscribe({ lastestsComics ->
                     if (lastestsComics != null) mView!!.onBindLastestUpdates(lastestsComics)
                 }, { error ->
                     Log.e("HomePresenter", "Error!", error)
@@ -112,6 +120,29 @@ class HomePresenter(
                 .subscribe({ sourceId: Long? ->
                     onGetHomeData(sourceId!!)
                 })
+    }
+
+    override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
+        val sourceId = preferenceHelper.currentSource().getOrDefault()
+
+        comicRepository.addOrRemoveFromFavorite(comic, sourceId)
+                .subscribeOn(Schedulers.io())
+                .map { it.toModel() }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { comic ->
+                    if (comic?.comic?.tags != null) {
+                        if (comic.comic.tags!!.contains(IComic.POPULARS)) {
+                            mView?.onBindPopularItem(comic)
+                        }
+                        if (comic.comic.tags!!.contains(IComic.RECENTS)) {
+                            mView?.onBindLastestItem(comic)
+                        }
+                    }
+                }
+    }
+
+    private fun ComicViewModel.toModel(): ComicItem {
+        return ComicItem(this, R.layout.item_comic)
     }
 
 }

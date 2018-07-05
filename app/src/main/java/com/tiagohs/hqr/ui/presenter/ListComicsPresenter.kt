@@ -1,11 +1,16 @@
 package com.tiagohs.hqr.ui.presenter
 
 import android.util.Log
+import com.tiagohs.hqr.R
+import com.tiagohs.hqr.database.IComicsRepository
+import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.FETCH_ALL
 import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
 import com.tiagohs.hqr.models.view_models.FETCH_BY_SCANLATORS
+import com.tiagohs.hqr.ui.adapters.comics.ComicItem
 import com.tiagohs.hqr.ui.contracts.ListComicsContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.Observable
@@ -13,17 +18,20 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
 class ListComicsPresenter(
-        private val interceptor: Contracts.IListComicsInterceptor
+        private val interceptor: Contracts.IListComicsInterceptor,
+        private val comicRepository: IComicsRepository,
+        private val preferenceHelper: PreferenceHelper
 ): BasePresenter<ListComicsContract.IListComicsView>(), ListComicsContract.IListComicsPresenter {
 
     override fun onBindView(view: ListComicsContract.IListComicsView) {
         super.onBindView(view)
 
         interceptor.onBind()
-        mSubscribers?.add(interceptor.subscribeComicDetailSubject()
+        mSubscribers.add(interceptor.subscribeComicDetailSubject()
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ comic: ComicViewModel? ->
-                    Log.d("LIST_COMICS", "Inicialização: " + comic?.name)
+                .map { it.toModel() }
+                .subscribe({ comic ->
+                    Log.d("LIST_COMICS", "Inicialização: " + comic?.comic?.name)
 
                     mView?.onBindItem(comic!!)
                 }, { error ->
@@ -33,7 +41,8 @@ class ListComicsPresenter(
 
     override fun onGetComics(listType: String, flag: String) {
 
-        mSubscribers!!.add(onCheckListType(listType, flag)
+        mSubscribers.add(onCheckListType(listType, flag)
+               .map { it.map { it.toModel() } }
               .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { mView!!.onBindComics(it) },
@@ -47,6 +56,16 @@ class ListComicsPresenter(
 
     override fun getOriginalList(): List<ComicViewModel> {
         return interceptor.getOriginalList()
+    }
+
+    override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
+        val sourceId = preferenceHelper.currentSource().getOrDefault()
+
+        comicRepository.addOrRemoveFromFavorite(comic, sourceId)
+                        .subscribeOn(Schedulers.io())
+                        .map { it.toModel() }
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { mView?.onBindItem(it) }
     }
 
     fun onCheckListType(listType: String, flag: String): Observable<List<ComicViewModel>> {
@@ -67,8 +86,9 @@ class ListComicsPresenter(
     override fun onGetMoreComics() {
 
         if (interceptor.hasMoreComics()) {
-            mSubscribers!!.add(interceptor.onGetMore()
+            mSubscribers.add(interceptor.onGetMore()
                     .subscribeOn(Schedulers.io())
+                    .map { it.map { it.toModel() } }
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMoreComics(it) },
@@ -76,6 +96,10 @@ class ListComicsPresenter(
                     ))
         }
 
+    }
+
+    private fun ComicViewModel.toModel(): ComicItem {
+        return ComicItem(this, R.layout.item_comic)
     }
 
 }

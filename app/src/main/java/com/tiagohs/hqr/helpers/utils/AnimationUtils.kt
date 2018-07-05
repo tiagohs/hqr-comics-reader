@@ -3,10 +3,9 @@ package com.tiagohs.hqr.helpers.utils
 import android.animation.Animator
 import android.view.View
 import android.view.ViewAnimationUtils
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.ScaleAnimation
+import android.view.animation.*
+import android.widget.CompoundButton
+import android.widget.ToggleButton
 
 class AnimationUtils {
 
@@ -25,6 +24,23 @@ class AnimationUtils {
             fadeIn.duration = duration.toLong()
 
             return fadeIn
+        }
+
+        fun createScaleButtonAnimation(button: ToggleButton) {
+            val scaleAnimation = ScaleAnimation(0.7f, 1.0f, 0.7f, 1.0f, Animation.RELATIVE_TO_SELF, 0.7f, Animation.RELATIVE_TO_SELF, 0.7f)
+            scaleAnimation.setDuration(500)
+            val bounceInterpolator = BounceInterpolator()
+            scaleAnimation.setInterpolator(bounceInterpolator)
+
+            button.setOnCheckedChangeListener(object:View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+                override fun onCheckedChanged(p0: CompoundButton?, p1: Boolean) {
+                    p0?.startAnimation(scaleAnimation);
+                }
+
+                override fun onClick(p0: View?) {
+
+                }
+            });
         }
 
         fun createShowCircularReveal(view: View) {

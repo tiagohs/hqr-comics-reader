@@ -8,10 +8,13 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SearchView
 import android.view.Menu
+import android.view.View
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
+import com.tiagohs.hqr.ui.adapters.comics.ComicHolder
+import com.tiagohs.hqr.ui.adapters.comics.ComicItem
+import com.tiagohs.hqr.ui.adapters.comics.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.contracts.SearchContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
@@ -61,7 +64,7 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
 
     private fun onConfigureRecyclerView() {
         layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        listComicsAdapter = ComicsListAdapter(ArrayList(), this, this, R.layout.item_comic_simple_it)
+        listComicsAdapter = ComicsListAdapter(this)
 
         comicsListRecyclerView.layoutManager = layoutManager
         comicsListRecyclerView.adapter = listComicsAdapter
@@ -72,30 +75,29 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
         comicsListRecyclerView.layoutManager
     }
 
-    override fun onBindComics(comics: List<ComicViewModel>?) {
-        listComicsAdapter?.comics = comics!!
-        listComicsAdapter?.notifyDataSetChanged()
+    override fun onBindComics(comics: List<ComicItem>?) {
+        listComicsAdapter?.updateDataSet(comics)
     }
 
-    override fun onBindItem(comic: ComicViewModel) {
-        if (listComicsAdapter != null) {
-            val c = listComicsAdapter!!.getComic(comic)
-
-            if (c != null) {
-                c.copyFrom(comic)
-                val index = listComicsAdapter!!.getComicIndex(comic)
-
-                if (index != null) {
-                    listComicsAdapter!!.notifyItemChanged(index)
-                }
-
-            }
-        }
+    override fun onBindItem(comic: ComicItem) {
+        getHolder(comic)?.bind(comic)
     }
 
-    override fun onComicSelect(comic: ComicViewModel) {
-        startActivity(ComicDetailsActivity.newIntent(this, comic.pathLink!!))
+    private fun getHolder(comic: ComicItem): ComicHolder? {
+        return comicsListRecyclerView?.findViewHolderForItemId(comic.comic.id) as? ComicHolder
     }
+
+    override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
+        presenter.addOrRemoveFromFavorite(comic)
+    }
+
+    override fun onItemClick(view: View?, position: Int): Boolean {
+        val comic = listComicsAdapter?.getItem(position) ?: return false
+        startActivity(ComicDetailsActivity.newIntent(this, comic.comic.pathLink!!))
+
+        return true
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         super.onCreateOptionsMenu(menu)

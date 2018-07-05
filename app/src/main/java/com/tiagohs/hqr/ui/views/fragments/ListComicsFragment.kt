@@ -7,7 +7,9 @@ import android.view.*
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.models.view_models.*
-import com.tiagohs.hqr.ui.adapters.ComicsListAdapter
+import com.tiagohs.hqr.ui.adapters.comics.ComicHolder
+import com.tiagohs.hqr.ui.adapters.comics.ComicItem
+import com.tiagohs.hqr.ui.adapters.comics.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.contracts.ListComicsContract
 import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
@@ -95,9 +97,10 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         presenter.onUnbindView()
     }
 
-    override fun onBindComics(comics: List<ComicViewModel>?) {
+    override fun onBindComics(comics: List<ComicItem>?) {
         layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        listComicsAdapter = ComicsListAdapter(comics!!, context, this, R.layout.item_comic_simple_it)
+        listComicsAdapter = ComicsListAdapter( this)
+        listComicsAdapter?.updateDataSet(comics)
 
         comicsList.layoutManager = layoutManager
         comicsList.adapter = listComicsAdapter
@@ -105,25 +108,16 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         comicsList.setNestedScrollingEnabled(false)
     }
 
-    override fun onBindMoreComics(comics: List<ComicViewModel>) {
-        listComicsAdapter?.comics = comics
-        listComicsAdapter?.notifyDataSetChanged()
+    override fun onBindMoreComics(comics: List<ComicItem>) {
+        listComicsAdapter?.updateDataSet(comics)
     }
 
-    override fun onBindItem(comic: ComicViewModel) {
-        if (listComicsAdapter != null) {
-            val c = listComicsAdapter!!.getComic(comic)
+    override fun onBindItem(comic: ComicItem) {
+        getHolder(comic)?.bind(comic)
+    }
 
-            if (c != null) {
-                c.copyFrom(comic)
-                val index = listComicsAdapter!!.getComicIndex(comic)
-
-                if (index != null) {
-                    listComicsAdapter!!.notifyItemChanged(index)
-                }
-
-            }
-        }
+    private fun getHolder(comic: ComicItem): ComicHolder? {
+        return comicsList?.findViewHolderForItemId(comic.comic.id) as? ComicHolder
     }
 
     private fun createOnScrollListener(): RecyclerView.OnScrollListener {
@@ -137,7 +131,16 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         }
     }
 
-    override fun onComicSelect(comic: ComicViewModel) {
-        startActivity(ComicDetailsActivity.newIntent(context, comic.pathLink!!))
+    override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
+
     }
+
+    override fun onItemClick(view: View?, position: Int): Boolean {
+        val comic = listComicsAdapter?.getItem(position) ?: return false
+        startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!))
+
+        return true
+    }
+
+
 }

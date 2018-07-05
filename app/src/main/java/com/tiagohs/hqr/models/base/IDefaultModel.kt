@@ -24,10 +24,6 @@ interface IDefaultModel{
 
     fun copyFrom(other: DefaultModelView) {
 
-        if (other.id != -1L) {
-            this.id = other.id
-        }
-
         if (other.name != null) {
             this.name = other.name
         }

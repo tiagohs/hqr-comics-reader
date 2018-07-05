@@ -13,9 +13,6 @@ object ComicsFactory {
     }
 
     fun copyFromComicViewModel(comic: Comic, comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
-        if (comicViewModel.id != -1L) {
-            comic.id = comicViewModel.id
-        }
 
         comic.inicialized = comicViewModel.inicialized
         comic.favorite = comicViewModel.favorite

@@ -5,7 +5,6 @@ import com.tiagohs.hqr.R
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
-import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.SourceDB
@@ -123,9 +122,8 @@ class HomePresenter(
     }
 
     override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
-        val sourceId = preferenceHelper.currentSource().getOrDefault()
 
-        comicRepository.addOrRemoveFromFavorite(comic, sourceId)
+        comicRepository.addOrRemoveFromFavorite(comic, comic.source?.id!!)
                 .subscribeOn(Schedulers.io())
                 .map { it.toModel() }
                 .observeOn(AndroidSchedulers.mainThread())

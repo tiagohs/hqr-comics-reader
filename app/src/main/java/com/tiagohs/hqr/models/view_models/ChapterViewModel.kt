@@ -53,9 +53,7 @@ class ChapterViewModel() : Parcelable {
         }
 
         if (other.comic != null) {
-            val comic = Comic()
-            comic.copyFrom(other.comic)
-            this.comic = comic
+            this.comic = Comic().create(other.comic)
         }
 
         if (other.chapter.pages != null) {
@@ -79,7 +77,7 @@ class ChapterViewModel() : Parcelable {
         }
 
         if (other.comic != null) {
-            this.comic = other.comic
+            this.comic = Comic().create(other.comic!!)
         }
 
         if (other.pages != null) {
@@ -103,7 +101,7 @@ class ChapterViewModel() : Parcelable {
         }
 
         if (other.comic != null) {
-            this.comic = other.comic
+            this.comic = Comic().create(other.comic!!)
         }
 
     }

@@ -4,6 +4,7 @@ import com.tiagohs.hqr.models.database.CatalogueSource
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.ComicHistory
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicHistoryViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.reactivex.Observable
 
@@ -60,12 +61,16 @@ interface IChapterRepository {
 
 interface IHistoryRepository {
 
-    fun insertComicHistory(comicHistory: ComicHistory): Observable<ComicHistory>
-    fun deleteComicHistory(comicHistory: ComicHistory): Observable<Void>
+    fun insertComicHistoryRealm(comicHistoryViewModel: ComicHistoryViewModel): ComicHistoryViewModel?
+    fun findByComicIdRealm(comicId: Long): ComicHistoryViewModel?
+
+    fun insertComicHistory(comicHistory: ComicHistoryViewModel): Observable<ComicHistory>
+    fun deleteComicHistory(comicHistory: ComicHistoryViewModel): Observable<Void>
 
     fun delteAllComicHistory(): Observable<Void?>
-    fun getAllComicHistory(): Observable<List<ComicHistory>>
+    fun findAll(): Observable<List<ComicHistoryViewModel>>
 
-    fun getComicHistory(id: Long): Observable<ComicHistory>
+    fun findById(id: Long): Observable<ComicHistoryViewModel>
+    fun findByComicId(comicId: Long): Observable<ComicHistoryViewModel>
 }
 

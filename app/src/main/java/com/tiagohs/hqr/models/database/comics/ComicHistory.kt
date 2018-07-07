@@ -32,4 +32,5 @@ open class ComicHistory: RealmObject(), IComicHistory {
 
         return finalList.toList()
     }
+
 }

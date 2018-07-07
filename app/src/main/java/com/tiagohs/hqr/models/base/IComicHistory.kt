@@ -17,7 +17,7 @@ interface IComicHistory{
             this.id = other.id
         }
 
-        if (other.lastTimeRead != null) {
+        if (!other.lastTimeRead.isNullOrEmpty()) {
             this.lastTimeRead = other.lastTimeRead
         }
 

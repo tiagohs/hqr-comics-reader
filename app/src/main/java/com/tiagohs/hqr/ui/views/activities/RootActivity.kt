@@ -7,16 +7,23 @@ import android.support.design.internal.BottomNavigationItemView
 import android.support.design.internal.BottomNavigationMenuView
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
+import android.view.View
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.helpers.utils.PermissionUtils
 import com.tiagohs.hqr.helpers.utils.PermissionsCallback
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import com.tiagohs.hqr.ui.views.fragments.DownloadManagerFragment
 import com.tiagohs.hqr.ui.views.fragments.HomeFragment
 import com.tiagohs.hqr.ui.views.fragments.LibrarieFragment
 import com.tiagohs.hqr.ui.views.fragments.RecentFragment
+import eu.davidea.flexibleadapter.utils.Log
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_root.*
-
+import kotlinx.android.synthetic.main.notification_download_badge.view.*
+import javax.inject.Inject
 
 
 class RootActivity: BaseActivity(), PermissionsCallback {
@@ -31,6 +38,12 @@ class RootActivity: BaseActivity(), PermissionsCallback {
 
     val permissions: PermissionUtils = PermissionUtils(this)
 
+    @Inject
+    lateinit var downloadManager: DownloadManager
+
+    var itemView: BottomNavigationItemView? = null
+    var badge: BottomNavigationItemView? = null
+
     override fun onGetMenuLayoutId(): Int {
         return 0
     }
@@ -42,10 +55,22 @@ class RootActivity: BaseActivity(), PermissionsCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        getApplicationComponent()?.inject(this)
+
         onSetupBottomNavigation()
         supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
         permissions.onCheckAndRequestPermissions(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), this)
+
+        onObserveDownloadQueue()
+    }
+
+    private fun onObserveDownloadQueue() {
+        downloadManager.queue.getUpdatedStatus()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ configreDownloadBadge() },
+                        { error -> Log.e("DownloadManager", "getActiviteDownloads Error", error) })
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -58,19 +83,27 @@ class RootActivity: BaseActivity(), PermissionsCallback {
     private fun onSetupBottomNavigation() {
         rootBottomNavigation!!.setOnNavigationItemSelectedListener({ item -> setItemSelected(item.itemId) })
         rootBottomNavigation!!.setSelectedItemId(R.id.actionHome)
-
-        configreDownloadBadge()
     }
 
     private fun configreDownloadBadge() {
-        val bottomNavigationMenuView = rootBottomNavigation.getChildAt(0) as BottomNavigationMenuView
-        val v = bottomNavigationMenuView.getChildAt(2)
-        val itemView = v as BottomNavigationItemView
 
-        val badge = LayoutInflater.from(this)
-                .inflate(R.layout.notification_download_badge, bottomNavigationMenuView, false)
+        if (!downloadManager.queue.isEmpty()) {
+            if (itemView == null) {
+                val bottomNavigationMenuView = rootBottomNavigation.getChildAt(0) as BottomNavigationMenuView
+                val v = bottomNavigationMenuView.getChildAt(3)
+                itemView = v as BottomNavigationItemView
 
-        itemView.addView(badge)
+                val badge = LayoutInflater.from(this)
+                        .inflate(R.layout.notification_download_badge, bottomNavigationMenuView, false)
+
+                itemView?.addView(badge)
+            }
+
+            itemView?.downloadQueueCount!!.visibility = View.VISIBLE
+            itemView?.downloadQueueCount!!.text = downloadManager.queue.size.toString()
+        } else {
+
+        }
     }
 
 
@@ -83,7 +116,7 @@ class RootActivity: BaseActivity(), PermissionsCallback {
     private fun handleIntentReceiver(intent: Intent): Boolean {
 
         when (intent.action) {
-            SHORTCUT_COMIC -> {}
+            SHORTCUT_COMIC -> { openComic(intent.getParcelableExtra(SHORTCUT_COMIC))}
             SHORTCUT_DOWNLOADS -> setItemSelected(R.id.actionDownload)
             SHORTCUT_RECENTLY_READ -> setItemSelected(R.id.actionRecent)
             else -> return false
@@ -91,6 +124,10 @@ class RootActivity: BaseActivity(), PermissionsCallback {
 
         return true
 
+    }
+
+    private fun openComic(comic: ComicViewModel) {
+        startActivity(ComicDetailsActivity.newIntent(this, comic.pathLink!!))
     }
 
     private fun setItemSelected(itemId: Int): Boolean {

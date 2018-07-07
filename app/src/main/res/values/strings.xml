@@ -39,6 +39,7 @@
     <string name="portuguese">BR - Português Brasil</string>
     <string name="english">EN - Inglês</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="source_detail_name">%1$s - %2$s</string>
 
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
@@ -99,4 +100,5 @@
     <string name="action_start">Iniciar</string>
     <string name="download_status">Downloading (%1$d/%2$d)</string>
     <string name="no_downloads">Não há downloads na fila</string>
+    <string name="no_favorites">Não há HQs favoritas</string>
 </resources>

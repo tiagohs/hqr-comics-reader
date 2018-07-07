@@ -1,12 +1,11 @@
 package com.tiagohs.hqr.dragger.modules
 
 import com.tiagohs.hqr.database.IComicsRepository
+import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
-import com.tiagohs.hqr.interceptors.ComicsDetailsInterceptor
-import com.tiagohs.hqr.interceptors.HomeInterceptor
-import com.tiagohs.hqr.interceptors.ListComicsInterceptor
-import com.tiagohs.hqr.interceptors.SearchInterceptor
+import com.tiagohs.hqr.helpers.utils.LocaleUtils
+import com.tiagohs.hqr.interceptors.*
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.sources.SourceManager
 import dagger.Module
@@ -33,5 +32,10 @@ class InterceptorModule {
     @Provides
     internal fun providerSearchInterceptor(preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository, sourceRepository: ISourceRepository, sourceManager: SourceManager): Contracts.ISearchInterceptor {
         return SearchInterceptor(preferenceHelper, comicsRepository, sourceRepository, sourceManager)
+    }
+
+    @Provides
+    internal fun providerFavoritesInterceptor(preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository, historyRepository: IHistoryRepository, sourceManager: SourceManager, localeUtils: LocaleUtils): Contracts.IFavoritesInterceptor {
+        return FavoritesInterceptor(preferenceHelper, comicsRepository, historyRepository, sourceManager, localeUtils)
     }
 }

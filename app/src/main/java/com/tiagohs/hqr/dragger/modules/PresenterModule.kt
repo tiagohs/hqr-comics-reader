@@ -56,4 +56,9 @@ class PresenterModule {
         return DownloadManagerPresenter(downloadManager)
     }
 
+    @Provides
+    internal fun provideFavoritesPresenter(favoritesInterceptor: Contracts.IFavoritesInterceptor, comicsRepository: IComicsRepository): FavoritesContract.IFavoritesPresenter {
+        return FavoritesPresenter(favoritesInterceptor, comicsRepository)
+    }
+
 }

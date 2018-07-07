@@ -46,15 +46,15 @@ object ComicsFactory {
         }
 
         if (comicViewModel.genres != null) {
-            comic.genres = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.publisher, realm)
+            comic.genres = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.genres, realm)
         }
 
         if (comicViewModel.authors != null) {
-            comic.authors = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.publisher, realm)
+            comic.authors = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.authors, realm)
         }
 
         if (comicViewModel.scanlators != null) {
-            comic.scanlators = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.publisher, realm)
+            comic.scanlators = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.scanlators, realm)
         }
 
         if (comicViewModel.chapters != null) {

@@ -109,7 +109,7 @@ class DownloadManagerPresenter(
     }
 
     override fun clearQueue() {
-        downloadManager.pauseDownloads()
+        downloadManager.clearQueue(false)
     }
 
     override fun removeFromQueue(download: Download) {

@@ -5,6 +5,7 @@ import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.database.SourceDB
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
@@ -45,6 +46,12 @@ open class Comic: RealmObject(), IComic {
     }
 
     fun create(other: Comic): Comic {
+        return Comic().apply {
+            copyFrom(other)
+        }
+    }
+
+    fun create(other: ComicViewModel): Comic {
         return Comic().apply {
             copyFrom(other)
         }

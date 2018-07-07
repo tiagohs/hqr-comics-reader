@@ -1,6 +1,8 @@
 package com.tiagohs.hqr.interceptors.config
 
+import android.content.Context
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListItem
 import io.reactivex.Observable
 
 
@@ -54,6 +56,17 @@ object Contracts {
         fun hasMoreComics(): Boolean
         fun hasPageSuport(): Boolean
         fun getOriginalList(): List<ComicViewModel>
+    }
+
+    interface IFavoritesInterceptor: IBaseInterceptor, IBaseComicsInterceptor {
+
+        fun onSubscribeInitializa(context: Context): Observable<ComicDetailsListItem>
+
+        fun onGetFavorites(context: Context): Observable<List<ComicDetailsListItem>>
+        fun onGetMore(): Observable<List<ComicDetailsListItem>>
+
+        fun hasMoreComics(): Boolean
+        fun getOriginalList(): List<ComicDetailsListItem>
     }
 
 }

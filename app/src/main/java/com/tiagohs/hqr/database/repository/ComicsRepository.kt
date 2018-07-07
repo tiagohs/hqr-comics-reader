@@ -115,14 +115,9 @@ class ComicsRepository(
         return Observable.create<List<ComicViewModel>> { emitter ->
             try {
                 val realm = Realm.getDefaultInstance()
-                val results = findAll(realm, realm.where(Comic::class.java)
-                                            .equalTo("source.id", sourceId) )
 
-                if (results != null) {
-                    emitter.onNext(results)
-                }
-
-                finishTransaction(realm)
+                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
+                        .equalTo("source.id", sourceId) ))
                 emitter.onComplete()
 
             } catch (ex: Exception) {
@@ -173,17 +168,12 @@ class ComicsRepository(
         return Observable.create<List<ComicViewModel>> { emitter ->
             try {
                 val realm = Realm.getDefaultInstance()
-                val results = findAll(realm, realm.where(Comic::class.java)
+
+                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
                         .equalTo("source.id", sourceId) )
+                        .filter { it.tags!!.contains(IComic.POPULARS) })
 
-                if (results != null) {
-                    val resultsPopulars = results.filter { it.tags!!.contains(IComic.POPULARS) }
-                    emitter.onNext(resultsPopulars)
-                }
-
-                finishTransaction(realm)
                 emitter.onComplete()
-
             } catch (ex: Exception) {
                 emitter.onError(ex)
             }
@@ -194,17 +184,12 @@ class ComicsRepository(
         return Observable.create<List<ComicViewModel>> { emitter ->
             try {
                 val realm = Realm.getDefaultInstance()
-                val results = findAll(realm, realm.where(Comic::class.java)
+
+                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
                         .equalTo("source.id", sourceId) )
+                        .filter { it.tags!!.contains(IComic.RECENTS) })
 
-                if (results != null) {
-                    val resultsPopulars = results.filter { it.tags!!.contains(IComic.RECENTS) }
-                    emitter.onNext(resultsPopulars)
-                }
-
-                finishTransaction(realm)
                 emitter.onComplete()
-
             } catch (ex: Exception) {
                 emitter.onError(ex)
             }
@@ -215,14 +200,9 @@ class ComicsRepository(
         return Observable.create<List<ComicViewModel>> { emitter ->
             try {
                 val realm = Realm.getDefaultInstance()
-                val results = findAll(realm, realm.where(Comic::class.java)
-                                .equalTo("favorite", true) )
+                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
+                        .equalTo("favorite", true) ))
 
-                if (results != null) {
-                    emitter.onNext(results)
-                }
-
-                finishTransaction(realm)
                 emitter.onComplete()
 
             } catch (ex: Exception) {
@@ -294,11 +274,11 @@ class ComicsRepository(
         }
     }
 
-    private fun findAll(realm: Realm, realmQuery: RealmQuery<Comic>): List<ComicViewModel>? {
+    private fun findAll(realm: Realm, realmQuery: RealmQuery<Comic>): List<ComicViewModel> {
         try {
             val results = realmQuery.findAll()
 
-            var comics: List<ComicViewModel>? = null
+            var comics: List<ComicViewModel> = emptyList()
             if (results != null) {
                 comics = ComicsFactory.createListOfComicViewModel(results.toList())
             }

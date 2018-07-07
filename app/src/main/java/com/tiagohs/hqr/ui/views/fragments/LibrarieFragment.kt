@@ -4,11 +4,10 @@ import android.os.Bundle
 import android.view.View
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.ui.adapters.pagers.LibrariePagerAdapter
-import com.tiagohs.hqr.ui.contracts.FavoritesContract
 import com.tiagohs.hqr.ui.views.config.BaseFragment
 import kotlinx.android.synthetic.main.fragment_librarie.*
 
-class LibrarieFragment: BaseFragment(), FavoritesContract.IFavoritesView {
+class LibrarieFragment: BaseFragment() {
 
     companion object {
         fun newFragment(): LibrarieFragment = LibrarieFragment()

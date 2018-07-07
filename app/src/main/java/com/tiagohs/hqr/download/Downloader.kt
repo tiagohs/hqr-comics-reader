@@ -5,7 +5,6 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay2.BehaviorRelay
-import com.jakewharton.rxrelay2.PublishRelay
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.extensions.launchNow
 import com.tiagohs.hqr.helpers.extensions.launchUI
@@ -43,8 +42,9 @@ class Downloader(
         val preferenceHelper: PreferenceHelper
         ) {
 
-    private val subscriptions = CompositeDisposable()
-    private val relay = PublishRelay.create<List<Download>>()
+    private var subscriptions = CompositeDisposable()
+
+    private var relay = BehaviorRelay.create<List<Download>>()
     private var isRunning: Boolean = false
 
     val queue: DownloadQueueList = DownloadQueueList(store)
@@ -60,8 +60,7 @@ class Downloader(
     fun start(): Boolean {
         if (isRunning || queue.isEmpty()) return false
 
-        if (subscriptions.size() == 0)
-            initializeSubscriptions()
+        if (subscriptions.size() == 0) initializeSubscriptions()
 
         val pedingDownloads = queue.filter { download -> download.status != Download.DOWNLOADED }
         pedingDownloads.forEach { download: Download ->
@@ -152,13 +151,13 @@ class Downloader(
 
     private fun initializeSubscriptions() {
         if (isRunning) return
+        subscriptions = CompositeDisposable()
         isRunning = true
         runningRelay.accept(true)
 
-        subscriptions.clear()
+        relay = BehaviorRelay.create<List<Download>>()
 
-        subscriptions.add(relay
-                .concatMapIterable { it }
+        subscriptions.add(relay.concatMapIterable { it }
                 .concatMap { downloadChapter(it).subscribeOn(Schedulers.io()) }
                 .toFlowable(BackpressureStrategy.BUFFER)
                 .onBackpressureBuffer()

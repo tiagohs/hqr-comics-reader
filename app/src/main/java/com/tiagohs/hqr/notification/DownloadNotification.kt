@@ -70,6 +70,7 @@ class DownloadNotification(
     fun onDownloadPaused() {
 
         with(notification) {
+            setSmallIcon(R.drawable.ic_stat_launcher)
             setContentTitle(context.getString(R.string.download_paused))
             setContentText(context.getString(R.string.download_paused))
             setAutoCancel(false)

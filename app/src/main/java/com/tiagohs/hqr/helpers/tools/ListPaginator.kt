@@ -5,10 +5,10 @@ import io.reactivex.Observable
 import org.apache.commons.collections4.ListUtils
 
 class ListPaginator<T> {
-    var originalList: List<T> = ArrayList()
+    var originalList: List<T> = emptyList()
 
-    var comicsListsByPage: List<List<T>> = ArrayList()
-    var comicsList: List<T> = ArrayList()
+    var comicsListsByPage: List<List<T>> = emptyList()
+    var comicsList: List<T> = emptyList()
 
     var hasMorePages: Boolean = false
 
@@ -20,11 +20,13 @@ class ListPaginator<T> {
     fun onCreatePagination(originalList: List<T>, size: Int = 20): List<T> {
         this.originalList = originalList
 
-        comicsListsByPage = ListUtils.partition<T>(originalList, size)
-        totalPage = comicsListsByPage.size
-        hasMorePages = currentPage < totalPage - 1
+        if (!this.originalList.isEmpty()) {
+            comicsListsByPage = ListUtils.partition<T>(originalList, size)
+            totalPage = comicsListsByPage.size
+            hasMorePages = currentPage < totalPage - 1
 
-        comicsList = comicsListsByPage.get(currentPage++)
+            comicsList = comicsListsByPage.get(currentPage++)
+        }
 
         return comicsList
     }

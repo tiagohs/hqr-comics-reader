@@ -4,15 +4,17 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.tiagohs.hqr.App
 import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.download.DownloaderService
 import com.tiagohs.hqr.helpers.extensions.notificationManager
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.ReaderModel
+import com.tiagohs.hqr.ui.views.activities.ReaderActivity
+import javax.inject.Inject
 
-class NotificationReceiver(
-    val downloadManager: DownloadManager
-): BroadcastReceiver() {
+class NotificationReceiver: BroadcastReceiver() {
 
     companion object {
         private const val NAME = "HQRNotificationReceiver"
@@ -54,7 +56,11 @@ class NotificationReceiver(
         }
     }
 
+    @Inject
+    lateinit var downloadManager: DownloadManager
+
     override fun onReceive(context: Context, intent: Intent?) {
+        (context.getApplicationContext() as App).getHQRComponent()?.inject(this)
 
         when (intent?.action) {
             ACTION_OPEN_CHAPTER -> openChapter(context, intent.getParcelableExtra(EXTRA_COMIC), intent.getParcelableExtra(EXTRA_CHAPTER))
@@ -69,6 +75,6 @@ class NotificationReceiver(
     }
 
     private fun openChapter(context: Context, comic: ComicViewModel, chapter: ChapterViewModel) {
-
+        context.startActivity(ReaderActivity.newIntent(context, ReaderModel(chapter.chapterPath!!, comic, chapter)))
     }
 }

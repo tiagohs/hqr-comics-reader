@@ -112,7 +112,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/file/ic_folder_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/action/ic_check_circle_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -122,11 +122,11 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="height" value="15" />
-                            <entry key="outputName" value="ic_folder_black_15dp" />
+                            <entry key="height" value="128" />
+                            <entry key="outputName" value="ic_check_circle_black_128dp" />
                             <entry key="overrideSize" value="true" />
                             <entry key="sourceFile" value="E:\Usuário\Desktop\bookmark_added.svg" />
-                            <entry key="width" value="15" />
+                            <entry key="width" value="128" />
                           </map>
                         </option>
                       </PersistentState>

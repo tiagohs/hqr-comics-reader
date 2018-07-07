@@ -1,123 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+
+<android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_view"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
+    android:layout_height="120dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
     android:layout_marginTop="5dp"
-    android:layout_marginBottom="5dp">
+    android:layout_marginBottom="5dp"
+    card_view:cardCornerRadius="4dp">
 
     <RelativeLayout
-        android:id="@+id/posterContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="5dp">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/comicImage"
-            android:layout_width="70dp"
-            android:layout_height="100dp"
-            android:scaleType="centerCrop"
-            android:layout_gravity="center"
-            android:src="@drawable/img_placeholder"/>
-
-        <ToggleButton
-            android:id="@+id/addToFavBtn"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:layout_gravity="center"
-            android:background="@drawable/button_favorite"
-            android:checked="false"
-            android:text=""
-            android:textOff=""
-            android:textOn=""/>
-
-    </RelativeLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_toEndOf="@id/posterContainer"
-        android:layout_marginEnd="5dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="10dp">
-
-        <TextView
-            android:id="@+id/comicTitle"
+        <RelativeLayout
+            android:id="@+id/comicDetailImageContainer"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:lines="1"
-            android:ellipsize="end"
-            android:text="Batman vs Superman Batman vs Superman Batman vs Superman Batman vs Superman"
-            android:textColor="@color/colorPrimaryText"/>
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/comicDetailImage"
+                android:layout_width="90dp"
+                android:layout_height="120dp"
+                android:scaleType="centerCrop"
+                android:layout_gravity="center"
+                android:src="@drawable/img_placeholder"/>
+
+            <TextView
+                android:id="@+id/comicDetailStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="2dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginBottom="3dp"
+                android:textSize="10sp"
+                android:textColor="@color/white"
+                android:layout_alignBottom="@id/comicDetailImage" />
+
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_toEndOf="@id/comicDetailImageContainer"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
             android:layout_marginTop="5dp">
 
             <TextView
-                android:id="@+id/comicSStatus"
+                android:id="@+id/comicDetailTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingEnd="8dp"
-                android:paddingStart="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:textSize="12sp"
-                android:text="Em Andamento"
-                android:textColor="@color/white"
-                />
+                android:textSize="14sp"
+                android:layout_marginEnd="30dp"
+                android:lines="1"
+                android:ellipsize="end"
+                android:textColor="@color/colorPrimaryText"/>
 
             <TextView
-                android:id="@+id/comicPublisher"
+                android:id="@+id/comicDetailPublisher"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingEnd="8dp"
-                android:paddingStart="8dp"
-                android:paddingTop="2dp"
                 android:paddingBottom="2dp"
-                android:layout_marginStart="5dp"
                 android:textSize="12sp"
-                android:text="Marvel Comics"
+                android:textStyle="italic"
+                android:textColor="@color/colorPrimaryText"
+                android:lines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/comicDetailSource"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:paddingBottom="2dp"
+                android:textSize="12sp"
                 android:textColor="@color/colorSecondaryText"
                 android:lines="1"
                 android:ellipsize="end"/>
 
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/comicSource"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/comicDetailHistoryContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:layout_marginStart="5dp"
-            android:textSize="12sp"
-            android:text="SOURCE BR - HQBR"
-            android:textColor="@color/colorSecondaryText"
-            android:lines="1"
-            android:ellipsize="end"/>
+            android:orientation="vertical"
+            android:layout_marginTop="5dp"
+            android:layout_alignParentBottom="true"
+            android:layout_toEndOf="@id/comicDetailImageContainer"
+            android:layout_toStartOf="@+id/resumeDetailBtn">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/comicDetailHistoryChapter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:textSize="12sp"
+                android:textColor="@color/colorPrimaryText"
+                android:lines="1"
+                android:ellipsize="end"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="30dp"
-        android:text="Continuar"
-        android:textColor="@color/white"
-        android:textSize="12dp"
-        android:background="@drawable/button_background_default"
-        android:drawableLeft="@drawable/ic_book"
-        android:drawablePadding="5dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true" />
+            <TextView
+                android:id="@+id/comicDetailHistoryTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:textSize="10sp"
+                android:textStyle="italic"
+                android:textColor="@color/colorSecondaryText"
+                android:lines="1"
+                android:ellipsize="end"/>
+        </LinearLayout>
 
-</RelativeLayout>
+        <ImageButton
+            android:id="@+id/moreBtn"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:background="@drawable/background_riple_accent"
+            app:srcCompat="@drawable/ic_more_vert_black_24dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true" />
+
+        <Button
+            android:id="@+id/resumeDetailBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="Ler"
+            android:textColor="@color/white"
+            android:textSize="12dp"
+            android:background="@drawable/button_background_default"
+            android:drawableLeft="@drawable/ic_book"
+            android:drawablePadding="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="10dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>

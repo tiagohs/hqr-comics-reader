@@ -9,11 +9,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.ui.callbacks.IPublisherCallback
-import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import kotlinx.android.synthetic.main.item_publisher.view.*
-import kotlinx.android.synthetic.main.placeholder_image_rounded.view.*
 
 class PublishersListAdapter(private val publishers: List<Publisher>,
                             private val context: Context?,
@@ -36,7 +35,6 @@ class PublishersListAdapter(private val publishers: List<Publisher>,
 
         lateinit var publisherTitle: TextView
         lateinit var publisherBackground: ImageView
-        lateinit var placeholder: View
 
         lateinit var callback: IPublisherCallback
         lateinit var publisher: Publisher
@@ -51,7 +49,6 @@ class PublishersListAdapter(private val publishers: List<Publisher>,
 
             publisherTitle = itemView.publisherTitle
             publisherBackground = itemView.publisherImgBack
-            placeholder = itemView.placeholderItemPublisher
         }
 
         fun onBindView(publisher: Publisher) {
@@ -69,4 +66,3 @@ class PublishersListAdapter(private val publishers: List<Publisher>,
 
     }
 }
-

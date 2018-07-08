@@ -4,6 +4,7 @@ import android.content.Context
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.view.MotionEvent
+import com.tiagohs.hqr.ui.callbacks.IOnTouch
 
 class ReaderViewPager : ViewPager {
 
@@ -11,8 +12,11 @@ class ReaderViewPager : ViewPager {
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {}
 
+    var listener: IOnTouch? = null
+
     override fun onTouchEvent(ev: MotionEvent): Boolean {
         try {
+            listener?.onTouchPageView(ev)
             return super.onTouchEvent(ev)
         } catch (ex: IllegalArgumentException) {
             ex.printStackTrace()
@@ -30,4 +34,5 @@ class ReaderViewPager : ViewPager {
 
         return false
     }
+
 }

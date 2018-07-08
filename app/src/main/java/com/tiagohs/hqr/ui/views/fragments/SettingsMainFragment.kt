@@ -12,6 +12,7 @@ import android.preference.ListPreference
 import android.preference.Preference
 import android.preference.PreferenceFragment
 import android.support.v4.content.ContextCompat
+import android.text.format.Formatter
 import com.hippo.unifile.UniFile
 import com.tiagohs.hqr.App
 import com.tiagohs.hqr.R
@@ -20,6 +21,7 @@ import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.helpers.extensions.getFilePicker
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
+import com.tiagohs.hqr.helpers.utils.DiskUtils
 import java.io.File
 import javax.inject.Inject
 
@@ -52,7 +54,9 @@ class SettingsMainFragment: PreferenceFragment() {
         getApplicationComponent()?.inject(this)
 
         configureListOfDirectories(findPreference(getString(R.string.key_download_directory)) as ListPreference)
-        configureStorageUsed(findPreference(getString(R.string.key_storage_used)) as Preference)
+        configureStorageUsed(findPreference(getString(R.string.key_download_storage_used)) as Preference)
+        configureCacheStorageUsed(findPreference(getString(R.string.key_download_cache_used)) as Preference)
+
     }
 
     private fun configureListOfDirectories(preference: ListPreference) {
@@ -91,6 +95,27 @@ class SettingsMainFragment: PreferenceFragment() {
 
             true
         }
+    }
+
+
+    private fun configureCacheStorageUsed(preference: Preference) {
+        preference.setSummary(getString(R.string.storage_used, getPicassoCacheDirSize()))
+        preference.setOnPreferenceClickListener { p ->
+            val bol = DiskUtils.getPicassoCacheDir(activity.applicationContext)?.deleteRecursively()
+            preference.setSummary(getString(R.string.storage_used, getPicassoCacheDirSize()))
+
+            true
+        }
+    }
+
+    private fun getPicassoCacheDirSize(): String {
+        val picassoDir = DiskUtils.getPicassoCacheDir(activity.applicationContext)
+        val size = if (picassoDir != null)
+            DiskUtils.getDirectorySize(picassoDir)
+        else
+            0L
+
+        return Formatter.formatFileSize(activity.applicationContext, size)
     }
 
     @SuppressLint("NewApi")

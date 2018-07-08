@@ -10,7 +10,6 @@ import com.tiagohs.hqr.download.DownloaderService
 import com.tiagohs.hqr.helpers.extensions.notificationManager
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.models.view_models.ReaderModel
 import com.tiagohs.hqr.ui.views.activities.ReaderActivity
 import javax.inject.Inject
 
@@ -75,6 +74,6 @@ class NotificationReceiver: BroadcastReceiver() {
     }
 
     private fun openChapter(context: Context, comic: ComicViewModel, chapter: ChapterViewModel) {
-        context.startActivity(ReaderActivity.newIntent(context, ReaderModel(chapter.chapterPath!!, comic, chapter)))
+        context.startActivity(ReaderActivity.newIntent(context, chapter.chapterPath!!, comic.pathLink!!))
     }
 }

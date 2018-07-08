@@ -8,10 +8,11 @@
     android:fitsSystemWindows="true" >
 
     <android.support.design.widget.AppBarLayout
-        android:id="@+id/main.appbar"
+        android:id="@+id/comicDetailsAppBar"
         android:layout_width="match_parent"
         android:layout_height="280dp"
         android:theme="@style/AppTheme.AppBarOverlay"
+        android:visibility="gone"
         android:fitsSystemWindows="true">
 
         <android.support.design.widget.CollapsingToolbarLayout
@@ -20,6 +21,8 @@
             android:layout_height="match_parent"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             android:fitsSystemWindows="true"
+            app:contentScrim="@color/colorPrimary"
+            app:titleEnabled="false"
             app:expandedTitleMarginStart="48dp"
             app:expandedTitleMarginEnd="64dp">
 
@@ -53,6 +56,7 @@
                         android:background="@color/colorPrimary"/>
 
                     <Button
+                        android:id="@+id/readBtn"
                         android:layout_width="wrap_content"
                         android:layout_height="30dp"
                         android:text="Ler HQ"
@@ -69,6 +73,7 @@
                         android:layout_alignParentEnd="true" />
 
                     <LinearLayout
+                        android:id="@+id/headerContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -114,7 +119,6 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="#80000000"
                 app:layout_collapseMode="pin" />
 
         </android.support.design.widget.CollapsingToolbarLayout>
@@ -122,16 +126,17 @@
     </android.support.design.widget.AppBarLayout>
 
     <android.support.v4.widget.NestedScrollView
-        android:id="@+id/comicDetailsScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
+            android:id="@+id/comicDetailsTabContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <android.support.design.widget.TabLayout
                 android:id="@+id/tabLayout"
@@ -148,8 +153,15 @@
 
     </android.support.v4.widget.NestedScrollView>
 
+    <ProgressBar
+        android:id="@+id/comicDetailsProgress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="50dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center" />
+
     <com.github.clans.fab.FloatingActionMenu
-        android:id="@+id/fab"
+        android:id="@+id/comicDetailsfab"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_gravity="bottom|end"
@@ -164,7 +176,7 @@
             android:id="@+id/btn_google_play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_favorite_white"
+            app:srcCompat="@drawable/ic_favorite_white"
             app:fab_size="normal"
             app:fab_label="Favoritos"
             app:fab_colorNormal="@color/colorAccent"
@@ -172,7 +184,6 @@
             app:fab_colorRipple="@color/floating_riple"/>
 
     </com.github.clans.fab.FloatingActionMenu>
-
 
 </android.support.design.widget.CoordinatorLayout>
 

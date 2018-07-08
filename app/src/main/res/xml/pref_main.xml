@@ -34,8 +34,12 @@
             android:title="@string/title_download_only_wifi" />
 
         <Preference
-            android:key="@string/key_storage_used"
-            android:title="@string/title_storage_used" />
+            android:key="@string/key_download_storage_used"
+            android:title="@string/title_download_storage_used" />
+
+        <Preference
+            android:key="@string/key_download_cache_used"
+            android:title="@string/title_download_cache_used" />
 
     </PreferenceCategory>
 

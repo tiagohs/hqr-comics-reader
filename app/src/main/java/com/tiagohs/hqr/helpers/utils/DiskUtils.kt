@@ -70,6 +70,10 @@ object DiskUtils {
         return getDirectorySize(File(f.filePath))
     }
 
+    fun getPicassoCacheDir(context: Context): File? {
+        return File(context.getApplicationContext().getCacheDir(), "picasso-cache")
+    }
+
     fun getExternalStorages(context: Context): Collection<File> {
         val directories = mutableSetOf<File>()
         directories += ContextCompat.getExternalFilesDirs(context, null)

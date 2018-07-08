@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:orientation="vertical"
-    app:shimmer_duration="800">
+    app:duration="800">
 
     <View
         android:layout_width="120dp"

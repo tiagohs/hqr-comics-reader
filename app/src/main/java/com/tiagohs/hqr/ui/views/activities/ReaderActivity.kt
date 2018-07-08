@@ -4,15 +4,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
+import android.support.v4.view.ViewPager
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import com.github.chrisbanes.photoview.OnViewTapListener
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.view_models.ChapterViewModel
-import com.tiagohs.hqr.models.view_models.ReaderModel
+import com.tiagohs.hqr.models.sources.Page
+import com.tiagohs.hqr.models.view_models.ReaderChapterViewModel
 import com.tiagohs.hqr.ui.adapters.ReaderPagerAdapter
+import com.tiagohs.hqr.ui.callbacks.IOnTouch
 import com.tiagohs.hqr.ui.callbacks.ISimpleAnimationListener
 import com.tiagohs.hqr.ui.contracts.ReaderContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
@@ -22,19 +26,21 @@ import me.zhanghai.android.systemuihelper.SystemUiHelper.*
 import javax.inject.Inject
 
 
-class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
+class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
 
     companion object {
 
-        const val CHAPTER_MODEL = "CHAPTER_MODEL"
+        const val COMIC_PATH = "CHAPTER_MODEL"
+        const val CHAPTER_PATH = "CHAPTER_PATH"
 
         const val LEFT_REGION = 0.33f
         const val RIGHT_REGION = 0.66f
 
-        fun newIntent(context: Context?, chapterModel: ReaderModel): Intent {
+        fun newIntent(context: Context?, chapterPath: String, comicPath: String): Intent {
             val intent: Intent = Intent(context, ReaderActivity::class.java)
 
-            intent.putExtra(CHAPTER_MODEL, chapterModel)
+            intent.putExtra(COMIC_PATH, comicPath)
+            intent.putExtra(CHAPTER_PATH, chapterPath)
 
             return intent
         }
@@ -43,11 +49,12 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
 
     @Inject lateinit var presenter: ReaderContract.IReaderPresenter
 
-    lateinit var chapter: ChapterViewModel
-    lateinit var readerModel: ReaderModel
-
     private var menuVisible = false
     private var systemUi: SystemUiHelper? = null
+
+    private var readerChapterViewModel: ReaderChapterViewModel? = null
+
+    private var adapter: ReaderPagerAdapter? = null
 
     override fun onGetLayoutViewId(): Int {
         return R.layout.activity_reader
@@ -65,14 +72,19 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
         setMenuVisibility(menuVisible)
         setFullscreen(true)
 
-        readerModel = intent.getParcelableExtra(CHAPTER_MODEL)
-
-        setScreenTitle(readerModel.comic.name)
-        setScreenSubtitle(readerModel.chapter.chapterName)
+        val comicPath = intent.getStringExtra(COMIC_PATH)
+        val chapterPath = intent.getStringExtra(CHAPTER_PATH)
 
         presenter.onBindView(this)
+        presenter.onCreate()
 
-        presenter.onGetChapterDetails(readerModel.pathComic, readerModel.chapter.chapterName)
+        presenter.onGetChapterDetails(comicPath, chapterPath)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        presenter.onUnbindView()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -82,16 +94,54 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
         }
     }
 
-    override fun onBindChapter(ch: ChapterViewModel?) {
+    override fun onBindChapter(model: ReaderChapterViewModel, updateDataSet: Boolean) {
+        this.readerChapterViewModel = model
 
-        if (ch != null) {
-            chapter = ch
-            readerViewPager.adapter = ReaderPagerAdapter(chapter.pages!!, this, onPageTapListener())
-            readerViewPager.setCurrentItem(0)
+        setScreenTitle(model.comic.name)
+        setScreenSubtitle(model.chapter.chapterName)
 
-            configurePagesOnSpinner()
-            configureNavigationButton()
+        adapter = ReaderPagerAdapter(model,  this, onPageTapListener())
+        readerViewPager.adapter = adapter
+
+        readerViewPager.setCurrentItem(0)
+        readerViewPager.addOnPageChangeListener(onConfigureViewPageListener())
+
+        readerViewPager.listener = this
+
+        configurePagesOnSpinner()
+        configureNavigationButton()
+    }
+
+    override fun onTouchPageView(ev: MotionEvent) {
+
+        if (ev.getAction() == MotionEvent.ACTION_MOVE &&
+            ev.x < readerViewPager.width * LEFT_REGION &&
+            readerViewPager.currentItem == readerViewPager.adapter!!.count - 1) {
+
+            onRequestNextChapter()
         }
+
+    }
+
+
+    private fun onConfigureViewPageListener(): ViewPager.OnPageChangeListener {
+        return object : ViewPager.OnPageChangeListener {
+
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+            override fun onPageScrollStateChanged(state: Int) {}
+
+            override fun onPageSelected(position: Int) {
+                pagesSpinner.selectedIndex = position
+            }
+        }
+    }
+
+    override fun onPageDownloaded(page: Page) {
+        adapter?.updatePage(page)
+    }
+
+    fun onRequestNextChapter() {
+        presenter.onRequestNextChapter()
     }
 
     private fun onPageTapListener(): OnViewTapListener {
@@ -112,10 +162,11 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
     }
 
     private fun configurePagesOnSpinner() {
-        pagesSpinner.setItems(chapter.pages!!.mapIndexed { index, s -> index + 1 })
+        pagesSpinner.setItems(readerChapterViewModel?.pages!!.mapIndexed { index, s -> index + 1 })
         pagesSpinner.setOnItemSelectedListener({
             view, position, id, page -> readerViewPager.setCurrentItem(position)
         })
+        pagesSpinner.selectedIndex = 0
     }
 
     private fun configureNavigationButton() {
@@ -159,6 +210,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
                     override fun onAnimationStart(animation: Animation) {
                         if (Build.VERSION.SDK_INT >= 21) {
                             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                            window.setStatusBarColor(ContextCompat.getColor(this@ReaderActivity , android.R.color.black));
                         }
                     }
                 })
@@ -191,6 +243,8 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView {
     protected fun moveToNext() {
         if (readerViewPager.currentItem != readerViewPager.adapter!!.count - 1) {
             readerViewPager.setCurrentItem(readerViewPager.currentItem + 1)
+        } else {
+            onRequestNextChapter()
         }
     }
 

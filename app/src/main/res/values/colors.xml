@@ -23,4 +23,6 @@
     <color name="floating_riple">#ff8282</color>
 
     <color name="placeholder_bg">#dddddd</color>
+
+    <color name="toolbarTransparent">#809E9E9E</color>
 </resources>

@@ -3,9 +3,11 @@ package com.tiagohs.hqr.helpers.utils
 import android.app.Activity
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.view.View
 import android.widget.ImageView
 import com.squareup.picasso.Callback
+import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.RequestCreator
 import com.tiagohs.hqr.helpers.tools.BitmapCreator
@@ -15,13 +17,30 @@ class ImageUtils {
 
     companion object {
 
-        fun load(imageView: ImageView, url: String?, callback: Callback) {
+        fun load(imageView: ImageView, uri: Uri?, callback: Callback, skipCache: Boolean = false) {
+
+            val loader = Picasso.get()
+            var request: RequestCreator? = null
+
+            if (uri != null)
+                request = loader.load(uri)
+
+            if (skipCache)
+                request?.memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+
+            request?.into(imageView, callback)
+        }
+
+        fun load(imageView: ImageView, url: String?, callback: Callback, skipCache: Boolean = false) {
 
             val loader = Picasso.get()
             var request: RequestCreator? = null
 
             if (url != null)
                 request = loader.load(url)
+
+            if (skipCache)
+                request?.memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
 
             request!!.into(imageView, callback)
         }
@@ -52,7 +71,6 @@ class ImageUtils {
                 }
 
                 override fun onError(e: Exception?) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
                 }
             })
         }

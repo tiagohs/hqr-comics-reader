@@ -11,7 +11,6 @@ import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.models.view_models.ReaderModel
 import com.tiagohs.hqr.ui.adapters.chapters.ChapterHolder
 import com.tiagohs.hqr.ui.adapters.chapters.ChapterItem
 import com.tiagohs.hqr.ui.adapters.chapters.ChaptersListAdapter
@@ -53,8 +52,8 @@ class ComicChaptersFragment:
     private val selectedItems = mutableSetOf<ChapterItem>()
 
     private var adapter: ChaptersListAdapter? = null
-
     private var deletingDialog: MaterialDialog? = null
+    private var pageLoaded = false
 
     override fun getViewID(): Int {
         return R.layout.fragment_comic_chapters
@@ -89,7 +88,17 @@ class ComicChaptersFragment:
         super.onViewCreated(view, savedInstanceState)
 
         getApplicationComponent()!!.inject(this)
+    }
 
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && !pageLoaded) {
+            onViewFocus()
+            pageLoaded = true
+        }
+    }
+
+    private fun onViewFocus() {
         presenter.onBindView(this)
         presenter.onCreate(comicViewModel)
 
@@ -125,6 +134,9 @@ class ComicChaptersFragment:
 
             actionMode?.invalidate()
         }
+
+        chaptersProgress.visibility = View.GONE
+        chaptersList.visibility = View.VISIBLE
     }
 
     override fun onChapterStatusChange(chapterItem: ChapterItem, status: String) {
@@ -147,7 +159,7 @@ class ComicChaptersFragment:
             toggleComic(position)
             return true
         } else {
-            startActivity(ReaderActivity.newIntent(context, ReaderModel(item.chapter.chapterPath!!, comicViewModel, item.chapter)))
+            startActivity(ReaderActivity.newIntent(context, item.chapter.chapterPath!!, comicViewModel.pathLink!!))
             return false
         }
     }

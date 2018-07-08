@@ -2,11 +2,16 @@ package com.tiagohs.hqr
 
 import android.app.Application
 import android.content.Context
+import android.support.multidex.MultiDex
+import com.facebook.stetho.Stetho
+import com.squareup.picasso.OkHttp3Downloader
+import com.squareup.picasso.Picasso
 import com.tiagohs.hqr.database.HQRInitialData
 import com.tiagohs.hqr.dragger.components.DaggerHQRComponent
 import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.dragger.modules.AppModule
 import com.tiagohs.hqr.models.database.CatalogueSource
+import com.uphyca.stetho_realm.RealmInspectorModulesProvider
 import io.realm.Realm
 import io.realm.RealmConfiguration
 
@@ -21,8 +26,11 @@ class App : Application() {
 
         onConfigureDagger()
         onConfigureRealm()
+        onConfigurePicasso()
 
         instance = this
+
+        MultiDex.install(this);
     }
 
     private fun onConfigureDagger() {
@@ -51,6 +59,23 @@ class App : Application() {
                     })
                 build()
         })
+
+        Stetho.initialize(
+                Stetho.newInitializerBuilder(this)
+                        .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
+                        .enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
+                        .build());
+    }
+
+    private fun onConfigurePicasso() {
+        val build = Picasso.Builder(this)
+                                        .downloader(OkHttp3Downloader(applicationContext, Integer.MAX_VALUE.toLong()))
+                                        .build()
+
+        build.setIndicatorsEnabled(true)
+        build.isLoggingEnabled = true
+
+        Picasso.setSingletonInstance(build)
     }
 
     fun getHQRComponent(): HQRComponent? {

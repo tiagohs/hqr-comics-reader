@@ -26,14 +26,15 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
     <style name="AppTheme.TabLayout">
-        <item name="tabTextColor">@color/colorTabText</item>
+        <item name="tabTextColor">@color/white</item>
         <item name="tabMaxWidth">0dp</item>
         <item name="tabGravity">fill</item>
         <item name="tabMode">fixed</item>
-        <item name="tabSelectedTextColor">@color/colorTabText</item>
+        <item name="tabSelectedTextColor">@color/white</item>
         <item name="android:background">@color/colorPrimary</item>
         <item name="tabIndicatorColor">@color/colorAccent</item>
         <item name="android:layout_width">match_parent</item>
+        <item name="android:textColor">@color/white</item>
         <item name="android:layout_height">?attr/actionBarSize</item>
         <item name="android:fontFamily">sans-serif-condensed</item>
     </style>

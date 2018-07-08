@@ -2,7 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="90dp"
+    android:layout_width="70dp"
     android:layout_height="wrap_content"
     android:layout_margin="10dp"
     android:orientation="vertical"
@@ -14,23 +14,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <include
-            layout="@layout/placeholder_image_rounded" />
-
         <ImageView
             android:id="@+id/publisherImgBack"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:scaleType="fitXY"
             tools:ignore="ContentDescription"/>
     </RelativeLayout>
 
-
     <TextView
         android:id="@+id/publisherTitle"
-        android:layout_width="80dp"
+        android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
         android:textSize="12dp"
         android:textColor="@color/colorPrimaryText"
         android:padding="5dp"

@@ -27,13 +27,13 @@
             <ImageView
                 android:layout_width="25dp"
                 android:layout_height="25dp"
-                android:src="@drawable/ic_date_accent" />
+                app:srcCompat="@drawable/ic_date_accent" />
 
             <TextView
                 android:id="@+id/datePublish"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp" />
+                android:layout_marginStart="5dp" />
 
         </LinearLayout>
 

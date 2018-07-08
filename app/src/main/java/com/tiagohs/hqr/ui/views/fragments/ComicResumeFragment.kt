@@ -47,14 +47,14 @@ class ComicResumeFragment: BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (comic.publicationDate != null) datePublish.text = comic.publicationDate
+        if (!comic.publicationDate.isNullOrEmpty()) datePublish.text = comic.publicationDate
         else datePublishContainer.visibility = View.GONE
 
         onBindList(comic.authors, authorsList, onAuthorSelect())
         onBindList(comic.genres, genresList, onGenreSelect())
         onBindList(comic.scanlators, scanlatorsList, onScanlatorSelect())
 
-        if (comic.summary != null && comic.summary!!.isNotEmpty()) summary.text = comic.summary
+        if (!comic.summary.isNullOrEmpty() && comic.summary!!.isNotEmpty()) summary.text = comic.summary
         else summary.text = "Sinopse Indisponível"
     }
 

@@ -178,7 +178,7 @@ class HQBRSource(
                 })
     }
 
-    override fun parseReaderResponse(response: Response, chapterName: String?, chapterPath: String?): ChapterViewModel {
+    override fun parseReaderResponse(response: Response, chapterPath: String?): ChapterViewModel {
         val pages = pageListParse(response, chapterPath)
 
         return ChapterViewModel().apply {

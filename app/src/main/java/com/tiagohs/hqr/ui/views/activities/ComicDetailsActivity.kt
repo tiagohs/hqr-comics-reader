@@ -4,8 +4,12 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.support.design.widget.AppBarLayout
 import android.support.v7.widget.LinearLayoutManager
+import android.view.View
+import android.view.animation.AnimationUtils
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.tools.AppBarMovieListener
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.helpers.utils.PermissionUtils
 import com.tiagohs.hqr.helpers.utils.PermissionsCallback
@@ -21,6 +25,8 @@ import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import kotlinx.android.synthetic.main.activity_comic_details.*
 import javax.inject.Inject
+
+
 
 private const val COMIC_LINK = "comic_link"
 
@@ -42,6 +48,8 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     val permissions: PermissionUtils = PermissionUtils(this)
 
+    var comic: ComicViewModel? = null
+
     override fun onGetMenuLayoutId(): Int = 0
 
     override fun onGetLayoutViewId(): Int {
@@ -62,6 +70,27 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         if (comicLink.isNotEmpty()) {
             presenter.onGetComicData(comicLink)
         }
+
+        comicDetailsfab.hideMenu(false)
+    }
+
+    private fun onOffsetChangedListener(): AppBarMovieListener {
+        return object : AppBarMovieListener() {
+            override fun onExpanded(appBarLayout: AppBarLayout) {
+                setScreenTitle("")
+                readBtn.visibility = View.VISIBLE
+            }
+
+            override fun onCollapsed(appBarLayout: AppBarLayout) {
+                setScreenTitle(comic?.name ?: "")
+                readBtn.visibility = View.GONE
+            }
+
+            override fun onIdle(appBarLayout: AppBarLayout) {
+                setScreenTitle("")
+                readBtn.visibility = View.VISIBLE
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -77,8 +106,11 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     }
 
     override fun onBindComic(comic: ComicViewModel) {
-        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic)
-        tabLayout.setupWithViewPager(comicsDetailsViewpager)
+        this.comic = comic
+
+        onConfigureTabs()
+        onConfigureAppBar()
+
 
         if (!comic.posterPath.isNullOrEmpty()) {
             ImageUtils.load(comicImage,
@@ -99,6 +131,23 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
         publishersList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         publishersList.adapter = SimpleItemAdapter(comic.publisher, this, onPublisherSelect())
+
+        comicDetailsAppBar.visibility = View.VISIBLE
+        comicDetailsTabContainer.visibility = View.VISIBLE
+        comicDetailsProgress.visibility = View.GONE
+
+        comicDetailsfab.showMenu(true)
+        readBtn.startAnimation(AnimationUtils.loadAnimation(this, com.github.clans.fab.R.anim.fab_scale_up))
+    }
+
+    private fun onConfigureAppBar() {
+        comicDetailsAppBar.addOnOffsetChangedListener(onOffsetChangedListener())
+    }
+
+    private fun onConfigureTabs() {
+        tabLayout.visibility = View.VISIBLE
+        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic!!)
+        tabLayout.setupWithViewPager(comicsDetailsViewpager)
     }
 
     fun onPublisherSelect(): ISimpleItemCallback {

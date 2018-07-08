@@ -41,10 +41,7 @@ class DownloadCache(
     fun isChapterDownloaded(comic: ComicViewModel, chapter: ChapterViewModel, skipCache: Boolean): Boolean {
 
         if (skipCache) {
-            val sourceId = preferenceHelper.currentSource().getOrDefault()
-            val source = sourceRepository.getSourceByIdRealm(sourceId)
-
-            return provider.findChapterDirectory(chapter, comic, source!!) != null
+            return provider.findChapterDirectory(chapter, comic, comic.source!!) != null
         }
 
         checkRenew()

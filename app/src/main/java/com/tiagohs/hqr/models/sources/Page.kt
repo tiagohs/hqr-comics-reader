@@ -31,7 +31,6 @@ class Page(
         const val ERROR = "ERROR"
     }
 
-
     val number: Int
         get() = index + 1
 

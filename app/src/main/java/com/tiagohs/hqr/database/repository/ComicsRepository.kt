@@ -10,6 +10,7 @@ import com.tiagohs.hqr.models.database.comics.Chapter
 import com.tiagohs.hqr.models.database.comics.Comic
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.reactivex.Observable
+import io.realm.Case
 import io.realm.Realm
 import io.realm.RealmQuery
 
@@ -55,9 +56,7 @@ class ComicsRepository(
 
         try {
             val source: SourceDB? = sourceRepository.getSourceByIdRealm(sourceId)
-            val comicsDb = createListOfComicModelFormRealm(comics, source!!, realm)
-
-            realm.executeTransaction { r -> r.insertOrUpdate(comicsDb) }
+            realm.executeTransaction { r -> r.insertOrUpdate(createListOfComicModelFormRealm(comics, source!!, r)) }
 
             finishTransaction(realm)
         } catch (ex: Exception) {
@@ -95,6 +94,23 @@ class ComicsRepository(
                 .map { source -> insertRealm(comics, sourceId) }
     }
 
+    override fun searchComic(query: String, sourceId: Long): Observable<List<ComicViewModel>> {
+        return Observable.create<List<ComicViewModel>> { emitter ->
+            try {
+                val realm = Realm.getDefaultInstance()
+
+                emitter.onNext(findAllComics(realm, realm.where(Comic::class.java)
+                        .equalTo("source.id", sourceId)
+                        .contains("name", query, Case.INSENSITIVE)
+                        ) )
+
+                emitter.onComplete()
+            } catch (ex: Exception) {
+                emitter.onError(ex)
+            }
+        }
+    }
+
     override fun addOrRemoveFromFavorite(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel> {
         return sourceRepository.getSourceById(sourceId)
                 .map { source ->
@@ -116,7 +132,7 @@ class ComicsRepository(
             try {
                 val realm = Realm.getDefaultInstance()
 
-                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
+                emitter.onNext(findAllComics(realm, realm.where(Comic::class.java)
                         .equalTo("source.id", sourceId) ))
                 emitter.onComplete()
 
@@ -165,29 +181,21 @@ class ComicsRepository(
     }
 
     override fun getPopularComics(sourceId: Long): Observable<List<ComicViewModel>> {
-        return Observable.create<List<ComicViewModel>> { emitter ->
-            try {
-                val realm = Realm.getDefaultInstance()
-
-                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
-                        .equalTo("source.id", sourceId) )
-                        .filter { it.tags!!.contains(IComic.POPULARS) })
-
-                emitter.onComplete()
-            } catch (ex: Exception) {
-                emitter.onError(ex)
-            }
-        }
+        return getAllByTag(sourceId, IComic.POPULARS)
     }
 
     override fun getRecentsComics(sourceId: Long): Observable<List<ComicViewModel>> {
+        return getAllByTag(sourceId, IComic.RECENTS)
+    }
+
+    private fun getAllByTag(sourceId: Long, tag: String): Observable<List<ComicViewModel>> {
         return Observable.create<List<ComicViewModel>> { emitter ->
             try {
                 val realm = Realm.getDefaultInstance()
 
-                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
+                emitter.onNext(findAllComics(realm, realm.where(Comic::class.java)
                         .equalTo("source.id", sourceId) )
-                        .filter { it.tags!!.contains(IComic.RECENTS) })
+                        .filter { it.tags!!.contains(tag) })
 
                 emitter.onComplete()
             } catch (ex: Exception) {
@@ -200,7 +208,7 @@ class ComicsRepository(
         return Observable.create<List<ComicViewModel>> { emitter ->
             try {
                 val realm = Realm.getDefaultInstance()
-                emitter.onNext(findAll(realm, realm.where(Comic::class.java)
+                emitter.onNext(findAllComics(realm, realm.where(Comic::class.java)
                         .equalTo("favorite", true) ))
 
                 emitter.onComplete()
@@ -274,7 +282,7 @@ class ComicsRepository(
         }
     }
 
-    private fun findAll(realm: Realm, realmQuery: RealmQuery<Comic>): List<ComicViewModel> {
+    private fun findAllComics(realm: Realm, realmQuery: RealmQuery<Comic>): List<ComicViewModel> {
         try {
             val results = realmQuery.findAll()
 

@@ -14,8 +14,16 @@ class ComicsListAdapter(
         super.updateDataSet(items)
     }
 
-    fun indexOf(item: ComicItem): Int {
-        return items.indexOf(item)
+    override fun clear() {
+        this.items = emptyList()
+
+        super.clear()
+    }
+
+    fun onAddMoreItems(items: List<ComicItem>?) {
+        updateDataSet(items)
+
+        notifyDataSetChanged()
     }
 
     override fun isEmpty(): Boolean {

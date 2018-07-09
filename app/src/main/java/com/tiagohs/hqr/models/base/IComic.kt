@@ -6,8 +6,11 @@ import com.tiagohs.hqr.models.database.comics.Chapter
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import io.realm.RealmList
 
-interface IComic: IDefaultModel {
+interface IComic {
 
+    var id: Long
+    var name: String?
+    var pathLink: String?
     var posterPath: String?
     var summary: String?
     var publicationDate: String?
@@ -28,7 +31,18 @@ interface IComic: IDefaultModel {
     var source: SourceDB?
 
     fun copyFrom(other: IComic) {
-        super.copyFrom(other)
+
+        if (other.id != -1L) {
+            this.id = other.id
+        }
+
+        if (other.name != null) {
+            this.name = other.name
+        }
+
+        if (other.pathLink != null) {
+            this.pathLink = other.pathLink
+        }
 
         if (other.source != null) {
             this.source = other.source
@@ -85,6 +99,18 @@ interface IComic: IDefaultModel {
     }
 
     fun copyFrom(other: ComicViewModel) {
+
+        if (other.id != -1L) {
+            this.id = other.id
+        }
+
+        if (other.name != null) {
+            this.name = other.name
+        }
+
+        if (other.pathLink != null) {
+            this.pathLink = other.pathLink
+        }
 
         if (other.name != null) {
             this.name = other.name

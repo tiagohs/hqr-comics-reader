@@ -46,6 +46,7 @@ class App : Application() {
                 with(RealmConfiguration.Builder()) {
                     name("hqr_db.realm")
                     schemaVersion(1)
+
                     deleteRealmIfMigrationNeeded()
                     initialData( { realm ->
                         HQRInitialData.initialData(realm).forEach { catalogueSource: CatalogueSource ->
@@ -63,7 +64,10 @@ class App : Application() {
         Stetho.initialize(
                 Stetho.newInitializerBuilder(this)
                         .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-                        .enableWebKitInspector(RealmInspectorModulesProvider.builder(this).build())
+                        .enableWebKitInspector(
+                                RealmInspectorModulesProvider
+                                        .builder(this)
+                                        .build())
                         .build());
     }
 

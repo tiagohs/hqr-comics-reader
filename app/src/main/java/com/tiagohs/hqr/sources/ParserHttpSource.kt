@@ -2,8 +2,8 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
-import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element
@@ -18,17 +18,22 @@ abstract class ParserHttpSource(
     abstract val allComicsListSelector: String
     abstract val searchComicsSelector: String
 
-    override fun parsePublishersResponse(response: Response): List<Publisher> {
+    override fun parsePublishersResponse(response: Response): List<DefaultModelView> {
         val document = response.asJsoup()
 
-        val publishers: List<Publisher> = document.select(publisherListSelector).map { element ->
-            parsePublisherByElement(element)
+        val publishers: ArrayList<DefaultModelView> = ArrayList()
+
+        document.select(publisherListSelector).map { element ->
+            val publisher = parsePublisherByElement(element)
+
+            if (publisher != null)
+                publishers.add(publisher)
         }
 
         return publishers
     }
 
-    abstract fun parsePublisherByElement(element: Element): Publisher
+    abstract fun parsePublisherByElement(element: Element): DefaultModelView?
 
     override fun parseLastestComicsResponse(response: Response): List<ComicViewModel> {
         val document = response.asJsoup()

@@ -3,20 +3,22 @@ package com.tiagohs.hqr.ui.views.fragments
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.widget.StaggeredGridLayoutManager
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.*
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
 import com.tiagohs.hqr.models.base.ISource
-import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.FETCH_ALL
 import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
 import com.tiagohs.hqr.models.view_models.ListComicsModel
-import com.tiagohs.hqr.ui.adapters.PublishersListAdapter
 import com.tiagohs.hqr.ui.adapters.comics.ComicHolder
 import com.tiagohs.hqr.ui.adapters.comics.ComicItem
 import com.tiagohs.hqr.ui.adapters.comics.ComicsListAdapter
+import com.tiagohs.hqr.ui.adapters.publishers.PublisherItem
+import com.tiagohs.hqr.ui.adapters.publishers.PublishersAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import com.tiagohs.hqr.ui.callbacks.IPublisherCallback
 import com.tiagohs.hqr.ui.contracts.HomeContract
@@ -42,6 +44,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
 
     private var lastestUpdatesAdapter: ComicsListAdapter? = null
     private var popularComicsAdapter: ComicsListAdapter? = null
+    private var publisherAdapter: PublishersAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,21 +111,48 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         goToSiteButton.setOnClickListener { goToSourcePage(source.baseUrl) }
     }
 
-    override fun onBindPublishers(publishers: List<Publisher>) {
-        publishersList.adapter = PublishersListAdapter(publishers, context, onPublisherCallback())
-        publishersList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+    override fun onBindPublishers(publishers: List<PublisherItem>) {
+        publisherAdapter = PublishersAdapter(onPublisherCallback())
+        publisherAdapter?.updateDataSet(publishers)
+
+        val publishersLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        publishersList.adapter = publisherAdapter
+        publishersList.layoutManager = publishersLayoutManager
+
+        publishersList.addOnScrollListener(createPublishersScrollListener(publishersLayoutManager))
+        publishersList.setNestedScrollingEnabled(false)
 
         publishersListProgress.visibility = View.GONE
+    }
+
+    private fun createPublishersScrollListener(publishersLayoutManager: RecyclerView.LayoutManager): RecyclerView.OnScrollListener {
+        return object : EndlessRecyclerView(publishersLayoutManager) {
+            override fun onLoadMore(current_page: Int) {
+                homePresenter.onGetMorePublishers()
+            }
+        }
     }
 
     override fun onBindLastestUpdates(lastestUpdates: List<ComicItem>) {
         lastestUpdatesAdapter = ComicsListAdapter(onLastestCallback())
         lastestUpdatesAdapter?.updateDataSet(lastestUpdates)
 
+        val lastestLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         lastestList.adapter = lastestUpdatesAdapter
-        lastestList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+        lastestList.layoutManager = lastestLayoutManager
+
+        lastestList.addOnScrollListener(createLastestScrollListener(lastestLayoutManager))
+        lastestList.setNestedScrollingEnabled(false)
 
         lastestListProgress.visibility = View.GONE
+    }
+
+    private fun createLastestScrollListener(lastestLayoutManager: RecyclerView.LayoutManager): RecyclerView.OnScrollListener {
+        return object : EndlessRecyclerView(lastestLayoutManager) {
+            override fun onLoadMore(current_page: Int) {
+                homePresenter.onGetMoreLastestComics()
+            }
+        }
     }
 
     override fun onBindPopulars(populars: List<ComicItem>) {
@@ -130,9 +160,22 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         popularComicsAdapter?.updateDataSet(populars)
 
         popularList.adapter = popularComicsAdapter
-        popularList.layoutManager = StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL)
+
+        val popularLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        popularList.layoutManager = popularLayoutManager
+
+        popularList.addOnScrollListener(createPopularsScrollListener(popularLayoutManager))
+        popularList.setNestedScrollingEnabled(false)
 
         popularListProgress.visibility = View.GONE
+    }
+
+    private fun createPopularsScrollListener(popularLayoutManager: RecyclerView.LayoutManager): RecyclerView.OnScrollListener {
+        return object : EndlessRecyclerView(popularLayoutManager) {
+            override fun onLoadMore(current_page: Int) {
+                homePresenter.onGetMorePopularComics()
+            }
+        }
     }
 
     private fun onPopularsCallback(): IComicListCallback {
@@ -163,6 +206,18 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
                 return true
             }
         }
+    }
+
+    override fun onBindMorePublishers(publishers: List<PublisherItem>) {
+        publisherAdapter?.onAddMoreItems(publishers)
+    }
+
+    override fun onBindMorePopulars(populars: List<ComicItem>) {
+        popularComicsAdapter?.onAddMoreItems(populars)
+    }
+
+    override fun onBindMoreLastestUpdates(lastestUpdates: List<ComicItem>) {
+        lastestUpdatesAdapter?.onAddMoreItems(lastestUpdates)
     }
 
     private fun getPopularHolder(comic: ComicItem): ComicHolder? {
@@ -196,8 +251,11 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
 
     private fun onPublisherCallback(): IPublisherCallback {
         return object : IPublisherCallback {
-            override fun onClick(item: Publisher) {
-                startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_PUBLISHERS, item.name, item.url)))
+            override fun onItemClick(view: View?, position: Int): Boolean {
+                val item = publisherAdapter?.getItem(position) ?: return false
+                startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_PUBLISHERS, item.publisher.name!!, item.publisher.pathLink!!)))
+
+                return true
             }
         }
     }

@@ -1,13 +1,7 @@
 package com.tiagohs.hqr.dragger.modules
 
-import com.tiagohs.hqr.database.IChapterRepository
-import com.tiagohs.hqr.database.IComicsRepository
-import com.tiagohs.hqr.database.IHistoryRepository
-import com.tiagohs.hqr.database.ISourceRepository
-import com.tiagohs.hqr.database.repository.ChapterRepository
-import com.tiagohs.hqr.database.repository.ComicsRepository
-import com.tiagohs.hqr.database.repository.HistoryRepository
-import com.tiagohs.hqr.database.repository.SourceRepository
+import com.tiagohs.hqr.database.*
+import com.tiagohs.hqr.database.repository.*
 import dagger.Module
 import dagger.Provides
 
@@ -32,6 +26,11 @@ class RepositoryModule {
     @Provides
     fun providerHistoryRepository(): IHistoryRepository {
         return HistoryRepository()
+    }
+
+    @Provides
+    fun providerDefaultModelsRepository(sourceRepository: ISourceRepository): IDefaultModelsRepository {
+        return DefaultModelsRepository(sourceRepository)
     }
 
 }

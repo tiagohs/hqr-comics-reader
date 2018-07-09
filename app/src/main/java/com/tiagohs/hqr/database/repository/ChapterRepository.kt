@@ -26,7 +26,6 @@ class ChapterRepository: BaseRepository(), IChapterRepository {
         return chapter
     }
 
-
     override fun getAllChapters(comicId: Long): Observable<List<ChapterViewModel>> {
         return Observable.create<List<ChapterViewModel>> { emitter ->
             val realm = Realm.getDefaultInstance()

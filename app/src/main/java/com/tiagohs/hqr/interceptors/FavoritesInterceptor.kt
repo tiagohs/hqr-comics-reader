@@ -3,6 +3,7 @@ package com.tiagohs.hqr.interceptors
 import android.content.Context
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.IHistoryRepository
+import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.ListPaginator
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
@@ -17,9 +18,10 @@ class FavoritesInterceptor(
         private val preferenceHelper: PreferenceHelper,
         private val comicsRepository: IComicsRepository,
         private val historyRepository: IHistoryRepository,
+        private val sourceRepository: ISourceRepository,
         private val sourceManager: SourceManager,
         private val localeUtils: LocaleUtils
-): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager), Contracts.IFavoritesInterceptor {
+): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager, sourceRepository), Contracts.IFavoritesInterceptor {
 
     var listPaginator: ListPaginator<ComicDetailsListItem> = ListPaginator()
 
@@ -39,7 +41,7 @@ class FavoritesInterceptor(
     }
 
     override fun onGetMore(): Observable<List<ComicDetailsListItem>> {
-        return listPaginator.onGetNextPageComics()
+        return listPaginator.onGetNextPage()
                               .doOnNext { comicHistoryItems -> initializeComics(comicHistoryItems.map { it.comic }) }
     }
 

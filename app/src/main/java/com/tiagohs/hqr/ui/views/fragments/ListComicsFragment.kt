@@ -1,11 +1,12 @@
 package com.tiagohs.hqr.ui.views.fragments
 
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
+import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.view_models.*
 import com.tiagohs.hqr.ui.adapters.comics.ComicHolder
 import com.tiagohs.hqr.ui.adapters.comics.ComicItem
@@ -98,7 +99,8 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     }
 
     override fun onBindComics(comics: List<ComicItem>?) {
-        layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        layoutManager = GridLayoutManager(context, ScreenUtils.calculateNoOfColumns(context, 120))
+
         listComicsAdapter = ComicsListAdapter( this)
         listComicsAdapter?.updateDataSet(comics)
 
@@ -106,10 +108,12 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         comicsList.adapter = listComicsAdapter
         comicsList.addOnScrollListener(createOnScrollListener())
         comicsList.setNestedScrollingEnabled(false)
+
+        comicListProgress.visibility = View.GONE
     }
 
     override fun onBindMoreComics(comics: List<ComicItem>) {
-        listComicsAdapter?.updateDataSet(comics)
+        listComicsAdapter?.onAddMoreItems(comics)
     }
 
     override fun onBindItem(comic: ComicItem) {

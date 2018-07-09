@@ -2,6 +2,7 @@ package com.tiagohs.hqr.interceptors.config
 
 import android.content.Context
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListItem
 import io.reactivex.Observable
 
@@ -27,6 +28,15 @@ object Contracts {
         fun onGetLastestComics(): Observable<List<ComicViewModel>>
         fun onGetPopularComics(): Observable<List<ComicViewModel>>
 
+        fun onGetPublishers(): Observable<List<DefaultModelView>>
+
+        fun onGetMorePublishers(): Observable<List<DefaultModelView>>
+        fun onGetMorePopularComics(): Observable<List<ComicViewModel>>
+        fun onGetMoreLastestComics(): Observable<List<ComicViewModel>>
+
+        fun hasMorePublishers(): Boolean
+        fun hasMorePopularComics(): Boolean
+        fun hasMoreLastestComics(): Boolean
     }
 
     interface IListComicsInterceptor: IBaseInterceptor, IBaseComicsInterceptor {

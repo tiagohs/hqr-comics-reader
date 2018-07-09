@@ -38,7 +38,7 @@ class ComicDetailsListItem(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other is ComicDetailsListItem) {
-            return comic.id.equals(other.comic.id)
+            return comic.id == other.comic.id
         }
         return false
     }

@@ -10,6 +10,7 @@ interface ISource{
 
     var hasPageSupport: Boolean
     var hasThumbnailSupport: Boolean
+    var localStorageUpdated: Boolean
 
     var lastAllComicsUpdate: String?
     var lastPopularUpdate: String?
@@ -45,5 +46,6 @@ interface ISource{
         this.language = other.language
         this.hasPageSupport = other.hasPageSupport
         this.hasThumbnailSupport = other.hasThumbnailSupport
+        this.localStorageUpdated = other.localStorageUpdated
     }
 }

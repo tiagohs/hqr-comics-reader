@@ -70,7 +70,8 @@ class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IFavo
     }
 
     override fun onBindMoreComics(comics: List<ComicDetailsListItem>?) {
-        adapter?.updateDataSet(comics)
+        adapter?.onAddMoreItems(comics)
+
         setInformationViewStatus()
     }
 

@@ -2,9 +2,9 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.models.sources.LocaleDTO
 import com.tiagohs.hqr.models.sources.Page
-import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import io.reactivex.Observable
 import okhttp3.Response
 
@@ -17,7 +17,7 @@ interface IHttpSource {
     val hasPageSupport: Boolean
     val hasThumbnailSupport: Boolean
 
-    fun fetchPublishers(): Observable<List<Publisher>>
+    fun fetchPublishers(): Observable<List<DefaultModelView>>
 
     fun fetchLastestComics(): Observable<List<ComicViewModel>>
     fun fetchPopularComics(): Observable<List<ComicViewModel>>

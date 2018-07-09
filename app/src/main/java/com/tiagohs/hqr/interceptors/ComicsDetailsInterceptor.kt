@@ -17,7 +17,7 @@ class ComicsDetailsInterceptor(
         private val comicsRepository: IComicsRepository,
         private val sourceRepository: ISourceRepository,
         private val sourceManager: SourceManager
-): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager), Contracts.IComicsDetailsInterceptor {
+): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager, sourceRepository), Contracts.IComicsDetailsInterceptor {
 
     override fun onGetComicData(comicPath: String): Observable<ComicViewModel?> {
         val sourceId = preferenceHelper.currentSource().getOrDefault()

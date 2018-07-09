@@ -2,37 +2,79 @@ package com.tiagohs.hqr.factory
 
 import com.tiagohs.hqr.helpers.tools.RealmUtils
 import com.tiagohs.hqr.models.database.DefaultModel
+import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.view_models.DefaultModelView
 import io.realm.Realm
 import io.realm.RealmList
 
 object DefaultModelFactory {
 
-    fun createDefaultModelForRealm(defaultModel: DefaultModelView, realm: Realm): DefaultModel {
-        val realmObject: DefaultModel?
+    fun createDefaultModelForRealm(defaultModel: DefaultModelView, sourceDB: SourceDB?, realm: Realm): DefaultModel {
+        return DefaultModel().create().apply {
 
-        realmObject = realm.createObject(DefaultModel::class.java, RealmUtils.getDataId<DefaultModel>(realm))
-        realmObject.copyFrom(defaultModel)
+            if (defaultModel.name != null) {
+                this.name = defaultModel.name
+            }
 
-        return realmObject
+            if (defaultModel.pathLink != null) {
+                this.pathLink = defaultModel.pathLink
+            }
+
+            if (defaultModel.type != null) {
+                this.type = defaultModel.type
+            }
+
+            if (sourceDB != null) {
+                this.source = realm.copyToRealmOrUpdate(sourceDB)
+            }
+        }
     }
 
-    fun createListOfDefaultModelForRealm(list: List<DefaultModelView>?, realm: Realm): RealmList<DefaultModel> {
+    fun copyFromDefaultModelView(defaultModel: DefaultModel, other: DefaultModelView, sourceDB: SourceDB?, realm: Realm): DefaultModel {
+
+        if (other.name != null) {
+            defaultModel.name = other.name
+        }
+
+        if (other.pathLink != null) {
+            defaultModel.pathLink = defaultModel.pathLink
+        }
+
+        if (other.type != null) {
+            defaultModel.type = other.type
+        }
+
+        if (sourceDB != null) {
+            defaultModel.source = realm.copyToRealmOrUpdate(sourceDB)
+        }
+
+        return defaultModel
+    }
+
+    fun createListOfDefaultModelForRealm(list: List<DefaultModelView>?, sourceDB: SourceDB?, realm: Realm): RealmList<DefaultModel> {
         val realmList = RealmList<DefaultModel>()
-        list?.forEach { realmList.add(createDefaultModelForRealm(it, realm)) }
+        var id = RealmUtils.getDataId<DefaultModel>()
+
+        list?.forEach {
+            val defaultModel = createDefaultModelForRealm(it, sourceDB, realm)
+            defaultModel.id = id
+            it.id = id
+
+            id++
+            realmList.add(realm.copyToRealmOrUpdate(defaultModel) )
+        }
 
         return realmList
     }
 
-    fun createListOfDefaultModel(list: List<DefaultModel>?): List<DefaultModel> {
-        val realmList = ArrayList<DefaultModel>()
-        list?.forEach {
-            val defaultModel = DefaultModel()
-            defaultModel.copyFrom(it)
+    fun createListOfDefaultModelView(listDb: List<DefaultModel>?, sourceDB: SourceDB?): List<DefaultModelView> {
+        val defaultModelViewList = ArrayList<DefaultModelView>()
 
-            realmList.add(defaultModel) }
+        if (listDb != null) {
+            defaultModelViewList.addAll(listDb.map { DefaultModelView().create(it, sourceDB) })
+        }
 
-        return realmList
+        return defaultModelViewList
     }
 
     fun createListOfTags(tags: RealmList<String>?): List<String> {

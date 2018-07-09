@@ -4,9 +4,9 @@ import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asObservableSuccess
 import com.tiagohs.hqr.helpers.extensions.newCallWithProgress
 import com.tiagohs.hqr.models.sources.Page
-import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.*
@@ -33,12 +33,12 @@ abstract class HttpSourceBase(
                 .subscribeOn(Schedulers.io())
     }
 
-    override fun fetchPublishers(): Observable<List<Publisher>> {
+    override fun fetchPublishers(): Observable<List<DefaultModelView>> {
         return fetch(GET(publishersEndpoint, headersBuilder().build()))
                     .map({ response: Response -> parsePublishersResponse(response) })
     }
 
-    abstract protected fun parsePublishersResponse(response: Response) : List<Publisher>
+    abstract protected fun parsePublishersResponse(response: Response) : List<DefaultModelView>
 
     override fun fetchLastestComics(): Observable<List<ComicViewModel>> {
         return fetch(GET(lastestComicsEndpoint, headersBuilder().build()))

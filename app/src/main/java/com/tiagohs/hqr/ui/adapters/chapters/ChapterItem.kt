@@ -35,7 +35,7 @@ class ChapterItem(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other is ChapterItem) {
-            return chapter.id.equals(other.chapter.id)
+            return chapter.id == other.chapter.id
         }
         return false
     }

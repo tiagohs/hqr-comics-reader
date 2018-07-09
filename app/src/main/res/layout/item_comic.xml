@@ -4,13 +4,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="120dp"
     android:layout_height="wrap_content"
-    android:padding="5dp">
+    android:padding="5dp"
+    android:gravity="center_horizontal">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="5dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
         <ImageView
             android:id="@+id/comicImage"
@@ -24,9 +26,9 @@
             android:id="@+id/comicTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Batman Vs Superman Batman Vs Superman atman Vs Superman"
             android:textAlignment="center"
             android:textSize="12dp"
+            android:layout_marginTop="3dp"
             android:ellipsize="end"
             android:textColor="@color/colorPrimaryText"
             android:lines="2"
@@ -36,8 +38,8 @@
 
     <ToggleButton
         android:id="@+id/addToFavBtn"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
         android:layout_gravity="center"
         android:background="@drawable/button_favorite"
         android:checked="false"

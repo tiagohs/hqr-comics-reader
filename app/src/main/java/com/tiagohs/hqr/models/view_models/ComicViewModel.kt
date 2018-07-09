@@ -14,6 +14,7 @@ const val CANCELED = "canceled_status"
 const val UNKNOWN = "unknown_status"
 
 class ComicViewModel() : Parcelable {
+
     var id: Long = -1L
     var name: String? = ""
     var pathLink: String? = ""
@@ -107,19 +108,19 @@ class ComicViewModel() : Parcelable {
         }
 
         if (other.publisher != null) {
-            this.publisher = other.publisher!!.map { DefaultModelView().create(it) }
+            this.publisher = other.publisher!!.map { DefaultModelView().create(it, source) }
         }
 
         if (other.genres != null) {
-            this.genres = other.genres!!.map { DefaultModelView().create(it) }
+            this.genres = other.genres!!.map { DefaultModelView().create(it, source) }
         }
 
         if (other.authors != null) {
-            this.authors = other.authors!!.map { DefaultModelView().create(it) }
+            this.authors = other.authors!!.map { DefaultModelView().create(it, source) }
         }
 
         if (other.scanlators != null) {
-            this.scanlators = other.scanlators!!.map { DefaultModelView().create(it) }
+            this.scanlators = other.scanlators!!.map { DefaultModelView().create(it, source) }
         }
 
         if (other.chapters != null) {

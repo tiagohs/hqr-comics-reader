@@ -1,8 +1,7 @@
 package com.tiagohs.hqr.ui.callbacks
 
-import com.tiagohs.hqr.models.sources.Publisher
+import eu.davidea.flexibleadapter.FlexibleAdapter
 
-interface IPublisherCallback {
+interface IPublisherCallback: FlexibleAdapter.OnItemClickListener {
 
-    fun onClick(item: Publisher)
 }

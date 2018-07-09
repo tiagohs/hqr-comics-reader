@@ -3,9 +3,9 @@ package com.tiagohs.hqr.sources.portuguese
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
+import com.tiagohs.hqr.models.database.DefaultModel
 import com.tiagohs.hqr.models.sources.LocaleDTO
 import com.tiagohs.hqr.models.sources.Page
-import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.DefaultModelView
@@ -66,7 +66,7 @@ class HQBRSource(
         return "$baseUrl/hqs?letter=all"
     }
 
-    override fun parsePublisherByElement(element: Element): Publisher {
+    override fun parsePublisherByElement(element: Element): DefaultModelView? {
         var title: String = ""
         var link: String = ""
 
@@ -75,9 +75,15 @@ class HQBRSource(
         if (elementSelector != null) {
             title = elementSelector.text()
             link = formatLink(elementSelector.attr("href"))
+
+            return DefaultModelView().apply {
+                this.name = title
+                this.pathLink = link
+                this.type = DefaultModel.PUBLISHER
+            }
         }
 
-        return Publisher(title, link)
+        return null
     }
 
     override fun parseLastestComicsByElement(element: Element): ComicViewModel {
@@ -120,7 +126,6 @@ class HQBRSource(
             this.pathLink = link
         }
     }
-
 
     override fun parseAllComicsByLetterByElement(element: Element): ComicViewModel {
         var title: String = ""
@@ -223,9 +228,9 @@ class HQBRSource(
             if (element!!.text().contains("Status")) {
                 status = element.select("span").text()
             } else if (element.text().contains("Editora")) {
-                publisher = element.select("a").map { element -> parseSimpleItemByElement(element) }
+                publisher = element.select("a").map { element -> parseSimpleItemByElement(element, DefaultModel.PUBLISHER) }
             } else if (element.text().contains("Equipe responsável")) {
-                scanlators = element.select("a").map { element -> parseSimpleItemByElement(element) }
+                scanlators = element.select("a").map { element -> parseSimpleItemByElement(element, DefaultModel.SCANLATOR) }
             }
         }
 
@@ -251,8 +256,8 @@ class HQBRSource(
         }
     }
 
-    fun parseSimpleItemByElement(selector: String, element: Element): DefaultModelView {
-        return this.parseSimpleItemByElement(element.select(selector).first())
+    fun parseSimpleItemByElement(selector: String, element: Element, type: String): DefaultModelView {
+        return this.parseSimpleItemByElement(element.select(selector).first(), type)
     }
 
     fun parseChapterItemByElement(selector: String, element: Element, comicTitle: String?, sourceOrder: Int): ChapterViewModel {
@@ -272,7 +277,7 @@ class HQBRSource(
         }
     }
 
-    fun parseSimpleItemByElement(element: Element?): DefaultModelView {
+    fun parseSimpleItemByElement(element: Element?, type: String): DefaultModelView {
         var title: String = ""
         var link: String = ""
 
@@ -284,6 +289,7 @@ class HQBRSource(
         return DefaultModelView().apply {
             this.name = title
             this.pathLink = link
+            this.type = type
         }
     }
 

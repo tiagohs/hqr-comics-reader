@@ -19,7 +19,7 @@ class DownloadQueueItem(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other is Download) {
-            return download.chapter.id.equals(other.chapter.id)
+            return download.chapter.id == other.chapter.id
         }
         return false
     }

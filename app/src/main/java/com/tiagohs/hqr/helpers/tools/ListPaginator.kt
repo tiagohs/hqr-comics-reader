@@ -31,7 +31,7 @@ class ListPaginator<T> {
         return comicsList
     }
 
-    fun onGetNextPageComics(): Observable<List<T>> {
+    fun onGetNextPage(): Observable<List<T>> {
         return Observable
                 .create<List<T>>({ emitter ->
                     if (currentPage < totalPage - 1) {

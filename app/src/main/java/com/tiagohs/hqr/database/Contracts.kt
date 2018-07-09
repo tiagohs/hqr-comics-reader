@@ -6,6 +6,7 @@ import com.tiagohs.hqr.models.database.comics.ComicHistory
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicHistoryViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import io.reactivex.Observable
 
 interface ISourceRepository {
@@ -20,6 +21,21 @@ interface ISourceRepository {
     fun getSourceById(sourceId: Long): Observable<SourceDB?>
 }
 
+interface IDefaultModelsRepository {
+
+    fun insertRealm(defaultModelView: DefaultModelView, sourceId: Long): DefaultModelView
+    fun insertRealm(defaultModelViewList: List<DefaultModelView>, sourceId: Long): List<DefaultModelView>
+
+    fun insertOrUpdateComic(defaultModelView: DefaultModelView, sourceId: Long): Observable<DefaultModelView>
+    fun insertOrUpdateComic(defaultModelViewList: List<DefaultModelView>, sourceId: Long): Observable<List<DefaultModelView>>
+
+    fun getAllPublishers(sourceId: Long): Observable<List<DefaultModelView>>
+    fun getAllScanlators(sourceId: Long): Observable<List<DefaultModelView>>
+    fun getAllGenres(sourceId: Long): Observable<List<DefaultModelView>>
+    fun getAllAuthor(sourceId: Long): Observable<List<DefaultModelView>>
+
+}
+
 interface IComicsRepository {
 
     fun insertRealm(comic: ComicViewModel, sourceId: Long): ComicViewModel?
@@ -30,13 +46,14 @@ interface IComicsRepository {
     fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>
     fun insertOrUpdateComics(comics: List<ComicViewModel>, sourceId: Long): Observable<List<ComicViewModel>>
 
+    fun searchComic(query: String, sourceId: Long): Observable<List<ComicViewModel>>
+
     fun addOrRemoveFromFavorite(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>
 
     fun deleteComic(comic: ComicViewModel): Observable<Void>
-
     fun deleteAllComics(): Observable<Void?>
-    fun findAll(sourceId: Long): Observable<List<ComicViewModel>>
 
+    fun findAll(sourceId: Long): Observable<List<ComicViewModel>>
     fun findById(comicId: Long): Observable<ComicViewModel?>
     fun findByPathUrl(pathLink: String, sourceId: Long):  Observable<ComicViewModel?>
 

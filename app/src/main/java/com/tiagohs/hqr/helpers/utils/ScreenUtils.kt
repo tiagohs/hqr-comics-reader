@@ -24,10 +24,17 @@ class ScreenUtils {
         fun generateMaterialColorBackground(context: Context?, text: String, imageView: ImageView) : TextDrawable {
             val generator = ColorGenerator.MATERIAL
 
-            return TextDrawable.builder()
-                    .beginConfig()
-                    .endConfig()
-                    .buildRound(text.elementAt(0).toString(), generator.getRandomColor());
+            if (!text.isNullOrEmpty()) {
+                return TextDrawable.builder()
+                        .beginConfig()
+                        .endConfig()
+                        .buildRound(text.elementAt(0).toString(), generator.getRandomColor());
+            } else {
+                return TextDrawable.builder()
+                        .beginConfig()
+                        .endConfig()
+                        .buildRound(text, generator.getRandomColor());
+            }
         }
 
         fun generateComicStatusBackground(context: Context, status: String?): Int {

@@ -26,7 +26,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.views.activities.ReaderActivity"/>
-        <activity android:name=".ui.views.activities.SearchActivity"/>
+        <activity
+            android:name=".ui.views.activities.SearchActivity"
+            android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name=".ui.views.activities.ComicDetailsActivity"
             android:theme="@style/AppTheme.TransparentTheme"/>

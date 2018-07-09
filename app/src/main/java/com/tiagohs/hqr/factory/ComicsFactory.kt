@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.factory
 
+import com.tiagohs.hqr.helpers.tools.RealmUtils
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Comic
 import com.tiagohs.hqr.models.view_models.ComicViewModel
@@ -21,12 +22,12 @@ object ComicsFactory {
             comic.name = comicViewModel.name
         }
 
-        if (comicViewModel.pathLink != null) {
-            comic.pathLink = comicViewModel.pathLink
-        }
-
         if (comicViewModel.posterPath != null) {
             comic.posterPath = comicViewModel.posterPath
+        }
+
+        if (comicViewModel.pathLink != null) {
+            comic.pathLink = comicViewModel.pathLink
         }
 
         if (comicViewModel.summary != null) {
@@ -42,19 +43,19 @@ object ComicsFactory {
         }
 
         if (comicViewModel.publisher != null) {
-            comic.publisher = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.publisher, realm)
+            comic.publisher = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.publisher, source, realm)
         }
 
         if (comicViewModel.genres != null) {
-            comic.genres = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.genres, realm)
+            comic.genres = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.genres, source, realm)
         }
 
         if (comicViewModel.authors != null) {
-            comic.authors = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.authors, realm)
+            comic.authors = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.authors, source, realm)
         }
 
         if (comicViewModel.scanlators != null) {
-            comic.scanlators = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.scanlators, realm)
+            comic.scanlators = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.scanlators, source, realm)
         }
 
         if (comicViewModel.chapters != null) {
@@ -77,16 +78,25 @@ object ComicsFactory {
     }
 
     fun createComicModelForRealm(comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
-        val comic = Comic().create().apply {
+        return Comic().create().apply {
             copyFromComicViewModel(this, comicViewModel, source, realm)
         }
-
-        return comic
     }
 
-    fun createListOfComicModelFormRealm(comicViewModels: List<ComicViewModel>, source: SourceDB?, realm: Realm): List<Comic> {
+    fun createListOfComicModelFormRealm(comicViewModels: List<ComicViewModel>?, source: SourceDB?, realm: Realm): List<Comic> {
         val comicDbList = ArrayList<Comic>()
-        comicDbList.addAll(comicViewModels.map { createComicModelForRealm(it, source, realm) })
+        var id = RealmUtils.getDataId<Comic>()
+
+        comicViewModels?.forEach {
+
+            val comic = createComicModelForRealm(it, source, realm)
+            comic.id = id
+            it.id = id
+
+            id++
+
+            comicDbList.add(realm.copyToRealmOrUpdate(comic) )
+        }
 
         return comicDbList
     }

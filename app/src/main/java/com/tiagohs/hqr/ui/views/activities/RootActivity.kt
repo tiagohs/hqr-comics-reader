@@ -131,38 +131,42 @@ class RootActivity: BaseActivity(), PermissionsCallback {
     }
 
     private fun setItemSelected(itemId: Int): Boolean {
-        when (itemId) {
-            R.id.actionHome -> startFragment(R.id.contentFragment, HomeFragment.newFragment())
-            R.id.actionLibrarie -> startFragment(R.id.contentFragment, LibrarieFragment.newFragment())
-            R.id.actionRecent -> startFragment(R.id.contentFragment, RecentFragment.newFragment())
-            R.id.actionDownloads -> startFragment(R.id.contentFragment, DownloadManagerFragment.newFragment())
-            else -> return false
-        }
-
+        onChangeFragment(R.id.contentFragment, "tag:${itemId}", itemId)
         return true
     }
 
-    private fun onSelectFragment(tag: String, fragmentSelect: Fragment) {
+    fun onChangeFragment(container: Int, tag: String, itemId: Int): Fragment {
         val fm = supportFragmentManager
+        val fragmentTransaction = fm.beginTransaction()
+
         var fragment = fm.findFragmentByTag(tag)
-        val fmTransaction = supportFragmentManager.beginTransaction()
-
         if (fragment == null) {
-            fragment = fragmentSelect
-            fmTransaction.add(R.id.contentFragment, fragment, tag)
+            fragment = getFragment(itemId)
+            fragmentTransaction.add(container, fragment, tag)
         } else {
-            val curFrag = supportFragmentManager.getPrimaryNavigationFragment()
-
-            if (curFrag != null) {
-                fmTransaction.detach(curFrag)
-            }
-
-            fmTransaction.attach(fragment)
+            fragmentTransaction.attach(fragment)
         }
 
-        fmTransaction.setPrimaryNavigationFragment(fragment)
-                .setReorderingAllowed(true)
-                .commitNowAllowingStateLoss()
+        val curFrag = fm.getPrimaryNavigationFragment()
+        if (curFrag != null) {
+            fragmentTransaction.detach(curFrag)
+        }
+
+        fragmentTransaction.setPrimaryNavigationFragment(fragment)
+        fragmentTransaction.setReorderingAllowed(true)
+        fragmentTransaction.commitNowAllowingStateLoss()
+
+        return fragment
+    }
+
+    private fun getFragment(itemId: Int): Fragment {
+        when (itemId) {
+            R.id.actionHome -> return HomeFragment.newFragment()
+            R.id.actionLibrarie -> return LibrarieFragment.newFragment()
+            R.id.actionRecent -> return RecentFragment.newFragment()
+            R.id.actionDownloads -> return DownloadManagerFragment.newFragment()
+            else -> return HomeFragment.newFragment()
+        }
     }
 
     override fun onPermissionsGranted() {

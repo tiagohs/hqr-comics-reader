@@ -101,6 +101,8 @@
     <string name="download_status">Downloading (%1$d/%2$d)</string>
     <string name="no_downloads">Não há downloads na fila</string>
     <string name="no_favorites">Não há HQs favoritas</string>
+    <string name="no_found">Sua pesquisa não retornou nenhum resultado.</string>
+    <string name="search_info">Faça a sua pesquisa digitando logo acima.</string>
     <string name="title_download_cache_used">Limpar cache de imagens</string>
     <string name="key_download_cache_used">key_download_cache_used</string>
 </resources>

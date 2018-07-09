@@ -52,7 +52,7 @@ dependencies {
 
     // Stelho - Realm, SharedPreferences and SQLite debugger
     implementation 'com.facebook.stetho:stetho:1.5.0'
-    implementation 'com.uphyca:stetho_realm:2.1.0'
+    implementation 'com.uphyca:stetho_realm:2.2.0'
 
     final coroutines_version = '0.23.3'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"

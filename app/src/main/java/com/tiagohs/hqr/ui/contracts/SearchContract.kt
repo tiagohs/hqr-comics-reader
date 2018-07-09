@@ -11,6 +11,7 @@ class SearchContract {
     interface ISearchView: IView {
 
         fun onBindComics(comics: List<ComicItem>?)
+        fun onBindMoreComics(comics: List<ComicItem>?)
         fun onBindItem(comic: ComicItem)
     }
 
@@ -21,6 +22,7 @@ class SearchContract {
         fun hasPagesSupport(): Boolean
         fun onGetMoreComics()
         fun getOriginalList(): List<ComicViewModel>
+        fun onReset()
 
         fun addOrRemoveFromFavorite(comic: ComicViewModel)
     }

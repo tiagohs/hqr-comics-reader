@@ -8,11 +8,12 @@ import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.SourceDB
-import com.tiagohs.hqr.models.sources.Publisher
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.sources.HttpSourceBase
 import com.tiagohs.hqr.sources.SourceManager
 import com.tiagohs.hqr.ui.adapters.comics.ComicItem
+import com.tiagohs.hqr.ui.adapters.publishers.PublisherItem
 import com.tiagohs.hqr.ui.contracts.HomeContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -56,6 +57,15 @@ class HomePresenter(
         homeInterceptor.onUnbind()
     }
 
+    override fun observeSourcesChanges() {
+        preferenceHelper.currentSource()
+                .asObservable()
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe({ sourceId: Long? ->
+                    onGetHomeData(sourceId!!)
+                })
+    }
+
     override fun onGetHomeData(sourceId: Long) {
         sourceRepository.getSourceById(sourceId)
                 .subscribeOn(Schedulers.io())
@@ -66,20 +76,23 @@ class HomePresenter(
                     mView?.onBindSourceInfo(source!!)
 
                     if (sourceHttp != null) {
-                        onGetPublishers(sourceHttp)
-                        onGetHomePageData(sourceHttp)
+                        onGetPublishers(sourceHttp, sourceId)
                     }
-
                 })
     }
 
-    override fun onGetPublishers(source: HttpSourceBase) {
+    override fun onGetPublishers(source: HttpSourceBase, sourceId: Long) {
 
-        mSubscribers.add(source.fetchPublishers()
-                .map({ publishers -> publishers.subList(1, publishers.size) })
+        mSubscribers.add(homeInterceptor.onGetPublishers()
+                .doOnNext {
+                    val sourceHttp = sourceManager.get(sourceId) as HttpSourceBase?
+
+                    onGetHomePageData(sourceHttp!!)
+                }
+                .map { it.map { it.toPublisherModel() } }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { publishers: List<Publisher>? ->
+                        { publishers ->
                             if (publishers!!.isNotEmpty()) {
                                 mView!!.onBindPublishers(publishers)
                             }
@@ -87,13 +100,11 @@ class HomePresenter(
                         { error: Throwable? ->
                             Log.e("HomePresenter", "Error!", error)
                         }))
-
-
     }
 
     override fun onGetHomePageData(source: HttpSourceBase) {
 
-        mSubscribers.add(homeInterceptor.onGetPopularComics()
+       mSubscribers.add(homeInterceptor.onGetPopularComics()
                 .map { it.map { it.toModel() } }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ popularComics ->
@@ -112,13 +123,43 @@ class HomePresenter(
                 }))
     }
 
-    override fun observeSourcesChanges() {
-        preferenceHelper.currentSource()
-                .asObservable()
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .subscribe({ sourceId: Long? ->
-                    onGetHomeData(sourceId!!)
-                })
+    override fun onGetMorePublishers() {
+        if (homeInterceptor.hasMorePublishers()) {
+            homeInterceptor.onGetMorePublishers()
+                    .subscribeOn(Schedulers.io())
+                    .map { it.map { it.toPublisherModel() } }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            { mView!!.onBindMorePublishers(it) },
+                            { error -> Log.e("List", "Publishers Error", error) }
+                    )
+        }
+    }
+
+    override fun onGetMorePopularComics() {
+        if (homeInterceptor.hasMorePopularComics()) {
+            homeInterceptor.onGetMorePopularComics()
+                    .subscribeOn(Schedulers.io())
+                    .map { it.map { it.toModel() } }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            { mView!!.onBindMorePopulars(it) },
+                            { error -> Log.e("List", "Populars Error", error) }
+                    )
+        }
+    }
+
+    override fun onGetMoreLastestComics() {
+        if (homeInterceptor.hasMoreLastestComics()) {
+            homeInterceptor.onGetMoreLastestComics()
+                    .subscribeOn(Schedulers.io())
+                    .map { it.map { it.toModel() } }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            { mView!!.onBindMoreLastestUpdates(it) },
+                            { error -> Log.e("List", "LastestUpdates Error", error) }
+                    )
+        }
     }
 
     override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
@@ -127,13 +168,13 @@ class HomePresenter(
                 .subscribeOn(Schedulers.io())
                 .map { it.toModel() }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { comic ->
-                    if (comic?.comic?.tags != null) {
-                        if (comic.comic.tags!!.contains(IComic.POPULARS)) {
-                            mView?.onBindPopularItem(comic)
+                .subscribe { c ->
+                    if (c?.comic?.tags != null) {
+                        if (c.comic.tags!!.contains(IComic.POPULARS)) {
+                            mView?.onBindPopularItem(c)
                         }
-                        if (comic.comic.tags!!.contains(IComic.RECENTS)) {
-                            mView?.onBindLastestItem(comic)
+                        if (c.comic.tags!!.contains(IComic.RECENTS)) {
+                            mView?.onBindLastestItem(c)
                         }
                     }
                 }
@@ -141,6 +182,10 @@ class HomePresenter(
 
     private fun ComicViewModel.toModel(): ComicItem {
         return ComicItem(this, R.layout.item_comic)
+    }
+
+    private fun DefaultModelView.toPublisherModel(): PublisherItem {
+        return PublisherItem(this)
     }
 
 }

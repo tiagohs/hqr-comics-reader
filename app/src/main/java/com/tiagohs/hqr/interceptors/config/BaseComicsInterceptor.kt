@@ -1,11 +1,13 @@
 package com.tiagohs.hqr.interceptors.config
 
 import com.tiagohs.hqr.database.IComicsRepository
+import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.helpers.utils.DateUtils
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.base.ISource
+import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.sources.IHttpSource
 import com.tiagohs.hqr.sources.SourceManager
@@ -18,8 +20,15 @@ import java.util.concurrent.TimeUnit
 abstract class BaseComicsInterceptor(
         private val comicsRepository: IComicsRepository,
         private val preferenceHelper: PreferenceHelper,
-        private val sourceManager: SourceManager
+        private val sourceManager: SourceManager,
+        private val sourceRepository: ISourceRepository
 ): BaseInterceptor() {
+
+    companion object {
+        const val POPULAR = "POPULAR"
+        const val LASTEST = "POPULAR"
+        const val ALL = "POPULAR"
+    }
 
     private val comicDetailSubject = PublishSubject.create<List<ComicViewModel>>()
 
@@ -37,19 +46,19 @@ abstract class BaseComicsInterceptor(
                 .toObservable()
     }
 
-    fun onGetComics(networkFetcher: Observable<List<ComicViewModel>>, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, source: ISource, sourceHttp: IHttpSource, type: String? = null): Observable<List<ComicViewModel>> {
-        return fromNetworkOrLocal(networkFetcher, source, sourceHttp, localFetcher, lastUpdate, type)
+    fun onGetComics(networkFetcher: Observable<List<ComicViewModel>>, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, source: SourceDB, sourceHttp: IHttpSource, type: String? = null, searchType: String? = null): Observable<List<ComicViewModel>> {
+        return fromNetworkOrLocal(networkFetcher, source, sourceHttp, localFetcher, lastUpdate, type, searchType)
     }
 
     fun initializeComics(comics: List<ComicViewModel>) {
         comicDetailSubject.onNext(comics)
     }
 
-    private fun fromNetworkOrLocal(networkFetcher: Observable<List<ComicViewModel>>, source: ISource, httpSource: IHttpSource, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, type: String?): Observable<List<ComicViewModel>> {
+    private fun fromNetworkOrLocal(networkFetcher: Observable<List<ComicViewModel>>, source: SourceDB, httpSource: IHttpSource, localFetcher: Observable<List<ComicViewModel>>, lastUpdate: String?, type: String?, searchType: String? = null): Observable<List<ComicViewModel>> {
         return if (lastUpdate != null && !needToUpdate(lastUpdate))
             fetchComicsFromLocal(source, localFetcher, type)
         else
-            fetchComicsFromNetwork(networkFetcher, source, httpSource, type)
+            fetchComicsFromNetwork(networkFetcher, source, httpSource, type, searchType)
     }
 
     private fun needToUpdate(lastUpdate: String): Boolean {
@@ -64,30 +73,36 @@ abstract class BaseComicsInterceptor(
         return localFetcher
     }
 
-    private fun fetchComicsFromNetwork(networkFetcher: Observable<List<ComicViewModel>>, source: ISource, sourceHttp: IHttpSource, type: String?): Observable<List<ComicViewModel>> {
+    private fun fetchComicsFromNetwork(networkFetcher: Observable<List<ComicViewModel>>, source: SourceDB, sourceHttp: IHttpSource, type: String?, searchType: String? = null): Observable<List<ComicViewModel>> {
         return networkFetcher
-                .map { networkComics -> networkComics.map { networkToLocalComic(it, sourceHttp.id, type) } }
+                .map { networkComics ->
+                    val listToInsert = networkComics.map { networkToLocalComic(it, type) }
+                    comicsRepository.insertRealm(listToInsert, source.id)
+
+                    listToInsert
+                }
+                .doOnNext {
+                    if (searchType != null && searchType == ALL) {
+                        source.localStorageUpdated = true
+                        source.lastAllComicsUpdate = DateUtils.getDateToday()
+
+                        sourceRepository.insertSource(source).subscribe()
+                    }
+                }
     }
 
-    private fun networkToLocalComic(comicNetwork: ComicViewModel, sourceId: Long, type: String?) : ComicViewModel {
-        var comic = comicsRepository.findByPathUrlRealm(comicNetwork.pathLink!!, sourceId)
+    private fun networkToLocalComic(comicNetwork: ComicViewModel, type: String?) : ComicViewModel {
+        var tags: List<String>? = null
 
-        if (comic == null) {
-            var tags: List<String>? = null
-
-            when(type) {
-                IComic.POPULARS -> tags = listOf(IComic.POPULARS)
-                IComic.RECENTS -> tags = listOf(IComic.RECENTS)
-            }
-
-            comicNetwork.tags = tags
-            comicNetwork.inicialized = false
-
-            val newComic = comicsRepository.insertRealm(comicNetwork, sourceId)
-            comic = newComic
+        when(type) {
+            IComic.POPULARS -> tags = listOf(IComic.POPULARS)
+            IComic.RECENTS -> tags = listOf(IComic.RECENTS)
         }
 
-        return comic!!
+        comicNetwork.tags = tags
+        comicNetwork.inicialized = false
+
+        return comicNetwork
     }
 
     private fun getComicDetailsObservable(comic: ComicViewModel, sourceId: Long, httpSource: IHttpSource): Observable<ComicViewModel> {

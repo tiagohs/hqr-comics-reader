@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.dragger.modules
 
 import com.tiagohs.hqr.database.IComicsRepository
+import com.tiagohs.hqr.database.IDefaultModelsRepository
 import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
@@ -15,8 +16,8 @@ import dagger.Provides
 class InterceptorModule {
 
     @Provides
-    internal fun providerComicsInterceptor(preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository, sourceRepository: ISourceRepository, sourceManager: SourceManager): Contracts.IHomeInterceptor {
-        return HomeInterceptor(preferenceHelper, comicsRepository, sourceRepository, sourceManager)
+    internal fun providerComicsInterceptor(preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository, sourceRepository: ISourceRepository, sourceManager: SourceManager, defaultModelsRepository: IDefaultModelsRepository): Contracts.IHomeInterceptor {
+        return HomeInterceptor(preferenceHelper, comicsRepository, sourceRepository, sourceManager, defaultModelsRepository)
     }
 
     @Provides
@@ -35,7 +36,7 @@ class InterceptorModule {
     }
 
     @Provides
-    internal fun providerFavoritesInterceptor(preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository, historyRepository: IHistoryRepository, sourceManager: SourceManager, localeUtils: LocaleUtils): Contracts.IFavoritesInterceptor {
-        return FavoritesInterceptor(preferenceHelper, comicsRepository, historyRepository, sourceManager, localeUtils)
+    internal fun providerFavoritesInterceptor(preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository, historyRepository: IHistoryRepository, sourceManager: SourceManager, localeUtils: LocaleUtils, sourceRepository: ISourceRepository): Contracts.IFavoritesInterceptor {
+        return FavoritesInterceptor(preferenceHelper, comicsRepository, historyRepository, sourceRepository, sourceManager, localeUtils)
     }
 }

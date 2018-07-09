@@ -5,6 +5,7 @@ import android.os.Parcelable
 import com.tiagohs.hqr.helpers.tools.RealmUtils
 import com.tiagohs.hqr.models.base.IDefaultModel
 import com.tiagohs.hqr.models.database.DefaultModel
+import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Comic
 
 class DefaultModelView() : Parcelable {
@@ -12,28 +13,32 @@ class DefaultModelView() : Parcelable {
     var id: Long = -1L
     var name: String? = ""
     var pathLink: String? = ""
+    var type: String? = ""
+
+    var source: SourceDB? = null
 
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
         name = parcel.readString()
         pathLink = parcel.readString()
+        type = parcel.readString()
     }
 
-    fun create(other: IDefaultModel): DefaultModelView {
+    fun create(other: IDefaultModel, sourceDb: SourceDB?): DefaultModelView {
         val d = DefaultModelView()
-        d.copyFrom(other)
+        d.copyFrom(other, sourceDb)
 
         return d
     }
 
-    fun create(other: DefaultModelView): DefaultModelView {
+    fun create(other: DefaultModelView, sourceDb: SourceDB?): DefaultModelView {
         val d = DefaultModelView()
-        d.copyFrom(other)
+        d.copyFrom(other, sourceDb)
 
         return d
     }
 
-    fun copyFrom(other: IDefaultModel) {
+    fun copyFrom(other: IDefaultModel, sourceDb: SourceDB?) {
 
         if (other.id != -1L) {
             this.id = other.id
@@ -46,9 +51,17 @@ class DefaultModelView() : Parcelable {
         if (other.pathLink != null) {
             this.pathLink = other.pathLink
         }
+
+        if (other.type != null) {
+            this.type = other.type
+        }
+
+        if (sourceDb != null) {
+            this.source = sourceDb
+        }
     }
 
-    fun copyFrom(other: DefaultModelView) {
+    fun copyFrom(other: DefaultModelView, sourceDb: SourceDB?) {
 
         if (other.id != -1L) {
             this.id = other.id
@@ -60,6 +73,14 @@ class DefaultModelView() : Parcelable {
 
         if (other.pathLink != null) {
             this.pathLink = other.pathLink
+        }
+
+        if (other.type != null) {
+            this.type = other.type
+        }
+
+        if (sourceDb != null) {
+            this.source = sourceDb
         }
     }
 
@@ -73,6 +94,7 @@ class DefaultModelView() : Parcelable {
         parcel.writeLong(id)
         parcel.writeString(name)
         parcel.writeString(pathLink)
+        parcel.writeString(type)
     }
 
     override fun describeContents(): Int {
@@ -88,4 +110,6 @@ class DefaultModelView() : Parcelable {
             return arrayOfNulls(size)
         }
     }
+
+
 }

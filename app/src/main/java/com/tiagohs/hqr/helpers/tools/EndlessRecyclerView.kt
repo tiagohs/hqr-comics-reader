@@ -64,6 +64,17 @@ abstract class EndlessRecyclerView : RecyclerView.OnScrollListener {
 
     abstract fun onLoadMore(current_page: Int)
 
+    fun onReset() {
+        previousTotal = 0
+        loading = true
+        visibleThreshold = 5
+        firstVisibleItem = 0
+        visibleItemCount = 0
+        totalItemCount  = 0
+
+        current_page = 1
+    }
+
     companion object {
 
         var TAG = EndlessRecyclerView::class.java.simpleName

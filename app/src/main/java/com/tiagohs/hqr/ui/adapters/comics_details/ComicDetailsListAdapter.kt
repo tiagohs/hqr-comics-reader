@@ -21,6 +21,12 @@ class ComicDetailsListAdapter(
         return items.isEmpty()
     }
 
+    fun onAddMoreItems(items: List<ComicDetailsListItem>?) {
+        updateDataSet(items)
+
+        notifyDataSetChanged()
+    }
+
     fun onMenuClick(position: Int, menuItem: MenuItem) {
         listener.onMenuClick(position, menuItem)
     }

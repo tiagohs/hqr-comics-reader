@@ -27,7 +27,7 @@ class ComicHolder(
 
         comicTitle.text = comic.name
 
-        if (comic.posterPath != null && !comic.posterPath.isNullOrEmpty()) {
+        if (comicImage != null && !comic.posterPath.isNullOrEmpty()) {
             ImageUtils.load(comicImage,
                     comic.posterPath,
                     R.drawable.img_placeholder,

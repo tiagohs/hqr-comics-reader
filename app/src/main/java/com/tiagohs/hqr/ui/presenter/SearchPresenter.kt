@@ -11,6 +11,7 @@ import com.tiagohs.hqr.ui.adapters.comics.ComicItem
 import com.tiagohs.hqr.ui.contracts.SearchContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
 class SearchPresenter(
@@ -45,6 +46,11 @@ class SearchPresenter(
                 ))
     }
 
+    override fun onReset() {
+        mSubscribers.dispose()
+        mSubscribers = CompositeDisposable()
+    }
+
     override fun hasMoreComics(): Boolean {
         return interceptor.hasMoreComics()
     }
@@ -65,7 +71,7 @@ class SearchPresenter(
                     .map { it.map { it.toModel() } }
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
-                            { mView!!.onBindComics(it) },
+                            { mView!!.onBindMoreComics(it) },
                             { error -> Log.e("List", "Error", error) }
                     ))
         }

@@ -40,9 +40,12 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
     lateinit var layoutManager: RecyclerView.LayoutManager
 
     var listComicsAdapter: ComicsListAdapter? = null
+    var scrollListener: EndlessRecyclerView? = null
 
     var mQuery: String? = null
 
+    private var isSearch: Boolean = false
+    private var isSearching: Boolean = false
     private var timer = Timer()
     private val DELAY: Long = 2000
 
@@ -54,6 +57,8 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
         presenter.onBindView(this)
 
         onConfigureRecyclerView()
+
+        setViewInfomation()
     }
 
     override fun onDestroy() {
@@ -69,7 +74,8 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
         comicsListRecyclerView.layoutManager = layoutManager
         comicsListRecyclerView.adapter = listComicsAdapter
 
-        comicsListRecyclerView.addOnScrollListener(createOnScrollListener())
+        scrollListener = createOnScrollListener()
+        comicsListRecyclerView.addOnScrollListener(scrollListener)
         comicsListRecyclerView.setNestedScrollingEnabled(false)
 
         comicsListRecyclerView.layoutManager
@@ -77,6 +83,18 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
 
     override fun onBindComics(comics: List<ComicItem>?) {
         listComicsAdapter?.updateDataSet(comics)
+
+        isSearch = true
+        searchProgress.visibility = android.view.View.GONE
+
+        setViewInfomation(listComicsAdapter?.items?.isNotEmpty() ?: false)
+    }
+
+    override fun onBindMoreComics(comics: List<ComicItem>?) {
+        listComicsAdapter?.onAddMoreItems(comics)
+
+        isSearch = true
+        setViewInfomation(listComicsAdapter?.items?.isNotEmpty() ?: false)
     }
 
     override fun onBindItem(comic: ComicItem) {
@@ -116,7 +134,7 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
         return true
     }
 
-    private fun createOnScrollListener(): RecyclerView.OnScrollListener {
+    private fun createOnScrollListener(): EndlessRecyclerView {
         return object : EndlessRecyclerView(layoutManager) {
 
             override fun onLoadMore(current_page: Int) {
@@ -138,17 +156,53 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
     private fun onTextChange(query: String?): Boolean {
         mQuery = query
 
-        if (mQuery != null && mQuery!!.isNotEmpty()) {
+        if (!mQuery.isNullOrEmpty()) {
             timer.cancel()
             timer = Timer()
             timer.schedule( object : TimerTask() {
                 override fun run() {
+                    this@SearchActivity.runOnUiThread {
+                        onReset()
+
+                        isSearch = false
+                        isSearching = true
+                        searchProgress.visibility = android.view.View.VISIBLE
+
+                        setViewInfomation()
+                    }
+
+                    presenter.onReset()
                     presenter.onSearchComics(mQuery!!)
                 }
             }, DELAY)
+        } else {
+            onReset()
+
+            isSearch = false
+            isSearching = false
+
+            setViewInfomation()
         }
 
         return true
+    }
+
+    private fun onReset() {
+        listComicsAdapter?.clear()
+        listComicsAdapter?.notifyDataSetChanged()
+        scrollListener?.onReset()
+    }
+
+    private fun setViewInfomation(hasResults: Boolean = false) {
+
+        if (isSearch && !hasResults) {
+            searchEmptyView.show(R.drawable.ic_search_dont_found_grey_128dp, R.string.no_found)
+        } else if (isSearching) {
+            searchEmptyView.hide()
+        } else {
+            searchProgress.visibility = android.view.View.GONE
+            searchEmptyView.show(R.drawable.ic_search_eye_grey_128dp, R.string.search_info)
+        }
     }
 
 }

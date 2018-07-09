@@ -17,7 +17,7 @@ class SearchInterceptor(
         private val comicsRepository: IComicsRepository,
         private val sourceRepository: ISourceRepository,
         private val sourceManager: SourceManager
-): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager), Contracts.ISearchInterceptor {
+): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager, sourceRepository), Contracts.ISearchInterceptor {
 
     var listPaginator: ListPaginator<ComicViewModel>? = null
     var hasPageSuport = false
@@ -31,7 +31,11 @@ class SearchInterceptor(
                 .flatMap {
                     hasPageSuport = it.hasPageSupport
 
-                    sourceHttp!!.fetchSearchByQuery(query)
+                    if (it.localStorageUpdated) {
+                        comicsRepository.searchComic(query, sourceId)
+                    } else {
+                        sourceHttp!!.fetchSearchByQuery(query)
+                    }
                 }
                 .map { comics ->
                     listPaginator = ListPaginator()
@@ -53,7 +57,7 @@ class SearchInterceptor(
     }
 
     override fun onGetMore(): Observable<List<ComicViewModel>> {
-        return listPaginator!!.onGetNextPageComics()
+        return listPaginator!!.onGetNextPage()
                 .doOnNext { comics -> initializeComics(comics) }
     }
 

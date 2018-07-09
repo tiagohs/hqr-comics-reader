@@ -5,7 +5,6 @@ import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.ListPaginator
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
-import com.tiagohs.hqr.helpers.utils.DateUtils
 import com.tiagohs.hqr.interceptors.config.BaseComicsInterceptor
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.models.view_models.ComicViewModel
@@ -19,7 +18,7 @@ class ListComicsInterceptor(
         private val comicsRepository: IComicsRepository,
         private val sourceRepository: ISourceRepository,
         private val sourceManager: SourceManager
-): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager),
+): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager, sourceRepository),
         Contracts.IListComicsInterceptor {
 
     var listPaginator: ListPaginator<ComicViewModel>? = null
@@ -49,21 +48,7 @@ class ListComicsInterceptor(
     private fun onGetAllByFlag(fetcher: Observable<List<ComicViewModel>>, sourceHttp: IHttpSource, sourceId: Long): Observable<List<ComicViewModel>> {
         return sourceRepository.getSourceById(sourceId)
                 .observeOn(Schedulers.io())
-                .flatMap {
-                    hasPageSuport = it.hasPageSupport
-
-                    val observable = onGetComics(
-                                fetcher,
-                                comicsRepository.findAll(sourceId),
-                                it.lastAllComicsUpdate,
-                                it,
-                                sourceHttp)
-
-                    it.lastAllComicsUpdate = DateUtils.getDateToday()
-                    sourceRepository.insertSource(it).subscribe()
-
-                    observable
-                }
+                .flatMap { onGetComics( fetcher, comicsRepository.findAll(sourceId), it.lastAllComicsUpdate, it, sourceHttp, null, ALL) }
                 .map { comics ->
                     listPaginator = ListPaginator()
 
@@ -77,7 +62,7 @@ class ListComicsInterceptor(
     }
 
     override fun onGetMore(): Observable<List<ComicViewModel>> {
-        return listPaginator!!.onGetNextPageComics()
+        return listPaginator!!.onGetNextPage()
                                     .doOnNext { comics -> initializeComics(comics) }
     }
 

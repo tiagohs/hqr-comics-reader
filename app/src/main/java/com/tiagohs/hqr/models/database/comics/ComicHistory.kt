@@ -3,10 +3,13 @@ package com.tiagohs.hqr.models.database.comics
 import com.tiagohs.hqr.helpers.tools.RealmUtils
 import com.tiagohs.hqr.models.base.IComicHistory
 import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 
 open class ComicHistory: RealmObject(), IComicHistory {
 
+    @PrimaryKey
     override var id: Long = -1L
+
     override var lastTimeRead: String? = ""
     override var comic: Comic? = null
     override var chapter: Chapter? = null

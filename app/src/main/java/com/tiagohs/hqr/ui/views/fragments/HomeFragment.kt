@@ -134,8 +134,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     override fun onBindLastestUpdates(lastestUpdates: List<ComicItem>) {
-        lastestUpdatesAdapter = ComicsListAdapter(onLastestCallback())
-        lastestUpdatesAdapter?.updateDataSet(lastestUpdates)
+        lastestUpdatesAdapter = ComicsListAdapter(lastestUpdates, onLastestCallback())
 
         val lastestLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         lastestList.adapter = lastestUpdatesAdapter
@@ -156,8 +155,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     override fun onBindPopulars(populars: List<ComicItem>) {
-        popularComicsAdapter = ComicsListAdapter(onPopularsCallback())
-        popularComicsAdapter?.updateDataSet(populars)
+        popularComicsAdapter = ComicsListAdapter(populars, onPopularsCallback())
 
         popularList.adapter = popularComicsAdapter
 
@@ -229,11 +227,17 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     override fun onBindPopularItem(comic: ComicItem) {
-        getPopularHolder(comic)?.bind(comic)
+        val position = popularComicsAdapter?.indexOf(comic) ?: return
+
+        popularComicsAdapter?.updateItem(position, comic, null)
+        popularComicsAdapter?.notifyItemChanged(position)
     }
 
     override fun onBindLastestItem(comic: ComicItem) {
-        getLastestHolder(comic)?.bind(comic)
+        val position = lastestUpdatesAdapter?.indexOf(comic) ?: return
+
+        lastestUpdatesAdapter?.updateItem(position, comic, null)
+        lastestUpdatesAdapter?.notifyItemChanged(position)
     }
 
     private fun goToComicsListPage() {

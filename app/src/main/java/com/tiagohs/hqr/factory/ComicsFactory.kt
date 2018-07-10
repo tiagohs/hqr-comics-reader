@@ -3,38 +3,49 @@ package com.tiagohs.hqr.factory
 import com.tiagohs.hqr.helpers.tools.RealmUtils
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Comic
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.models.view_models.DefaultModelView
 import io.realm.Realm
 import io.realm.RealmList
 
 object ComicsFactory {
 
-    fun createComicViewModel(comicDb: Comic): ComicViewModel {
-        return ComicViewModel().create(comicDb)
+    fun createComicModelForRealm(comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
+        val realmObject = realm.createObject(Comic::class.java, RealmUtils.getDataId<Comic>(realm))
+
+        realmObject.apply {
+            copyFromComicViewModel(this, comicViewModel, source, realm)
+        }
+
+        return realmObject
     }
 
     fun copyFromComicViewModel(comic: Comic, comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
 
-        comic.inicialized = comicViewModel.inicialized
         comic.favorite = comicViewModel.favorite
 
-        if (comicViewModel.name != null) {
+        if (!comic.inicialized) {
+            comic.inicialized = comicViewModel.inicialized
+        }
+
+        if (!comicViewModel.name.isNullOrEmpty()) {
             comic.name = comicViewModel.name
         }
 
-        if (comicViewModel.posterPath != null) {
+        if (!comicViewModel.posterPath.isNullOrEmpty()) {
             comic.posterPath = comicViewModel.posterPath
         }
 
-        if (comicViewModel.pathLink != null) {
+        if (!comicViewModel.pathLink.isNullOrEmpty()) {
             comic.pathLink = comicViewModel.pathLink
         }
 
-        if (comicViewModel.summary != null) {
+        if (!comicViewModel.summary.isNullOrEmpty()) {
             comic.summary = comicViewModel.summary
         }
 
-        if (comicViewModel.publicationDate != null) {
+        if (!comicViewModel.publicationDate.isNullOrEmpty()) {
             comic.publicationDate = comicViewModel.publicationDate
         }
 
@@ -77,28 +88,88 @@ object ComicsFactory {
         return comic
     }
 
-    fun createComicModelForRealm(comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
-        return Comic().create().apply {
-            copyFromComicViewModel(this, comicViewModel, source, realm)
+    fun createComicViewModel(comicDb: Comic): ComicViewModel {
+        return ComicViewModel().apply {
+            if (comicDb.id != -1L) {
+                this.id = comicDb.id
+            }
+
+            if (!comicDb.name.isNullOrEmpty()) {
+                this.name = comicDb.name
+            }
+
+            if (!comicDb.pathLink.isNullOrEmpty()) {
+                this.pathLink = comicDb.pathLink
+            }
+
+            if (comicDb.source != null) {
+                this.source = SourceDB().create(comicDb.source!!)
+            }
+
+            if (!comicDb.posterPath.isNullOrEmpty()) {
+                this.posterPath = comicDb.posterPath
+            }
+
+            if (!comicDb.summary.isNullOrEmpty()) {
+                this.summary = comicDb.summary
+            }
+
+            if (!comicDb.publicationDate.isNullOrEmpty()) {
+                this.publicationDate = comicDb.publicationDate
+            }
+
+            if (comicDb.publisher != null && comicDb.publisher!!.isNotEmpty()) {
+                this.publisher = comicDb.publisher!!.map { DefaultModelView().create(it, source) }
+            }
+
+            if (comicDb.genres != null && comicDb.genres!!.isNotEmpty()) {
+                this.genres = comicDb.genres!!.map { DefaultModelView().create(it, source) }
+            }
+
+            if (comicDb.authors != null && comicDb.authors!!.isNotEmpty()) {
+                this.authors = comicDb.authors!!.map { DefaultModelView().create(it, source) }
+            }
+
+            if (comicDb.scanlators != null && comicDb.scanlators!!.isNotEmpty()) {
+                this.scanlators = comicDb.scanlators!!.map { DefaultModelView().create(it, source) }
+            }
+
+            if (comicDb.chapters != null && comicDb.chapters!!.isNotEmpty()) {
+                this.chapters = comicDb.chapters!!.toList().map { ChapterViewModel().create(it) }
+            }
+
+            if (comicDb.tags != null && comicDb.tags!!.isNotEmpty()) {
+                this.tags = comicDb.tags!!.toList()
+            }
+
+            if (!comicDb.lastUpdate.isNullOrEmpty()) {
+                this.lastUpdate = comicDb.lastUpdate
+            }
+
+            if (!comicDb.status.isNullOrEmpty()) {
+                this.status = comicDb.status
+            }
+
         }
     }
 
     fun createListOfComicModelFormRealm(comicViewModels: List<ComicViewModel>?, source: SourceDB?, realm: Realm): List<Comic> {
-        val comicDbList = ArrayList<Comic>()
-        var id = RealmUtils.getDataId<Comic>()
+        val list = ArrayList<Comic>()
 
         comicViewModels?.forEach {
+            val comicLocal = realm.where(Comic::class.java)
+                    .equalTo("source.id", source?.id)
+                    .equalTo("pathLink", it.pathLink)
+                    .findFirst()
 
-            val comic = createComicModelForRealm(it, source, realm)
-            comic.id = id
-            it.id = id
-
-            id++
-
-            comicDbList.add(realm.copyToRealmOrUpdate(comic) )
+            if (comicLocal == null) {
+                list.add( createComicModelForRealm(it, source, realm) )
+            } else {
+                list.add( realm.copyToRealmOrUpdate(comicLocal))
+            }
         }
 
-        return comicDbList
+        return list
     }
 
     fun createListOfComicViewModel(comicsDb: List<Comic>): List<ComicViewModel> {

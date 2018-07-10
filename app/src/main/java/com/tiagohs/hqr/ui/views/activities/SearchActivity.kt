@@ -69,7 +69,7 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
 
     private fun onConfigureRecyclerView() {
         layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        listComicsAdapter = ComicsListAdapter(this)
+        listComicsAdapter = ComicsListAdapter(emptyList(), this)
 
         comicsListRecyclerView.layoutManager = layoutManager
         comicsListRecyclerView.adapter = listComicsAdapter
@@ -98,7 +98,10 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
     }
 
     override fun onBindItem(comic: ComicItem) {
-        getHolder(comic)?.bind(comic)
+        val position = listComicsAdapter?.indexOf(comic) ?: return
+
+        listComicsAdapter?.updateItem(position, comic, null)
+        listComicsAdapter?.notifyItemChanged(position)
     }
 
     private fun getHolder(comic: ComicItem): ComicHolder? {

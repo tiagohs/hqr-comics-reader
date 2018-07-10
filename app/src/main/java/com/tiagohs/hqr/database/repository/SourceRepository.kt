@@ -9,6 +9,23 @@ import io.realm.Realm
 
 class SourceRepository() : BaseRepository(), ISourceRepository {
 
+    override fun insertSourceRealm(source: SourceDB): SourceDB {
+        val realm = Realm.getDefaultInstance()
+
+        try {
+            realm.executeTransaction { r -> r.insertOrUpdate(source) }
+
+            finishTransaction(realm)
+        } catch (ex: Exception) {
+            if (!realm.isClosed)
+                realm.close()
+
+            throw ex
+        }
+
+        return source
+    }
+
     override fun insertSource(sourceDB: SourceDB): Observable<SourceDB> {
         return insert(sourceDB)
     }

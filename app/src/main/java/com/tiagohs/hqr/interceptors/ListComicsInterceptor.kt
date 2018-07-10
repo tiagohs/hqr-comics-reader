@@ -48,22 +48,27 @@ class ListComicsInterceptor(
     private fun onGetAllByFlag(fetcher: Observable<List<ComicViewModel>>, sourceHttp: IHttpSource, sourceId: Long): Observable<List<ComicViewModel>> {
         return sourceRepository.getSourceById(sourceId)
                 .observeOn(Schedulers.io())
-                .flatMap { onGetComics( fetcher, comicsRepository.findAll(sourceId), it.lastAllComicsUpdate, it, sourceHttp, null, ALL) }
+                .flatMap { onGetComics( fetcher, comicsRepository.findAll(sourceId), null, it, sourceHttp, null, ALL) }
                 .map { comics ->
                     listPaginator = ListPaginator()
+                    var localComics = listPaginator!!.onCreatePagination(comics)
 
                     if (!hasPageSuport) {
-                        listPaginator!!.onCreatePagination(comics)
-                    } else
-                        comics
+                        localComics = listPaginator!!.onCreatePagination(comics)
+                    }
+
+                    comicsRepository.insertRealm(localComics, sourceId)!!
                 }
-                .doOnNext { comics ->
-                    initializeComics(comics) }
+                .doOnNext { comics -> initializeComics(comics) }
     }
 
     override fun onGetMore(): Observable<List<ComicViewModel>> {
         return listPaginator!!.onGetNextPage()
-                                    .doOnNext { comics -> initializeComics(comics) }
+                            .map { comics ->
+                                    val sourceId = preferenceHelper.currentSource().getOrDefault()
+                                    comicsRepository.insertRealm(comics, sourceId)!!
+                                }
+                                .doOnNext { comics -> initializeComics(comics) }
     }
 
     override fun hasPageSuport(): Boolean {

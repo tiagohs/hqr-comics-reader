@@ -37,18 +37,21 @@ class HomeInterceptor(
         return sourceRepository.getSourceById(sourceId)
                 .observeOn(Schedulers.io())
                 .flatMap {
-                    val observable = onGetComics(
+                    onGetComics(
                             sourceHttp?.fetchLastestComics()!!,
                             comicsRepository.getRecentsComics(sourceId),
                             it.lastLastestUpdate,
                             it,
                             sourceHttp,
                             IComic.RECENTS)
+                }
+                .doOnNext {
+                    val source = sourceRepository.getSourceByIdRealm(sourceId)
 
-                    it.lastLastestUpdate = DateUtils.getDateToday()
-                    sourceRepository.insertSource(it).subscribe()
-
-                    observable
+                    if (source != null) {
+                        source.lastLastestUpdate = DateUtils.getDateToday()
+                        sourceRepository.insertSource(source).subscribe()
+                    }
                 }
                 .map { comics ->
                     lastestPaginator = ListPaginator()
@@ -65,18 +68,21 @@ class HomeInterceptor(
         return sourceRepository.getSourceById(sourceId)
                 .observeOn(Schedulers.io())
                 .flatMap {
-                    val observable = onGetComics(
+                    onGetComics(
                             sourceHttp?.fetchPopularComics()!!,
                             comicsRepository.getPopularComics(sourceId),
                             it.lastPopularUpdate,
                             it,
                             sourceHttp,
                             IComic.POPULARS)
+                }
+                .doOnNext {
+                    val source = sourceRepository.getSourceByIdRealm(sourceId)
 
-                    it.lastPopularUpdate = DateUtils.getDateToday()
-                    sourceRepository.insertSource(it).subscribe()
-
-                    observable
+                    if (source != null) {
+                        source.lastPopularUpdate = DateUtils.getDateToday()
+                        sourceRepository.insertSource(source).subscribe()
+                    }
                 }
                 .map { comics ->
                     popularPaginator = ListPaginator()
@@ -106,7 +112,7 @@ class HomeInterceptor(
 
     private fun fetchFromNetwork(sourceHttp: IHttpSource?, sourceId: Long): Observable<List<DefaultModelView>> {
         return sourceHttp?.fetchPublishers()!!
-                .doOnNext { defaultModelRepository.insertRealm(it, sourceId) }
+                .map { defaultModelRepository.insertRealm(it, sourceId) }
     }
 
     override fun onGetMorePublishers(): Observable<List<DefaultModelView>> {

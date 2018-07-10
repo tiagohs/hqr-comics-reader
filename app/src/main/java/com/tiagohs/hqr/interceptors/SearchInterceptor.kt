@@ -31,34 +31,28 @@ class SearchInterceptor(
                 .flatMap {
                     hasPageSuport = it.hasPageSupport
 
-                    if (it.localStorageUpdated) {
-                        comicsRepository.searchComic(query, sourceId)
-                    } else {
-                        sourceHttp!!.fetchSearchByQuery(query)
-                    }
+                    sourceHttp!!.fetchSearchByQuery(query)
                 }
                 .map { comics ->
                     listPaginator = ListPaginator()
-                    val filterComics = comics.map {
-                        val comicLocal = comicsRepository.findByPathUrlRealm(it.pathLink!!, sourceId)
-
-                        if (comicLocal != null && it.inicialized)
-                            comicLocal
-                        else
-                            it
-                    }
+                    var localComics = listPaginator!!.onCreatePagination(comics)
 
                     if (!hasPageSuport) {
-                        listPaginator!!.onCreatePagination(filterComics)
-                    } else
-                        filterComics
+                        localComics = listPaginator!!.onCreatePagination(comics)
+                    }
+
+                    comicsRepository.insertRealm(localComics, sourceId)!!
                 }
                 .doOnNext { comics -> initializeComics(comics) }
     }
 
     override fun onGetMore(): Observable<List<ComicViewModel>> {
         return listPaginator!!.onGetNextPage()
-                .doOnNext { comics -> initializeComics(comics) }
+                            .map { comics ->
+                                val sourceId = preferenceHelper.currentSource().getOrDefault()
+                                comicsRepository.insertRealm(comics, sourceId)!!
+                            }
+                            .doOnNext { comics -> initializeComics(comics) }
     }
 
     override fun hasPageSuport(): Boolean {

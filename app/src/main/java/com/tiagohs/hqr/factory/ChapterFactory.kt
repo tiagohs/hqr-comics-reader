@@ -10,13 +10,13 @@ import io.realm.RealmList
 object ChapterFactory {
 
     fun createChapterForRealm(chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
-        return Chapter().create().apply {
-            copyFromChapterViewModel(this, chapterViewModel, comic, realm)
+        val realmObject = realm.createObject(Chapter::class.java, RealmUtils.getDataId<Chapter>(realm))
 
-            if (chapterViewModel.chapterPath != null) {
-                this.chapterPath = chapterViewModel.chapterPath!!
-            }
+        realmObject.apply {
+            copyFromChapterViewModel(this, chapterViewModel, comic, realm)
         }
+
+        return realmObject
     }
 
     fun copyFromChapterViewModel(chapter: Chapter, chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
@@ -37,15 +37,18 @@ object ChapterFactory {
 
     fun createListOfChaptersFormRealm(listNetwork: List<ChapterViewModel>?, comic: Comic,  realm: Realm): RealmList<Chapter> {
         val list = RealmList<Chapter>()
-        var id = RealmUtils.getDataId<Chapter>()
 
         listNetwork?.forEach {
-            val chapter = createChapterForRealm(it, comic, realm)
-            chapter.id = id++
-            it.id = id++
+            val chapterLocal = realm.where(Chapter::class.java)
+                    .equalTo("comic.pathLink", comic.pathLink)
+                    .equalTo("chapterPath", it.chapterPath)
+                    .findFirst()
 
-            id++
-            list.add(realm.copyToRealmOrUpdate(chapter) )
+            if (chapterLocal == null) {
+                list.add( createChapterForRealm(it, comic, realm) )
+            } else {
+                list.add( realm.copyToRealmOrUpdate(chapterLocal) )
+            }
         }
 
         return list

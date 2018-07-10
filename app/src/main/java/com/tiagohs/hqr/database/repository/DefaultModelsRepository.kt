@@ -51,10 +51,18 @@ class DefaultModelsRepository(
 
     override fun insertRealm(defaultModelViewList: List<DefaultModelView>, sourceId: Long): List<DefaultModelView> {
         val realm = Realm.getDefaultInstance()
+        var defaultModelLocal: List<DefaultModel>? = null
+        var defaultModelViewFinal: List<DefaultModelView>? = null
+
+        val source: SourceDB? = sourceRepository.getSourceByIdRealm(sourceId)
 
         try {
-            val source: SourceDB? = sourceRepository.getSourceByIdRealm(sourceId)
-            realm.executeTransaction { r -> r.insertOrUpdate(DefaultModelFactory.createListOfDefaultModelForRealm(defaultModelViewList, source!!, r)) }
+            realm.executeTransaction { r ->
+                defaultModelLocal = DefaultModelFactory.createListOfDefaultModelForRealm(defaultModelViewList, source!!, r)
+                r.insertOrUpdate(defaultModelLocal)
+
+                defaultModelViewFinal = DefaultModelFactory.createListOfDefaultModelView(defaultModelLocal, source)
+            }
 
             finishTransaction(realm)
         } catch (ex: Exception) {
@@ -64,7 +72,7 @@ class DefaultModelsRepository(
             throw ex
         }
 
-        return defaultModelViewList
+        return defaultModelViewFinal!!
     }
 
     override fun insertOrUpdateComic(defaultModelView: DefaultModelView, sourceId: Long): Observable<DefaultModelView> {

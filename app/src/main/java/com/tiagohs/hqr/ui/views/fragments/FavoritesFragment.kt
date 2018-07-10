@@ -76,7 +76,10 @@ class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IFavo
     }
 
     override fun onBindItem(comic: ComicDetailsListItem) {
-        getHolder(comic)?.bind(comic)
+        val position = adapter?.indexOf(comic) ?: return
+
+        adapter?.updateItem(position, comic, null)
+        adapter?.notifyItemChanged(position)
     }
 
     private fun getHolder(comic: ComicDetailsListItem): ComicDetailsListHolder? {

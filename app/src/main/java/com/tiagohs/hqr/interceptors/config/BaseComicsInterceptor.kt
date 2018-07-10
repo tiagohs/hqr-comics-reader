@@ -26,8 +26,8 @@ abstract class BaseComicsInterceptor(
 
     companion object {
         const val POPULAR = "POPULAR"
-        const val LASTEST = "POPULAR"
-        const val ALL = "POPULAR"
+        const val LASTEST = "LASTEST"
+        const val ALL = "ALL"
     }
 
     private val comicDetailSubject = PublishSubject.create<List<ComicViewModel>>()
@@ -76,18 +76,13 @@ abstract class BaseComicsInterceptor(
     private fun fetchComicsFromNetwork(networkFetcher: Observable<List<ComicViewModel>>, source: SourceDB, sourceHttp: IHttpSource, type: String?, searchType: String? = null): Observable<List<ComicViewModel>> {
         return networkFetcher
                 .map { networkComics ->
-                    val listToInsert = networkComics.map { networkToLocalComic(it, type) }
-                    comicsRepository.insertRealm(listToInsert, source.id)
+                    var listToInsert: List<ComicViewModel>? = networkComics.map { networkToLocalComic(it, type) }
+
+                    if (type == IComic.POPULARS || type == IComic.RECENTS) {
+                        listToInsert = comicsRepository.insertRealm(listToInsert!!, source.id)
+                    }
 
                     listToInsert
-                }
-                .doOnNext {
-                    if (searchType != null && searchType == ALL) {
-                        source.localStorageUpdated = true
-                        source.lastAllComicsUpdate = DateUtils.getDateToday()
-
-                        sourceRepository.insertSource(source).subscribe()
-                    }
                 }
     }
 
@@ -109,6 +104,7 @@ abstract class BaseComicsInterceptor(
         return httpSource.fetchComicDetails(comic.pathLink!!)
                 .flatMap { networkComic ->
                     networkComic.inicialized = true
+
                     comicsRepository.insertOrUpdateComic(networkComic, sourceId)
                 }
                 .doOnNext { Observable.just(it) }

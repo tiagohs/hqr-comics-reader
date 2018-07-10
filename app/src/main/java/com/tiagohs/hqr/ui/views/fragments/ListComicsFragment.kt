@@ -8,7 +8,6 @@ import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
 import com.tiagohs.hqr.models.view_models.*
-import com.tiagohs.hqr.ui.adapters.comics.ComicHolder
 import com.tiagohs.hqr.ui.adapters.comics.ComicItem
 import com.tiagohs.hqr.ui.adapters.comics.ComicsListAdapter
 import com.tiagohs.hqr.ui.callbacks.IComicListCallback
@@ -101,7 +100,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     override fun onBindComics(comics: List<ComicItem>?) {
         layoutManager = GridLayoutManager(context, ScreenUtils.calculateNoOfColumns(context, 120))
 
-        listComicsAdapter = ComicsListAdapter( this)
+        listComicsAdapter = ComicsListAdapter( comics!!, this)
         listComicsAdapter?.updateDataSet(comics)
 
         comicsList.layoutManager = layoutManager
@@ -117,11 +116,10 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     }
 
     override fun onBindItem(comic: ComicItem) {
-        getHolder(comic)?.bind(comic)
-    }
+        val position = listComicsAdapter?.indexOf(comic) ?: return
 
-    private fun getHolder(comic: ComicItem): ComicHolder? {
-        return comicsList?.findViewHolderForItemId(comic.comic.id) as? ComicHolder
+        listComicsAdapter?.updateItem(position, comic, null)
+        listComicsAdapter?.notifyItemChanged(position)
     }
 
     private fun createOnScrollListener(): RecyclerView.OnScrollListener {

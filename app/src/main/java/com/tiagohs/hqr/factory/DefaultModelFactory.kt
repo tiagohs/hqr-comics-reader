@@ -10,24 +10,13 @@ import io.realm.RealmList
 object DefaultModelFactory {
 
     fun createDefaultModelForRealm(defaultModel: DefaultModelView, sourceDB: SourceDB?, realm: Realm): DefaultModel {
-        return DefaultModel().create().apply {
+        val realmObject = realm.createObject(DefaultModel::class.java, RealmUtils.getDataId<DefaultModel>(realm))
 
-            if (defaultModel.name != null) {
-                this.name = defaultModel.name
-            }
-
-            if (defaultModel.pathLink != null) {
-                this.pathLink = defaultModel.pathLink
-            }
-
-            if (defaultModel.type != null) {
-                this.type = defaultModel.type
-            }
-
-            if (sourceDB != null) {
-                this.source = realm.copyToRealmOrUpdate(sourceDB)
-            }
+        realmObject.apply {
+            copyFromDefaultModelView(this, defaultModel, sourceDB, realm)
         }
+
+        return realmObject
     }
 
     fun copyFromDefaultModelView(defaultModel: DefaultModel, other: DefaultModelView, sourceDB: SourceDB?, realm: Realm): DefaultModel {
@@ -37,7 +26,7 @@ object DefaultModelFactory {
         }
 
         if (other.pathLink != null) {
-            defaultModel.pathLink = defaultModel.pathLink
+            defaultModel.pathLink = other.pathLink
         }
 
         if (other.type != null) {
@@ -51,20 +40,22 @@ object DefaultModelFactory {
         return defaultModel
     }
 
-    fun createListOfDefaultModelForRealm(list: List<DefaultModelView>?, sourceDB: SourceDB?, realm: Realm): RealmList<DefaultModel> {
-        val realmList = RealmList<DefaultModel>()
-        var id = RealmUtils.getDataId<DefaultModel>()
+    fun createListOfDefaultModelForRealm(defaultModelList: List<DefaultModelView>?, source: SourceDB?, realm: Realm): RealmList<DefaultModel> {
+        val list = RealmList<DefaultModel>()
 
-        list?.forEach {
-            val defaultModel = createDefaultModelForRealm(it, sourceDB, realm)
-            defaultModel.id = id
-            it.id = id
+        defaultModelList?.forEach {
+            val defaultModelLocal = realm.where(DefaultModel::class.java)
+                    .equalTo("pathLink", it.pathLink)
+                    .findFirst()
 
-            id++
-            realmList.add(realm.copyToRealmOrUpdate(defaultModel) )
+            if (defaultModelLocal == null) {
+                list.add( createDefaultModelForRealm(it, source, realm) )
+            } else {
+                list.add( realm.copyToRealmOrUpdate(defaultModelLocal) )
+            }
         }
 
-        return realmList
+        return list
     }
 
     fun createListOfDefaultModelView(listDb: List<DefaultModel>?, sourceDB: SourceDB?): List<DefaultModelView> {

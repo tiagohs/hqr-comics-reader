@@ -14,6 +14,7 @@ open class Comic: RealmObject(), IComic {
 
     @PrimaryKey
     override var id: Long = -1L
+
     override var name: String? = ""
     override var pathLink: String? = ""
     override var posterPath: String? = ""

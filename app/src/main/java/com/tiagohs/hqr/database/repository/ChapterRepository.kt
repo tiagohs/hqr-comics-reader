@@ -14,10 +14,11 @@ class ChapterRepository: BaseRepository(), IChapterRepository {
         val realm = Realm.getDefaultInstance()
 
         var chapter: ChapterViewModel? = null
+
         try {
             chapter = find(realm, realm.where(Chapter::class.java)
-                    .equalTo("chapterPath", pathLink)
-                    .equalTo("comic.id", comicId))
+                                .equalTo("chapterPath", pathLink)
+                                .equalTo("comic.id", comicId))
         } catch (ex: Exception) {
             if (!realm.isClosed)
                 realm.close()
@@ -32,7 +33,7 @@ class ChapterRepository: BaseRepository(), IChapterRepository {
 
             try {
                 val results = findAll(realm, realm.where(Chapter::class.java)
-                                                .equalTo("comic.id", comicId))
+                                                                    .equalTo("comic.id", comicId))
 
                 if (results != null) {
                     emitter.onNext(results)

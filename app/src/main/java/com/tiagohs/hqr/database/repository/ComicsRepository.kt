@@ -4,6 +4,7 @@ import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.factory.ComicsFactory
 import com.tiagohs.hqr.factory.ComicsFactory.createListOfComicModelFormRealm
+import com.tiagohs.hqr.factory.ComicsFactory.createListOfComicViewModel
 import com.tiagohs.hqr.models.base.IComic
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.database.comics.Chapter
@@ -25,6 +26,7 @@ class ComicsRepository(
         try {
             val source: SourceDB? = sourceRepository.getSourceByIdRealm(sourceId)
             var result = realm.where(Comic::class.java)
+                                      .equalTo("source.id", sourceId)
                                       .equalTo("pathLink", comic.pathLink)
                                       .findFirst()
 
@@ -53,10 +55,18 @@ class ComicsRepository(
 
     override fun insertRealm(comics: List<ComicViewModel>, sourceId: Long): List<ComicViewModel>? {
         val realm = Realm.getDefaultInstance()
+        var comicsLocal: List<Comic>?
+        var comicsLocalFinal: List<ComicViewModel>? = null
 
         try {
             val source: SourceDB? = sourceRepository.getSourceByIdRealm(sourceId)
-            realm.executeTransaction { r -> r.insertOrUpdate(createListOfComicModelFormRealm(comics, source!!, r)) }
+            realm.executeTransaction { r ->
+                comicsLocal = createListOfComicModelFormRealm(comics, source!!, r)
+
+                r.insertOrUpdate(comicsLocal)
+
+                comicsLocalFinal = createListOfComicViewModel(comicsLocal!!)
+            }
 
             finishTransaction(realm)
         } catch (ex: Exception) {
@@ -66,7 +76,7 @@ class ComicsRepository(
             throw ex
         }
 
-        return comics
+        return comicsLocalFinal
     }
 
     override fun findByPathUrlRealm(pathLink: String, sourceId: Long): ComicViewModel? {
@@ -195,7 +205,7 @@ class ComicsRepository(
 
                 emitter.onNext(findAllComics(realm, realm.where(Comic::class.java)
                         .equalTo("source.id", sourceId) )
-                        .filter { it.tags!!.contains(tag) })
+                        .filter { it.tags?.contains(tag) ?: false })
 
                 emitter.onComplete()
             } catch (ex: Exception) {

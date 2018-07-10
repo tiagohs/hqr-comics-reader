@@ -28,27 +28,6 @@ object HistoryFactory {
         }
     }
 
-    fun createComicHistoryViewModel(comicHistory: ComicHistory): ComicHistoryViewModel {
-        return ComicHistoryViewModel().create(comicHistory)
-    }
-
-    fun createListOfComicHistoryForRealm(listViewModel: List<ComicHistoryViewModel>?, realm: Realm): List<ComicHistory> {
-        val comicHistory = ArrayList<ComicHistory>()
-
-        if (listViewModel != null) {
-            comicHistory.addAll( listViewModel.map { createComicHistoryForRealm(it, realm) })
-        }
-
-        return comicHistory
-    }
-
-    fun createListOfChapterViewModel(comicHistoryDb: List<ComicHistory>): List<ComicHistoryViewModel> {
-        val comicHistory = ArrayList<ComicHistoryViewModel>()
-        comicHistory.addAll(comicHistoryDb.map { createComicHistoryViewModel(it) })
-
-        return comicHistory
-    }
-
     fun copyFromComicHistoryViewModel(comicHistoryViewModel: ComicHistoryViewModel, realm: Realm): ComicHistory {
         return ComicHistory().apply {
 
@@ -65,5 +44,16 @@ object HistoryFactory {
             }
 
         }
+    }
+
+    fun createComicHistoryViewModel(comicHistory: ComicHistory): ComicHistoryViewModel {
+        return ComicHistoryViewModel().create(comicHistory)
+    }
+
+    fun createListOfChapterViewModel(comicHistoryDb: List<ComicHistory>): List<ComicHistoryViewModel> {
+        val comicHistory = ArrayList<ComicHistoryViewModel>()
+        comicHistory.addAll(comicHistoryDb.map { createComicHistoryViewModel(it) })
+
+        return comicHistory
     }
 }

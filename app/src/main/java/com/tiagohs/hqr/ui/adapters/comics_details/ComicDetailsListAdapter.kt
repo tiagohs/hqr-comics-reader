@@ -21,6 +21,11 @@ class ComicDetailsListAdapter(
         return items.isEmpty()
     }
 
+    fun indexOf(item: ComicDetailsListItem): Int {
+        return items.indexOf(item)
+    }
+
+
     fun onAddMoreItems(items: List<ComicDetailsListItem>?) {
         updateDataSet(items)
 

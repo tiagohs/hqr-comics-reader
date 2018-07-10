@@ -83,11 +83,11 @@ class ComicViewModel() : Parcelable {
             this.id = other.id
         }
 
-        if (other.name != null) {
+        if (!other.name.isNullOrEmpty()) {
             this.name = other.name
         }
 
-        if (other.pathLink != null) {
+        if (!other.pathLink.isNullOrEmpty()) {
             this.pathLink = other.pathLink
         }
 
@@ -95,15 +95,15 @@ class ComicViewModel() : Parcelable {
             this.source = SourceDB().create(other.source!!)
         }
 
-        if (other.posterPath != null) {
+        if (!other.posterPath.isNullOrEmpty()) {
             this.posterPath = other.posterPath
         }
 
-        if (other.summary != null) {
+        if (!other.summary.isNullOrEmpty()) {
             this.summary = other.summary
         }
 
-        if (other.publicationDate != null) {
+        if (!other.publicationDate.isNullOrEmpty()) {
             this.publicationDate = other.publicationDate
         }
 
@@ -131,15 +131,18 @@ class ComicViewModel() : Parcelable {
             this.tags = other.tags!!.toList()
         }
 
-        if (other.lastUpdate != null) {
+        if (!other.lastUpdate.isNullOrEmpty()) {
             this.lastUpdate = other.lastUpdate
         }
 
-        if (other.status != null) {
+        if (!other.status.isNullOrEmpty()) {
             this.status = other.status
         }
 
-        this.inicialized = other.inicialized
+        if (!other.inicialized) {
+            this.inicialized = other.inicialized
+        }
+
         this.favorite = other.favorite
 
     }
@@ -150,11 +153,11 @@ class ComicViewModel() : Parcelable {
             this.id = other.id
         }
 
-        if (other.name != null) {
+        if (!other.name.isNullOrEmpty()) {
             this.name = other.name
         }
 
-        if (other.pathLink != null) {
+        if (!other.pathLink.isNullOrEmpty()) {
             this.pathLink = other.pathLink
         }
 
@@ -162,19 +165,15 @@ class ComicViewModel() : Parcelable {
             this.source = other.source
         }
 
-        if (other.posterPath != null) {
+        if (!other.posterPath.isNullOrEmpty()) {
             this.posterPath = other.posterPath
         }
 
-        if (other.status != null) {
-            this.status = other.status
-        }
-
-        if (other.summary != null) {
+        if (!other.summary.isNullOrEmpty()) {
             this.summary = other.summary
         }
 
-        if (other.publicationDate != null) {
+        if (!other.publicationDate.isNullOrEmpty()) {
             this.publicationDate = other.publicationDate
         }
 
@@ -198,7 +197,7 @@ class ComicViewModel() : Parcelable {
             this.chapters = other.chapters!!.toList()
         }
 
-        if (other.lastUpdate != null) {
+        if (!other.lastUpdate.isNullOrEmpty()) {
             this.lastUpdate = other.lastUpdate
         }
 

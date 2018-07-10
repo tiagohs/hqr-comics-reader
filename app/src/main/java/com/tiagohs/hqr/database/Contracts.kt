@@ -13,6 +13,7 @@ interface ISourceRepository {
 
     fun getSourceByIdRealm(sourceId: Long): SourceDB?
 
+    fun insertSourceRealm(source: SourceDB): SourceDB
     fun insertSource(sourceDB: SourceDB): Observable<SourceDB>
     fun getAllSources(): Observable<List<SourceDB>?>
     fun getAllCatalogueSources(): Observable<List<CatalogueSource>?>

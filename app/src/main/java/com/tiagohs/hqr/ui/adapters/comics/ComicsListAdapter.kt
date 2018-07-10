@@ -5,9 +5,8 @@ import com.tiagohs.hqr.ui.callbacks.IComicListCallback
 import eu.davidea.flexibleadapter.FlexibleAdapter
 
 class ComicsListAdapter(
-        private val listener: IComicListCallback) : FlexibleAdapter<ComicItem>(null, listener, true) {
-
-    var items: List<ComicItem> = emptyList()
+        var items: List<ComicItem>,
+        private val listener: IComicListCallback) : FlexibleAdapter<ComicItem>(items, listener, true) {
 
     override fun updateDataSet(items: List<ComicItem>?) {
         this.items = items ?: emptyList()
@@ -20,10 +19,12 @@ class ComicsListAdapter(
         super.clear()
     }
 
+    fun indexOf(item: ComicItem): Int {
+        return items.indexOf(item)
+    }
+
     fun onAddMoreItems(items: List<ComicItem>?) {
         updateDataSet(items)
-
-        notifyDataSetChanged()
     }
 
     override fun isEmpty(): Boolean {

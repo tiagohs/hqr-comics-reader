@@ -15,10 +15,8 @@ open class SourceDB: ISource,  RealmObject() {
     override var language: String = ""
 
     override var hasPageSupport: Boolean = false
-    override var localStorageUpdated: Boolean = false
     override var hasThumbnailSupport: Boolean = false
 
-    override var lastAllComicsUpdate: String? = null
     override var lastPopularUpdate: String? = null
     override var lastLastestUpdate: String? = null
 

@@ -19,7 +19,7 @@ class ComicsRepository(
         private val sourceRepository: ISourceRepository
 ): BaseRepository(), IComicsRepository {
 
-    override fun insertRealm(comic: ComicViewModel, sourceId: Long): ComicViewModel? {
+    override fun insertRealm(comic: ComicViewModel, sourceId: Long, skipFavorite: Boolean?): ComicViewModel? {
         val realm = Realm.getDefaultInstance()
         val localComic = ComicViewModel()
 
@@ -32,7 +32,7 @@ class ComicsRepository(
 
             realm.executeTransaction { r ->
                 if (result != null) {
-                    result = ComicsFactory.copyFromComicViewModel(result!!, comic, source!!, r)
+                    result = ComicsFactory.copyFromComicViewModel(result!!, comic, source!!, r, skipFavorite)
                 } else {
                     result = ComicsFactory.createComicModelForRealm(comic, source, r)
                 }
@@ -108,9 +108,9 @@ class ComicsRepository(
         return isFavorite != null
     }
 
-    override fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel> {
+    override fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long, skipFavorite: Boolean?): Observable<ComicViewModel> {
         return sourceRepository.getSourceById(sourceId)
-                .map { source -> insertRealm(comic, sourceId) }
+                .map { source -> insertRealm(comic, sourceId, skipFavorite) }
     }
 
     override fun insertOrUpdateComics(comics: List<ComicViewModel>, sourceId: Long): Observable<List<ComicViewModel>> {
@@ -139,7 +139,7 @@ class ComicsRepository(
         return sourceRepository.getSourceById(sourceId)
                 .map { source ->
                     comic.favorite = !comic.favorite
-                    insertRealm(comic, sourceId)
+                    insertRealm(comic, sourceId, false)
                 }
     }
 

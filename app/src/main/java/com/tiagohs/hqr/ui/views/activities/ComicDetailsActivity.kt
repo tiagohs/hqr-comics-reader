@@ -153,6 +153,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     }
 
     override fun onConfigureFavoriteBtn(comic: ComicViewModel) {
+        addToFavBtn.visibility = View.VISIBLE
         com.tiagohs.hqr.helpers.utils.AnimationUtils.createScaleButtonAnimation(addToFavBtn)
 
         addToFavBtn.isChecked = comic.favorite

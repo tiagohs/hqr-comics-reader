@@ -39,12 +39,12 @@ interface IDefaultModelsRepository {
 
 interface IComicsRepository {
 
-    fun insertRealm(comic: ComicViewModel, sourceId: Long): ComicViewModel?
+    fun insertRealm(comic: ComicViewModel, sourceId: Long, skipFavorite: Boolean?): ComicViewModel?
     fun insertRealm(comics: List<ComicViewModel>, sourceId: Long): List<ComicViewModel>?
     fun findByPathUrlRealm(pathLink: String, sourceId: Long): ComicViewModel?
     fun findByIdRealm(comicId: Long): ComicViewModel?
 
-    fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>
+    fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long, skipFavorite: Boolean? = false): Observable<ComicViewModel>
     fun insertOrUpdateComics(comics: List<ComicViewModel>, sourceId: Long): Observable<List<ComicViewModel>>
 
     fun searchComic(query: String, sourceId: Long): Observable<List<ComicViewModel>>

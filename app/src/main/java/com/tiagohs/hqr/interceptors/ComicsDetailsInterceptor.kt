@@ -39,7 +39,7 @@ class ComicsDetailsInterceptor(
         return sourceHttp.fetchComicDetails(comicPath)
                 .map {
                     it.inicialized = true
-                    comicsRepository.insertRealm(it, sourceId)
+                    comicsRepository.insertRealm(it, sourceId, true)
                 }
     }
 

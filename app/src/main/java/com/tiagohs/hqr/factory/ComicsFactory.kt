@@ -70,12 +70,16 @@ object ComicsFactory {
             if (comicViewModel.tags != null && comicViewModel.tags!!.isNotEmpty()) {
                 this.tags = createListOfTagsForRealm(comicViewModel.tags)
             }
+
+            if (!this.inicialized) {
+                this.favorite = comicViewModel.favorite
+            }
         }
 
         return realmObject
     }
 
-    fun copyFromComicViewModel(comic: Comic, comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
+    fun copyFromComicViewModel(comic: Comic, comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm, skipFavorite: Boolean?): Comic {
 
         if (!comicViewModel.name.isNullOrEmpty()) {
             comic.name = comicViewModel.name
@@ -133,7 +137,10 @@ object ComicsFactory {
             comic.tags = createListOfTagsForRealm(comicViewModel.tags)
         }
 
-        comic.favorite = comicViewModel.favorite
+        if (!skipFavorite!!) {
+            comic.favorite = comicViewModel.favorite
+        }
+
         comic.inicialized = comicViewModel.inicialized
 
         return comic

@@ -66,8 +66,12 @@ class ImageUtils {
 
             request!!.into(imageView, object: Callback {
                 override fun onSuccess() {
-                    if (!(context as Activity).isDestroyed) {
-                        AnimationUtils.createShowCircularReveal(imageView)
+                    try {
+                        if (!(context as Activity).isDestroyed) {
+                            AnimationUtils.createShowCircularReveal(imageView)
+                        }
+                    } catch(ex: Exception) {
+                        imageView.visibility = View.VISIBLE
                     }
                 }
 

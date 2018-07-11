@@ -18,5 +18,8 @@ class ReaderContract {
         fun onCreate()
         fun onGetChapterDetails(comicPath: String, chapterPath: String, updateDataSet: Boolean = false)
         fun onRequestNextChapter()
+
+        fun onTrackUserHistory(page: Page)
+        fun onSaveUserHistory()
     }
 }

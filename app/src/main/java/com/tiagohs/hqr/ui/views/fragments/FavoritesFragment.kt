@@ -12,14 +12,14 @@ import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListAdapter
 import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListHolder
 import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListItem
-import com.tiagohs.hqr.ui.callbacks.IFavoritesCallback
+import com.tiagohs.hqr.ui.callbacks.IComicDetailsListCallback
 import com.tiagohs.hqr.ui.contracts.FavoritesContract
 import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
 import kotlinx.android.synthetic.main.fragment_favorites.*
 import javax.inject.Inject
 
-class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IFavoritesCallback {
+class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IComicDetailsListCallback {
 
     companion object {
         fun newFragment(): FavoritesFragment = FavoritesFragment()

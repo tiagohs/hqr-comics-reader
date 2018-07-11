@@ -29,7 +29,10 @@ interface IChapter{
             this.comic = other.comic
         }
 
-        this.lastPageRead = other.lastPageRead
+        if (other.lastPageRead != -1) {
+            this.lastPageRead = other.lastPageRead
+        }
+
     }
 
 }

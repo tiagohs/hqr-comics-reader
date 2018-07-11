@@ -29,8 +29,11 @@ object ChapterFactory {
             chapter.chapterPath = chapterViewModel.chapterPath
         }
 
+        if (chapterViewModel.lastPageRead != -1) {
+            chapter.lastPageRead = chapterViewModel.lastPageRead
+        }
+
         chapter.comic = realm.copyToRealmOrUpdate(comic)
-        chapter.lastPageRead = chapterViewModel.lastPageRead
 
         return chapter
     }

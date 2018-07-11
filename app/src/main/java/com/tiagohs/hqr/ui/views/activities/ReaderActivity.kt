@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -84,7 +85,14 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     override fun onDestroy() {
         super.onDestroy()
 
+        presenter.onSaveUserHistory()
         presenter.onUnbindView()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        presenter
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

@@ -42,4 +42,5 @@ interface HQRComponent {
     fun inject(favoritesFragment: FavoritesFragment)
     fun inject(rootActivity: RootActivity)
     fun inject(notificationReceiver: NotificationReceiver)
+    fun inject(recentFragment: RecentFragment)
 }

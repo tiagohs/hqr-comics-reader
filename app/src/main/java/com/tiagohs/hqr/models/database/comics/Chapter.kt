@@ -12,7 +12,7 @@ open class Chapter: RealmObject(), IChapter {
 
     override var chapterName: String? = ""
     override var chapterPath: String? = ""
-    override var lastPageRead: Int = 0
+    override var lastPageRead: Int = -1
 
     override var comic: Comic? = null
 

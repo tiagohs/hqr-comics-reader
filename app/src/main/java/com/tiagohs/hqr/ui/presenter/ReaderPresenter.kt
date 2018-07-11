@@ -4,17 +4,19 @@ import android.content.Context
 import android.util.Log
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
-import com.tiagohs.hqr.database.IChapterRepository
 import com.tiagohs.hqr.database.IComicsRepository
+import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.download.DownloadProvider
 import com.tiagohs.hqr.helpers.extensions.saveTo
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.RetryWithDelay
 import com.tiagohs.hqr.helpers.tools.getOrDefault
+import com.tiagohs.hqr.helpers.utils.DateUtils
 import com.tiagohs.hqr.helpers.utils.DiskUtils
 import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
+import com.tiagohs.hqr.models.view_models.ComicHistoryViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.ReaderChapterViewModel
 import com.tiagohs.hqr.sources.IHttpSource
@@ -33,8 +35,8 @@ class ReaderPresenter(
         private val preferenceHelper: PreferenceHelper,
         private val sourceManager: SourceManager,
         private val comicsRepository: IComicsRepository,
-        private val chapterRepository: IChapterRepository,
         private val downloadManager: DownloadManager,
+        private val historyRepository: IHistoryRepository,
         private val provider: DownloadProvider,
         private val context: Context
 ): BasePresenter<ReaderContract.IReaderView>(), ReaderContract.IReaderPresenter {
@@ -44,6 +46,7 @@ class ReaderPresenter(
     private val downloadSubject = PublishSubject.create<List<Page>>()
 
     private var model: ReaderChapterViewModel? = null
+    private var currentPage: Page? = null
 
     override fun onCreate() {
 
@@ -106,6 +109,30 @@ class ReaderPresenter(
             }
 
             onGetChapterDetails(model?.comic?.pathLink!!, nextChapter.chapterPath!!, true)
+        }
+    }
+
+    override fun onTrackUserHistory(page: Page) {
+        this.currentPage = page;
+    }
+
+    override fun onSaveUserHistory() {
+
+        if (currentPage != null) {
+            val history = ComicHistoryViewModel().apply {
+                this.chapter = model?.chapter
+                this.comic = model?.comic
+                this.lastTimeRead = DateUtils.getDateToday()
+
+                this.chapter?.lastPageRead = currentPage!!.index
+            }
+
+            historyRepository.insertComicHistory(history)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({}, { error ->
+                        Log.e("Reader", "Error", error)
+                    })
         }
     }
 

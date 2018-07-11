@@ -70,7 +70,6 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         if (comicLink.isNotEmpty()) {
             presenter.onGetComicData(comicLink)
         }
-
     }
 
     private fun onOffsetChangedListener(): AppBarMovieListener {

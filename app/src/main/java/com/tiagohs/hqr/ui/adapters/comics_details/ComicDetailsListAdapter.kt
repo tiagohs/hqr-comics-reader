@@ -3,12 +3,12 @@ package com.tiagohs.hqr.ui.adapters.comics_details
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import com.tiagohs.hqr.ui.callbacks.IFavoritesCallback
+import com.tiagohs.hqr.ui.callbacks.IComicDetailsListCallback
 import eu.davidea.flexibleadapter.FlexibleAdapter
 
 class ComicDetailsListAdapter(
         val showHistory: Boolean = false,
-        val listener: IFavoritesCallback) : FlexibleAdapter<ComicDetailsListItem>(null, listener, true) {
+        val listener: IComicDetailsListCallback) : FlexibleAdapter<ComicDetailsListItem>(null, listener, true) {
 
     var items: List<ComicDetailsListItem> = emptyList()
 

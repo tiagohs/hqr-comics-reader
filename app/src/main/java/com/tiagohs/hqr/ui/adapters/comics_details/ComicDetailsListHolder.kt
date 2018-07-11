@@ -6,14 +6,10 @@ import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.DateUtils
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
-import com.tiagohs.hqr.models.view_models.ChapterViewModel
-import com.tiagohs.hqr.models.view_models.ComicHistoryViewModel
-import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.models.view_models.DefaultModelView
+import com.tiagohs.hqr.models.view_models.*
 import com.tiagohs.hqr.ui.adapters.config.BaseFlexibleViewHolder
 import com.tiagohs.hqr.ui.views.activities.ReaderActivity
 import kotlinx.android.synthetic.main.item_comic_detail.view.*
-import kotlinx.android.synthetic.main.item_comic_simple_it.view.*
 
 class ComicDetailsListHolder(
         val view: View,
@@ -47,10 +43,10 @@ class ComicDetailsListHolder(
 
 
     private fun onConfigureStatus(status: String?) {
-        if (view.comicDetailStatus != null && status != null) {
+        if (view.comicDetailStatus != null && !status.isNullOrEmpty() && !status.equals(UNKNOWN)) {
             view.comicDetailStatus.text = ScreenUtils.getComicStatusText(view.context, status)
             view.comicDetailStatus.setBackgroundColor(ScreenUtils.generateComicStatusBackground(view.context, status))
-        } else if (view.comicSStatus != null) {
+        } else {
             view.comicDetailStatus.visibility = View.GONE
         }
     }

@@ -18,17 +18,23 @@ class ListPaginator<T> {
     var totalPage: Int = 0
 
     fun onCreatePagination(originalList: List<T>, size: Int = 20): List<T> {
+        currentPage = 0
+        totalPage = 0
+        hasMorePages = false
+
         this.originalList = originalList
 
-        if (!this.originalList.isEmpty()) {
+        if (!this.originalList.isEmpty() && this.originalList.size > 1) {
             comicsListsByPage = ListUtils.partition<T>(originalList, size)
             totalPage = comicsListsByPage.size
             hasMorePages = currentPage < totalPage - 1
 
             comicsList = comicsListsByPage.get(currentPage++)
-        }
 
-        return comicsList
+            return comicsList
+        } else {
+            return this.originalList
+        }
     }
 
     fun onGetNextPage(): Observable<List<T>> {

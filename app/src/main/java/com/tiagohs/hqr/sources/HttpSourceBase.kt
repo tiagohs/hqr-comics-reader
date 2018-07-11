@@ -128,7 +128,7 @@ abstract class HttpSourceBase(
     abstract protected fun pageListParse(response: Response, chapterPath: String?): List<Page>
 
     open protected fun pageListRequest(chapter: ChapterViewModel): Request {
-        return GET(baseUrl + chapter.chapterPath, headers)
+        return GET(chapter.chapterPath!!, headers)
     }
 
 

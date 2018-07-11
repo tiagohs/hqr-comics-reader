@@ -28,8 +28,8 @@ class PresenterModule {
     }
 
     @Provides
-    internal fun provideComicDetailsPresenter(interceptor: Contracts.IComicsDetailsInterceptor): ComicDetailsContract.IComicDetailsPresenter {
-        return ComicDetailsPresenter(interceptor)
+    internal fun provideComicDetailsPresenter(interceptor: Contracts.IComicsDetailsInterceptor, preferenceHelper: PreferenceHelper, comicsRepository: IComicsRepository): ComicDetailsContract.IComicDetailsPresenter {
+        return ComicDetailsPresenter(interceptor, comicsRepository, preferenceHelper)
     }
 
     @Provides

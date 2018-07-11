@@ -21,11 +21,11 @@ object ChapterFactory {
 
     fun copyFromChapterViewModel(chapter: Chapter, chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
 
-        if (chapterViewModel.chapterName != null) {
+        if (!chapterViewModel.chapterName.isNullOrEmpty()) {
             chapter.chapterName = chapterViewModel.chapterName
         }
 
-        if (chapterViewModel.chapterPath != null) {
+        if (!chapterViewModel.chapterPath.isNullOrEmpty()) {
             chapter.chapterPath = chapterViewModel.chapterPath
         }
 
@@ -40,7 +40,7 @@ object ChapterFactory {
 
         listNetwork?.forEach {
             val chapterLocal = realm.where(Chapter::class.java)
-                    .equalTo("comic.pathLink", comic.pathLink)
+                    .equalTo("comic.id", comic.id)
                     .equalTo("chapterPath", it.chapterPath)
                     .findFirst()
 

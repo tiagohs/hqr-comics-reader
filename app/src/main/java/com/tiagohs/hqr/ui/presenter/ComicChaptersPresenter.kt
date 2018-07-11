@@ -37,7 +37,7 @@ class ComicChaptersPresenter(
                         Log.e("Chapters", "Error", error)
                     })
 
-        chapterRepository.getAllChapters(comic.id)
+        Observable.just(comic.chapters)
                 .map { chapters -> chapters.map { it.toModel() }}
                 .doOnNext { chapters ->
                     setDownloadChapters(chapters, comic)

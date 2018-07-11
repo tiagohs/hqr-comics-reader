@@ -71,7 +71,6 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
             presenter.onGetComicData(comicLink)
         }
 
-        comicDetailsfab.hideMenu(false)
     }
 
     private fun onOffsetChangedListener(): AppBarMovieListener {
@@ -111,13 +110,15 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         onConfigureTabs()
         onConfigureAppBar()
 
-
         if (!comic.posterPath.isNullOrEmpty()) {
             ImageUtils.load(comicImage,
                     comic.posterPath,
                     R.drawable.img_placeholder,
                     R.drawable.img_placeholder,
                     false)
+
+            com.tiagohs.hqr.helpers.utils.AnimationUtils.creatScaleUpAnimation(comicImage, 500)
+
             ImageUtils.loadWithRevealAnimation(this, comicWallpaper,
                     comic.posterPath,
                     R.drawable.img_placeholder,
@@ -132,12 +133,30 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         publishersList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         publishersList.adapter = SimpleItemAdapter(comic.publisher, this, onPublisherSelect())
 
-        comicDetailsAppBar.visibility = View.VISIBLE
+        // VISIBLES
+        headerContainer.visibility = View.VISIBLE
         comicDetailsTabContainer.visibility = View.VISIBLE
         comicDetailsProgress.visibility = View.GONE
 
-        comicDetailsfab.showMenu(true)
+        readBtn.visibility = View.VISIBLE
         readBtn.startAnimation(AnimationUtils.loadAnimation(this, com.github.clans.fab.R.anim.fab_scale_up))
+
+        readBtn.setOnClickListener {
+            val chapter = comic.chapters?.last()
+
+            if (chapter != null) {
+                startActivity(ReaderActivity.newIntent(this, chapter.chapterPath!!, comic.pathLink!!))
+            }
+        }
+
+        onConfigureFavoriteBtn(comic)
+    }
+
+    override fun onConfigureFavoriteBtn(comic: ComicViewModel) {
+        com.tiagohs.hqr.helpers.utils.AnimationUtils.createScaleButtonAnimation(addToFavBtn)
+
+        addToFavBtn.isChecked = comic.favorite
+        addToFavBtn.setOnClickListener({ presenter.addOrRemoveFromFavorite(comic) })
     }
 
     private fun onConfigureAppBar() {
@@ -146,6 +165,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     private fun onConfigureTabs() {
         tabLayout.visibility = View.VISIBLE
+
         comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic!!)
         tabLayout.setupWithViewPager(comicsDetailsViewpager)
     }

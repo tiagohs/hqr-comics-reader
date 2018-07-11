@@ -88,6 +88,8 @@ class SearchPresenter(
     }
 
     private fun ComicViewModel.toModel(): ComicItem {
+        this.favorite = comicRepository.isFavorite(pathLink!!)
+
         return ComicItem(this, R.layout.item_comic_simple_it)
     }
 

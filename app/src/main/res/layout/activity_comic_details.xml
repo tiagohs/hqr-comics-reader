@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="280dp"
         android:theme="@style/AppTheme.AppBarOverlay"
-        android:visibility="gone"
         android:fitsSystemWindows="true">
 
         <android.support.design.widget.CollapsingToolbarLayout
@@ -44,16 +43,31 @@
                         android:scaleType="centerCrop"
                         android:fitsSystemWindows="true"/>
 
-                    <ImageView
-                        android:id="@+id/comicImage"
-                        android:layout_width="110dp"
-                        android:layout_height="150dp"
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_alignParentTop="true"
                         android:layout_marginTop="120dp"
-                        android:layout_marginStart="16dp"
-                        android:src="@drawable/img_placeholder"
-                        android:scaleType="fitXY"
-                        android:background="@color/colorPrimary"/>
+                        android:layout_marginStart="16dp">
+
+                        <ImageView
+                            android:id="@+id/comicImage"
+                            android:layout_width="110dp"
+                            android:layout_height="150dp"
+                            android:scaleType="fitXY"/>
+
+                        <ToggleButton
+                            android:id="@+id/addToFavBtn"
+                            android:layout_width="35dp"
+                            android:layout_height="35dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/button_favorite"
+                            android:checked="false"
+                            android:text=""
+                            android:textOff=""
+                            android:textOn=""/>
+
+                    </RelativeLayout>
 
                     <Button
                         android:id="@+id/readBtn"
@@ -70,7 +84,8 @@
                         android:paddingLeft="10dp"
                         android:paddingRight="10dp"
                         android:layout_alignParentTop="true"
-                        android:layout_alignParentEnd="true" />
+                        android:layout_alignParentEnd="true"
+                        android:visibility="gone"/>
 
                     <LinearLayout
                         android:id="@+id/headerContainer"
@@ -78,13 +93,13 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:layout_marginTop="155dp"
-                        android:layout_marginStart="135dp">
+                        android:layout_marginStart="135dp"
+                        android:visibility="gone">
 
                         <TextView
                             android:id="@+id/comicStatus"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Em Andamento"
                             android:padding="3dp"
                             android:textSize="10sp"
                             android:textColor="@color/white"
@@ -94,7 +109,6 @@
                             android:id="@+id/comicTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Batman Vs Superman"
                             android:textSize="14dp"
                             android:textColor="@color/colorPrimaryText"
                             android:layout_marginTop="5dp"
@@ -159,31 +173,6 @@
         android:layout_width="50dp"
         android:layout_height="100dp"
         android:layout_gravity="center" />
-
-    <com.github.clans.fab.FloatingActionMenu
-        android:id="@+id/comicDetailsfab"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="bottom|end"
-        android:layout_marginBottom="5dp"
-        android:layout_marginEnd="5dp"
-        app:menu_icon="@drawable/ic_add_white"
-        app:menu_colorNormal="@color/floating_normal"
-        app:menu_colorPressed="@color/colorPrimary"
-        app:menu_colorRipple="@color/floating_riple">
-
-        <com.github.clans.fab.FloatingActionButton
-            android:id="@+id/btn_google_play"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@drawable/ic_favorite_white"
-            app:fab_size="normal"
-            app:fab_label="Favoritos"
-            app:fab_colorNormal="@color/colorAccent"
-            app:fab_colorPressed="@color/floating_normal"
-            app:fab_colorRipple="@color/floating_riple"/>
-
-    </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.design.widget.CoordinatorLayout>
 

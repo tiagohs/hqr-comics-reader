@@ -6,9 +6,12 @@ import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.DateUtils
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicHistoryViewModel
+import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.ui.adapters.config.BaseFlexibleViewHolder
+import com.tiagohs.hqr.ui.views.activities.ReaderActivity
 import kotlinx.android.synthetic.main.item_comic_detail.view.*
 import kotlinx.android.synthetic.main.item_comic_simple_it.view.*
 
@@ -39,7 +42,7 @@ class ComicDetailsListHolder(
 
         onConfigurePublisher(comic.publisher)
         onConfigureStatus(comic.status)
-        onConfigureHistory(history)
+        onConfigureHistory(history, comic)
     }
 
 
@@ -60,14 +63,32 @@ class ComicDetailsListHolder(
         }
     }
 
-    private fun onConfigureHistory(history: ComicHistoryViewModel?) {
-        if (!adapter.showHistory || history == null) {
+    private fun onConfigureHistory(history: ComicHistoryViewModel?, comic: ComicViewModel) {
+        if (!adapter.showHistory) {
             view.comicDetailHistoryContainer.visibility = View.GONE
             return
         }
 
-        view.comicDetailHistoryTime.text = DateUtils.formateDate("dd de MMM de yyyy", history.lastTimeRead!!)
-        view.resumeDetailBtn.text = "Continuar"
+        if (history == null) {
+            view.resumeDetailBtn.text = "Ler"
+        } else {
+            view.comicDetailHistoryTime.text = DateUtils.formateDate("dd de MMM de yyyy", history.lastTimeRead!!)
+            view.resumeDetailBtn.text = "Continuar"
+        }
+
+        view.resumeDetailBtn.setOnClickListener {
+            val chapterViewModel: ChapterViewModel?
+
+            if (history == null) {
+                chapterViewModel = comic.chapters?.last()
+            } else {
+                chapterViewModel = history.chapter
+            }
+
+            if (chapterViewModel != null) {
+                view.context.startActivity(ReaderActivity.newIntent(view.context, chapterViewModel.chapterPath!!, comic.pathLink!!))
+            }
+        }
     }
 
     private fun showPopUpMenu(view: View) {

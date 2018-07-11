@@ -25,7 +25,7 @@ class HQBRSource(
     override val language: LocaleDTO = LocaleDTO("Brazil", "Portuguese", "BR", "PT", Locale("PT", "BR"))
     override val hasPageSupport: Boolean = false
     override val hasThumbnailSupport: Boolean = false
-    override val baseUrl: String get() = "https://hqbr.com.br/"
+    override val baseUrl: String get() = "https://hqbr.com.br"
 
     override val publishersEndpoint: String get() = "$baseUrl/editoras/"
     override val lastestComicsEndpoint: String get() = "$baseUrl/home"
@@ -38,15 +38,15 @@ class HQBRSource(
     override val searchComicsSelector: String get() = "table > tbody > tr"
 
     override fun getReaderEndpoint(hqReaderPath: String): String {
-        return "$baseUrl/$hqReaderPath"
+        return hqReaderPath
     }
 
     override fun getAllComicsByPublisherEndpoint(publisherPath: String): String {
-        return "$baseUrl/$publisherPath"
+        return publisherPath
     }
 
     override fun getAllComicsByScanlatorEndpoint(scanlatorPath: String): String {
-        return "$baseUrl/$scanlatorPath"
+        return scanlatorPath
     }
 
     override fun getAllComicsByLetterEndpoint(letter: String): String {
@@ -54,16 +54,11 @@ class HQBRSource(
     }
 
     override fun getComicDetailsEndpoint(comicPath: String): String {
-        val urlBaseRegex = "https:\\/\\/hqbr.com.br\\/".toRegex()
-
-        if (urlBaseRegex.containsMatchIn(comicPath))
-            return comicPath
-        else
-            return "$baseUrl/$comicPath"
+        return comicPath
     }
 
     override fun getSearchByQueryEndpoint(query: String): String {
-        return "$baseUrl/hqs?letter=all"
+        return "$baseUrl/hqs?utf8=✓&search=${query}"
     }
 
     override fun parsePublisherByElement(element: Element): DefaultModelView? {
@@ -78,7 +73,7 @@ class HQBRSource(
 
             return DefaultModelView().apply {
                 this.name = title
-                this.pathLink = link
+                this.pathLink = "$baseUrl${link}"
                 this.type = DefaultModel.PUBLISHER
             }
         }
@@ -163,7 +158,7 @@ class HQBRSource(
 
         return ComicViewModel().apply {
             this.name = title
-            this.pathLink = link
+            this.pathLink = "$baseUrl${link}"
             this.publisher = publisher
             this.status = ScreenUtils.getStatusConstant(status)
         }
@@ -176,11 +171,13 @@ class HQBRSource(
     override fun parseSearchByQueryResponse(response: Response, query: String): List<ComicViewModel> {
         val comics = super.parseSearchByQueryResponse(response, query)
 
-        return comics.filter({
+        /*return comics.filter({
                     comicsItem ->
                     val titleRegex = query.toLowerCase().toRegex()
                     titleRegex.containsMatchIn(comicsItem.name!!.toLowerCase())
-                })
+                })*/
+
+        return comics;
     }
 
     override fun parseReaderResponse(response: Response, chapterPath: String?): ChapterViewModel {
@@ -188,7 +185,6 @@ class HQBRSource(
 
         return ChapterViewModel().apply {
             this.chapterPath = chapterPath
-            this.chapterName = chapterName
             this.pages = pages
         }
     }
@@ -244,7 +240,7 @@ class HQBRSource(
 
         return ComicViewModel().apply {
             this.pathLink = comicPath
-            this.posterPath = "https://hqbr.com.br/${posterPath}"
+            this.posterPath = "$baseUrl${posterPath}"
             this.name = title
             this.status = ScreenUtils.getStatusConstant(status)
             this.summary = summary
@@ -273,7 +269,7 @@ class HQBRSource(
 
         return ChapterViewModel().apply {
             this.chapterName = title
-            this.chapterPath = link
+            this.chapterPath = "$baseUrl${link}"
         }
     }
 
@@ -288,7 +284,7 @@ class HQBRSource(
 
         return DefaultModelView().apply {
             this.name = title
-            this.pathLink = link
+            this.pathLink = "$baseUrl${link}"
             this.type = type
         }
     }

@@ -37,7 +37,7 @@ class ComicsDetailsInterceptor(
 
     private fun fetchFromNetwork(sourceHttp: IHttpSource, comicPath: String, sourceId: Long): Observable<ComicViewModel?> {
         return sourceHttp.fetchComicDetails(comicPath)
-                .doOnNext {
+                .map {
                     it.inicialized = true
                     comicsRepository.insertRealm(it, sourceId)
                 }

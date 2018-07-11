@@ -34,13 +34,14 @@ class DownloadManagerFragment: BaseFragment(), DownloadManagerContract.IDownload
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
 
-        activityCallbacks!!.setScreenTitle("Fila de Downloads")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
+
+        activityCallbacks!!.setScreenTitle("Fila de Downloads")
 
         getApplicationComponent()?.inject(this)
 

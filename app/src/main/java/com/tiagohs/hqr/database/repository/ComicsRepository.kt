@@ -94,6 +94,20 @@ class ComicsRepository(
                                 .equalTo("id", comicId))
     }
 
+    override fun isFavorite(pathLink: String): Boolean {
+        val realm = Realm.getDefaultInstance()
+        val isFavorite = realm.where(Comic::class.java)
+                .beginGroup()
+                                                .equalTo("pathLink", pathLink)
+                .and()
+                                                .equalTo("favorite", true)
+                .endGroup()
+                                                .findFirst()
+        finishTransaction(realm)
+
+        return isFavorite != null
+    }
+
     override fun insertOrUpdateComic(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel> {
         return sourceRepository.getSourceById(sourceId)
                 .map { source -> insertRealm(comic, sourceId) }

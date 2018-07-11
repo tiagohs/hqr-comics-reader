@@ -9,10 +9,12 @@ class ComicDetailsContract {
     interface IComicDetailsView: IView {
 
         fun onBindComic(comic: ComicViewModel)
+        fun onConfigureFavoriteBtn(comic: ComicViewModel)
     }
 
     interface IComicDetailsPresenter: IPresenter<IComicDetailsView> {
 
         fun onGetComicData(comicPath: String)
+        fun addOrRemoveFromFavorite(comic: ComicViewModel)
     }
 }

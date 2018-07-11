@@ -21,15 +21,15 @@ object DefaultModelFactory {
 
     fun copyFromDefaultModelView(defaultModel: DefaultModel, other: DefaultModelView, sourceDB: SourceDB?, realm: Realm): DefaultModel {
 
-        if (other.name != null) {
+        if (!other.name.isNullOrEmpty()) {
             defaultModel.name = other.name
         }
 
-        if (other.pathLink != null) {
+        if (!other.pathLink.isNullOrEmpty()) {
             defaultModel.pathLink = other.pathLink
         }
 
-        if (other.type != null) {
+        if (!other.type.isNullOrEmpty()) {
             defaultModel.type = other.type
         }
 

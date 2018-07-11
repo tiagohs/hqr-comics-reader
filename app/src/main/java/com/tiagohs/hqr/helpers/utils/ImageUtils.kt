@@ -11,6 +11,7 @@ import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.RequestCreator
 import com.tiagohs.hqr.helpers.tools.BitmapCreator
+import jp.wasabeef.picasso.transformations.BlurTransformation
 import java.lang.Exception
 
 class ImageUtils {
@@ -73,6 +74,52 @@ class ImageUtils {
                 override fun onError(e: Exception?) {
                 }
             })
+        }
+
+        fun loadWithBlur(imageView: ImageView, url: Int?, placeholderPath: Int?, errorPath: Int?, isToFit: Boolean? = true) {
+
+            val loader = Picasso.get()
+            var request: RequestCreator? = null
+
+            if (url != null)
+                request = loader.load(url)
+
+            if (placeholderPath != null)
+                request!!.placeholder(placeholderPath)
+
+            if (errorPath != null)
+                request!!.error(errorPath)
+
+            request!!.transform(BlurTransformation(imageView.context))
+
+            if (isToFit!!) {
+                request.fit()
+            }
+
+            request.into(imageView)
+        }
+
+        fun loadWithBlur(imageView: ImageView, url: String?, placeholderPath: Int?, errorPath: Int?, isToFit: Boolean? = true) {
+
+            val loader = Picasso.get()
+            var request: RequestCreator? = null
+
+            if (url != null)
+                request = loader.load(url)
+
+            if (placeholderPath != null)
+                request!!.placeholder(placeholderPath)
+
+            if (errorPath != null)
+                request!!.error(errorPath)
+
+            request!!.transform(BlurTransformation(imageView.context))
+
+            if (isToFit!!) {
+                request.fit()
+            }
+
+            request.into(imageView)
         }
 
         fun load(imageView: ImageView, url: String?, placeholderPath: Int?, errorPath: Int?, isToFit: Boolean) {

@@ -62,6 +62,8 @@ interface IComicsRepository {
     fun getRecentsComics(sourceId: Long): Observable<List<ComicViewModel>>
     fun getFavoritesComics(): Observable<List<ComicViewModel>>
 
+    fun isFavorite(pathLink: String): Boolean
+
     fun getTotalChapters(comic: ComicViewModel): Observable<Int>
 
     fun checkIfIsSaved(comics: List<ComicViewModel>): Observable<List<ComicViewModel>>

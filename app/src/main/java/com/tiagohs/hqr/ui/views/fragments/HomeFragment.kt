@@ -49,7 +49,6 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        activityCallbacks!!.setScreenTitle("Ínicio")
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -82,6 +81,8 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        activityCallbacks!!.setScreenTitle("Ínicio")
 
         getApplicationComponent()!!.inject(this)
 

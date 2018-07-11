@@ -17,14 +17,14 @@ class LibrarieFragment: BaseFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
 
-        activityCallbacks!!.setScreenTitle("Minha Biblioteca")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
+        activityCallbacks!!.setScreenTitle("Minha Biblioteca")
         onCofigureLibrariePageView()
     }
 

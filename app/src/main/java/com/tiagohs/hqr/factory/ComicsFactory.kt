@@ -15,19 +15,67 @@ object ComicsFactory {
         val realmObject = realm.createObject(Comic::class.java, RealmUtils.getDataId<Comic>(realm))
 
         realmObject.apply {
-            copyFromComicViewModel(this, comicViewModel, source, realm)
+            if (!comicViewModel.name.isNullOrEmpty()) {
+                this.name = comicViewModel.name
+            }
+
+            if (!comicViewModel.posterPath.isNullOrEmpty()) {
+                this.posterPath = comicViewModel.posterPath
+            }
+
+            if (!comicViewModel.pathLink.isNullOrEmpty()) {
+                this.pathLink = comicViewModel.pathLink
+            }
+
+            if (!comicViewModel.summary.isNullOrEmpty()) {
+                this.summary = comicViewModel.summary
+            }
+
+            if (!comicViewModel.publicationDate.isNullOrEmpty()) {
+                this.publicationDate = comicViewModel.publicationDate
+            }
+
+            if (source != null) {
+                this.source = realm.copyToRealmOrUpdate(source)
+            }
+
+            if (comicViewModel.publisher != null && comicViewModel.publisher!!.isNotEmpty()) {
+                this.publisher = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.publisher, source, realm)
+            }
+
+            if (comicViewModel.genres != null && comicViewModel.genres!!.isNotEmpty()) {
+                this.genres = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.genres, source, realm)
+            }
+
+            if (comicViewModel.authors != null && comicViewModel.authors!!.isNotEmpty()) {
+                this.authors = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.authors, source, realm)
+            }
+
+            if (comicViewModel.scanlators != null && comicViewModel.scanlators!!.isNotEmpty()) {
+                this.scanlators = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.scanlators, source, realm)
+            }
+
+            if (comicViewModel.chapters != null && comicViewModel.chapters!!.isNotEmpty()) {
+                this.chapters = ChapterFactory.createListOfChaptersFormRealm(comicViewModel.chapters, this, realm)
+            }
+
+            if (!comicViewModel.lastUpdate.isNullOrEmpty()) {
+                this.lastUpdate = comicViewModel.lastUpdate
+            }
+
+            if (!comicViewModel.status.isNullOrEmpty()) {
+                this.status = comicViewModel.status
+            }
+
+            if (comicViewModel.tags != null && comicViewModel.tags!!.isNotEmpty()) {
+                this.tags = createListOfTagsForRealm(comicViewModel.tags)
+            }
         }
 
         return realmObject
     }
 
     fun copyFromComicViewModel(comic: Comic, comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm): Comic {
-
-        comic.favorite = comicViewModel.favorite
-
-        if (!comic.inicialized) {
-            comic.inicialized = comicViewModel.inicialized
-        }
 
         if (!comicViewModel.name.isNullOrEmpty()) {
             comic.name = comicViewModel.name
@@ -53,37 +101,40 @@ object ComicsFactory {
             comic.source = realm.copyToRealmOrUpdate(source)
         }
 
-        if (comicViewModel.publisher != null) {
+        if (comicViewModel.publisher != null && comicViewModel.publisher!!.isNotEmpty()) {
             comic.publisher = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.publisher, source, realm)
         }
 
-        if (comicViewModel.genres != null) {
+        if (comicViewModel.genres != null && comicViewModel.genres!!.isNotEmpty()) {
             comic.genres = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.genres, source, realm)
         }
 
-        if (comicViewModel.authors != null) {
+        if (comicViewModel.authors != null && comicViewModel.authors!!.isNotEmpty()) {
             comic.authors = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.authors, source, realm)
         }
 
-        if (comicViewModel.scanlators != null) {
+        if (comicViewModel.scanlators != null && comicViewModel.scanlators!!.isNotEmpty()) {
             comic.scanlators = DefaultModelFactory.createListOfDefaultModelForRealm(comicViewModel.scanlators, source, realm)
         }
 
-        if (comicViewModel.chapters != null) {
+        if (comicViewModel.chapters != null && comicViewModel.chapters!!.isNotEmpty()) {
             comic.chapters = ChapterFactory.createListOfChaptersFormRealm(comicViewModel.chapters, comic, realm)
         }
 
-        if (comicViewModel.lastUpdate != null) {
+        if (!comicViewModel.lastUpdate.isNullOrEmpty()) {
             comic.lastUpdate = comicViewModel.lastUpdate
         }
 
-        if (comicViewModel.status != null) {
+        if (!comicViewModel.status.isNullOrEmpty()) {
             comic.status = comicViewModel.status
         }
 
-        if (comicViewModel.tags != null) {
+        if (comicViewModel.tags != null && comicViewModel.tags!!.isNotEmpty()) {
             comic.tags = createListOfTagsForRealm(comicViewModel.tags)
         }
+
+        comic.favorite = comicViewModel.favorite
+        comic.inicialized = comicViewModel.inicialized
 
         return comic
     }
@@ -150,6 +201,8 @@ object ComicsFactory {
                 this.status = comicDb.status
             }
 
+            this.favorite = comicDb.favorite
+            this.inicialized = comicDb.inicialized
         }
     }
 

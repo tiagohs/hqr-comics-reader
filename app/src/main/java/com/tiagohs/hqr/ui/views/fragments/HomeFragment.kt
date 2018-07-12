@@ -46,11 +46,6 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     private var popularComicsAdapter: ComicsListAdapter? = null
     private var publisherAdapter: PublishersAdapter? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         setHasOptionsMenu(true)
 

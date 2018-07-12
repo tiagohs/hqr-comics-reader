@@ -19,26 +19,26 @@ class FavoritesPresenter(
         super.onBindView(view)
 
         favoritesInterceptor.onBind()
-        favoritesInterceptor.onSubscribeInitializa(context)
+        mSubscribers.add(favoritesInterceptor.onSubscribeInitializa(context)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ comicItem -> mView?.onBindItem(comicItem) },
-                        { error -> Log.e("FAVORITES", "Inicialização Falhou ", error) })
+                        { error -> Log.e("FAVORITES", "Inicialização Falhou ", error) }))
     }
 
     override fun onGetFavorites(context: Context) {
-        favoritesInterceptor.onGetFavorites(context)
+        mSubscribers.add(favoritesInterceptor.onGetFavorites(context)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ items -> mView?.onBindComics(items) },
-                        { error -> Log.e("FAVORITES", "onGetFavorites Falhou ", error) })
+                        { error -> Log.e("FAVORITES", "onGetFavorites Falhou ", error) }))
     }
 
     override fun onGetMoreComics() {
-        favoritesInterceptor.onGetMore()
+        mSubscribers.add(favoritesInterceptor.onGetMore()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ items -> mView?.onBindComics(items) },
-                        { error -> Log.e("FAVORITES", "onGetMoreComics Falhou ", error) })
+                        { error -> Log.e("FAVORITES", "onGetMoreComics Falhou ", error) }))
     }
 
     override fun hasMoreComics(): Boolean {
@@ -49,11 +49,11 @@ class FavoritesPresenter(
         return favoritesInterceptor.getOriginalList()
     }
 
-    override fun deleteChapters(comicDetailsListItem: ComicDetailsListItem) {
+    override fun deleteChapters(comicDetailsListItem: ComicDetailsListItem, position: Int) {
         comicsRepository.addOrRemoveFromFavorite(comicDetailsListItem.comic, comicDetailsListItem.comic.source?.id!!)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ mView?.onComicRemoved() },
+                .subscribe({ mView?.onComicRemoved(position) },
                         { error ->
                             Log.e("Fav", "Error", error)
                             mView?.onComicRemovedError() })

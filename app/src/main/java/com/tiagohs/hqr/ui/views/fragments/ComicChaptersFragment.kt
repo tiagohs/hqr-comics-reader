@@ -113,6 +113,8 @@ class ComicChaptersFragment:
         adapter = null
         actionMode = null
 
+        presenter.onUnbindView()
+
         super.onDestroyView()
     }
 

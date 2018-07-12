@@ -17,7 +17,6 @@ import com.hippo.unifile.UniFile
 import com.tiagohs.hqr.App
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.download.DownloadProvider
-import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.helpers.extensions.getFilePicker
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
@@ -39,9 +38,6 @@ class SettingsMainFragment: PreferenceFragment() {
 
     @Inject
     lateinit var preferences: PreferenceHelper
-
-    @Inject
-    lateinit var chapterCache: ChapterCache
 
     @Inject
     lateinit var downloadProvider: DownloadProvider

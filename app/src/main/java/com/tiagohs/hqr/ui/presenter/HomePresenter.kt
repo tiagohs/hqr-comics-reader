@@ -31,7 +31,7 @@ class HomePresenter(
         super.onBindView(view)
 
         homeInterceptor.onBind()
-        homeInterceptor.subscribeComicDetailSubject()
+        mSubscribers.add(homeInterceptor.subscribeComicDetailSubject()
                         .map { it.toModel() }
                          .observeOn(AndroidSchedulers.mainThread())
                          .subscribe({ comic ->
@@ -48,7 +48,7 @@ class HomePresenter(
 
                          }, { error ->
                              Log.e("Home", "Inicialização Falhou ", error)
-                         })
+                         }))
     }
 
     override fun onUnbindView() {
@@ -58,16 +58,16 @@ class HomePresenter(
     }
 
     override fun observeSourcesChanges() {
-        preferenceHelper.currentSource()
+        mSubscribers.add(preferenceHelper.currentSource()
                 .asObservable()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe({ sourceId: Long? ->
                     onGetHomeData(sourceId!!)
-                })
+                }))
     }
 
     override fun onGetHomeData(sourceId: Long) {
-        sourceRepository.getSourceById(sourceId)
+        mSubscribers.add(sourceRepository.getSourceById(sourceId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ source: SourceDB? ->
@@ -78,7 +78,7 @@ class HomePresenter(
                     if (sourceHttp != null) {
                         onGetPublishers(sourceHttp, sourceId)
                     }
-                })
+                }))
     }
 
     override fun onGetPublishers(source: HttpSourceBase, sourceId: Long) {
@@ -125,46 +125,46 @@ class HomePresenter(
 
     override fun onGetMorePublishers() {
         if (homeInterceptor.hasMorePublishers()) {
-            homeInterceptor.onGetMorePublishers()
+            mSubscribers.add(homeInterceptor.onGetMorePublishers()
                     .subscribeOn(Schedulers.io())
                     .map { it.map { it.toPublisherModel() } }
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMorePublishers(it) },
-                            { error -> Log.e("List", "Publishers Error", error) }
+                            { error -> Log.e("List", "Publishers Error", error) })
                     )
         }
     }
 
     override fun onGetMorePopularComics() {
         if (homeInterceptor.hasMorePopularComics()) {
-            homeInterceptor.onGetMorePopularComics()
+            mSubscribers.add(homeInterceptor.onGetMorePopularComics()
                     .subscribeOn(Schedulers.io())
                     .map { it.map { it.toModel() } }
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMorePopulars(it) },
-                            { error -> Log.e("List", "Populars Error", error) }
+                            { error -> Log.e("List", "Populars Error", error) })
                     )
         }
     }
 
     override fun onGetMoreLastestComics() {
         if (homeInterceptor.hasMoreLastestComics()) {
-            homeInterceptor.onGetMoreLastestComics()
+            mSubscribers.add(homeInterceptor.onGetMoreLastestComics()
                     .subscribeOn(Schedulers.io())
                     .map { it.map { it.toModel() } }
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMoreLastestUpdates(it) },
-                            { error -> Log.e("List", "LastestUpdates Error", error) }
+                            { error -> Log.e("List", "LastestUpdates Error", error) })
                     )
         }
     }
 
     override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
 
-        comicRepository.addOrRemoveFromFavorite(comic, comic.source?.id!!)
+        mSubscribers.add(comicRepository.addOrRemoveFromFavorite(comic, comic.source?.id!!)
                 .subscribeOn(Schedulers.io())
                 .map { it.toModel() }
                 .observeOn(AndroidSchedulers.mainThread())
@@ -177,7 +177,7 @@ class HomePresenter(
                             mView?.onBindLastestItem(c)
                         }
                     }
-                }
+                })
     }
 
     private fun ComicViewModel.toModel(): ComicItem {

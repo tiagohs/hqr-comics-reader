@@ -28,16 +28,16 @@ class ComicChaptersPresenter(
     override fun onCreate(comic: ComicViewModel) {
         this.comicViewModel = comic
 
-        chaptersRelay.toFlowable(BackpressureStrategy.BUFFER)
+        mSubscribers.add(chaptersRelay.toFlowable(BackpressureStrategy.BUFFER)
                     .onBackpressureBuffer()
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({ chapters ->
                         mView?.onNextChapters(chapters)
                     }, { error ->
                         Log.e("Chapters", "Error", error)
-                    })
+                    }))
 
-        Observable.just(comic.chapters)
+        mSubscribers.add(Observable.just(comic.chapters)
                 .map { chapters -> chapters.map { it.toModel() }}
                 .doOnNext { chapters ->
                     setDownloadChapters(chapters, comic)
@@ -46,7 +46,7 @@ class ComicChaptersPresenter(
 
                     observeDownloads()
                 }
-                .subscribe { chaptersRelay.accept(it) }
+                .subscribe { chaptersRelay.accept(it) })
 
     }
 
@@ -75,7 +75,7 @@ class ComicChaptersPresenter(
     }
 
     override fun deleteChapters(chapters: List<ChapterItem>) {
-        Observable.fromIterable(chapters)
+        mSubscribers.add(Observable.fromIterable(chapters)
                 .doOnNext { deleteChapter(it) }
                 .toList()
                 .toObservable()
@@ -84,7 +84,7 @@ class ComicChaptersPresenter(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ },
                     { error -> mView?.onChapterDeletedError() },
-                    { mView?.onChapterDeleted() })
+                    { mView?.onChapterDeleted() }))
     }
 
     private fun deleteChapter(chapterItem: ChapterItem) {

@@ -2,9 +2,11 @@ package com.tiagohs.hqr.ui.presenter
 
 import android.util.Log
 import com.tiagohs.hqr.database.IComicsRepository
+import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.interceptors.config.Contracts
+import com.tiagohs.hqr.models.view_models.ComicHistoryViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
@@ -14,31 +16,38 @@ import io.reactivex.schedulers.Schedulers
 class ComicDetailsPresenter(
         private val interceptor: Contracts.IComicsDetailsInterceptor,
         private val comicRepository: IComicsRepository,
-        private val preferenceHelper: PreferenceHelper
+        private val preferenceHelper: PreferenceHelper,
+        private val historyRepository: IHistoryRepository
 ): BasePresenter<ComicDetailsContract.IComicDetailsView>(),
         ComicDetailsContract.IComicDetailsPresenter {
 
+    private var history: ComicHistoryViewModel? = null
+
     override fun onGetComicData(comicPath: String) {
-        mSubscribers!!.add(interceptor.onGetComicData(comicPath)
-              .observeOn(AndroidSchedulers.mainThread())
-              .subscribe(
+        mSubscribers.add(interceptor.onGetComicData(comicPath)
+                .doOnNext { this.history = historyRepository.findByComicIdRealm(it!!.id) }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
                       { comic: ComicViewModel? ->
-                            if (comic != null) mView!!.onBindComic(comic)
+                            if (comic != null) mView!!.onBindComic(comic, history)
                       },
                       { error ->
                           Log.e("ComicDetails", "Error", error)
                       }
-              ))
+                 ))
     }
 
+    override fun getComicHistory(): ComicHistoryViewModel? {
+        return history
+    }
 
     override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
         val sourceId = preferenceHelper.currentSource().getOrDefault()
 
-        comicRepository.addOrRemoveFromFavorite(comic, sourceId)
+        mSubscribers.add(comicRepository.addOrRemoveFromFavorite(comic, sourceId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { mView?.onConfigureFavoriteBtn(it) }
+                .subscribe { mView?.onConfigureFavoriteBtn(it) })
     }
 
 

@@ -8,8 +8,8 @@ import com.tiagohs.hqr.models.database.comics.Chapter
 import io.reactivex.subjects.PublishSubject
 
 class Page(
-        val index: Int,
-        val url: String = "",
+        var index: Int,
+        var url: String = "",
         var imageUrl: String? = null,
         var uri: Uri? = null
 ): ProgressListener, Parcelable {

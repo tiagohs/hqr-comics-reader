@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Button
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/item"
     android:layout_width="wrap_content"
-    android:layout_height="25dp"
-    android:textSize="10sp"
-    android:paddingLeft="10dp"
-    android:paddingRight="10dp"
-    android:layout_marginEnd="5dp"
-    android:layout_marginTop="5dp"
-    android:layout_marginBottom="5dp"
-    android:textColor="@color/white"
-    android:background="@drawable/button_background_default"/>
+    android:layout_height="wrap_content">
+
+    <Button
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/item"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:textSize="12sp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:textColor="@color/white"
+        android:background="@drawable/button_background_default" />
+
+</RelativeLayout>

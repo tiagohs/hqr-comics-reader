@@ -15,7 +15,6 @@ import com.tiagohs.hqr.ui.callbacks.IComicDetailsListCallback
 import com.tiagohs.hqr.ui.contracts.RecentContract
 import com.tiagohs.hqr.ui.views.activities.ReaderActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
-import kotlinx.android.synthetic.main.fragment_favorites.*
 import kotlinx.android.synthetic.main.fragment_recent.*
 import javax.inject.Inject
 
@@ -46,6 +45,12 @@ class RecentFragment: BaseFragment(), RecentContract.IRecentView, IComicDetailsL
         presenter.onGetUserHistories(context)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        presenter.onUnbindView()
+    }
+
     override fun onBindUserHistories(histories: List<ComicDetailsListItem>) {
         adapter = ComicDetailsListAdapter(true, this)
         adapter?.updateDataSet(histories)
@@ -57,7 +62,7 @@ class RecentFragment: BaseFragment(), RecentContract.IRecentView, IComicDetailsL
         recentList.addOnScrollListener(createOnScrollListener())
         recentList.setNestedScrollingEnabled(false)
 
-        favoritesListProgress.visibility = View.GONE
+        recentListProgress.visibility = View.GONE
 
         setInformationViewStatus()
     }
@@ -80,7 +85,7 @@ class RecentFragment: BaseFragment(), RecentContract.IRecentView, IComicDetailsL
     }
 
     override fun onHistoryRemoved(position: Int) {
-        adapter?.notifyItemRemoved(position)
+        setInformationViewStatus()
     }
 
     override fun onBindItem(historyItem: ComicDetailsListItem) {

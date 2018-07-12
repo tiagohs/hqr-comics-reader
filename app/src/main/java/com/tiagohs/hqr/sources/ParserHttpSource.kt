@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.sources
 
+import android.util.Log
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
 import com.tiagohs.hqr.models.view_models.ComicViewModel
@@ -19,15 +20,20 @@ abstract class ParserHttpSource(
     abstract val searchComicsSelector: String
 
     override fun parsePublishersResponse(response: Response): List<DefaultModelView> {
-        val document = response.asJsoup()
-
         val publishers: ArrayList<DefaultModelView> = ArrayList()
 
-        document.select(publisherListSelector).map { element ->
-            val publisher = parsePublisherByElement(element)
+        try {
+            val document = response.asJsoup()
 
-            if (publisher != null)
-                publishers.add(publisher)
+            document.select(publisherListSelector).map { element ->
+                val publisher = parsePublisherByElement(element)
+
+                if (publisher != null)
+                    publishers.add(publisher)
+            }
+
+        } catch (ex: Exception) {
+            Log.e("ParseError", "Parse Error", ex)
         }
 
         return publishers
@@ -36,10 +42,17 @@ abstract class ParserHttpSource(
     abstract fun parsePublisherByElement(element: Element): DefaultModelView?
 
     override fun parseLastestComicsResponse(response: Response): List<ComicViewModel> {
-        val document = response.asJsoup()
+        var comics: List<ComicViewModel> = emptyList()
 
-        val comics: List<ComicViewModel> = document.select(lastestComicsSelector).map { element ->
-            parseLastestComicsByElement(element)
+        try {
+            val document = response.asJsoup()
+
+            comics = document.select(lastestComicsSelector).map { element ->
+                parseLastestComicsByElement(element)
+            }
+
+        } catch (ex: Exception) {
+            Log.e("ParseError", "Parse Error", ex)
         }
 
         return comics
@@ -48,10 +61,17 @@ abstract class ParserHttpSource(
     abstract fun parseLastestComicsByElement(element: Element): ComicViewModel
 
     override fun parsePopularComicsResponse(response: Response): List<ComicViewModel> {
-        val document = response.asJsoup()
+        var comics: List<ComicViewModel> = emptyList()
 
-        val comics: List<ComicViewModel> = document.select(popularComicsSelector).map { element ->
-            parsePopularComicsByElement(element)
+        try {
+            val document = response.asJsoup()
+
+            comics = document.select(popularComicsSelector).map { element ->
+                parsePopularComicsByElement(element)
+            }
+
+        } catch (ex: Exception) {
+            Log.e("ParseError", "Parse Error", ex)
         }
 
         return comics
@@ -60,10 +80,17 @@ abstract class ParserHttpSource(
     abstract fun parsePopularComicsByElement(element: Element): ComicViewModel
 
     override fun parseAllComicsByLetterResponse(response: Response): List<ComicViewModel> {
-        val document = response.asJsoup()
+        var comics: List<ComicViewModel> = emptyList()
 
-        val comics: List<ComicViewModel> = document.select(allComicsListSelector).map { element ->
-            parseAllComicsByLetterByElement(element)
+        try {
+            val document = response.asJsoup()
+
+            comics = document.select(allComicsListSelector).map { element ->
+                parseAllComicsByLetterByElement(element)
+            }
+
+        } catch (ex: Exception) {
+            Log.e("ParseError", "Parse Error", ex)
         }
 
         return comics
@@ -72,30 +99,51 @@ abstract class ParserHttpSource(
     abstract fun parseAllComicsByLetterByElement(element: Element): ComicViewModel
 
     override fun parseAllComicsByPublisherResponse(response: Response): List<ComicViewModel> {
-        val document = response.asJsoup()
+        var comics: List<ComicViewModel> = emptyList()
 
-        val comics: List<ComicViewModel> = document.select(allComicsListSelector).map { element ->
-            parseAllComicsByLetterByElement(element)
+        try {
+            val document = response.asJsoup()
+
+            comics = document.select(allComicsListSelector).map { element ->
+                parseAllComicsByLetterByElement(element)
+            }
+
+        } catch (ex: Exception) {
+            Log.e("ParseError", "Parse Error", ex)
         }
 
         return comics
     }
 
     override fun parseAllComicsByScanlatorResponse(response: Response): List<ComicViewModel> {
-        val document = response.asJsoup()
+        var comics: List<ComicViewModel> = emptyList()
 
-        val comics: List<ComicViewModel> = document.select(allComicsListSelector).map { element ->
-            parseAllComicsByLetterByElement(element)
+        try {
+            val document = response.asJsoup()
+
+            comics = document.select(allComicsListSelector).map { element ->
+                parseAllComicsByLetterByElement(element)
+            }
+
+        } catch (ex: Exception) {
+            Log.e("ParseError", "Parse Error", ex)
         }
 
         return comics
     }
 
     override fun parseSearchByQueryResponse(response: Response, query: String): List<ComicViewModel> {
-        val document = response.asJsoup()
+        var comics: List<ComicViewModel> = emptyList()
 
-        val comics: List<ComicViewModel> = document.select(searchComicsSelector).map { element ->
-            parseSearchByQueryByElement(element)
+        try {
+            val document = response.asJsoup()
+
+            comics = document.select(searchComicsSelector).map { element ->
+                parseSearchByQueryByElement(element)
+            }
+
+        } catch (ex: Exception) {
+            Log.e("ParseError", "Parse Error", ex)
         }
 
         return comics

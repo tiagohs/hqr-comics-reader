@@ -61,11 +61,11 @@ class ListComicsPresenter(
     override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
         val sourceId = preferenceHelper.currentSource().getOrDefault()
 
-        comicRepository.addOrRemoveFromFavorite(comic, sourceId)
+        mSubscribers.add(comicRepository.addOrRemoveFromFavorite(comic, sourceId)
                         .subscribeOn(Schedulers.io())
                         .map { it.toModel() }
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { mView?.onBindItem(it) }
+                        .subscribe { mView?.onBindItem(it) })
     }
 
     fun onCheckListType(listType: String, flag: String): Observable<List<ComicViewModel>> {

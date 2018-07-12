@@ -42,6 +42,12 @@ class SourcesActivity: BaseActivity(), ISourcesCallback, SourcesContract.ISource
         presenter.getAllSources()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        presenter.onUnbindView()
+    }
+
     override fun onBindSources(catalogueSources: List<CatalogueSource>) {
         val sectionAdapter = SectionedRecyclerViewAdapter()
 

@@ -105,7 +105,7 @@ abstract class BaseComicsInterceptor(
                 .flatMap { networkComic ->
                     networkComic.inicialized = true
 
-                    comicsRepository.insertOrUpdateComic(networkComic, sourceId)
+                    comicsRepository.insertOrUpdateComic(networkComic, sourceId, true)
                 }
                 .doOnNext { Observable.just(it) }
     }

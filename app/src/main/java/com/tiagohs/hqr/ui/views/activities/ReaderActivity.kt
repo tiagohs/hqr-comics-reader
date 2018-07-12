@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -85,14 +84,13 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     override fun onDestroy() {
         super.onDestroy()
 
-        presenter.onSaveUserHistory()
         presenter.onUnbindView()
     }
 
     override fun onPause() {
         super.onPause()
 
-        presenter
+        presenter.onSaveUserHistory()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -111,9 +109,13 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
         adapter = ReaderPagerAdapter(model,  this, onPageTapListener())
         readerViewPager.adapter = adapter
 
-        readerViewPager.setCurrentItem(0)
-        readerViewPager.addOnPageChangeListener(onConfigureViewPageListener())
+        if (model.chapter.lastPageRead != -1 && model.chapter.lastPageRead < model.pages.size) {
+            readerViewPager.setCurrentItem(model.chapter.lastPageRead)
+        } else {
+            readerViewPager.setCurrentItem(0)
+        }
 
+        readerViewPager.addOnPageChangeListener(onConfigureViewPageListener())
         readerViewPager.listener = this
 
         configurePagesOnSpinner()
@@ -135,11 +137,16 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     private fun onConfigureViewPageListener(): ViewPager.OnPageChangeListener {
         return object : ViewPager.OnPageChangeListener {
 
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+            }
             override fun onPageScrollStateChanged(state: Int) {}
 
             override fun onPageSelected(position: Int) {
                 pagesSpinner.selectedIndex = position
+
+                val page = adapter?.pages?.getOrNull(position) ?: return
+
+                presenter.onTrackUserHistory(page)
             }
         }
     }

@@ -14,10 +14,7 @@ import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.helpers.utils.PermissionUtils
 import com.tiagohs.hqr.helpers.utils.PermissionsCallback
 import com.tiagohs.hqr.helpers.utils.ScreenUtils
-import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.models.view_models.DefaultModelView
-import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
-import com.tiagohs.hqr.models.view_models.ListComicsModel
+import com.tiagohs.hqr.models.view_models.*
 import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.adapters.pagers.ComicDetailsPagerAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
@@ -103,7 +100,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         presenter.onUnbindView()
     }
 
-    override fun onBindComic(comic: ComicViewModel) {
+    override fun onBindComic(comic: ComicViewModel, history: ComicHistoryViewModel?) {
         this.comic = comic
 
         onConfigureTabs()
@@ -140,11 +137,21 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         readBtn.visibility = View.VISIBLE
         readBtn.startAnimation(AnimationUtils.loadAnimation(this, com.github.clans.fab.R.anim.fab_scale_up))
 
-        readBtn.setOnClickListener {
-            val chapter = comic.chapters?.last()
+        readBtn.text = if (history != null)
+            "Continuar"
+        else
+            "Ler"
 
-            if (chapter != null) {
-                startActivity(ReaderActivity.newIntent(this, chapter.chapterPath!!, comic.pathLink!!))
+        readBtn.setOnClickListener {
+
+            if (history != null) {
+                startActivity(ReaderActivity.newIntent(this, history.chapter?.chapterPath!!, comic.pathLink!!))
+            } else {
+                val chapter = comic.chapters?.last()
+
+                if (chapter != null) {
+                    startActivity(ReaderActivity.newIntent(this, chapter.chapterPath!!, comic.pathLink!!))
+                }
             }
         }
 

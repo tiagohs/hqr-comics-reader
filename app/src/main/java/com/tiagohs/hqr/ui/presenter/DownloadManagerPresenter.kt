@@ -32,34 +32,34 @@ class DownloadManagerPresenter(
 
     override fun onCreate() {
 
-        DownloaderService.runningRelay
+        mSubscribers.add(DownloaderService.runningRelay
                  .subscribeOn(Schedulers.io())
                  .observeOn(AndroidSchedulers.mainThread())
                  .subscribe({ mView?.onQueueStatusChange(it) },
-                         { error -> Log.e("DownloadManager", "Error", error) })
+                         { error -> Log.e("DownloadManager", "Error", error) }))
 
-        downloadQueue.getUpdatedStatus()
+        mSubscribers.add(downloadQueue.getUpdatedStatus()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { ArrayList(it.map { it.toModel() }) }
                 .subscribe({ mView?.onNextDownloads(it) },
-                    { error -> Log.e("DownloadManager", "getUpdatedStatus Error", error) })
+                    { error -> Log.e("DownloadManager", "getUpdatedStatus Error", error) }))
 
-        downloadQueue.getStatus()
+        mSubscribers.add(downloadQueue.getStatus()
                 .subscribeOn(Schedulers.io())
                 .startWith(downloadQueue.getActiviteDownloads())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ onStatusChange(it) },
-                        { error -> Log.e("DownloadManager", "getActiviteDownloads Error", error) })
+                        { error -> Log.e("DownloadManager", "getActiviteDownloads Error", error) }))
 
-        downloadQueue.getProgress()
+        mSubscribers.add(downloadQueue.getProgress()
                 .subscribeOn(Schedulers.io())
                 .toFlowable(BackpressureStrategy.BUFFER)
                 .onBackpressureBuffer()
                 .toObservable()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onProgressChange(it) },
-                        { error -> Log.e("DownloadManager", "getProgress Error", error) })
+                        { error -> Log.e("DownloadManager", "getProgress Error", error) }))
     }
 
     private fun onStatusChange(download: Download) {

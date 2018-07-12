@@ -27,7 +27,7 @@ class RecentPresenter(
 
     override fun onGetUserHistories(context: Context?) {
 
-        historyRepository.findAll()
+        mSubscribers.add(historyRepository.findAll()
                 .map {
                     val comicHistoryItems = it.map { it.toModel(context, it.comic) }
 
@@ -35,21 +35,16 @@ class RecentPresenter(
                 }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ histories ->
-                    if (histories.isNotEmpty()) {
-                        mView?.onBindUserHistories(histories)
-                    }
-                }, { error ->
-                    Log.e("RECENT", "onGetUserHistory Falhou ", error)
-                })
+                .subscribe({ histories -> mView?.onBindUserHistories(histories) },
+                        { error -> Log.e("RECENT", "onGetUserHistory Falhou ", error) }))
     }
 
     override fun onGetMoreComics() {
-        listPaginator.onGetNextPage()
+        mSubscribers.add(listPaginator.onGetNextPage()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onBindMoreUserHistories(it) },
-                        { error -> Log.e("FAVORITES", "onGetMoreComics Falhou ", error) })
+                        { error -> Log.e("FAVORITES", "onGetMoreComics Falhou ", error) }))
     }
 
     override fun hasMoreComics(): Boolean {
@@ -61,27 +56,27 @@ class RecentPresenter(
     }
 
     override fun onRemoveHistory(comicItem: ComicDetailsListItem, position: Int) {
-        historyRepository.deleteComicHistory(comicItem.history!!)
+        mSubscribers.add(historyRepository.deleteComicHistory(comicItem.history!!)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({}, { error ->
 
                 }, {
                     mView?.onHistoryRemoved(position)
-                })
+                }))
     }
 
     override fun addOrRemoveFromFavorite(comicItem: ComicDetailsListItem) {
         val sourceId = preferenceHelper.currentSource().getOrDefault()
 
-        comicRepository.addOrRemoveFromFavorite(comicItem.comic, sourceId)
+        mSubscribers.add(comicRepository.addOrRemoveFromFavorite(comicItem.comic, sourceId)
                 .subscribeOn(Schedulers.io())
                 .map {
                     comicItem.comic.favorite = it.favorite
                     comicItem
                 }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { mView?.onBindItem(it) }
+                .subscribe { mView?.onBindItem(it) })
     }
 
     private fun ComicHistoryViewModel.toModel(context: Context?, comic: ComicViewModel?): ComicDetailsListItem {

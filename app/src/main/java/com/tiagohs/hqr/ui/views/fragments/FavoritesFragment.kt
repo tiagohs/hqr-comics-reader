@@ -42,6 +42,12 @@ class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IComi
         presenter.onGetFavorites(context!!)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        presenter.onUnbindView()
+    }
+
     override fun onBindComics(comics: List<ComicDetailsListItem>?) {
         adapter = ComicDetailsListAdapter(true, this)
         adapter?.updateDataSet(comics)
@@ -109,12 +115,10 @@ class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IComi
 
     private fun deleteComic(item: ComicDetailsListItem, position: Int) {
         adapter?.removeItem(position)
-        presenter.deleteChapters(item)
+        presenter.deleteChapters(item, position)
     }
 
-    override fun onComicRemoved() {
-        adapter?.notifyDataSetChanged()
-
+    override fun onComicRemoved(position: Int) {
         setInformationViewStatus()
     }
 

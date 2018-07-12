@@ -68,8 +68,10 @@ class ComicDetailsListHolder(
         if (history == null) {
             view.resumeDetailBtn.text = "Ler"
         } else {
-            view.comicDetailHistoryTime.text = DateUtils.formateDate("dd de MMM de yyyy", history.lastTimeRead!!)
+            view.comicDetailHistoryTime.text = DateUtils.formateDate(history.lastTimeRead!!)
             view.resumeDetailBtn.text = "Continuar"
+
+            view.comicDetailHistoryChapter.text = history.chapter?.chapterName
         }
 
         view.resumeDetailBtn.setOnClickListener {

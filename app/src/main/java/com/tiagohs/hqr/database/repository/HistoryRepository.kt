@@ -16,12 +16,12 @@ class HistoryRepository: BaseRepository(), IHistoryRepository {
 
         try {
             var result = realm.where(ComicHistory::class.java)
-                    .equalTo("id", comicHistoryViewModel.id)
-                    .findFirst()
+                                            .equalTo("comic.pathLink", comicHistoryViewModel.comic?.pathLink)
+                                            .findFirst()
 
             realm.executeTransaction { r ->
                 if (result != null) {
-                    result = HistoryFactory.copyFromComicHistoryViewModel(comicHistoryViewModel, r)
+                    result = HistoryFactory.copyFromComicHistoryViewModel(result!!, comicHistoryViewModel, r)
                 } else {
                     result = HistoryFactory.createComicHistoryForRealm(comicHistoryViewModel, r)
                 }

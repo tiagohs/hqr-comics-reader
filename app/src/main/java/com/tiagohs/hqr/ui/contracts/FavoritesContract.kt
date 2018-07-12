@@ -13,7 +13,7 @@ class FavoritesContract {
         fun onBindMoreComics(comics: List<ComicDetailsListItem>?)
 
         fun onBindItem(comic: ComicDetailsListItem)
-        fun onComicRemoved()
+        fun onComicRemoved(position: Int)
         fun onComicRemovedError()
     }
 
@@ -26,6 +26,6 @@ class FavoritesContract {
         fun hasMoreComics(): Boolean
         fun onGetMoreComics()
         fun getOriginalList(): List<ComicDetailsListItem>
-        fun deleteChapters(comicDetailsListItem: ComicDetailsListItem)
+        fun deleteChapters(comicDetailsListItem: ComicDetailsListItem, position: Int)
     }
 }

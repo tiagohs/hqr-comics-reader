@@ -26,7 +26,7 @@ class App : Application() {
 
         onConfigureDagger()
         onConfigureRealm()
-        onConfigurePicasso()
+        // onConfigurePicasso()
 
         instance = this
 

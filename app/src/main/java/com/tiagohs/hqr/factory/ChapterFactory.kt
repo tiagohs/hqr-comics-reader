@@ -19,6 +19,16 @@ object ChapterFactory {
         return realmObject
     }
 
+    fun copyFromChapterViewModel(chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
+        return Chapter().apply {
+            copyFromChapterViewModel(this, chapterViewModel, comic, realm)
+
+            if (chapterViewModel.id != -1L) {
+                this.id = chapterViewModel.id
+            }
+        }
+    }
+
     fun copyFromChapterViewModel(chapter: Chapter, chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
 
         if (!chapterViewModel.chapterName.isNullOrEmpty()) {

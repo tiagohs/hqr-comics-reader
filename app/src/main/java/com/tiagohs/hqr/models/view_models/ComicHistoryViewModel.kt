@@ -39,6 +39,10 @@ class ComicHistoryViewModel {
 
     fun copyFrom(other: ComicHistory) {
 
+        if (other.id != -1L) {
+            this.id = other.id
+        }
+
         if (!other.lastTimeRead.isNullOrEmpty() ) {
             this.lastTimeRead = other.lastTimeRead
         }

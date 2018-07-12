@@ -64,15 +64,14 @@ object DateUtils {
     }
 
     fun formateDate(format: String, dateString: String): String {
-        var dateFormat = SimpleDateFormat(format, Locale.US)
+        val dateFormat = SimpleDateFormat(format, Locale.US)
         var date: Date? = null
+
         try {
             date = dateFormat.parse(dateString)
         } catch (e: ParseException) {
             return dateString
         }
-
-        dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.US)
 
         return dateFormat.format(date)
     }

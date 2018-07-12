@@ -139,7 +139,26 @@ class ComicsRepository(
         return sourceRepository.getSourceById(sourceId)
                 .map { source ->
                     comic.favorite = !comic.favorite
-                    insertRealm(comic, sourceId, false)
+
+                    val realm = Realm.getDefaultInstance()
+                    val comicLocal = realm.where(Comic::class.java)
+                            .equalTo("source.id", source.id)
+                            .equalTo("pathLink", comic.pathLink)
+                            .findFirst()
+
+                    if (comicLocal != null) {
+                        realm.executeTransaction { r ->
+                            comicLocal.favorite = comic.favorite
+
+                            r.insertOrUpdate(comicLocal)
+                        }
+
+                        finishTransaction(realm)
+
+                        comic
+                    } else {
+                        insertRealm(comic, sourceId, false)
+                    }
                 }
     }
 

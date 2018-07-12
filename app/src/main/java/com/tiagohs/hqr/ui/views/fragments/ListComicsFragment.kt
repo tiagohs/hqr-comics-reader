@@ -134,7 +134,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     }
 
     override fun addOrRemoveFromFavorite(comic: ComicViewModel) {
-
+        presenter.addOrRemoveFromFavorite(comic)
     }
 
     override fun onItemClick(view: View?, position: Int): Boolean {

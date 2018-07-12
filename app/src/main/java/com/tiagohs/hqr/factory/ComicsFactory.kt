@@ -79,6 +79,16 @@ object ComicsFactory {
         return realmObject
     }
 
+    fun copyFromComicViewModel(comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm, skipFavorite: Boolean?): Comic {
+        return Comic().apply {
+            copyFromComicViewModel(this, comicViewModel, source, realm, skipFavorite)
+
+            if (comicViewModel.id != -1L) {
+                this.id = comicViewModel.id
+            }
+        }
+    }
+
     fun copyFromComicViewModel(comic: Comic, comicViewModel: ComicViewModel, source: SourceDB?, realm: Realm, skipFavorite: Boolean?): Comic {
 
         if (!comicViewModel.name.isNullOrEmpty()) {

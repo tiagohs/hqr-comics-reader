@@ -12,7 +12,7 @@ class ComicChaptersContract {
         fun onNextChapters(chapters: List<ChapterItem>)
         fun onChapterDeleted()
         fun onChapterDeletedError()
-        fun onChapterStatusChange(chapterItem: ChapterItem, status: String)
+        fun onChapterStatusChange(chapterItem: ChapterItem, status: Int)
     }
 
     interface IComicChaptersPresenter: IPresenter<IComicChaptersView> {

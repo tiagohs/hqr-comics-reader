@@ -26,7 +26,7 @@ class ChapterHolder(
         notifyStatus(item.status)
     }
 
-    fun notifyStatus(status: String) {
+    fun notifyStatus(status: Int) {
         when (status) {
             Download.QUEUE, Download.DOWNLOADING -> onDownloading()
             Download.DOWNLOADED -> onDownloaded()

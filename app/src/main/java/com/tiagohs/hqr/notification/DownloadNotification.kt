@@ -102,9 +102,10 @@ class DownloadNotification(
             val title = download.comic.name?.chop(20)
             val chapterTitle = download.chapter.chapterName
 
+            setSmallIcon(R.drawable.ic_stat_launcher)
             setContentTitle("$title - $chapterTitle".chop(30))
             setContentText(context.getString(R.string.download_complete))
-            setAutoCancel(true)
+            setAutoCancel(false)
             clearActions()
             setContentIntent(NotificationReceiver.openChapterPedingBroadcast(context, download.comic, download.chapter))
             setProgress(0, 0, false)

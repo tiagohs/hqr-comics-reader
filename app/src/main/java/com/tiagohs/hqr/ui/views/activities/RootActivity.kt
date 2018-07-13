@@ -117,8 +117,8 @@ class RootActivity: BaseActivity(), PermissionsCallback {
 
         when (intent.action) {
             SHORTCUT_COMIC -> { openComic(intent.getParcelableExtra(SHORTCUT_COMIC))}
-            SHORTCUT_DOWNLOADS -> setItemSelected(R.id.actionDownload)
-            SHORTCUT_RECENTLY_READ -> setItemSelected(R.id.actionRecent)
+            SHORTCUT_DOWNLOADS -> rootBottomNavigation!!.setSelectedItemId(R.id.actionDownloads)
+            SHORTCUT_RECENTLY_READ -> rootBottomNavigation!!.setSelectedItemId(R.id.actionRecent)
             else -> return false
         }
 

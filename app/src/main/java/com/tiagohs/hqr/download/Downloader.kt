@@ -311,6 +311,6 @@ class Downloader(
     }
 
     private fun areAllDownloadsFinished(): Boolean {
-        return queue.none { it.status == Download.DOWNLOADING || it.status == Download.ERROR }
+        return queue.none { it.status <= Download.DOWNLOADING }
     }
 }

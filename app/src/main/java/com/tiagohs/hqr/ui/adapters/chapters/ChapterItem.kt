@@ -15,9 +15,9 @@ class ChapterItem(
         val comic: ComicViewModel
 ): AbstractFlexibleItem<ChapterHolder>() {
 
-    private var _status: String = "NOT_DOWNLOADED"
+    private var _status: Int = Download.NOT_DOWNLOADED
 
-    var status: String
+    var status: Int
         get() = download?.status ?: _status
         set(value) { _status = value }
 

@@ -143,7 +143,7 @@ class ComicChaptersFragment:
         chaptersList.visibility = View.VISIBLE
     }
 
-    override fun onChapterStatusChange(chapterItem: ChapterItem, status: String) {
+    override fun onChapterStatusChange(chapterItem: ChapterItem, status: Int) {
         getHolder(chapterItem)?.notifyStatus(status)
     }
 

@@ -42,7 +42,8 @@ class RootActivity: BaseActivity(), PermissionsCallback {
     lateinit var downloadManager: DownloadManager
 
     var itemView: BottomNavigationItemView? = null
-    var badge: BottomNavigationItemView? = null
+
+    var currentFragmentId: Int = -1
 
     override fun onGetMenuLayoutId(): Int {
         return 0
@@ -87,7 +88,7 @@ class RootActivity: BaseActivity(), PermissionsCallback {
 
     private fun configreDownloadBadge() {
 
-        if (!downloadManager.queue.isEmpty()) {
+        if (!downloadManager.queue.isEmpty() && currentFragmentId != R.id.actionDownloads) {
             if (itemView == null) {
                 val bottomNavigationMenuView = rootBottomNavigation.getChildAt(0) as BottomNavigationMenuView
                 val v = bottomNavigationMenuView.getChildAt(3)
@@ -99,13 +100,12 @@ class RootActivity: BaseActivity(), PermissionsCallback {
                 itemView?.addView(badge)
             }
 
-            itemView?.downloadQueueCount!!.visibility = View.VISIBLE
-            itemView?.downloadQueueCount!!.text = downloadManager.queue.size.toString()
+            itemView?.downloadQueueCount?.visibility = View.VISIBLE
+            itemView?.downloadQueueCount?.text = downloadManager.queue.size.toString()
         } else {
-
+            itemView?.downloadQueueCount?.visibility = View.GONE
         }
     }
-
 
     override fun onNewIntent(intent: Intent) {
         if (!handleIntentReceiver(intent)) {
@@ -131,7 +131,12 @@ class RootActivity: BaseActivity(), PermissionsCallback {
     }
 
     private fun setItemSelected(itemId: Int): Boolean {
+        currentFragmentId = itemId
+
+        configreDownloadBadge()
+
         onChangeFragment(R.id.contentFragment, "tag:${itemId}", itemId)
+
         return true
     }
 
@@ -139,17 +144,17 @@ class RootActivity: BaseActivity(), PermissionsCallback {
         val fm = supportFragmentManager
         val fragmentTransaction = fm.beginTransaction()
 
+        val curFrag = fm.getPrimaryNavigationFragment()
+        if (curFrag != null) {
+            fragmentTransaction.detach(curFrag)
+        }
+
         var fragment = fm.findFragmentByTag(tag)
         if (fragment == null) {
             fragment = getFragment(itemId)
             fragmentTransaction.add(container, fragment, tag)
         } else {
             fragmentTransaction.attach(fragment)
-        }
-
-        val curFrag = fm.getPrimaryNavigationFragment()
-        if (curFrag != null) {
-            fragmentTransaction.detach(curFrag)
         }
 
         fragmentTransaction.setPrimaryNavigationFragment(fragment)

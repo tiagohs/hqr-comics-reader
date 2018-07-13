@@ -40,17 +40,13 @@ class ReaderPagerAdapter(
         val view = LayoutInflater.from(context).inflate(R.layout.item_reader_image, container, false)
         val page = pages.get(position)
 
-        val attacher = PhotoViewAttacher(view.chapterImg)
-        attacher.setOnViewTapListener (onPageTapListener)
-        attacher.update();
-
-        container.addView(view)
-
         if (position == 0 && isFirstTime) {
             onShowComicApresentationView(view, page)
         } else {
             onLoadPage(view, page)
         }
+
+        container.addView(view)
 
         return view
     }
@@ -103,6 +99,10 @@ class ReaderPagerAdapter(
             ImageUtils.load(view.chapterImg, page.uri, object : Callback {
                 override fun onSuccess() {
                     view.chapterPageProgress?.visibility = View.GONE
+
+                    val attacher = PhotoViewAttacher(view.chapterImg)
+                    attacher.setOnViewTapListener (onPageTapListener)
+                    attacher.update()
                 }
 
                 override fun onError(e: Exception?) {}
@@ -111,6 +111,10 @@ class ReaderPagerAdapter(
             ImageUtils.load(view.chapterImg, page.imageUrl, object : Callback {
                 override fun onSuccess() {
                     view.chapterPageProgress?.visibility = View.GONE
+
+                    val attacher = PhotoViewAttacher(view.chapterImg)
+                    attacher.setOnViewTapListener (onPageTapListener)
+                    attacher.update()
                 }
 
                 override fun onError(e: Exception?) {}

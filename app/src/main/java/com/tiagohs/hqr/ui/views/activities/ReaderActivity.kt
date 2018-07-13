@@ -103,6 +103,8 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     override fun onBindChapter(model: ReaderChapterViewModel, updateDataSet: Boolean) {
         this.readerChapterViewModel = model
 
+        readerPageProgress.visibility = View.GONE
+
         setScreenTitle(model.comic.name)
         setScreenSubtitle(model.chapter.chapterName)
 

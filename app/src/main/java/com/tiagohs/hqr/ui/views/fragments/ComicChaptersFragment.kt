@@ -55,6 +55,8 @@ class ComicChaptersFragment:
     private var deletingDialog: MaterialDialog? = null
     private var pageLoaded = false
 
+    private var actionModeMenu: Menu? = null
+
     override fun getViewID(): Int {
         return R.layout.fragment_comic_chapters
     }
@@ -206,6 +208,8 @@ class ComicChaptersFragment:
     }
 
     override fun onPrepareActionMode(mode: ActionMode, menu: Menu?): Boolean {
+        actionModeMenu = menu
+
         val count = adapter?.selectedItemCount ?: 0
 
         if (count == 0) {
@@ -213,6 +217,8 @@ class ComicChaptersFragment:
         } else {
             mode.title = context?.getString(R.string.chapters_selected, count)
         }
+
+        onFilterMenuOptions()
 
         return false
     }
@@ -222,6 +228,7 @@ class ComicChaptersFragment:
         adapter?.clearSelection()
         selectedItems.clear()
         actionMode = null
+        actionModeMenu = null
     }
 
     override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
@@ -235,6 +242,13 @@ class ComicChaptersFragment:
         }
 
         return true
+    }
+
+    private fun onFilterMenuOptions() {
+        actionModeMenu?.findItem(R.id.actionDelete)?.isVisible = getSelectedChapters().filter { it.isDownloaded }.isNotEmpty()
+        actionModeMenu?.findItem(R.id.actionDownloadSelected)?.isVisible = getSelectedChapters().filter { !it.isDownloaded }.isNotEmpty()
+        actionModeMenu?.findItem(R.id.actionSelectAll)?.isVisible = getSelectedChapters().size < adapter?.items?.size!!
+        actionModeMenu?.findItem(R.id.actionClearAll)?.isVisible = getSelectedChapters().isNotEmpty()
     }
 
     private fun clearAll() {

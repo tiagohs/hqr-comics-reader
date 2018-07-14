@@ -2,33 +2,28 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="50dp"
+    android:layout_width="@dimen/item_circle_container_width"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
+    android:layout_margin="@dimen/margin_default_medium"
     android:orientation="vertical"
-    android:layout_marginEnd="5dp"
-    android:layout_marginStart="5dp"
+    android:layout_marginEnd="@dimen/margin_default_min"
+    android:layout_marginStart="@dimen/margin_default_min"
     android:gravity="center">
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:id="@+id/publisherImgBack"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:scaleType="fitXY"
-            tools:ignore="ContentDescription"/>
-    </RelativeLayout>
+    <ImageView
+        android:id="@+id/publisherImgBack"
+        android:layout_width="@dimen/item_circle_width"
+        android:layout_height="@dimen/item_circle_width"
+        android:scaleType="fitXY"
+        tools:ignore="ContentDescription"/>
 
     <TextView
         android:id="@+id/publisherTitle"
-        android:layout_width="60dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12dp"
+        android:textSize="@dimen/txt_size_small"
         android:textColor="@color/colorPrimaryText"
-        android:padding="5dp"
+        android:padding="@dimen/margin_default_min"
         android:lines="2"
         android:ellipsize="end"
         android:textAlignment="center"/>

@@ -7,15 +7,15 @@
 
     <android.support.v7.widget.AppCompatImageView
         android:id="@+id/emptyImageView"
-        android:layout_width="128dp"
-        android:layout_height="128dp"
+        android:layout_width="@dimen/empty_view_size"
+        android:layout_height="@dimen/empty_view_size"
         android:layout_centerHorizontal="true"/>
 
     <TextView
         android:id="@+id/emptyLabel"
-        android:layout_margin="16dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_horizontal_margin"
         android:layout_below="@+id/emptyImageView"
         android:gravity="center"
         android:textColor="@color/colorSecondaryText"

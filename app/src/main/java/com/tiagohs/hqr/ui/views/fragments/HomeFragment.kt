@@ -1,12 +1,14 @@
 package com.tiagohs.hqr.ui.views.fragments
 
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.support.customtabs.CustomTabsIntent
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.extensions.getResourceColor
+import com.tiagohs.hqr.helpers.extensions.toast
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
 import com.tiagohs.hqr.models.base.ISource
@@ -77,7 +79,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        activityCallbacks!!.setScreenTitle("Ínicio")
+        activityCallbacks!!.setScreenTitle(getString(R.string.home_title))
 
         getApplicationComponent()!!.inject(this)
 
@@ -237,7 +239,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     private fun goToComicsListPage() {
-        startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_ALL, "HQS - HQBR", "")))
+        startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_ALL, source.name!!, "")))
     }
 
     private fun goToSources() {
@@ -245,8 +247,19 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     private fun goToSourcePage(baseUrl: String) {
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(baseUrl))
-        startActivity(browserIntent)
+        val context = view?.context ?: return
+
+        try {
+            val url = Uri.parse(baseUrl)
+            val intent = CustomTabsIntent.Builder()
+                    .setToolbarColor(context.getResourceColor(R.color.colorPrimary))
+                    .setShowTitle(true)
+                    .build()
+            intent.launchUrl(activity, url)
+        } catch (e: Exception) {
+            context.toast(e.message)
+        }
+
     }
 
     private fun onPublisherCallback(): IPublisherCallback {

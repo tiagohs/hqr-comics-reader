@@ -46,14 +46,13 @@ class ComicChaptersFragment:
     @Inject
     lateinit var presenter: ComicChaptersContract.IComicChaptersPresenter
 
-    lateinit var comicViewModel: ComicViewModel
-
     private var actionMode: ActionMode? = null
     private val selectedItems = mutableSetOf<ChapterItem>()
 
     private var adapter: ChaptersListAdapter? = null
     private var deletingDialog: MaterialDialog? = null
     private var pageLoaded = false
+    private var comicViewModel: ComicViewModel? = null
 
     private var actionModeMenu: Menu? = null
 
@@ -65,7 +64,7 @@ class ComicChaptersFragment:
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
 
-        comicViewModel = arguments!!.getParcelable(COMIC)
+        comicViewModel = arguments?.getParcelable(COMIC)
     }
 
 
@@ -163,7 +162,7 @@ class ComicChaptersFragment:
             toggleComic(position)
             return true
         } else {
-            startActivity(ReaderActivity.newIntent(context, item.chapter.chapterPath!!, comicViewModel.pathLink!!))
+            startActivity(ReaderActivity.newIntent(context, item.chapter.chapterPath!!, comicViewModel?.pathLink!!))
             return false
         }
     }

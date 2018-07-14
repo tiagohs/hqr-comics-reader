@@ -22,6 +22,7 @@ interface IComic {
     var chapters: RealmList<Chapter>?
     var status: String?
 
+    var downloaded: Boolean
     var inicialized: Boolean
     var favorite: Boolean
     var lastUpdate: String?
@@ -95,7 +96,7 @@ interface IComic {
         this.pathLink = other.pathLink
         this.inicialized = other.inicialized
         this.favorite = other.favorite
-
+        this.downloaded = other.downloaded
     }
 
     fun copyFrom(other: ComicViewModel) {

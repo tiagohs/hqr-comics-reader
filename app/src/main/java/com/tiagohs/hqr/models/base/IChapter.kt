@@ -8,6 +8,7 @@ interface IChapter{
     var chapterName: String?
     var chapterPath: String?
     var lastPageRead: Int
+    var downloaded: Boolean
 
     var comic: Comic?
 
@@ -32,6 +33,8 @@ interface IChapter{
         if (other.lastPageRead != -1) {
             this.lastPageRead = other.lastPageRead
         }
+
+        this.downloaded = other.downloaded
 
     }
 

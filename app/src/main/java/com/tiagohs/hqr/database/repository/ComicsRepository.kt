@@ -162,6 +162,60 @@ class ComicsRepository(
                 }
     }
 
+    override fun setAsDownloaded(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>  {
+        return sourceRepository.getSourceById(sourceId)
+                .map { source ->
+                    val realm = Realm.getDefaultInstance()
+
+                    val comicLocal = realm.where(Comic::class.java)
+                            .equalTo("source.id", source.id)
+                            .equalTo("pathLink", comic.pathLink)
+                            .findFirst()
+
+                    if (comicLocal != null && !comicLocal.downloaded) {
+                        realm.executeTransaction { r ->
+                            comicLocal.downloaded = true
+                            comic.downloaded = true
+
+                            r.insertOrUpdate(comicLocal)
+                        }
+
+                        finishTransaction(realm)
+
+                        comic
+                    } else {
+                        insertRealm(comic, sourceId, false)
+                    }
+                }
+    }
+
+    override fun setAsNotDownloaded(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>  {
+        return sourceRepository.getSourceById(sourceId)
+                .map { source ->
+                    val realm = Realm.getDefaultInstance()
+
+                    val comicLocal = realm.where(Comic::class.java)
+                            .equalTo("source.id", source.id)
+                            .equalTo("pathLink", comic.pathLink)
+                            .findFirst()
+
+                    if (comicLocal != null && comicLocal.downloaded) {
+                        realm.executeTransaction { r ->
+                            comicLocal.downloaded = false
+                            comic.downloaded = false
+
+                            r.insertOrUpdate(comicLocal)
+                        }
+
+                        finishTransaction(realm)
+
+                        comic
+                    } else {
+                        insertRealm(comic, sourceId, false)
+                    }
+                }
+    }
+
     override fun deleteComic(comic: ComicViewModel): Observable<Void> {
         return delete<Comic>(comic.id)
     }
@@ -253,6 +307,21 @@ class ComicsRepository(
                 val realm = Realm.getDefaultInstance()
                 emitter.onNext(findAllComics(realm, realm.where(Comic::class.java)
                         .equalTo("favorite", true) ))
+
+                emitter.onComplete()
+
+            } catch (ex: Exception) {
+                emitter.onError(ex)
+            }
+        }
+    }
+
+    override fun getDownloadedComics(): Observable<List<ComicViewModel>> {
+        return Observable.create<List<ComicViewModel>> { emitter ->
+            try {
+                val realm = Realm.getDefaultInstance()
+                emitter.onNext(findAllComics(realm, realm.where(Comic::class.java)
+                        .equalTo("downloaded", true) ))
 
                 emitter.onComplete()
 

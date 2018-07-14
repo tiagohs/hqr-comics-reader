@@ -168,7 +168,7 @@ class HomePresenter(
                 .subscribeOn(Schedulers.io())
                 .map { it.toModel() }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { c ->
+                .subscribe({ c ->
                     if (c?.comic?.tags != null) {
                         if (c.comic.tags!!.contains(IComic.POPULARS)) {
                             mView?.onBindPopularItem(c)
@@ -177,7 +177,7 @@ class HomePresenter(
                             mView?.onBindLastestItem(c)
                         }
                     }
-                })
+                }, { error -> Log.e("LIST", "addOrRemoveFromFavorite Falhou ", error) }))
     }
 
     private fun ComicViewModel.toModel(): ComicItem {

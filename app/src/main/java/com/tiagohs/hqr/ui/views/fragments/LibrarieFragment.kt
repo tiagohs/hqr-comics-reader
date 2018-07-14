@@ -24,12 +24,12 @@ class LibrarieFragment: BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
 
-        activityCallbacks!!.setScreenTitle("Minha Biblioteca")
+        activityCallbacks!!.setScreenTitle(getString(R.string.lirarie_title))
         onCofigureLibrariePageView()
     }
 
     private fun onCofigureLibrariePageView() {
-        librarieViewpager.adapter = LibrariePagerAdapter(childFragmentManager, mutableListOf("Favoritos", "Downloads"))
+        librarieViewpager.adapter = LibrariePagerAdapter(childFragmentManager, resources.getStringArray(R.array.librarie_tabs_values).toList())
         tabLibrarieLayout.setupWithViewPager(librarieViewpager)
     }
 

@@ -113,8 +113,13 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
 
         if (model.chapter.lastPageRead != -1 && model.chapter.lastPageRead < model.pages.size) {
             readerViewPager.setCurrentItem(model.chapter.lastPageRead)
+
+            if (model.chapter.lastPageRead == 0) {
+                presenter.onTrackUserHistory(model.pages.first())
+            }
         } else {
             readerViewPager.setCurrentItem(0)
+            presenter.onTrackUserHistory(model.chapter.pages?.get(0)!!)
         }
 
         readerViewPager.addOnPageChangeListener(onConfigureViewPageListener())

@@ -27,6 +27,7 @@ class DownloadQueueHolder(
 
         containerViewHolder.chapterTitle.text = download.chapter.chapterName
         containerViewHolder.comicTitle.text = download.comic.name
+        containerViewHolder.sourceTitle.text = containerViewHolder.context.getString(R.string.source_detail_name, download.sourceDB.language, download.sourceDB.name)
 
         val pages = download.chapter.pages
 

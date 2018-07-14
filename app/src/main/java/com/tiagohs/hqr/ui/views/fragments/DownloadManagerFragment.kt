@@ -41,7 +41,7 @@ class DownloadManagerFragment: BaseFragment(), DownloadManagerContract.IDownload
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
 
-        activityCallbacks!!.setScreenTitle("Fila de Downloads")
+        activityCallbacks!!.setScreenTitle(getString(R.string.download_manager_title))
 
         getApplicationComponent()?.inject(this)
 

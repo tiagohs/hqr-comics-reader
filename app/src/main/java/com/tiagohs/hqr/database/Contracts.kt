@@ -61,8 +61,11 @@ interface IComicsRepository {
     fun getPopularComics(sourceId: Long): Observable<List<ComicViewModel>>
     fun getRecentsComics(sourceId: Long): Observable<List<ComicViewModel>>
     fun getFavoritesComics(): Observable<List<ComicViewModel>>
+    fun getDownloadedComics(): Observable<List<ComicViewModel>>
 
     fun isFavorite(pathLink: String): Boolean
+    fun setAsNotDownloaded(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>
+    fun setAsDownloaded(comic: ComicViewModel, sourceId: Long): Observable<ComicViewModel>
 
     fun getTotalChapters(comic: ComicViewModel): Observable<Int>
 
@@ -72,8 +75,10 @@ interface IComicsRepository {
 interface IChapterRepository {
 
     fun getChapterRealm(pathLink: String, comicId: Long): ChapterViewModel?
-
     fun getAllChapters(comicId: Long): Observable<List<ChapterViewModel>>
+
+    fun setOrUnsetAsDownloaded(chapterViewModel: ChapterViewModel, comicId: Long): ChapterViewModel
+    fun removeAllDownloads(comicId: Long)
 
     fun getChapter(chapterId: Long): Observable<ChapterViewModel>
     fun getChapter(pathLink: String, comicId: Long): Observable<ChapterViewModel>

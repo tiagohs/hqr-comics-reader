@@ -1,18 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
+<com.facebook.shimmer.ShimmerFrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/movieDetailsShimmer"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    app:duration="800">
 
-    <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/movieDetailsShimmer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        app:duration="800">
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <View
+            android:layout_width="@dimen/comic_detail_poster_width"
+            android:layout_height="@dimen/comic_detail_poster_height"
+            android:layout_marginTop="@dimen/comic_detail_poster_margin_top"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,25 +30,25 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="140dp"
-                android:layout_marginStart="135dp">
+                android:layout_marginTop="@dimen/comic_detail_header_container_margin_top"
+                android:layout_marginStart="@dimen/comic_detail_header_container_margin_start">
 
                 <View
-                    android:layout_width="90dp"
-                    android:layout_height="20dp"
-                    android:padding="3dp"
+                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
+                    android:padding="@dimen/margin_default_min"
                     android:background="@color/placeholder_bg" />
 
                 <View
-                    android:layout_width="140dp"
-                    android:layout_height="20dp"
-                    android:layout_marginTop="7dp"
+                    android:layout_width="@dimen/placeholder_comic_details_title_item_width"
+                    android:layout_height="@dimen/placeholder_comic_details_title_item_height"
+                    android:layout_marginTop="@dimen/margin_default_min"
                     android:background="@color/placeholder_bg"/>
 
                 <View
-                    android:layout_width="90dp"
-                    android:layout_height="20dp"
-                    android:layout_marginTop="40dp"
+                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
+                    android:layout_marginTop="@dimen/placeholder_comic_details_list_publishers_margin_top"
                     android:background="@color/placeholder_bg"/>
 
             </LinearLayout>
@@ -50,87 +57,122 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="80dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:orientation="horizontal">
 
                 <View
-                    android:layout_width="90dp"
-                    android:layout_height="20dp"
+                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
                     android:background="@color/placeholder_bg"/>
 
                 <View
-                    android:layout_width="90dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="5dp"
+                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
+                    android:layout_marginStart="@dimen/margin_default_min"
                     android:background="@color/placeholder_bg"/>
 
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="15dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/placeholder_comic_details_text_margin_top"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:background="@color/placeholder_bg"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:background="@color/placeholder_bg"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:background="@color/placeholder_bg"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:background="@color/placeholder_bg"/>
+
 
         </LinearLayout>
 
-    </com.facebook.shimmer.ShimmerFrameLayout>
-</LinearLayout>
+    </RelativeLayout>
+
+</com.facebook.shimmer.ShimmerFrameLayout>

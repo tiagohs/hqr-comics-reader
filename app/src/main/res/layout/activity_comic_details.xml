@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -10,8 +9,9 @@
     <android.support.design.widget.AppBarLayout
         android:id="@+id/comicDetailsAppBar"
         android:layout_width="match_parent"
-        android:layout_height="280dp"
+        android:layout_height="@dimen/comic_detail_app_bar_height"
         android:theme="@style/AppTheme.AppBarOverlay"
+        android:background="@color/white"
         android:fitsSystemWindows="true">
 
         <android.support.design.widget.CollapsingToolbarLayout
@@ -21,114 +21,120 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             android:fitsSystemWindows="true"
             app:contentScrim="@color/colorPrimary"
-            app:titleEnabled="false"
-            app:expandedTitleMarginStart="48dp"
-            app:expandedTitleMarginEnd="64dp">
+            app:titleEnabled="false">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fitsSystemWindows="true"
-                android:background="@color/white"
-                android:orientation="vertical">
+                android:fitsSystemWindows="true">
 
                 <RelativeLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 
                     <ImageView
                         android:id="@+id/comicWallpaper"
                         android:layout_width="match_parent"
-                        android:layout_height="150dp"
+                        android:layout_height="@dimen/comic_detail_wallpaper_height"
                         android:scaleType="centerCrop"
-                        android:fitsSystemWindows="true"/>
+                        android:fitsSystemWindows="true"
+                        android:contentDescription="@string/comic_details_wallpaper_description"/>
 
-                    <RelativeLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_marginTop="120dp"
-                        android:layout_marginStart="16dp">
-
-                        <ImageView
-                            android:id="@+id/comicImage"
-                            android:layout_width="110dp"
-                            android:layout_height="150dp"
-                            android:scaleType="fitXY"/>
-
-                        <ToggleButton
-                            android:id="@+id/addToFavBtn"
-                            android:layout_width="35dp"
-                            android:layout_height="35dp"
-                            android:layout_gravity="center"
-                            android:background="@drawable/button_favorite"
-                            android:visibility="gone"
-                            android:checked="false"
-                            android:text=""
-                            android:textOff=""
-                            android:textOn=""/>
-
-                    </RelativeLayout>
-
-                    <Button
-                        android:id="@+id/readBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:text="Ler HQ"
-                        android:textColor="@color/white"
-                        android:textSize="12dp"
-                        android:background="@drawable/button_background_default"
-                        android:drawableStart="@drawable/ic_book"
-                        android:drawablePadding="5dp"
-                        android:layout_marginTop="135dp"
-                        android:layout_marginEnd="16dp"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentEnd="true"
-                        android:visibility="gone"/>
-
-                    <LinearLayout
-                        android:id="@+id/headerContainer"
+                    <View
+                        android:id="@+id/comicWallpaperOverlay"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginTop="155dp"
-                        android:layout_marginStart="135dp"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:id="@+id/comicStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:padding="3dp"
-                            android:textSize="10sp"
-                            android:textColor="@color/white"
-                            android:background="@android:color/holo_green_dark" />
-
-                        <TextView
-                            android:id="@+id/comicTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="14dp"
-                            android:textColor="@color/colorPrimaryText"
-                            android:layout_marginTop="5dp"
-                            android:lines="3"
-                            android:ellipsize="end"
-                            android:layout_marginRight="16dp"/>
-
-                        <android.support.v7.widget.RecyclerView
-                            android:id="@+id/publishersList"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:minHeight="25dp"
-                            android:clipToPadding="false" />
-
-                    </LinearLayout>
+                        android:layout_height="@dimen/comic_detail_wallpaper_height"
+                        android:visibility="gone"
+                        android:background="@color/comic_wallpaper_overlay"/>
 
                 </RelativeLayout>
 
-            </LinearLayout>
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginTop="@dimen/comic_detail_poster_margin_top"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin">
+
+                    <ImageView
+                        android:id="@+id/comicImage"
+                        android:layout_width="@dimen/comic_detail_poster_width"
+                        android:layout_height="@dimen/comic_detail_poster_height"
+                        android:scaleType="fitXY"
+                        android:contentDescription="@string/comic_details_poster_description"/>
+
+                    <ToggleButton
+                        android:id="@+id/addToFavBtn"
+                        android:layout_width="@dimen/add_to_fav_size"
+                        android:layout_height="@dimen/add_to_fav_size"
+                        android:layout_gravity="center"
+                        android:background="@drawable/button_favorite"
+                        android:visibility="gone"
+                        android:checked="false"
+                        android:text=""
+                        android:textOff=""
+                        android:textOn=""/>
+
+                </RelativeLayout>
+
+                <Button
+                    android:id="@+id/readBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:text="@string/read"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/txt_size_small"
+                    android:background="@drawable/button_background_default"
+                    android:drawableStart="@drawable/ic_book"
+                    android:drawablePadding="@dimen/margin_default_min"
+                    android:layout_marginTop="@dimen/comic_detail_read_btn_margin_top"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:paddingLeft="@dimen/margin_default_medium"
+                    android:paddingRight="@dimen/margin_default_medium"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:visibility="gone"/>
+
+                <LinearLayout
+                    android:id="@+id/headerContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="@dimen/comic_detail_header_container_margin_top"
+                    android:layout_marginStart="@dimen/comic_detail_header_container_margin_start">
+
+                    <TextView
+                        android:id="@+id/comicStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/item_status_padding"
+                        android:textSize="@dimen/txt_size_very_small"
+                        android:lines="1"
+                        android:ellipsize="end"
+                        android:layout_marginEnd="@dimen/comic_detail_header_container_margin_end"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:id="@+id/comicTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/txt_size_medium"
+                        android:textColor="@color/colorPrimaryText"
+                        android:layout_marginTop="@dimen/margin_default_min"
+                        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                        android:lines="3"
+                        android:ellipsize="end"/>
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/publishersList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="@dimen/recycler_view_simple_items_default_min_height"
+                        android:clipToPadding="false" />
+
+                </LinearLayout>
+
+            </RelativeLayout>
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -171,8 +177,8 @@
     <ProgressBar
         android:id="@+id/comicDetailsProgress"
         style="?android:attr/progressBarStyleLarge"
-        android:layout_width="50dp"
-        android:layout_height="100dp"
+        android:layout_width="@dimen/progress_circular_default_width"
+        android:layout_height="@dimen/progress_circular_default_height"
         android:layout_gravity="center" />
 
 </android.support.design.widget.CoordinatorLayout>

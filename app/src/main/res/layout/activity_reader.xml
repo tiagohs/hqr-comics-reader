@@ -18,8 +18,8 @@
         <ProgressBar
             android:id="@+id/readerPageProgress"
             style="?android:attr/progressBarStyleLarge"
-            android:layout_width="50dp"
-            android:layout_height="150dp"
+            android:layout_width="@dimen/progress_circular_default_width"
+            android:layout_height="@dimen/progress_circular_default_height"
             android:layout_centerVertical="true"
             android:layout_centerHorizontal="true"/>
 
@@ -47,38 +47,39 @@
             android:gravity="center"
             android:background="@color/blackOpacity"
             android:orientation="horizontal"
-            android:paddingEnd="10dp"
-            android:paddingStart="10dp"
+            android:paddingEnd="@dimen/margin_default_medium"
+            android:paddingStart="@dimen/margin_default_medium"
             android:focusable="false">
 
             <ImageButton
                 android:id="@+id/rightButton"
-                android:layout_width="40dp"
+                android:layout_width="@dimen/reader_direction_btn_width"
                 android:layout_height="match_parent"
                 android:background="?android:selectableItemBackground"
-                android:src="@drawable/ic_navigate_next_white"
-                android:layout_alignParentEnd="true"/>
+                app:srcCompat="@drawable/ic_navigate_next_white"
+                android:layout_alignParentEnd="true"
+                android:contentDescription="@string/reader_right_button_description"/>
 
             <ImageButton
                 android:id="@+id/leftButton"
-                android:layout_width="40dp"
+                android:layout_width="@dimen/reader_direction_btn_width"
                 android:layout_height="match_parent"
                 android:background="?android:selectableItemBackground"
-                android:src="@drawable/ic_navigate_before_white"/>
+                app:srcCompat="@drawable/ic_navigate_before_white"
+                android:contentDescription="@string/reader_left_button_description"/>
 
             <com.jaredrummler.materialspinner.MaterialSpinner
                 android:id="@+id/pagesSpinner"
-                android:layout_width="90dp"
+                android:layout_width="@dimen/reader_pages_spinner_width"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:layout_marginBottom="@dimen/margin_default_min"
                 app:ms_background_color="@color/blackOpacity"
-                app:ms_background_selector="@color/blackOpacity"
                 app:ms_text_color="@color/white"
                 app:ms_arrow_tint="@color/white"
-                app:ms_dropdown_max_height="400dp"/>
+                app:ms_dropdown_max_height="@dimen/reader_pages_spinner_dropdown_max_height"/>
 
         </RelativeLayout>
 

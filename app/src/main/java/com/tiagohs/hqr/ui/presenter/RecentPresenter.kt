@@ -76,7 +76,8 @@ class RecentPresenter(
                     comicItem
                 }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { mView?.onBindItem(it) })
+                .subscribe({ mView?.onBindItem(it) },
+                        { error -> Log.e("RECENTS", "addOrRemoveFromFavorite Falhou ", error) }))
     }
 
     private fun ComicHistoryViewModel.toModel(context: Context?, comic: ComicViewModel?): ComicDetailsListItem {

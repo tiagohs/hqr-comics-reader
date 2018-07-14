@@ -2,18 +2,19 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="25dp"
-    android:layout_marginTop="20dp"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp">
+    android:layout_height="@dimen/item_header_source_height"
+    android:layout_marginTop="@dimen/margin_default_large"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin">
 
     <TextView
         android:id="@+id/sourceLanguage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:textColor="@color/colorSecondaryText"
-        android:textSize="12sp"
-        android:text="Portuguese"
+        android:textSize="@dimen/txt_size_small"
+        android:lines="1"
+        android:ellipsize="end"
         android:layout_centerVertical="true"/>
 
 </RelativeLayout>

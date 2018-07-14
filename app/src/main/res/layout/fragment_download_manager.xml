@@ -8,7 +8,7 @@
         android:id="@+id/downloadsQueueList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="100dp"
+        android:minHeight="@dimen/recycler_view_min_height"
         android:clipToPadding="false" />
 
     <com.tiagohs.hqr.helpers.tools.EmptyView

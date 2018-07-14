@@ -5,6 +5,7 @@ import android.util.Log
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay2.BehaviorRelay
+import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.extensions.launchNow
 import com.tiagohs.hqr.helpers.extensions.launchUI
@@ -39,8 +40,8 @@ class Downloader(
         val cache: DownloadCache,
         val downloadNotification: DownloadNotification,
         val sourceRepository: ISourceRepository,
-        val preferenceHelper: PreferenceHelper
-        ) {
+        val preferenceHelper: PreferenceHelper,
+        val comicRepository: IComicsRepository) {
 
     private var subscriptions = CompositeDisposable()
 
@@ -299,8 +300,11 @@ class Downloader(
     }
 
     private fun completeDownload(download: Download) {
-        if (download.status == Download.DOWNLOADED)
+        if (download.status == Download.DOWNLOADED) {
+            comicRepository.setAsDownloaded(download.comic, download.sourceDB.id)
+
             queue.remove(download)
+        }
 
         if (areAllDownloadsFinished()) {
             if (!downloadNotification.isErrorThrow)

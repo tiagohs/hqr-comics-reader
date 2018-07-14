@@ -17,12 +17,15 @@ class ChapterViewModel() : Parcelable {
     var pages: List<Page>? = null
     var comic: Comic? = null
 
+    var downloaded: Boolean = false
+
     constructor(parcel: Parcel) : this() {
         id = parcel.readLong()
         chapterName = parcel.readString()
         chapterPath = parcel.readString()
         lastPageRead = parcel.readInt()
         pages = parcel.createTypedArrayList(Page)
+        downloaded = parcel.readByte() != 0.toByte()
     }
 
     fun create(other: ChapterItem): ChapterViewModel {
@@ -59,6 +62,8 @@ class ChapterViewModel() : Parcelable {
         if (other.chapter.pages != null) {
             this.pages = other.chapter.pages
         }
+
+        this.downloaded = other.chapter.downloaded
     }
 
     fun copyFrom(other: ChapterViewModel) {
@@ -83,10 +88,13 @@ class ChapterViewModel() : Parcelable {
         if (other.pages != null) {
             this.pages = other.pages
         }
+
+        this.downloaded = other.downloaded
     }
 
     fun copyFrom(other: IChapter) {
         this.lastPageRead = other.lastPageRead
+        this.downloaded = other.downloaded
 
         if (other.id != -1L) {
             this.id = other.id
@@ -112,6 +120,7 @@ class ChapterViewModel() : Parcelable {
         parcel.writeString(chapterPath)
         parcel.writeInt(lastPageRead)
         parcel.writeTypedList(pages)
+        parcel.writeByte(if (downloaded) 1 else 0)
     }
 
     override fun describeContents(): Int {
@@ -127,4 +136,5 @@ class ChapterViewModel() : Parcelable {
             return arrayOfNulls(size)
         }
     }
+
 }

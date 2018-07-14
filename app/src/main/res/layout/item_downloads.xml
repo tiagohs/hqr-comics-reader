@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/itemComicDetailCardView"
+    android:id="@+id/itemComicDownloadedCardView"
     android:layout_width="match_parent"
     android:layout_height="@dimen/item_comic_details_height"
     android:layout_marginStart="@dimen/margin_default_medium"
@@ -17,12 +17,12 @@
         android:layout_height="match_parent">
 
         <RelativeLayout
-            android:id="@+id/comicDetailImageContainer"
+            android:id="@+id/comicDownloadedImageContainer"
             android:layout_width="@dimen/item_comic_details_poster_width"
             android:layout_height="@dimen/item_comic_details_poster_height">
 
             <ImageView
-                android:id="@+id/comicDetailImage"
+                android:id="@+id/comicDownloadedImage"
                 android:layout_width="@dimen/item_comic_details_poster_width"
                 android:layout_height="@dimen/item_comic_details_poster_height"
                 android:scaleType="centerCrop"
@@ -31,20 +31,29 @@
                 android:contentDescription="@string/description_movie_poster"/>
 
             <TextView
-                android:id="@+id/comicDetailStatus"
+                android:id="@+id/comicDownloadedStatus"
                 android:layout_width="wrap_content"
-                android:maxWidth="@dimen/item_comic_details_poster_width"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/item_status_padding"
-                android:layout_marginBottom="@dimen/margin_default_min"
                 android:layout_marginStart="@dimen/margin_default_min"
                 android:layout_marginEnd="@dimen/margin_default_min"
-                android:layout_alignStart="@id/comicDetailImage"
+                android:layout_marginBottom="@dimen/margin_default_min"
                 android:textSize="@dimen/txt_size_very_small"
                 android:textColor="@color/white"
                 android:lines="1"
                 android:ellipsize="end"
                 android:layout_alignParentBottom="true"/>
+
+            <ToggleButton
+                android:id="@+id/comicDownloadedAddToFavBtn"
+                android:layout_width="@dimen/add_to_fav_size"
+                android:layout_height="@dimen/add_to_fav_size"
+                android:layout_gravity="center"
+                android:background="@drawable/button_favorite"
+                android:checked="false"
+                android:text=""
+                android:textOff=""
+                android:textOn=""/>
 
         </RelativeLayout>
 
@@ -52,14 +61,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_toEndOf="@id/comicDetailImageContainer"
+            android:layout_toEndOf="@id/comicDownloadedImageContainer"
             android:layout_marginEnd="@dimen/margin_default_medium"
             android:layout_marginStart="@dimen/margin_default_min"
             android:layout_marginTop="@dimen/margin_default_min"
-            android:layout_alignEnd="@id/moreBtn" >
+            android:layout_alignEnd="@id/comicDownloadedmoreBtn" >
 
             <TextView
-                android:id="@+id/comicDetailTitle"
+                android:id="@+id/comicDownloadedTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/txt_size_medium"
@@ -70,7 +79,7 @@
                 android:textColor="@color/colorPrimaryText"/>
 
             <TextView
-                android:id="@+id/comicDetailPublisher"
+                android:id="@+id/comicDownloadedPublisher"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_default_medium"
@@ -82,7 +91,7 @@
                 android:ellipsize="end"/>
 
             <TextView
-                android:id="@+id/comicDetailSource"
+                android:id="@+id/comicDownloadedSource"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/txt_size_small"
@@ -90,46 +99,32 @@
                 android:lines="1"
                 android:ellipsize="end"/>
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/comicDetailHistoryContainer"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/btn_height"
-            android:orientation="vertical"
-            android:layout_marginTop="@dimen/margin_default_min"
-            android:layout_marginBottom="@dimen/margin_default_min"
-            android:layout_alignParentBottom="true"
-            android:layout_toEndOf="@id/comicDetailImageContainer"
-            android:layout_toStartOf="@+id/resumeDetailBtn"
-            android:gravity="center_vertical">
-
             <TextView
-                android:id="@+id/comicDetailHistoryChapter"
+                android:id="@+id/comicDownloadedTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_default_min"
                 android:layout_marginEnd="@dimen/margin_default_min"
+                android:layout_marginTop="@dimen/txt_size_medium"
                 android:textSize="@dimen/txt_size_small"
                 android:textColor="@color/colorPrimaryText"
                 android:lines="1"
                 android:ellipsize="end"/>
 
             <TextView
-                android:id="@+id/comicDetailHistoryTime"
+                android:id="@+id/comicDownloadedNumberOf"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/margin_default_min"
                 android:layout_marginEnd="@dimen/margin_default_min"
-                android:textSize="@dimen/txt_size_very_small"
+                android:textSize="@dimen/txt_size_small"
                 android:textStyle="italic"
                 android:textColor="@color/colorSecondaryText"
                 android:lines="1"
                 android:ellipsize="end"/>
+
         </LinearLayout>
 
         <ImageButton
-            android:id="@+id/moreBtn"
+            android:id="@+id/comicDownloadedmoreBtn"
             android:layout_width="@dimen/more_btn_size"
             android:layout_height="@dimen/more_btn_size"
             android:background="@drawable/background_riple_accent"
@@ -139,23 +134,6 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:contentDescription="@string/item_option"/>
-
-        <Button
-            android:id="@+id/resumeDetailBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/btn_height"
-            android:text="@string/read"
-            android:textColor="@color/white"
-            android:textSize="@dimen/txt_size_medium"
-            android:background="@drawable/button_background_default"
-            android:drawableStart="@drawable/ic_book"
-            android:drawablePadding="@dimen/margin_default_min"
-            android:paddingLeft="@dimen/margin_default_medium"
-            android:paddingRight="@dimen/margin_default_medium"
-            android:layout_marginBottom="@dimen/margin_default_min"
-            android:layout_marginEnd="@dimen/margin_default_medium"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
 

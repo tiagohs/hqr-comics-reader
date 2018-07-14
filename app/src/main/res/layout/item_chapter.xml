@@ -5,25 +5,26 @@
     android:id="@+id/container"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:padding="5dp"
+    android:layout_height="@dimen/chapter_item_height"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:padding="@dimen/margin_default_min"
     android:background="?attr/selectable_list_drawable">
 
     <ImageView
         android:id="@+id/book_icon"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="@dimen/chapter_item_book_icon_size"
+        android:layout_height="@dimen/chapter_item_book_icon_size"
         android:layout_centerVertical="true"
-        app:srcCompat="@drawable/ic_open_book"/>
+        app:srcCompat="@drawable/ic_open_book"
+        android:contentDescription="@string/chapter_item_book_icon_description"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginStart="@dimen/margin_default_medium"
+        android:layout_marginEnd="@dimen/margin_default_min"
         android:layout_toEndOf="@id/book_icon"
         android:layout_toStartOf="@id/downloadIconContainer"
         android:gravity="center_vertical">
@@ -32,7 +33,7 @@
             android:id="@+id/chapterTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16dp"
+            android:textSize="@dimen/txt_size_large"
             android:lines="1"
             android:ellipsize="end"
             android:textColor="@color/colorPrimaryText"/>
@@ -41,7 +42,7 @@
             android:id="@+id/comicTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="12dp"
+            android:textSize="@dimen/txt_size_small"
             android:lines="1"
             android:ellipsize="end"
             android:textColor="@color/colorSecondaryText"/>
@@ -59,14 +60,14 @@
         <ProgressBar
             android:id="@+id/downloadingProgress"
             style="?android:attr/progressBarStyleLarge"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="@dimen/chapter_item_height"
+            android:layout_height="@dimen/chapter_item_height"
             android:layout_centerHorizontal="true" />
 
         <LinearLayout
             android:id="@+id/donwloadIconBackground"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="@dimen/chapter_item_icon_download_container_size"
+            android:layout_height="@dimen/chapter_item_icon_download_container_size"
             android:clickable="true"
             android:focusable="true"
             android:background="@drawable/button_background_riple_rounded_color_accent"
@@ -75,9 +76,10 @@
 
             <ImageView
                 android:id="@+id/donwloadIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                app:srcCompat="@drawable/ic_download_white"/>
+                android:layout_width="@dimen/chapter_item_icon_download_size"
+                android:layout_height="@dimen/chapter_item_icon_download_size"
+                app:srcCompat="@drawable/ic_download_white"
+                android:contentDescription="@string/chapter_item_icon_download_description"/>
 
         </LinearLayout>
 

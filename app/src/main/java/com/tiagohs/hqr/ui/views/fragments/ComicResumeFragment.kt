@@ -54,8 +54,8 @@ class ComicResumeFragment: BaseFragment() {
         onBindList(comic.genres, genresList, onGenreSelect())
         onBindList(comic.scanlators, scanlatorsList, onScanlatorSelect())
 
-        if (!comic.summary.isNullOrEmpty() && comic.summary!!.isNotEmpty()) summary.text = comic.summary
-        else summary.text = "Sinopse Indisponível"
+        if (!comic.summary.isNullOrEmpty() || !comic.summary!!.equals("...")) summary.text = comic.summary
+        else summary.text = getString(R.string.no_synopse)
     }
 
     private fun onBindList(list: List<DefaultModelView>?, listItem: RecyclerView, callback: ISimpleItemCallback) {

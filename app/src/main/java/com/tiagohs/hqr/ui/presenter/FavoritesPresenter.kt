@@ -37,7 +37,7 @@ class FavoritesPresenter(
         mSubscribers.add(favoritesInterceptor.onGetMore()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ items -> mView?.onBindComics(items) },
+                .subscribe({ items -> mView?.onBindMoreComics(items) },
                         { error -> Log.e("FAVORITES", "onGetMoreComics Falhou ", error) }))
     }
 

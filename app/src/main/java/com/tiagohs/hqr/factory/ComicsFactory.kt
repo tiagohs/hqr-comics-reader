@@ -73,6 +73,7 @@ object ComicsFactory {
 
             if (!this.inicialized) {
                 this.favorite = comicViewModel.favorite
+                this.downloaded = comicViewModel.downloaded
             }
         }
 
@@ -149,6 +150,7 @@ object ComicsFactory {
 
         if (!skipFavorite!!) {
             comic.favorite = comicViewModel.favorite
+            comic.downloaded = comicViewModel.downloaded
         }
 
         comic.inicialized = comicViewModel.inicialized
@@ -220,6 +222,7 @@ object ComicsFactory {
 
             this.favorite = comicDb.favorite
             this.inicialized = comicDb.inicialized
+            this.downloaded = comicDb.downloaded
         }
     }
 

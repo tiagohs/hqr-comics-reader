@@ -66,10 +66,13 @@ class ComicDetailsListHolder(
         }
 
         if (history == null) {
-            view.resumeDetailBtn.text = "Ler"
+            view.resumeDetailBtn.text = view.context.getString(R.string.read)
+
+            view.comicDetailHistoryTime.visibility = View.GONE
+            view.comicDetailHistoryChapter.visibility = View.GONE
         } else {
             view.comicDetailHistoryTime.text = DateUtils.formateDate(history.lastTimeRead!!)
-            view.resumeDetailBtn.text = "Continuar"
+            view.resumeDetailBtn.text = view.context.getString(R.string.resume)
 
             view.comicDetailHistoryChapter.text = history.chapter?.chapterName
         }

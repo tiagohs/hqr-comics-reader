@@ -28,6 +28,7 @@ class ComicViewModel() : Parcelable {
     var scanlators: List<DefaultModelView>? = null
     var chapters: List<ChapterViewModel>? = null
 
+    var downloaded: Boolean = false
     var inicialized: Boolean = false
     var favorite: Boolean = false
     var lastUpdate: String? = ""
@@ -144,6 +145,7 @@ class ComicViewModel() : Parcelable {
         }
 
         this.favorite = other.favorite
+        this.downloaded = other.downloaded
 
     }
 
@@ -207,6 +209,7 @@ class ComicViewModel() : Parcelable {
 
         this.inicialized = other.inicialized
         this.favorite = other.favorite
+        this.downloaded = other.downloaded
 
     }
 

@@ -5,15 +5,15 @@
 
     <TextView
         android:id="@+id/downloadQueueCount"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="@dimen/notification_badge_size"
+        android:layout_height="@dimen/notification_badge_size"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginLeft="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginStart="@dimen/margin_default_medium"
+        android:layout_marginTop="@dimen/margin_default_min"
         android:background="@drawable/background_rounded_accent"
         android:gravity="center"
-        android:text="9+"
+        android:lines="1"
+        android:ellipsize="end"
         android:textColor="@color/white"
-        android:textSize="9sp" />
+        android:textSize="@dimen/txt_size_very_small" />
 </FrameLayout>

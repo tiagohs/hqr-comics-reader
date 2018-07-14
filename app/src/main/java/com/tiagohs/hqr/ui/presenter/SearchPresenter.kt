@@ -72,7 +72,7 @@ class SearchPresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMoreComics(it) },
-                            { error -> Log.e("List", "Error", error) }
+                            { error -> Log.e("SEARCH", "Error", error) }
                     ))
         }
     }
@@ -84,7 +84,8 @@ class SearchPresenter(
                 .subscribeOn(Schedulers.io())
                 .map { it.toModel() }
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { mView?.onBindItem(it) })
+                .subscribe({ mView?.onBindItem(it) },
+                        { error -> Log.e("SEARCH", "addOrRemoveFromFavorite Falhou ", error) }))
     }
 
     private fun ComicViewModel.toModel(): ComicItem {

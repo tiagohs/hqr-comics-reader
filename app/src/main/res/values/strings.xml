@@ -5,6 +5,52 @@
     <string name="nav_profile">Perfil</string>
     <string name="nav_download">Baixar HQ</string>
 
+    <!-- Comic Item -->
+    <string name="description_movie_poster">Movie Poster</string>
+    <string name="read">Ler</string>
+    <string name="resume">Continuar</string>
+
+    <!-- Comic Details -->
+    <string name="comic_details_wallpaper_description">Comic Wallpaper</string>
+    <string name="comic_details_wallpaper_custom_description">%1$s Wallpaper</string>
+    <string name="comic_details_poster_description">Comic poster</string>
+    <string name="comic_details_poster_custom_description">%1$s poster</string>
+
+    <!-- Settings -->
+    <string name="action_settings">Configurações</string>
+    <string name="settings_activity_title">Configurações</string>
+    <string name="title_language">Idioma</string>
+    <string name="pref_title_general">Geral</string>
+    <string name="key_language">key_language</string>
+    <string name="summary_language">Idioma da Aplicação</string>
+    <string name="key_update_hqs_in_progress">key_update_hqs_in_progress</string>
+    <string name="summary_update_hqs_in_progress">Atualizar apenas informações e capítulos de HQs e Mangás em andamento</string>
+    <string name="title_update_hqs_in_progress">Atualizar apenas HQs em andamento</string>
+    <string name="pref_title_downloads">Downloads</string>
+    <string name="title_download_directory">Pasta de downloads</string>
+    <string name="key_download_directory">key_download_directory</string>
+    <string name="summary_download_directory">Pasta onde irá ficar armazenadas as HQs</string>
+    <string name="title_download_only_wifi">Fazer download apenas via Wi-Fi</string>
+    <string name="download_only_wifi">Fazer download apenas via Wi-Fi</string>
+    <string name="key_download_only_wifi">Fazer download apenas via Wi-Fi</string>
+    <string name="storage_used">Espaço utilizado: %1$s</string>
+    <string name="title_download_storage_used">Limpar Downloads</string>
+    <string name="pref_header_about">Sobre</string>
+    <string name="app_version">0.0.1</string>
+    <string name="title_version">Versão</string>
+    <string name="summary_github">https://github.com/tiagohs/hqr-comics-reader</string>
+    <string name="title_github">Github</string>
+    <string name="url_github">https://github.com/tiagohs/hqr-comics-reader</string>
+    <string name="summary_about">HQR é um leitor online de Comics e Mangás para Android.</string>
+    <string name="custom_dir">Selecionar Diretório</string>
+    <string name="dir_name">Nome</string>
+    <string name="spanish">ES - Espanhol</string>
+    <string name="sources_activity_title">Selecionar Source</string>
+    <string name="key_default_source">key_current_source</string>
+    <string name="other_source">Outros</string>
+    <string name="all_lang">Todas</string>
+    <string name="key_download_storage_used">key_download_storage_used</string>
+
     <string name="download_paused">Download Paused</string>
 
     <string name="chapter_downloading_progress">Downloading (%1$d/%2$d)</string>
@@ -44,6 +90,16 @@
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
 
+    <string-array name="comic_details_tabs_values">
+        <item>Informações</item>
+        <item>Capítulos</item>
+    </string-array>
+
+    <string-array name="librarie_tabs_values">
+        <item>Favoritos</item>
+        <item>Downloads</item>
+    </string-array>
+
     <string-array name="pref_upload_quality_values">
         <item>Inglês</item>
         <item>Português Brasil</item>
@@ -55,44 +111,11 @@
         <item quantity="other">Tem certeza de que deseja excluir os capítulos selecionados?</item>
     </plurals>
 
-    <string name="action_settings">Configurações</string>
-    <string name="settings_activity_title">Configurações</string>
-    <string name="title_language">Idioma</string>
-    <string name="pref_title_general">Geral</string>
-    <string name="key_language">key_language</string>
-    <string name="summary_language">Idioma da Aplicação</string>
-    <string name="key_update_hqs_in_progress">key_update_hqs_in_progress</string>
-    <string name="summary_update_hqs_in_progress">Atualizar apenas informações e capítulos de HQs e Mangás em andamento</string>
-    <string name="title_update_hqs_in_progress">Atualizar apenas HQs em andamento</string>
-    <string name="pref_title_downloads">Downloads</string>
-    <string name="title_download_directory">Pasta de downloads</string>
-    <string name="key_download_directory">key_download_directory</string>
-    <string name="summary_download_directory">Pasta onde irá ficar armazenadas as HQs</string>
-    <string name="title_download_only_wifi">Fazer download apenas via Wi-Fi</string>
-    <string name="download_only_wifi">Fazer download apenas via Wi-Fi</string>
-    <string name="key_download_only_wifi">Fazer download apenas via Wi-Fi</string>
-    <string name="storage_used">Espaço utilizado: %1$s</string>
-    <string name="title_download_storage_used">Limpar Downloads</string>
-    <string name="pref_header_about">Sobre</string>
-    <string name="app_version">0.0.1</string>
-    <string name="title_version">Versão</string>
-    <string name="summary_github">https://github.com/tiagohs/hqr-comics-reader</string>
-    <string name="title_github">Github</string>
-    <string name="url_github">https://github.com/tiagohs/hqr-comics-reader</string>
-    <string name="summary_about">HQR é um leitor online de Comics e Mangás para Android.</string>
-    <string name="custom_dir">Selecionar Diretório</string>
-    <string name="dir_name">Nome</string>
-    <string name="spanish">ES - Espanhol</string>
-    <string name="sources_activity_title">Selecionar Source</string>
-    <string name="key_default_source">key_current_source</string>
-    <string name="other_source">Outros</string>
-    <string name="all_lang">Todas</string>
-    <string name="key_download_storage_used">key_download_storage_used</string>
     <string name="action_download">Download</string>
     <string name="action_delete">Deletar</string>
     <string name="action_select_all">Selecionar tudo</string>
     <string name="action_clear_all">Limpar tudo</string>
-    <string name="deleting">Excluindo capítulos...</string>
+    <string name="deleting">Excluindo capítulos &#8230;</string>
 
     <string name="chapters_selected">Selecionado: %1$d</string>
     <string name="chapters_selected_title">Selecione Abaixo: </string>
@@ -106,4 +129,23 @@
     <string name="search_info">Faça a sua pesquisa digitando logo acima.</string>
     <string name="title_download_cache_used">Limpar cache de imagens</string>
     <string name="key_download_cache_used">key_download_cache_used</string>
+    <string name="item_option">Opções</string>
+    <string name="acess_website">Acessar o site</string>
+    <string name="change_source">Trocar fonte</string>
+    <string name="lastest_comics_title">Últimas HQs</string>
+    <string name="lastest_comics_subtitle">Últimas HQs Adicionadas no Acervo</string>
+    <string name="see_all">Ver Todos</string>
+    <string name="populars_title">HQs Populares</string>
+    <string name="populars_subtitle">As HQs mais acessadas</string>
+    <string name="chapter_item_book_icon_description">Icone do Item</string>
+    <string name="chapter_item_icon_download_description">Ícone representando se o capítulo está baixado ou sendo baixado.</string>
+    <string name="reader_right_button_description">Botão próximo</string>
+    <string name="reader_left_button_description">Botão anterior</string>
+    <string name="item_comic_simple_icon_description">Icone do Item</string>
+    <string name="download_manager_waiting">Aguardando na fila&#8230;</string>
+    <string name="no_synopse">Sinopse Indisponível</string>
+    <string name="download_manager_title">Gerenciador de Downloads</string>
+    <string name="home_title">Ínicio</string>
+    <string name="lirarie_title">Minha Biblioteca</string>
+    <string name="recents_title">Últimas Leituras</string>
 </resources>

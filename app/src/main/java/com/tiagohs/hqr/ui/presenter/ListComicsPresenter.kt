@@ -65,7 +65,8 @@ class ListComicsPresenter(
                         .subscribeOn(Schedulers.io())
                         .map { it.toModel() }
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { mView?.onBindItem(it) })
+                        .subscribe({ mView?.onBindItem(it) },
+                                { error -> Log.e("LIST", "addOrRemoveFromFavorite Falhou ", error) }))
     }
 
     fun onCheckListType(listType: String, flag: String): Observable<List<ComicViewModel>> {

@@ -12,6 +12,7 @@
         <item name="windowNoTitle">true</item>
         <item name="windowActionModeOverlay">true</item>
 
+        <item name="cardViewStyle">@style/CardView</item>
     </style>
 
     <style name="SettingsTheme" parent="AppTheme">

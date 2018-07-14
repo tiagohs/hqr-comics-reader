@@ -9,19 +9,19 @@ import io.realm.RealmList
 
 object ChapterFactory {
 
-    fun createChapterForRealm(chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
+    fun createChapterForRealm(chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm, skipDownloaded: Boolean = false): Chapter {
         val realmObject = realm.createObject(Chapter::class.java, RealmUtils.getDataId<Chapter>(realm))
 
         realmObject.apply {
-            copyFromChapterViewModel(this, chapterViewModel, comic, realm)
+            copyFromChapterViewModel(this, chapterViewModel, comic, realm, skipDownloaded)
         }
 
         return realmObject
     }
 
-    fun copyFromChapterViewModel(chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
+    fun copyFromChapterViewModel(chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm, skipDownloaded: Boolean = false): Chapter {
         return Chapter().apply {
-            copyFromChapterViewModel(this, chapterViewModel, comic, realm)
+            copyFromChapterViewModel(this, chapterViewModel, comic, realm, skipDownloaded)
 
             if (chapterViewModel.id != -1L) {
                 this.id = chapterViewModel.id
@@ -29,7 +29,7 @@ object ChapterFactory {
         }
     }
 
-    fun copyFromChapterViewModel(chapter: Chapter, chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm): Chapter {
+    fun copyFromChapterViewModel(chapter: Chapter, chapterViewModel: ChapterViewModel, comic: Comic, realm: Realm, skipDownloaded: Boolean): Chapter {
 
         if (!chapterViewModel.chapterName.isNullOrEmpty()) {
             chapter.chapterName = chapterViewModel.chapterName
@@ -41,6 +41,10 @@ object ChapterFactory {
 
         if (chapterViewModel.lastPageRead != -1) {
             chapter.lastPageRead = chapterViewModel.lastPageRead
+        }
+
+        if (!skipDownloaded) {
+            chapter.downloaded = chapterViewModel.downloaded
         }
 
         chapter.comic = realm.copyToRealmOrUpdate(comic)

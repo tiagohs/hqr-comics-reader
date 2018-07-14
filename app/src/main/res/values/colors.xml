@@ -25,4 +25,5 @@
     <color name="placeholder_bg">#dddddd</color>
 
     <color name="toolbarTransparent">#809E9E9E</color>
+    <color name="comic_wallpaper_overlay">#60000000</color>
 </resources>

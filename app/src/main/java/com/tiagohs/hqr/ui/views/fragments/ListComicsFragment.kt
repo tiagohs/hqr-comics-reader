@@ -98,7 +98,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     }
 
     override fun onBindComics(comics: List<ComicItem>?) {
-        layoutManager = GridLayoutManager(context, ScreenUtils.calculateNoOfColumns(context, 120))
+        layoutManager = GridLayoutManager(context, ScreenUtils.calculateNoOfColumns(context, resources.getDimension(R.dimen.item_comic_default_width)))
 
         listComicsAdapter = ComicsListAdapter( comics!!, this)
         listComicsAdapter?.updateDataSet(comics)

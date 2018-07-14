@@ -50,6 +50,65 @@ class ChapterRepository: BaseRepository(), IChapterRepository {
         }
     }
 
+    override fun setOrUnsetAsDownloaded(chapterViewModel: ChapterViewModel, comicId: Long): ChapterViewModel {
+        val realm = Realm.getDefaultInstance()
+
+        var chapter: Chapter? = null
+
+        try {
+            chapter = realm.where(Chapter::class.java)
+                    .equalTo("chapterPath", chapterViewModel.chapterPath)
+                    .equalTo("comic.id", comicId)
+                    .findFirst()
+
+            if (chapter != null) {
+                realm.executeTransaction { r ->
+                    chapter.downloaded = !chapter.downloaded
+
+                    r.insertOrUpdate(chapter)
+                }
+
+                chapterViewModel.downloaded = chapter.downloaded
+
+                finishTransaction(realm)
+            }
+        } catch (ex: Exception) {
+            if (!realm.isClosed)
+                realm.close()
+        }
+
+        return chapterViewModel
+    }
+
+    override fun removeAllDownloads(comicId: Long) {
+        val realm = Realm.getDefaultInstance()
+
+        var chapters: List<Chapter>? = null
+
+        try {
+            chapters = realm.where(Chapter::class.java)
+                    .equalTo("comic.id", comicId)
+                    .equalTo("downloaded", true)
+                    .findAll()
+
+            if (chapters != null && chapters.isNotEmpty()) {
+                chapters.map { chapter ->
+                    realm.executeTransaction { r ->
+                        chapter.downloaded = !chapter.downloaded
+
+                        r.insertOrUpdate(chapter)
+                    }
+
+                    chapter
+                }
+                finishTransaction(realm)
+            }
+        } catch (ex: Exception) {
+            if (!realm.isClosed)
+                realm.close()
+        }
+    }
+
     override fun getChapter(chapterId: Long): Observable<ChapterViewModel> {
         return Observable.create<ChapterViewModel> { emitter ->
             val realm = Realm.getDefaultInstance()

@@ -27,6 +27,7 @@ open class Comic: RealmObject(), IComic {
     override var scanlators: RealmList<DefaultModel>? = null
     override var chapters: RealmList<Chapter>? = null
 
+    override var downloaded: Boolean = false
     override var inicialized: Boolean = false
     override var favorite: Boolean = false
     override var lastUpdate: String? = ""

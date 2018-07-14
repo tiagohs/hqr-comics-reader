@@ -50,7 +50,7 @@ class ImageUtils {
             load(imageView, url, null, null, false)
         }
 
-        fun loadWithRevealAnimation(context: Context, imageView: ImageView, url: String?, placeholderPath: Int?, errorPath: Int?) {
+        fun loadWithRevealAnimation(context: Context, imageView: ImageView, url: String?, placeholderPath: Int?, errorPath: Int?, callback: Callback? = null) {
 
             val loader = Picasso.get()
             var request: RequestCreator? = null
@@ -69,9 +69,11 @@ class ImageUtils {
                     try {
                         if (!(context as Activity).isDestroyed) {
                             AnimationUtils.createShowCircularReveal(imageView)
+                            callback?.onSuccess()
                         }
                     } catch(ex: Exception) {
                         imageView.visibility = View.VISIBLE
+                        callback?.onError(ex)
                     }
                 }
 

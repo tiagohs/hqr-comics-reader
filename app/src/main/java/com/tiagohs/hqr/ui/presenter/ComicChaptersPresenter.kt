@@ -21,11 +21,11 @@ class ComicChaptersPresenter(
 ): BasePresenter<ComicChaptersContract.IComicChaptersView>(), ComicChaptersContract.IComicChaptersPresenter {
 
     var chapters: List<ChapterItem> = emptyList()
-    lateinit var comicViewModel: ComicViewModel
+    var comicViewModel: ComicViewModel? = null
 
     val chaptersRelay: BehaviorRelay<List<ChapterItem>> = BehaviorRelay.create()
 
-    override fun onCreate(comic: ComicViewModel) {
+    override fun onCreate(comic: ComicViewModel?) {
         this.comicViewModel = comic
 
         mSubscribers.add(chaptersRelay.toFlowable(BackpressureStrategy.BUFFER)
@@ -37,17 +37,26 @@ class ComicChaptersPresenter(
                         Log.e("Chapters", "Error", error)
                     }))
 
-        mSubscribers.add(Observable.just(comic.chapters)
-                .map { chapters -> chapters.map { it.toModel() }}
-                .doOnNext { chapters ->
-                    setDownloadChapters(chapters, comic)
+        if (comic != null) {
+            val chaptersObservable = if (comic.chapters != null) {
+                Observable.just(comic.chapters)
+            } else {
+                chapterRepository.getAllChapters(comic.id)
+            }
 
-                    this.chapters = chapters
+            mSubscribers.add(chaptersObservable
+                    .map { chapters -> chapters!!.map { it.toModel() }}
+                    .doOnNext { chapters ->
+                        setDownloadChapters(chapters, comic)
 
-                    observeDownloads()
-                }
-                .subscribe { chaptersRelay.accept(it) })
+                        this.chapters = chapters
 
+                        observeDownloads()
+                    }
+                    .subscribe({ chaptersRelay.accept(it) },
+                            { error ->
+                                Log.e("Chapters", "Error", error) }) )
+        }
     }
 
     fun setDownloadChapters(chapters: List<ChapterItem>, comic: ComicViewModel) {
@@ -61,7 +70,7 @@ class ComicChaptersPresenter(
     fun observeDownloads() {
         mSubscribers.add(downloadManager.queue.getStatus()
                 .observeOn(AndroidSchedulers.mainThread())
-                .filter { download -> download.comic.id.equals(comicViewModel.id) }
+                .filter { download -> download.comic.id.equals(comicViewModel?.id) }
                 .doOnNext { onDownloadStatusChange(it) }
                 .subscribe( { download ->
                     mView?.onChapterStatusChange(download.chapter.toModel(), download.status)
@@ -71,7 +80,9 @@ class ComicChaptersPresenter(
     }
 
     override fun downloadChapters(chapters: List<ChapterItem>) {
-        downloadManager.downloadChapters(comicViewModel, chapters.map { it.toViewModel() })
+        if (comicViewModel != null) {
+            downloadManager.downloadChapters(comicViewModel!!, chapters.map { it.toViewModel() })
+        }
     }
 
     override fun deleteChapters(chapters: List<ChapterItem>) {
@@ -90,7 +101,7 @@ class ComicChaptersPresenter(
     private fun deleteChapter(chapterItem: ChapterItem) {
         val chapterViewModel = chapterItem.toViewModel()
         downloadManager.queue.remove(chapterViewModel)
-        downloadManager.deleteChapter(chapterViewModel, comicViewModel, comicViewModel.source!!)
+        downloadManager.deleteChapter(chapterViewModel, comicViewModel!!, comicViewModel?.source!!)
 
         chapterItem.status = Download.NOT_DOWNLOADED
         chapterItem.download = null
@@ -116,7 +127,7 @@ class ComicChaptersPresenter(
     }
 
     private fun ChapterViewModel.toModel(): ChapterItem {
-        val model = ChapterItem(this, comicViewModel)
+        val model = ChapterItem(this, comicViewModel!!)
         val download = downloadManager.queue.find { it.chapter.chapterPath == chapterPath }
 
         if (download != null) {

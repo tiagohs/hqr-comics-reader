@@ -15,10 +15,20 @@ class ScreenUtils {
 
     companion object {
 
-        fun calculateNoOfColumns(context: Context?, itemSize: Int): Int {
-            val displayMetrics = context?.getResources()!!.getDisplayMetrics()
-            val dpWidth = displayMetrics.widthPixels / displayMetrics.density
-            return (dpWidth / itemSize).toInt()
+        fun calculateNoOfColumns(context: Context?, itemSizePixels: Float, defaultNumber: Int = 3): Int {
+            try {
+                if (context != null) {
+                    val itemSizeDp = (itemSizePixels / context.resources?.getDisplayMetrics()!!.density).toInt()
+                    val displayMetrics = context.getResources()!!.getDisplayMetrics()
+                    val dpWidth = displayMetrics.widthPixels / displayMetrics.density
+
+                    return (dpWidth / itemSizeDp).toInt()
+                } else {
+                    return defaultNumber
+                }
+            } catch (ex: Exception) {
+                return defaultNumber
+            }
         }
 
         fun generateMaterialColorBackground(context: Context?, text: String, imageView: ImageView) : TextDrawable {

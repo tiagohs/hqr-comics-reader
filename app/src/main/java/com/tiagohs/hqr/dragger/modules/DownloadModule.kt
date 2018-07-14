@@ -27,14 +27,14 @@ class DownloadModule {
 
     @Singleton
     @Provides
-    fun providerDownloader(context: Context, provider: DownloadProvider, sourceManager: SourceManager, store: DownloadStore, cache: DownloadCache, downloadNotification: DownloadNotification, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository): Downloader {
-        return Downloader(context, provider, sourceManager, store, cache, downloadNotification, sourceRepository, preferenceHelper)
+    fun providerDownloader(context: Context, provider: DownloadProvider, sourceManager: SourceManager, store: DownloadStore, cache: DownloadCache, downloadNotification: DownloadNotification, preferenceHelper: PreferenceHelper, sourceRepository: ISourceRepository, comicsRepository: IComicsRepository): Downloader {
+        return Downloader(context, provider, sourceManager, store, cache, downloadNotification, sourceRepository, preferenceHelper, comicsRepository)
     }
 
     @Singleton
     @Provides
-    fun providerDownlaoderManager(downloader: Downloader, cache: DownloadCache, provider: DownloadProvider): DownloadManager {
-        return DownloadManager(downloader, cache, provider)
+    fun providerDownlaoderManager(downloader: Downloader, cache: DownloadCache, provider: DownloadProvider, comicsRepository: IComicsRepository): DownloadManager {
+        return DownloadManager(downloader, cache, provider, comicsRepository)
     }
 
     @Provides

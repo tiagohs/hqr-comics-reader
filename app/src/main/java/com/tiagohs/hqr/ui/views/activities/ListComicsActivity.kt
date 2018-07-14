@@ -8,11 +8,11 @@ import com.tiagohs.hqr.models.view_models.ListComicsModel
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import com.tiagohs.hqr.ui.views.fragments.ListComicsFragment
 
-private const val LIST_MODEL = "LIST_MODEL"
-
 class ListComicsActivity: BaseActivity() {
 
     companion object {
+        const val LIST_MODEL = "LIST_MODEL"
+
         fun newIntent(context: Context?, model: ListComicsModel): Intent {
             val intent = Intent(context, ListComicsActivity::class.java)
 

@@ -3,28 +3,28 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginTop="5dp"
-    android:layout_marginBottom="5dp">
+    android:layout_height="@dimen/item_simple_item_height"
+    android:layout_marginStart="@dimen/activity_horizontal_margin"
+    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="@dimen/margin_default_min"
+    android:layout_marginBottom="@dimen/margin_default_min">
 
     <ImageView
         android:id="@+id/comicIcon"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="@dimen/item_comic_simple_icon_size"
+        android:layout_height="@dimen/item_comic_simple_icon_size"
         app:srcCompat="@drawable/ic_comic_secondary_color"
         android:layout_centerVertical="true"
-        />
+        android:contentDescription="@string/item_comic_simple_icon_description"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="50dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_toEndOf="@id/comicIcon"
-        android:layout_toStartOf="@id/addToFavBtn"
-        android:layout_marginEnd="5dp"
-        android:layout_marginStart="10dp"
+        android:layout_toStartOf="@id/comicAddToFavContainer"
+        android:layout_marginEnd="@dimen/margin_default_min"
+        android:layout_marginStart="@dimen/margin_default_medium"
         android:gravity="center_vertical">
 
         <TextView
@@ -39,17 +39,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="5dp">
+            android:layout_marginTop="@dimen/margin_default_min">
 
             <TextView
                 android:id="@+id/comicSStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingEnd="8dp"
-                android:paddingStart="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:textSize="10sp"
+                android:layout_weight="0.7"
+                android:lines="1"
+                android:ellipsize="end"
+                android:paddingEnd="@dimen/margin_default_min"
+                android:paddingStart="@dimen/margin_default_min"
+                android:paddingTop="@dimen/item_status_padding"
+                android:paddingBottom="@dimen/item_status_padding"
+                android:textSize="@dimen/txt_size_very_small"
                 android:textColor="@color/white"
                 />
 
@@ -57,12 +60,13 @@
                 android:id="@+id/comicPublisher"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingEnd="8dp"
-                android:paddingStart="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:layout_marginStart="5dp"
-                android:textSize="10sp"
+                android:layout_weight="0.4"
+                android:paddingEnd="@dimen/margin_default_min"
+                android:paddingStart="@dimen/margin_default_min"
+                android:paddingTop="@dimen/item_status_padding"
+                android:paddingBottom="@dimen/item_status_padding"
+                android:layout_marginStart="@dimen/margin_default_min"
+                android:textSize="@dimen/txt_size_very_small"
                 android:textColor="@color/colorSecondaryText"
                 android:lines="1"
                 android:ellipsize="end"/>
@@ -71,17 +75,26 @@
 
     </LinearLayout>
 
-    <ToggleButton
-        android:id="@+id/addToFavBtn"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_gravity="center"
-        android:background="@drawable/button_favorite"
-        android:checked="false"
-        android:text=""
-        android:textOff=""
-        android:textOn=""
+    <FrameLayout
+        android:id="@+id/comicAddToFavContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true" />
+        android:layout_centerVertical="true">
+
+        <ToggleButton
+            android:id="@+id/addToFavBtn"
+            android:layout_width="@dimen/add_to_fav_size"
+            android:layout_height="@dimen/add_to_fav_size"
+            android:layout_gravity="center"
+            android:background="@drawable/button_favorite"
+            android:checked="false"
+            android:text=""
+            android:textOff=""
+            android:textOn="" />
+
+    </FrameLayout>
+
+
 
 </RelativeLayout>

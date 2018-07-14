@@ -1,66 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<android.support.v7.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/itemComicDetailCardView"
     android:layout_width="match_parent"
-    android:layout_height="90dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="5dp">
+    android:layout_height="@dimen/item_comic_details_height"
+    android:layout_marginStart="@dimen/margin_default_medium"
+    android:layout_marginEnd="@dimen/margin_default_medium"
+    android:layout_marginTop="@dimen/margin_default_min"
+    android:layout_marginBottom="@dimen/margin_default_min"
+    card_view:cardCornerRadius="@dimen/card_movie_radius">
 
-    <ImageView
-        android:id="@+id/comicPoster"
-        android:layout_width="70dp"
-        android:layout_height="match_parent"
-        android:layout_marginEnd="5dp"
-        android:src="@drawable/img_placeholder"
-        android:scaleType="centerCrop" />
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_toEndOf="@id/comicPoster">
-
-        <TextView
-            android:id="@+id/chapterTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Capítulo 01 Capítulo 01 Capítulo 01 Capítulo 01 Capítulo 01 Capítulo 01 "
-            android:textSize="14sp"
-            android:ellipsize="end"
-            android:textColor="@color/colorPrimaryText"
-            android:lines="1"
-            android:layout_marginTop="3dp"/>
-
-        <TextView
-            android:id="@+id/comicTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Batman Vs Superman Batman Vs Superman atman Vs Superman"
-            android:textSize="12sp"
-            android:ellipsize="end"
-            android:textColor="@color/colorSecondaryText"
-            android:lines="1"
-            android:layout_marginTop="3dp"/>
-
-        <TextView
-            android:id="@+id/downloadStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Downloading (01/30)"
-            android:textSize="12sp"
-            android:ellipsize="end"
-            android:textColor="@color/colorSecondaryText"
-            android:lines="1"
-            android:layout_marginTop="8dp"/>
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/downloadProgress"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@id/comicPoster"
-        style="?android:attr/progressBarStyleHorizontal"/>
+        android:layout_height="match_parent">
 
-</RelativeLayout>
+        <ImageView
+            android:id="@+id/comicPoster"
+            android:layout_width="@dimen/item_comic_details_poster_width"
+            android:layout_height="@dimen/item_comic_details_poster_height"
+            android:layout_marginEnd="@dimen/margin_default_min"
+            android:scaleType="centerCrop"
+            android:layout_gravity="center"
+            android:src="@drawable/img_placeholder"
+            android:contentDescription="@string/description_movie_poster"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginEnd="@dimen/margin_default_medium"
+            android:layout_toEndOf="@id/comicPoster">
+
+            <TextView
+                android:id="@+id/chapterTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:textColor="@color/colorPrimaryText"
+                android:lines="1"
+                android:layout_marginTop="@dimen/margin_default_min"/>
+
+            <TextView
+                android:id="@+id/comicTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="italic"
+                android:textSize="@dimen/txt_size_small"
+                android:ellipsize="end"
+                android:textColor="@color/colorSecondaryText"
+                android:lines="1"/>
+
+            <TextView
+                android:id="@+id/sourceTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="italic"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:textSize="@dimen/txt_size_small"
+                android:ellipsize="end"
+                android:textColor="@color/colorSecondaryText"
+                android:lines="1"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="@dimen/margin_default_medium"
+            android:layout_toEndOf="@id/comicPoster">
+
+            <TextView
+                android:id="@+id/downloadStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/txt_size_small"
+                android:lines="1"
+                android:text="@string/download_manager_waiting"
+                android:ellipsize="end"
+                android:textColor="@color/colorSecondaryText"
+                android:layout_marginBottom="@dimen/margin_default_min"/>
+
+            <ProgressBar
+                android:id="@+id/downloadProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="?android:attr/progressBarStyleHorizontal"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>

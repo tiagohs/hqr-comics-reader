@@ -4,7 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="50dp"
     android:layout_gravity="fill_vertical">
 
     <LinearLayout
@@ -15,22 +14,22 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="80dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp">
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin">
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginEnd="10dp"
-                android:layout_marginTop="10dp">
+                android:layout_marginEnd="@dimen/margin_default_medium"
+                android:layout_marginTop="@dimen/margin_default_medium">
 
                 <TextView
                     android:id="@+id/sourceName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorPrimaryText"
-                    android:textSize="15sp"
+                    android:textSize="@dimen/txt_size_medium"
                     android:lines="1"
                     android:ellipsize="end"/>
 
@@ -39,7 +38,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/colorSecondaryText"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/txt_size_small"
                     android:lines="1"
                     android:ellipsize="end"
                     android:textStyle="italic"/>
@@ -52,41 +51,42 @@
                 android:layout_height="25dp"
                 android:scaleType="fitCenter"
                 android:layout_alignParentEnd="true"
-                android:layout_marginTop="10dp" />
+                android:layout_marginTop="@dimen/margin_default_medium" />
 
             <Button
                 android:id="@+id/goToSiteButton"
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"
                 android:textSize="12sp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:layout_marginTop="10dp"
+                android:paddingLeft="@dimen/margin_default_medium"
+                android:paddingRight="@dimen/margin_default_medium"
+                android:layout_marginTop="@dimen/margin_default_medium"
                 android:textColor="@color/white"
-                android:text="Acessar Site"
+                android:text="@string/acess_website"
                 android:layout_alignParentBottom="true"
-                android:background="@drawable/button_background_default"/>
+                android:background="@drawable/button_background_default"
+                android:layout_alignParentStart="true" />
 
             <Button
                 android:id="@+id/changeSource"
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"
-                android:textSize="12sp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
+                android:textSize="@dimen/txt_size_small"
+                android:paddingLeft="@dimen/margin_default_medium"
+                android:paddingRight="@dimen/margin_default_medium"
                 android:textColor="@color/white"
-                android:text="Trocar Fonte"
+                android:text="@string/change_source"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
-                android:background="@drawable/button_background_default"/>
+                android:background="@drawable/button_background_default" />
         </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/colorDivider"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp">
+            android:layout_marginTop="@dimen/margin_default_medium"
+            android:layout_marginBottom="@dimen/margin_default_medium">
 
         </LinearLayout>
 
@@ -97,15 +97,15 @@
             <ProgressBar
                 android:id="@+id/publishersListProgress"
                 style="?android:attr/progressBarStyleLarge"
-                android:layout_width="50dp"
-                android:layout_height="100dp"
+                android:layout_width="@dimen/progress_circular_default_width"
+                android:layout_height="@dimen/progress_circular_default_height"
                 android:layout_centerHorizontal="true" />
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/publishersList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="100dp"
+                android:minHeight="@dimen/home_list_category_min_height"
                 android:clipToPadding="false" />
 
         </RelativeLayout>
@@ -121,8 +121,8 @@
                 android:id="@+id/lastestComicsTitleContainer"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
                 android:orientation="horizontal"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
@@ -134,7 +134,7 @@
                     android:orientation="vertical"
                     android:layout_toStartOf="@id/seeAll"
                     android:layout_alignParentStart="true"
-                    android:layout_marginEnd="5dp"
+                    android:layout_marginEnd="@dimen/margin_default_min"
                     android:layout_centerVertical="true">
 
                     <TextView
@@ -142,14 +142,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/colorPrimaryText"
-                        android:text="Últimas HQs"/>
+                        android:text="@string/lastest_comics_title"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/colorSecondaryText"
-                        android:textSize="12sp"
-                        android:text="Últimas HQs Adicionadas no Acervo"/>
+                        android:textSize="@dimen/txt_size_small"
+                        android:text="@string/lastest_comics_subtitle"/>
 
                 </LinearLayout>
 
@@ -157,10 +157,10 @@
                     android:id="@+id/seeAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:textColor="@color/colorAccent"
-                    android:text="Ver Todos"/>
+                    android:text="@string/see_all"/>
 
             </RelativeLayout>
 
@@ -171,15 +171,15 @@
                 <ProgressBar
                     android:id="@+id/lastestListProgress"
                     style="?android:attr/progressBarStyleLarge"
-                    android:layout_width="50dp"
-                    android:layout_height="150dp"
+                    android:layout_width="@dimen/progress_circular_default_width"
+                    android:layout_height="@dimen/progress_circular_default_height"
                     android:layout_centerHorizontal="true" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/lastestList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="150dp"
+                    android:minHeight="@dimen/home_list_category_min_height"
                     android:clipToPadding="false" />
 
             </RelativeLayout>
@@ -195,8 +195,8 @@
                 android:id="@+id/popularsComicsTitleContainer"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
                 android:orientation="horizontal"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
@@ -208,7 +208,7 @@
                     android:orientation="vertical"
                     android:layout_toStartOf="@id/seeAllPopulars"
                     android:layout_alignParentStart="true"
-                    android:layout_marginEnd="5dp"
+                    android:layout_marginEnd="@dimen/margin_default_min"
                     android:layout_centerVertical="true">
 
                     <TextView
@@ -216,14 +216,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/colorPrimaryText"
-                        android:text="HQs Populares"/>
+                        android:text="@string/populars_title"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textColor="@color/colorSecondaryText"
-                        android:textSize="12sp"
-                        android:text="As HQs mais acessadas"/>
+                        android:textSize="@dimen/txt_size_small"
+                        android:text="@string/populars_subtitle"/>
 
                 </LinearLayout>
 
@@ -231,10 +231,10 @@
                     android:id="@+id/seeAllPopulars"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:textColor="@color/colorAccent"
-                    android:text="Ver Todos"/>
+                    android:text="@string/see_all"/>
 
             </RelativeLayout>
 
@@ -245,15 +245,15 @@
                 <ProgressBar
                     android:id="@+id/popularListProgress"
                     style="?android:attr/progressBarStyleLarge"
-                    android:layout_width="50dp"
-                    android:layout_height="150dp"
+                    android:layout_width="@dimen/progress_circular_default_width"
+                    android:layout_height="@dimen/progress_circular_default_height"
                     android:layout_centerHorizontal="true" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/popularList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="150dp"
+                    android:minHeight="@dimen/recycler_view_min_height"
                     android:clipToPadding="false" />
 
             </RelativeLayout>

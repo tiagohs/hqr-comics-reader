@@ -3,26 +3,34 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black"
     android:id="@+id/apresentationContainer"
+    android:background="@android:color/black"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingStart="@dimen/activity_horizontal_margin"
     android:orientation="vertical"
     android:gravity="center"
-    android:visibility="gone">
+    android:visibility="gone" >
 
     <TextView
         android:id="@+id/comicTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
-        android:textSize="22sp"
-        android:textAllCaps="true"/>
+        android:maxLines="6"
+        android:ellipsize="end"
+        android:textSize="@dimen/txt_size_very_large"
+        android:textAllCaps="true"
+        android:textAlignment="center"/>
 
     <TextView
         android:id="@+id/comicChapterTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/colorAccent"
-        android:textSize="16sp"
-        android:layout_marginTop="5dp"/>
+        android:maxLines="5"
+        android:ellipsize="end"
+        android:textSize="@dimen/txt_size_large"
+        android:layout_marginTop="@dimen/margin_default_min"
+        android:textAlignment="center"/>
 
 </LinearLayout>

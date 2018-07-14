@@ -17,7 +17,7 @@ class ComicChaptersContract {
 
     interface IComicChaptersPresenter: IPresenter<IComicChaptersView> {
 
-        fun onCreate(comic: ComicViewModel)
+        fun onCreate(comic: ComicViewModel?)
         fun downloadChapters(chapters: List<ChapterItem>)
         fun deleteChapters(chapters: List<ChapterItem>)
 

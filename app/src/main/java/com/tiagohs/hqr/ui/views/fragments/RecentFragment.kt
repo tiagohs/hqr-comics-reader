@@ -37,7 +37,7 @@ class RecentFragment: BaseFragment(), RecentContract.IRecentView, IComicDetailsL
 
         setHasOptionsMenu(true)
 
-        activityCallbacks!!.setScreenTitle("Recentemente lidos")
+        activityCallbacks!!.setScreenTitle(getString(R.string.recents_title))
 
         getApplicationComponent()?.inject(this)
 

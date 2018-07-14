@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.download
 
 import com.jakewharton.rxrelay2.BehaviorRelay
+import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.models.DownloadQueueList
 import com.tiagohs.hqr.models.database.SourceDB
 import com.tiagohs.hqr.models.sources.Page
@@ -13,7 +14,8 @@ import javax.inject.Singleton
 class DownloadManager(
         val downloader: Downloader,
         val cache: DownloadCache,
-        val provider: DownloadProvider
+        val provider: DownloadProvider,
+        val comicRepository: IComicsRepository
 ) {
 
     val queue: DownloadQueueList = downloader.queue
@@ -68,11 +70,17 @@ class DownloadManager(
     fun deleteChapter(chapter: ChapterViewModel, comic: ComicViewModel, source: SourceDB) {
         provider.findChapterDirectory(chapter, comic, source)?.delete()
         cache.removeChapter(chapter, comic)
+
+        val hasDownloads = provider.findComicDirectory(comic, source)?.listFiles()?.isNotEmpty() ?: false
+        if (hasDownloads) {
+            comicRepository.setAsNotDownloaded(comic, source.id)
+        }
     }
 
     fun deleteComic(comic: ComicViewModel, source: SourceDB) {
         provider.findComicDirectory(comic, source)?.delete()
         cache.removeManga(comic)
+        comicRepository.setAsNotDownloaded(comic, source.id)
     }
 
 }

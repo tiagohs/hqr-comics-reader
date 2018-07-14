@@ -8,6 +8,7 @@ import android.support.design.widget.AppBarLayout
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.view.animation.AnimationUtils
+import com.squareup.picasso.Callback
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.AppBarMovieListener
 import com.tiagohs.hqr.helpers.utils.ImageUtils
@@ -21,15 +22,14 @@ import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import kotlinx.android.synthetic.main.activity_comic_details.*
+import java.lang.Exception
 import javax.inject.Inject
 
-
-
-private const val COMIC_LINK = "comic_link"
 
 class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsView, PermissionsCallback {
 
     companion object {
+        const val COMIC_LINK = "comic_link"
 
         fun newIntent(context: Context?, comicLink: String): Intent {
             val intent: Intent = Intent(context, ComicDetailsActivity::class.java)
@@ -112,13 +112,23 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
                     R.drawable.img_placeholder,
                     R.drawable.img_placeholder,
                     false)
+            comicWallpaper.contentDescription = getString(R.string.comic_details_poster_custom_description, comic.name)
 
             com.tiagohs.hqr.helpers.utils.AnimationUtils.creatScaleUpAnimation(comicImage, 500)
 
             ImageUtils.loadWithRevealAnimation(this, comicWallpaper,
                     comic.posterPath,
                     R.drawable.img_placeholder,
-                    R.drawable.img_placeholder)
+                    R.drawable.img_placeholder, object: Callback {
+                            override fun onSuccess() {
+                                comicWallpaperOverlay.visibility = View.VISIBLE
+                            }
+
+                            override fun onError(e: Exception?) {
+                                comicWallpaperOverlay.visibility = View.VISIBLE
+                            }
+            })
+            comicWallpaper.contentDescription = getString(R.string.comic_details_wallpaper_custom_description, comic.name)
         }
 
         comicTitle.text = comic.name
@@ -173,7 +183,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     private fun onConfigureTabs() {
         tabLayout.visibility = View.VISIBLE
 
-        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, mutableListOf("Resume", "Chapters"), comic!!)
+        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, resources.getStringArray(R.array.comic_details_tabs_values).toList(), comic!!)
         tabLayout.setupWithViewPager(comicsDetailsViewpager)
     }
 

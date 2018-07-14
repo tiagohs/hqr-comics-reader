@@ -27,8 +27,8 @@
             <ProgressBar
                 android:id="@+id/searchProgress"
                 style="?android:attr/progressBarStyleLarge"
-                android:layout_width="50dp"
-                android:layout_height="100dp"
+                android:layout_width="@dimen/progress_circular_default_width"
+                android:layout_height="@dimen/progress_circular_default_height"
                 android:layout_centerHorizontal="true"
                 android:visibility="gone"/>
 
@@ -38,10 +38,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fillViewport="true"
-                android:minHeight="150dp"
-                android:clipToPadding="false"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp" />
+                android:minHeight="@dimen/recycler_view_min_height"
+                android:clipToPadding="false" />
 
             <com.tiagohs.hqr.helpers.tools.EmptyView
                 android:id="@+id/searchEmptyView"

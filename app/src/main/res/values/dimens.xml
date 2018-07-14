@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="card_movie_radius">4dp</dimen>
+
+    <!-- Defaults -->
+    <dimen name="txt_size_very_small">10sp</dimen>
+    <dimen name="txt_size_small">12sp</dimen>
+    <dimen name="txt_size_medium">14sp</dimen>
+    <dimen name="txt_size_large">16sp</dimen>
+    <dimen name="txt_size_very_large">22sp</dimen>
+    <dimen name="margin_default_min">5dp</dimen>
+    <dimen name="margin_default_medium">10dp</dimen>
+    <dimen name="margin_default_large">10dp</dimen>
+    <dimen name="recycler_view_min_height">150dp</dimen>
+    <dimen name="progress_circular_default_width">50dp</dimen>
+    <dimen name="progress_circular_default_height">100dp</dimen>
+    <dimen name="progress_load_more_size">25dp</dimen>
+    <dimen name="progress_load_more_height">40dp</dimen>
+    <dimen name="empty_view_size">128dp</dimen>
+    <dimen name="item_status_padding">2dp</dimen>
+    <dimen name="bottom_navigation_shadow_height">3dp</dimen>
+    <dimen name="item_simple_item_height">50dp</dimen>
+    <dimen name="notification_badge_size">20dp</dimen>
+
+    <!-- Root Activiry -->
+    <dimen name="root_fragments_margin_bottom">60dp</dimen>
+
+    <!-- Reader -->
+    <dimen name="reader_direction_btn_width">40dp</dimen>
+    <dimen name="reader_pages_spinner_width">90dp</dimen>
+    <dimen name="reader_pages_spinner_dropdown_max_height">350dp</dimen>
+
+    <!-- Home -->
+    <dimen name="home_list_category_min_height">100dp</dimen>
+
+    <!-- Comics Details -->
+    <dimen name="comic_detail_app_bar_height">280dp</dimen>
+    <dimen name="comic_detail_wallpaper_height">150dp</dimen>
+    <dimen name="comic_detail_poster_margin_top">120dp</dimen>
+    <dimen name="comic_detail_poster_width">110dp</dimen>
+    <dimen name="comic_detail_poster_height">150dp</dimen>
+    <dimen name="comic_detail_read_btn_margin_top">135dp</dimen>
+    <dimen name="comic_detail_header_container_margin_top">155dp</dimen>
+    <dimen name="comic_detail_header_container_margin_start">135dp</dimen>
+    <dimen name="comic_detail_header_container_margin_end">110dp</dimen>
+
+    <!-- Comics Items -->
+    <dimen name="item_comic_default_width">120dp</dimen>
+    <dimen name="item_comic_details_height">120dp</dimen>
+    <dimen name="item_comic_details_poster_width">90dp</dimen>
+    <dimen name="item_comic_details_poster_height">120dp</dimen>
+    <dimen name="item_comic_simple_icon_size">25dp</dimen>
+    <dimen name="item_comic_poster_width">110dp</dimen>
+    <dimen name="item_comic_poster_height">140dp</dimen>
+    <dimen name="btn_height">30dp</dimen>
+    <dimen name="more_btn_size">25dp</dimen>
+    <dimen name="add_to_fav_size">35dp</dimen>
+    <dimen name="item_comic_title_margin_top">3dp</dimen>
+
+    <!-- Simple Items -->
+    <dimen name="recycler_view_simple_items_default_min_height">25dp</dimen>
+
+    <!-- Chapter Item -->
+    <dimen name="chapter_item_height">50dp</dimen>
+    <dimen name="chapter_item_book_icon_size">30dp</dimen>
+    <dimen name="chapter_item_icon_download_size">20dp</dimen>
+    <dimen name="chapter_item_icon_download_container_size">30dp</dimen>
+
+    <!-- Header Source Item -->
+    <dimen name="item_header_source_height">25dp</dimen>
+
+    <!-- Circle Item -->
+    <dimen name="item_circle_width">50dp</dimen>
+    <dimen name="item_circle_container_width">60dp</dimen>
+    <dimen name="item_simple_item_btn_height">30dp</dimen>
+
+    <!-- Placeholders -->
+    <dimen name="placeholder_comic_details_list_item_width">90dp</dimen>
+    <dimen name="placeholder_comic_details_list_item_height">20dp</dimen>
+    <dimen name="placeholder_comic_details_title_item_width">140dp</dimen>
+    <dimen name="placeholder_comic_details_title_item_height">20dp</dimen>
+    <dimen name="placeholder_comic_details_list_publishers_margin_top">45dp</dimen>
+    <dimen name="placeholder_comic_details_text_line_height">8dp</dimen>
+    <dimen name="placeholder_comic_details_text_margin_top">15dp</dimen>
+
+</resources>

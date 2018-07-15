@@ -101,6 +101,11 @@ class ComicChaptersFragment:
 
     private fun onViewFocus() {
         presenter.onBindView(this)
+
+        onInit()
+    }
+
+    private fun onInit() {
         presenter.onCreate(comicViewModel)
 
         adapter = ChaptersListAdapter(context, this)
@@ -108,6 +113,20 @@ class ComicChaptersFragment:
         chaptersList.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         chaptersList.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         chaptersList.adapter = adapter
+    }
+
+    override fun onError(ex: Throwable, message: Int) {
+        chaptersProgress.visibility = View.GONE
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        chaptersProgress.visibility = View.VISIBLE
+
+        onInit()
+
+        dismissSnack()
     }
 
     override fun onDestroyView() {

@@ -16,6 +16,8 @@
     <string name="comic_details_poster_description">Comic poster</string>
     <string name="comic_details_poster_custom_description">%1$s poster</string>
 
+    <string name="download_number_of">%1$d Capítulos</string>
+
     <!-- Settings -->
     <string name="action_settings">Configurações</string>
     <string name="settings_activity_title">Configurações</string>
@@ -58,6 +60,8 @@
     <string name="action_resume">Resume</string>
     <string name="action_pause">Pause</string>
     <string name="action_clear">Clear</string>
+    <string name="action_retry">Tentar Novamente</string>
+
 
     <string name="download_in_progress">Download in progress</string>
     <string name="download_complete">Download complete</string>
@@ -122,7 +126,8 @@
     <string name="nav_librarie">Minha Biblioteca</string>
     <string name="action_start">Iniciar</string>
     <string name="download_status">Downloading (%1$d/%2$d)</string>
-    <string name="no_downloads">Não há downloads na fila</string>
+    <string name="no_downloads_in_queue">Não há downloads na fila</string>
+    <string name="no_downloads">Você não possui nenhuma HQ baixada.</string>
     <string name="no_favorites">Não há HQs favoritas</string>
     <string name="no_recent">Você não leu nenhuma HQ recentemente.</string>
     <string name="no_found">Sua pesquisa não retornou nenhum resultado.</string>
@@ -148,4 +153,5 @@
     <string name="home_title">Ínicio</string>
     <string name="lirarie_title">Minha Biblioteca</string>
     <string name="recents_title">Últimas Leituras</string>
+    <string name="unknown_error">Algo inesperado aconteceu, por favor, tente novamente.</string>
 </resources>

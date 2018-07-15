@@ -93,6 +93,20 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         changeSource.setOnClickListener({ goToSources() })
     }
 
+    override fun onError(ex: Throwable, message: Int) {
+        publishersListProgress.visibility = View.GONE
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        publishersListProgress.visibility = View.VISIBLE
+
+        homePresenter.observeSourcesChanges()
+
+        dismissSnack()
+    }
+
     override fun getViewID(): Int {
         return R.layout.fragment_home
     }

@@ -72,13 +72,29 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
         setMenuVisibility(menuVisible)
         setFullscreen(true)
 
-        val comicPath = intent.getStringExtra(COMIC_PATH)
-        val chapterPath = intent.getStringExtra(CHAPTER_PATH)
-
         presenter.onBindView(this)
         presenter.onCreate()
 
+        onInit()
+    }
+
+    private fun onInit() {
+        val comicPath = intent.getStringExtra(COMIC_PATH)
+        val chapterPath = intent.getStringExtra(CHAPTER_PATH)
+
         presenter.onGetChapterDetails(comicPath, chapterPath)
+    }
+
+    override fun onError(ex: Throwable, message: Int) {
+        readerPageProgress.visibility = View.GONE
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        readerPageProgress.visibility = View.VISIBLE
+
+        onInit()
     }
 
     override fun onDestroy() {

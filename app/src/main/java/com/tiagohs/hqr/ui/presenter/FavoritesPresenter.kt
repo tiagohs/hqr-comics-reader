@@ -1,7 +1,6 @@
 package com.tiagohs.hqr.ui.presenter
 
 import android.content.Context
-import android.util.Log
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListItem
@@ -9,6 +8,7 @@ import com.tiagohs.hqr.ui.contracts.FavoritesContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class FavoritesPresenter(
         val favoritesInterceptor: Contracts.IFavoritesInterceptor,
@@ -22,7 +22,11 @@ class FavoritesPresenter(
         mSubscribers.add(favoritesInterceptor.onSubscribeInitializa(context)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ comicItem -> mView?.onBindItem(comicItem) },
-                        { error -> Log.e("FAVORITES", "Inicialização Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
+                ))
     }
 
     override fun onGetFavorites(context: Context) {
@@ -30,7 +34,11 @@ class FavoritesPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ items -> mView?.onBindComics(items) },
-                        { error -> Log.e("FAVORITES", "onGetFavorites Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
+                ))
     }
 
     override fun onGetMoreComics() {
@@ -38,7 +46,11 @@ class FavoritesPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ items -> mView?.onBindMoreComics(items) },
-                        { error -> Log.e("FAVORITES", "onGetMoreComics Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
+                ))
     }
 
     override fun hasMoreComics(): Boolean {
@@ -55,7 +67,7 @@ class FavoritesPresenter(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onComicRemoved(position) },
                         { error ->
-                            Log.e("Fav", "Error", error)
+                            Timber.e(error)
                             mView?.onComicRemovedError() })
     }
 

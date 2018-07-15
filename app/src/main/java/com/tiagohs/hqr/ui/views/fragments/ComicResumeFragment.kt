@@ -43,6 +43,9 @@ class ComicResumeFragment: BaseFragment() {
 
         comic = arguments!!.getParcelable(COMIC)
     }
+    override fun onErrorAction() {
+        dismissSnack()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

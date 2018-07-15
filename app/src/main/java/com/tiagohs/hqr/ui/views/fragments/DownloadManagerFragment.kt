@@ -32,9 +32,16 @@ class DownloadManagerFragment: BaseFragment(), DownloadManagerContract.IDownload
     private var adapter: DownloadQueueAdapter? = null
     private var isRunning: Boolean = false
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onError(ex: Throwable, message: Int) {
+        setInformationViewStatus()
 
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        presenter.onCreate()
+
+        dismissSnack()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -129,7 +136,7 @@ class DownloadManagerFragment: BaseFragment(), DownloadManagerContract.IDownload
     fun setInformationViewStatus() {
 
         if (presenter.isQueueEmpty()) {
-            emptyView.show(R.drawable.ic_file_download_grey_128dp, R.string.no_downloads)
+            emptyView.show(R.drawable.ic_file_download_grey_128dp, R.string.no_downloads_in_queue)
         } else {
             emptyView.hide()
         }

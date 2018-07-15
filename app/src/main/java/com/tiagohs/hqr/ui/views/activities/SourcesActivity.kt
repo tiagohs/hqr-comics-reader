@@ -42,6 +42,12 @@ class SourcesActivity: BaseActivity(), ISourcesCallback, SourcesContract.ISource
         presenter.getAllSources()
     }
 
+    override fun onErrorAction() {
+        presenter.getAllSources()
+
+        snack?.dismiss()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
 

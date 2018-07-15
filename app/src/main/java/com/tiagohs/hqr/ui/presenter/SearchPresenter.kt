@@ -1,6 +1,5 @@
 package com.tiagohs.hqr.ui.presenter
 
-import android.util.Log
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
@@ -13,6 +12,7 @@ import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class SearchPresenter(
         private val interceptor: Contracts.ISearchInterceptor,
@@ -27,12 +27,10 @@ class SearchPresenter(
         mSubscribers.add(interceptor.subscribeComicDetailSubject()
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { it.toModel() }
-                .subscribe({ comic ->
-                    Log.d("LIST_SEARCH", "Inicialização: " + comic?.comic?.name)
-
-                    mView?.onBindItem(comic!!)
+                .subscribe({ comic -> mView?.onBindItem(comic!!)
                 }, { error ->
-                    Log.e("LIST_SEARCH", "Inicialização Falhou ", error)
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
     }
 
@@ -42,7 +40,10 @@ class SearchPresenter(
                 .map { it.map { it.toModel() } }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ comicsList -> mView!!.onBindComics(comicsList) },
-                        { error -> Log.e("Search", "Error", error) }
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
                 ))
     }
 
@@ -72,7 +73,10 @@ class SearchPresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMoreComics(it) },
-                            { error -> Log.e("SEARCH", "Error", error) }
+                            { error ->
+                                Timber.e(error)
+                                mView?.onError(error)
+                            }
                     ))
         }
     }
@@ -85,7 +89,11 @@ class SearchPresenter(
                 .map { it.toModel() }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onBindItem(it) },
-                        { error -> Log.e("SEARCH", "addOrRemoveFromFavorite Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
+                ))
     }
 
     private fun ComicViewModel.toModel(): ComicItem {

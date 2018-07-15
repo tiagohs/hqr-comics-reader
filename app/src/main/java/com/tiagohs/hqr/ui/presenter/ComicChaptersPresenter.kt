@@ -9,11 +9,11 @@ import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.adapters.chapters.ChapterItem
 import com.tiagohs.hqr.ui.contracts.ComicChaptersContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
-import eu.davidea.flexibleadapter.utils.Log
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class ComicChaptersPresenter(
     private val downloadManager: DownloadManager,
@@ -34,7 +34,8 @@ class ComicChaptersPresenter(
                     .subscribe({ chapters ->
                         mView?.onNextChapters(chapters)
                     }, { error ->
-                        Log.e("Chapters", "Error", error)
+                        Timber.e(error)
+                        mView?.onError(error)
                     }))
 
         if (comic != null) {
@@ -55,7 +56,9 @@ class ComicChaptersPresenter(
                     }
                     .subscribe({ chaptersRelay.accept(it) },
                             { error ->
-                                Log.e("Chapters", "Error", error) }) )
+                                Timber.e(error)
+                                mView?.onError(error) }
+                    ) )
         }
     }
 
@@ -75,7 +78,8 @@ class ComicChaptersPresenter(
                 .subscribe( { download ->
                     mView?.onChapterStatusChange(download.chapter.toModel(), download.status)
                 }, { error ->
-                    Log.e("Chapters", "Error", error)
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
     }
 
@@ -94,7 +98,10 @@ class ComicChaptersPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ },
-                    { error -> mView?.onChapterDeletedError() },
+                    { error ->
+                        Timber.e(error)
+                        mView?.onChapterDeletedError()
+                    },
                     { mView?.onChapterDeleted() }))
     }
 

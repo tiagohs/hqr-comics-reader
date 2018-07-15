@@ -71,9 +71,10 @@ class DownloadManager(
         provider.findChapterDirectory(chapter, comic, source)?.delete()
         cache.removeChapter(chapter, comic)
 
-        val hasDownloads = provider.findComicDirectory(comic, source)?.listFiles()?.isNotEmpty() ?: false
-        if (hasDownloads) {
-            comicRepository.setAsNotDownloaded(comic, source.id)
+        val hasNotDownloads = provider.findComicDirectory(comic, source)?.listFiles()?.isEmpty() ?: true
+
+        if (hasNotDownloads && comic.downloaded) {
+            comicRepository.setAsNotDownloaded(comic, source.id).subscribe()
         }
     }
 

@@ -50,6 +50,7 @@ dependencies {
     implementation 'com.android.support:design:27.1.1'
     implementation 'me.zhanghai.android.systemuihelper:library:1.0.0'
     implementation 'com.android.support:multidex:1.0.3'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 
     // Stelho - Realm, SharedPreferences and SQLite debugger
     implementation 'com.facebook.stetho:stetho:1.5.0'

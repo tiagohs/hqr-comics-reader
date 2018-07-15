@@ -1,6 +1,5 @@
 package com.tiagohs.hqr.sources
 
-import android.util.Log
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.helpers.extensions.asJsoup
 import com.tiagohs.hqr.models.view_models.ComicViewModel
@@ -8,6 +7,7 @@ import com.tiagohs.hqr.models.view_models.DefaultModelView
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.jsoup.nodes.Element
+import timber.log.Timber
 
 abstract class ParserHttpSource(
         private var client: OkHttpClient,
@@ -33,7 +33,7 @@ abstract class ParserHttpSource(
             }
 
         } catch (ex: Exception) {
-            Log.e("ParseError", "Parse Error", ex)
+            Timber.e(ex)
         }
 
         return publishers
@@ -52,7 +52,7 @@ abstract class ParserHttpSource(
             }
 
         } catch (ex: Exception) {
-            Log.e("ParseError", "Parse Error", ex)
+            Timber.e(ex)
         }
 
         return comics
@@ -71,7 +71,7 @@ abstract class ParserHttpSource(
             }
 
         } catch (ex: Exception) {
-            Log.e("ParseError", "Parse Error", ex)
+            Timber.e(ex)
         }
 
         return comics
@@ -90,7 +90,7 @@ abstract class ParserHttpSource(
             }
 
         } catch (ex: Exception) {
-            Log.e("ParseError", "Parse Error", ex)
+            Timber.e(ex)
         }
 
         return comics
@@ -109,7 +109,7 @@ abstract class ParserHttpSource(
             }
 
         } catch (ex: Exception) {
-            Log.e("ParseError", "Parse Error", ex)
+            Timber.e(ex)
         }
 
         return comics
@@ -126,7 +126,7 @@ abstract class ParserHttpSource(
             }
 
         } catch (ex: Exception) {
-            Log.e("ParseError", "Parse Error", ex)
+            Timber.e(ex)
         }
 
         return comics
@@ -143,7 +143,7 @@ abstract class ParserHttpSource(
             }
 
         } catch (ex: Exception) {
-            Log.e("ParseError", "Parse Error", ex)
+            Timber.e(ex)
         }
 
         return comics

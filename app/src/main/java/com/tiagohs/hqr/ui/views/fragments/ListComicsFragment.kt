@@ -57,12 +57,29 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
 
         presenter.onBindView(this)
 
+        onInit()
+    }
+
+    private fun onInit() {
         when (listComicsModel.listType) {
             FETCH_ALL -> presenter.onGetComics(listComicsModel.listType, "All")
             FETCH_BY_PUBLISHERS, FETCH_BY_SCANLATORS -> presenter.onGetComics(listComicsModel.listType, listComicsModel.link)
         }
     }
 
+    override fun onError(ex: Throwable, message: Int) {
+        comicListProgress.visibility = View.GONE
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        comicListProgress.visibility = View.VISIBLE
+
+        onInit()
+
+        dismissSnack()
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         setHasOptionsMenu(true)

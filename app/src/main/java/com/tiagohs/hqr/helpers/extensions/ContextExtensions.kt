@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.helpers.extensions
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationManager
@@ -8,18 +9,31 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.content.res.Resources
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.PowerManager
 import android.support.annotation.StringRes
+import android.support.design.widget.Snackbar
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.LocalBroadcastManager
+import android.widget.TextView
 import android.widget.Toast
 import com.nononsenseapps.filepicker.FilePickerActivity
+import com.tiagohs.hqr.R
 import com.tiagohs.hqr.ui.views.activities.CustomLayoutPickerActivity
+
+
+inline fun Activity.snack(message: String, length: Int = Snackbar.LENGTH_LONG, f: Snackbar.() -> Unit): Snackbar {
+    val snack = Snackbar.make(findViewById(R.id.coordinatorLayout), message, length)
+    val textView: TextView = snack.view.findViewById(android.support.design.R.id.snackbar_text)
+    textView.setTextColor(Color.WHITE)
+    snack.f()
+    snack.show()
+    return snack
+}
 
 fun Context.toast(@StringRes resource: Int, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, resource, duration).show()
@@ -55,12 +69,6 @@ fun Context.getResourceDrawable(resource: Int): Drawable? {
         return resources.getDrawable(resource)
     }
 }
-
-val Int.pxToDp: Int
-    get() = (this / Resources.getSystem().displayMetrics.density).toInt()
-
-val Int.dpToPx: Int
-    get() = (this * Resources.getSystem().displayMetrics.density).toInt()
 
 val Context.notificationManager: NotificationManager
     get() = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

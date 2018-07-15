@@ -1,6 +1,5 @@
 package com.tiagohs.hqr.ui.presenter
 
-import android.util.Log
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
@@ -18,6 +17,7 @@ import com.tiagohs.hqr.ui.contracts.HomeContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class HomePresenter(
         private val sourceManager: SourceManager,
@@ -35,7 +35,6 @@ class HomePresenter(
                         .map { it.toModel() }
                          .observeOn(AndroidSchedulers.mainThread())
                          .subscribe({ comic ->
-                             Log.d("HOME", "Inicialização: " + comic?.comic?.name)
 
                              if (comic?.comic?.tags != null) {
                                  if (comic.comic.tags!!.contains(IComic.POPULARS)) {
@@ -47,7 +46,8 @@ class HomePresenter(
                              }
 
                          }, { error ->
-                             Log.e("Home", "Inicialização Falhou ", error)
+                             Timber.e(error)
+                             mView?.onError(error)
                          }))
     }
 
@@ -63,6 +63,9 @@ class HomePresenter(
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe({ sourceId: Long? ->
                     onGetHomeData(sourceId!!)
+                }, { error ->
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
     }
 
@@ -78,6 +81,9 @@ class HomePresenter(
                     if (sourceHttp != null) {
                         onGetPublishers(sourceHttp, sourceId)
                     }
+                }, { error ->
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
     }
 
@@ -97,8 +103,9 @@ class HomePresenter(
                                 mView!!.onBindPublishers(publishers)
                             }
                         },
-                        { error: Throwable? ->
-                            Log.e("HomePresenter", "Error!", error)
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
                         }))
     }
 
@@ -110,7 +117,8 @@ class HomePresenter(
                 .subscribe({ popularComics ->
                     if (popularComics != null) mView!!.onBindPopulars(popularComics)
                 }, { error ->
-                    Log.e("HomePresenter", "Error!", error)
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
 
         mSubscribers.add(homeInterceptor.onGetLastestComics()
@@ -119,7 +127,8 @@ class HomePresenter(
                 .subscribe({ lastestsComics ->
                     if (lastestsComics != null) mView!!.onBindLastestUpdates(lastestsComics)
                 }, { error ->
-                    Log.e("HomePresenter", "Error!", error)
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
     }
 
@@ -131,7 +140,10 @@ class HomePresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMorePublishers(it) },
-                            { error -> Log.e("List", "Publishers Error", error) })
+                            { error ->
+                                Timber.e(error)
+                                mView?.onError(error)
+                            })
                     )
         }
     }
@@ -144,7 +156,10 @@ class HomePresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMorePopulars(it) },
-                            { error -> Log.e("List", "Populars Error", error) })
+                            { error ->
+                                Timber.e(error)
+                                mView?.onError(error)
+                            })
                     )
         }
     }
@@ -157,7 +172,10 @@ class HomePresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMoreLastestUpdates(it) },
-                            { error -> Log.e("List", "LastestUpdates Error", error) })
+                            { error ->
+                                Timber.e(error)
+                                mView?.onError(error)
+                            })
                     )
         }
     }
@@ -177,7 +195,10 @@ class HomePresenter(
                             mView?.onBindLastestItem(c)
                         }
                     }
-                }, { error -> Log.e("LIST", "addOrRemoveFromFavorite Falhou ", error) }))
+                }, { error ->
+                    Timber.e(error)
+                    mView?.onError(error)
+                }))
     }
 
     private fun ComicViewModel.toModel(): ComicItem {

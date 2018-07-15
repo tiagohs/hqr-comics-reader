@@ -48,6 +48,20 @@ class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IComi
         presenter.onUnbindView()
     }
 
+    override fun onError(ex: Throwable, message: Int) {
+        favoritesListProgress.visibility = View.GONE
+
+        setInformationViewStatus()
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        presenter.onGetFavorites(context!!)
+
+        dismissSnack()
+    }
+
     override fun onBindComics(comics: List<ComicDetailsListItem>?) {
         adapter = ComicDetailsListAdapter(true, this)
         adapter?.updateDataSet(comics)

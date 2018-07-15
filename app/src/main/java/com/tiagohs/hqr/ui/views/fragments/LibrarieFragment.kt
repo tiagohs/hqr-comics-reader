@@ -15,11 +15,6 @@ class LibrarieFragment: BaseFragment() {
 
     override fun getViewID(): Int = R.layout.fragment_librarie
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
@@ -27,6 +22,7 @@ class LibrarieFragment: BaseFragment() {
         activityCallbacks!!.setScreenTitle(getString(R.string.lirarie_title))
         onCofigureLibrariePageView()
     }
+    override fun onErrorAction() {}
 
     private fun onCofigureLibrariePageView() {
         librarieViewpager.adapter = LibrariePagerAdapter(childFragmentManager, resources.getStringArray(R.array.librarie_tabs_values).toList())

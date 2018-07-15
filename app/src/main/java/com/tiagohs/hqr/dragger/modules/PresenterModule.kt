@@ -68,4 +68,9 @@ class PresenterModule {
     internal fun provideRecentPresenter(preferenceHelper: PreferenceHelper, comicRepository: IComicsRepository, historyRepository: IHistoryRepository, localeUtils: LocaleUtils): RecentContract.IRecentPresenter {
         return RecentPresenter(preferenceHelper, comicRepository, historyRepository, localeUtils)
     }
+
+    @Provides
+    internal fun provideDownloadPresenter(preferenceHelper: PreferenceHelper, comicRepository: IComicsRepository, localeUtils: LocaleUtils, downloadManager: DownloadManager, provider: DownloadProvider): DownloadContract.IDownloadPresenter {
+        return DownloadPresenter(preferenceHelper, comicRepository, localeUtils, downloadManager, provider)
+    }
 }

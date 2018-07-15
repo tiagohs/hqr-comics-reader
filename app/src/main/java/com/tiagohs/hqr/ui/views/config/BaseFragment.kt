@@ -2,14 +2,17 @@ package com.tiagohs.hqr.ui.views.config
 
 import android.content.Context
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.tiagohs.hqr.App
+import com.tiagohs.hqr.R
 import com.tiagohs.hqr.dragger.components.HQRComponent
-import com.tiagohs.hqr.ui.views.IActivityCallbacks
+import com.tiagohs.hqr.helpers.extensions.snack
 import com.tiagohs.hqr.helpers.utils.ServerUtils
+import com.tiagohs.hqr.ui.views.IActivityCallbacks
 
 abstract class BaseFragment: Fragment() {
 
@@ -57,4 +60,26 @@ abstract class BaseFragment: Fragment() {
     }
 
     abstract fun getViewID(): Int
+
+    fun dismissSnack() {
+        (activity as BaseActivity).snack?.dismiss()
+    }
+
+    open fun onError(ex: Throwable, message: Int) {
+
+        val finalMessage = if (message != 0) {
+            R.string.unknown_error
+        } else {
+            message
+        }
+
+        (activity as BaseActivity).snack?.dismiss()
+        (activity as BaseActivity).snack = activity?.snack(getString(finalMessage), Snackbar.LENGTH_INDEFINITE) {
+            setAction(R.string.action_retry) {
+                onErrorAction()
+            }
+        }
+    }
+
+    abstract fun onErrorAction()
 }

@@ -1,7 +1,6 @@
 package com.tiagohs.hqr.ui.presenter
 
 import android.content.Context
-import android.util.Log
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.helpers.tools.ListPaginator
@@ -15,6 +14,7 @@ import com.tiagohs.hqr.ui.contracts.RecentContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class RecentPresenter(
         private val preferenceHelper: PreferenceHelper,
@@ -36,7 +36,10 @@ class RecentPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ histories -> mView?.onBindUserHistories(histories) },
-                        { error -> Log.e("RECENT", "onGetUserHistory Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }))
     }
 
     override fun onGetMoreComics() {
@@ -44,7 +47,10 @@ class RecentPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onBindMoreUserHistories(it) },
-                        { error -> Log.e("FAVORITES", "onGetMoreComics Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }))
     }
 
     override fun hasMoreComics(): Boolean {
@@ -60,7 +66,8 @@ class RecentPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({}, { error ->
-
+                    Timber.e(error)
+                    mView?.onError(error)
                 }, {
                     mView?.onHistoryRemoved(position)
                 }))
@@ -77,7 +84,10 @@ class RecentPresenter(
                 }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onBindItem(it) },
-                        { error -> Log.e("RECENTS", "addOrRemoveFromFavorite Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }))
     }
 
     private fun ComicHistoryViewModel.toModel(context: Context?, comic: ComicViewModel?): ComicDetailsListItem {

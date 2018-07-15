@@ -37,4 +37,8 @@ class ListComicsActivity: BaseActivity() {
         startFragment(R.id.contentFragment, ListComicsFragment.newFragment(listModel))
     }
 
+    override fun onErrorAction() {
+        snack?.dismiss()
+    }
+
 }

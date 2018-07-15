@@ -61,6 +61,24 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
         setViewInfomation()
     }
 
+    override fun onError(ex: Throwable, message: Int) {
+        searchProgress.visibility = android.view.View.GONE
+
+        setViewInfomation()
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        if (!mQuery.isNullOrEmpty()) {
+            mSearchView.setQuery(mQuery, true)
+        }
+
+        setViewInfomation()
+
+        snack?.dismiss()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
 

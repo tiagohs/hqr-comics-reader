@@ -1,6 +1,5 @@
 package com.tiagohs.hqr.ui.presenter
 
-import android.util.Log
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
@@ -12,6 +11,7 @@ import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class ComicDetailsPresenter(
         private val interceptor: Contracts.IComicsDetailsInterceptor,
@@ -32,7 +32,8 @@ class ComicDetailsPresenter(
                             if (comic != null) mView!!.onBindComic(comic, history)
                       },
                       { error ->
-                          Log.e("ComicDetails", "Error", error)
+                          Timber.e(error)
+                          mView?.onError(error)
                       }
                  ))
     }
@@ -47,7 +48,12 @@ class ComicDetailsPresenter(
         mSubscribers.add(comicRepository.addOrRemoveFromFavorite(comic, sourceId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { mView?.onConfigureFavoriteBtn(it) })
+                .subscribe({ mView?.onConfigureFavoriteBtn(it) },
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
+                ))
     }
 
 

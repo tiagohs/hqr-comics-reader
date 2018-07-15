@@ -18,11 +18,11 @@ import com.tiagohs.hqr.ui.views.fragments.DownloadManagerFragment
 import com.tiagohs.hqr.ui.views.fragments.HomeFragment
 import com.tiagohs.hqr.ui.views.fragments.LibrarieFragment
 import com.tiagohs.hqr.ui.views.fragments.RecentFragment
-import eu.davidea.flexibleadapter.utils.Log
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_root.*
 import kotlinx.android.synthetic.main.notification_download_badge.view.*
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -63,7 +63,17 @@ class RootActivity: BaseActivity(), PermissionsCallback {
 
         permissions.onCheckAndRequestPermissions(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), this)
 
+        onInit()
+    }
+
+    private fun onInit() {
         onObserveDownloadQueue()
+    }
+
+    override fun onErrorAction() {
+        onInit()
+
+        snack?.dismiss()
     }
 
     private fun onObserveDownloadQueue() {
@@ -71,7 +81,10 @@ class RootActivity: BaseActivity(), PermissionsCallback {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ configreDownloadBadge() },
-                        { error -> Log.e("DownloadManager", "getActiviteDownloads Error", error) })
+                        { error ->
+                            Timber.e(error)
+                            onError(error, 0)
+                        })
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {

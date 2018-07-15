@@ -43,4 +43,5 @@ interface HQRComponent {
     fun inject(rootActivity: RootActivity)
     fun inject(notificationReceiver: NotificationReceiver)
     fun inject(recentFragment: RecentFragment)
+    fun inject(downloadFragment: DownloadFragment)
 }

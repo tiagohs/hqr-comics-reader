@@ -1,6 +1,5 @@
 package com.tiagohs.hqr.ui.presenter
 
-import android.util.Log
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
@@ -16,6 +15,7 @@ import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class ListComicsPresenter(
         private val interceptor: Contracts.IListComicsInterceptor,
@@ -30,12 +30,10 @@ class ListComicsPresenter(
         mSubscribers.add(interceptor.subscribeComicDetailSubject()
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { it.toModel() }
-                .subscribe({ comic ->
-                    Log.d("LIST_COMICS", "Inicialização: " + comic?.comic?.name)
-
-                    mView?.onBindItem(comic!!)
+                .subscribe({ comic -> mView?.onBindItem(comic!!)
                 }, { error ->
-                    Log.e("LIST_COMICS", "Inicialização Falhou ", error)
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
     }
 
@@ -46,7 +44,10 @@ class ListComicsPresenter(
               .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { mView!!.onBindComics(it) },
-                        { error -> Log.e("List", "Error", error) }
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
                 ))
     }
 
@@ -66,7 +67,10 @@ class ListComicsPresenter(
                         .map { it.toModel() }
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({ mView?.onBindItem(it) },
-                                { error -> Log.e("LIST", "addOrRemoveFromFavorite Falhou ", error) }))
+                                { error ->
+                                    Timber.e(error)
+                                    mView?.onError(error)
+                                }))
     }
 
     fun onCheckListType(listType: String, flag: String): Observable<List<ComicViewModel>> {
@@ -93,7 +97,10 @@ class ListComicsPresenter(
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(
                             { mView!!.onBindMoreComics(it) },
-                            { error -> Log.e("List", "Error", error) }
+                            { error ->
+                                Timber.e(error)
+                                mView?.onError(error)
+                            }
                     ))
         }
 

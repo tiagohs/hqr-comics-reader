@@ -51,6 +51,20 @@ class RecentFragment: BaseFragment(), RecentContract.IRecentView, IComicDetailsL
         presenter.onUnbindView()
     }
 
+    override fun onError(ex: Throwable, message: Int) {
+        recentListProgress.visibility = View.GONE
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        recentListProgress.visibility = View.VISIBLE
+
+        presenter.onGetUserHistories(context)
+
+        dismissSnack()
+    }
+
     override fun onBindUserHistories(histories: List<ComicDetailsListItem>) {
         adapter = ComicDetailsListAdapter(true, this)
         adapter?.updateDataSet(histories)

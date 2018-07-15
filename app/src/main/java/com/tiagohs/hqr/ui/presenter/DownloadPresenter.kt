@@ -1,26 +1,24 @@
 package com.tiagohs.hqr.ui.presenter
 
-import android.content.Context
-import android.util.Log
 import com.tiagohs.hqr.database.IComicsRepository
-import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.download.DownloadProvider
 import com.tiagohs.hqr.helpers.tools.ListPaginator
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.adapters.downloads.DownloadItem
 import com.tiagohs.hqr.ui.contracts.DownloadContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 
 class DownloadPresenter(
         private val preferenceHelper: PreferenceHelper,
         private val comicRepository: IComicsRepository,
-        private val historyRepository: IHistoryRepository,
         private val localeUtils: LocaleUtils,
         private val downloadManager: DownloadManager,
         private val provider: DownloadProvider
@@ -28,16 +26,19 @@ class DownloadPresenter(
 
     var listPaginator: ListPaginator<DownloadItem> = ListPaginator()
 
-    override fun onGetDownloads(context: Context?) {
+    override fun onGetDownloads() {
 
         mSubscribers.add(comicRepository.getDownloadedComics()
-                .map { onFilterDownloads(it, context) }
-                .subscribe({ histories -> mView?.onBindDownloads(histories) },
-                        { error -> Log.e("DOWNLOADS", "onGetDownloads Falhou ", error) }))
+                .map { onFilterDownloads(it) }
+                .subscribe({ downloads -> mView?.onBindDownloads(downloads) },
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }))
 
     }
 
-    private fun onFilterDownloads(comics: List<ComicViewModel>, context: Context?): List<DownloadItem> {
+    private fun onFilterDownloads(comics: List<ComicViewModel>): List<DownloadItem> {
         val finalDownloadList = ArrayList<DownloadItem>()
 
         comics.forEach {
@@ -46,7 +47,7 @@ class DownloadPresenter(
             if (chaptersDownloaded == null || chaptersDownloaded.isEmpty()) {
                 comicRepository.setAsNotDownloaded(it, it.source!!.id).subscribe()
             } else {
-                finalDownloadList.add(it.toModel(context))
+                finalDownloadList.add(it.toModel())
             }
         }
 
@@ -58,7 +59,10 @@ class DownloadPresenter(
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onBindMoreDownloads(it) },
-                        { error -> Log.e("DOWNLOADS", "onGetMore Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }))
     }
 
     override fun hasMore(): Boolean {
@@ -69,7 +73,7 @@ class DownloadPresenter(
         return listPaginator.originalList
     }
 
-    override fun deleteChapters(downloadItem: DownloadItem) {
+    override fun deleteComic(downloadItem: DownloadItem) {
         downloadManager.deleteComic(downloadItem.comic, downloadItem.comic.source!!)
     }
 
@@ -84,11 +88,24 @@ class DownloadPresenter(
                 }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onBindItem(it) },
-                        { error -> Log.e("DOWNLOADS", "addOrRemoveFromFavorite Falhou ", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }))
     }
 
-    private fun ComicViewModel.toModel(context: Context?): DownloadItem {
-        return DownloadItem(this, localeUtils, context!!)
+    private fun ComicViewModel.toModel(): DownloadItem {
+        val chaptersDownloaded = ArrayList<ChapterViewModel>()
+
+        this.chapters?.forEach {
+            val chapter = provider.findChapterDirectory(it, this@toModel, this.source!!)
+
+            if (chapter != null) {
+                chaptersDownloaded.add(it)
+            }
+        }
+
+        return DownloadItem(this, chaptersDownloaded, localeUtils)
     }
 
 }

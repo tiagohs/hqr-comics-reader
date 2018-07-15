@@ -22,7 +22,6 @@ import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import kotlinx.android.synthetic.main.activity_comic_details.*
-import java.lang.Exception
 import javax.inject.Inject
 
 
@@ -61,12 +60,29 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         permissions.onCheckAndRequestPermissions(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), this)
 
         presenter.onBindView(this)
+        onInit()
+    }
 
+    private fun onInit() {
         val comicLink = intent.getStringExtra(COMIC_LINK) ?: ""
 
         if (comicLink.isNotEmpty()) {
             presenter.onGetComicData(comicLink)
         }
+    }
+
+    override fun onError(ex: Throwable, message: Int) {
+        comicDetailsProgress.visibility = View.GONE
+
+        super.onError(ex, message)
+    }
+
+    override fun onErrorAction() {
+        comicDetailsProgress.visibility = View.VISIBLE
+
+        onInit()
+
+        snack?.dismiss()
     }
 
     private fun onOffsetChangedListener(): AppBarMovieListener {
@@ -206,6 +222,5 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     override fun onNeverAskAgain(requestCode: Int) {
 
     }
-
 
 }

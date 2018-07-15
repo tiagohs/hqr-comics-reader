@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
+import com.tiagohs.hqr.models.view_models.ChapterViewModel
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListItem
 import eu.davidea.flexibleadapter.FlexibleAdapter
@@ -13,8 +14,8 @@ import eu.davidea.flexibleadapter.items.IFlexible
 
 class DownloadItem(
         val comic: ComicViewModel,
-        val localeUtils: LocaleUtils,
-        val context: Context
+        val chaptersDownloaded: List<ChapterViewModel>,
+        val localeUtils: LocaleUtils
 ): AbstractFlexibleItem<DownloadHolder>() {
 
     override fun bindViewHolder(adapter: FlexibleAdapter<IFlexible<RecyclerView.ViewHolder>>?, holder: DownloadHolder, position: Int, payloads: MutableList<Any>?) {

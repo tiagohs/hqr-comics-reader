@@ -1,7 +1,6 @@
 package com.tiagohs.hqr.download
 
 import android.content.Context
-import android.util.Log
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay2.BehaviorRelay
@@ -29,6 +28,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.experimental.async
 import okhttp3.Response
+import timber.log.Timber
 import javax.inject.Singleton
 
 @Singleton
@@ -214,7 +214,7 @@ class Downloader(
                         .toObservable()
                         .doOnNext { onCheckDownloads(download, comicDir, tempDir, chapterDirName) }
                         .onErrorReturn { error ->
-                            Log.e("Eror", "Error", error)
+                            Timber.e(error)
                             download.status = Download.ERROR
                             downloadNotification.onError(error.message, download.chapter.chapterName)
                             download
@@ -301,7 +301,7 @@ class Downloader(
 
     private fun completeDownload(download: Download) {
         if (download.status == Download.DOWNLOADED) {
-            comicRepository.setAsDownloaded(download.comic, download.sourceDB.id)
+            comicRepository.setAsDownloaded(download.comic, download.sourceDB.id).subscribe()
 
             queue.remove(download)
         }

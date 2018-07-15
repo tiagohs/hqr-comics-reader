@@ -7,12 +7,12 @@ import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.ui.adapters.downloads_queue.DownloadQueueItem
 import com.tiagohs.hqr.ui.contracts.DownloadManagerContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
-import eu.davidea.flexibleadapter.utils.Log
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 class DownloadManagerPresenter(
@@ -36,21 +36,33 @@ class DownloadManagerPresenter(
                  .subscribeOn(Schedulers.io())
                  .observeOn(AndroidSchedulers.mainThread())
                  .subscribe({ mView?.onQueueStatusChange(it) },
-                         { error -> Log.e("DownloadManager", "Error", error) }))
+                         { error ->
+                             Timber.e(error)
+                             mView?.onError(error)
+                         }
+                 ))
 
         mSubscribers.add(downloadQueue.getUpdatedStatus()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map { ArrayList(it.map { it.toModel() }) }
                 .subscribe({ mView?.onNextDownloads(it) },
-                    { error -> Log.e("DownloadManager", "getUpdatedStatus Error", error) }))
+                    { error ->
+                        Timber.e(error)
+                        mView?.onError(error)
+                    }
+                ))
 
         mSubscribers.add(downloadQueue.getStatus()
                 .subscribeOn(Schedulers.io())
                 .startWith(downloadQueue.getActiviteDownloads())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ onStatusChange(it) },
-                        { error -> Log.e("DownloadManager", "getActiviteDownloads Error", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
+                ))
 
         mSubscribers.add(downloadQueue.getProgress()
                 .subscribeOn(Schedulers.io())
@@ -59,7 +71,11 @@ class DownloadManagerPresenter(
                 .toObservable()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ mView?.onProgressChange(it) },
-                        { error -> Log.e("DownloadManager", "getProgress Error", error) }))
+                        { error ->
+                            Timber.e(error)
+                            mView?.onError(error)
+                        }
+                ))
     }
 
     private fun onStatusChange(download: Download) {
@@ -98,7 +114,10 @@ class DownloadManagerPresenter(
                         download.progressTotal = progress
                         mView?.onUpdateProgress(download)
                     }
-                }, { error -> Log.e("DownloadManager", "observeProgress Error", error) })
+                }, { error ->
+                    Timber.e(error)
+                    mView?.onError(error)
+                })
 
         progressSubscribes.remove(download)?.dispose()
         progressSubscribes.put(download, subscription)

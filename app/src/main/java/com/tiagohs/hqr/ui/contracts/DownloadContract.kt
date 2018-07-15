@@ -1,6 +1,5 @@
 package com.tiagohs.hqr.ui.contracts
 
-import android.content.Context
 import com.tiagohs.hqr.ui.adapters.downloads.DownloadItem
 import com.tiagohs.hqr.ui.presenter.config.IPresenter
 import com.tiagohs.hqr.ui.views.config.IView
@@ -15,13 +14,13 @@ class DownloadContract {
 
     interface IDownloadPresenter: IPresenter<IDownloadView> {
 
-        fun onGetDownloads(context: Context?)
+        fun onGetDownloads()
         fun onGetMore()
 
         fun hasMore(): Boolean
         fun getOriginalList(): List<DownloadItem>
 
-        fun deleteChapters(downloadItem: DownloadItem)
+        fun deleteComic(downloadItem: DownloadItem)
         fun addOrRemoveFromFavorite(downloadItem: DownloadItem)
     }
 }

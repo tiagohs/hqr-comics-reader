@@ -1,7 +1,6 @@
 package com.tiagohs.hqr.ui.presenter
 
 import android.content.Context
-import android.util.Log
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.tiagohs.hqr.database.IComicsRepository
@@ -30,6 +29,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import okhttp3.Response
+import timber.log.Timber
 
 class ReaderPresenter(
         private val preferenceHelper: PreferenceHelper,
@@ -65,7 +65,8 @@ class ReaderPresenter(
                 .toObservable()
                 .subscribe({ mView?.onPageDownloaded(it)
                 }, { error ->
-                    Log.e("LIST_COMICS", "Inicialização Falhou ", error)
+                    Timber.e(error)
+                    mView?.onError(error)
                 }))
     }
 
@@ -89,7 +90,10 @@ class ReaderPresenter(
                 .subscribe({
                     model = it
                     mView!!.onBindChapter(it, updateDataSet)
-                 }, { error: Throwable? -> Log.e("Reader", "Error", error) }))
+                 }, { error ->
+                    Timber.e(error)
+                    mView?.onError(error)
+                }))
     }
 
     override fun onRequestNextChapter() {
@@ -131,7 +135,8 @@ class ReaderPresenter(
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({}, { error ->
-                        Log.e("Reader", "Error", error)
+                        Timber.e(error)
+                        mView?.onError(error)
                     })
         }
     }

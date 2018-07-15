@@ -13,6 +13,7 @@ import com.tiagohs.hqr.ui.views.config.BaseActivity
 import com.tiagohs.hqr.ui.views.fragments.SettingsMainFragment
 
 class SettingsActivity : BaseActivity() {
+
     override fun onGetLayoutViewId(): Int = R.layout.activity_settings
     override fun onGetMenuLayoutId(): Int = 0
 
@@ -39,9 +40,7 @@ class SettingsActivity : BaseActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-    }
+    override fun onErrorAction() {}
 
     companion object {
 

@@ -17,7 +17,6 @@ class ComicDetailsListHolder(
 ): BaseFlexibleViewHolder(view, adapter) {
 
     init {
-
         view.moreBtn.setOnClickListener { it.post { showPopUpMenu(it) } }
     }
 
@@ -40,7 +39,6 @@ class ComicDetailsListHolder(
         onConfigureStatus(comic.status)
         onConfigureHistory(history, comic)
     }
-
 
     private fun onConfigureStatus(status: String?) {
         if (view.comicDetailStatus != null && !status.isNullOrEmpty() && !status.equals(UNKNOWN)) {

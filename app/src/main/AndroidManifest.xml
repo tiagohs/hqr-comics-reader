@@ -51,6 +51,10 @@
             android:name=".ui.views.activities.SettingsActivity"
             android:label="@string/title_activity_settings">
         </activity>
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="1a5d11d9ee01839d87a101a0056c1e5429a4c331" />
     </application>
 
 </manifest>

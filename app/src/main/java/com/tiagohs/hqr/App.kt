@@ -3,6 +3,7 @@ package com.tiagohs.hqr
 import android.app.Application
 import android.content.Context
 import android.support.multidex.MultiDex
+import com.crashlytics.android.Crashlytics
 import com.facebook.stetho.Stetho
 import com.squareup.picasso.OkHttp3Downloader
 import com.squareup.picasso.Picasso
@@ -12,6 +13,7 @@ import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.dragger.modules.AppModule
 import com.tiagohs.hqr.models.database.CatalogueSource
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider
+import io.fabric.sdk.android.Fabric
 import io.realm.Realm
 import io.realm.RealmConfiguration
 
@@ -31,6 +33,8 @@ class App : Application() {
         instance = this
 
         MultiDex.install(this);
+
+        Fabric.with(this, Crashlytics())
     }
 
     private fun onConfigureDagger() {

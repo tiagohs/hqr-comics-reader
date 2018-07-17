@@ -22,4 +22,12 @@
         android:layout_marginTop="@dimen/margin_default_min"
         android:layout_marginBottom="@dimen/margin_default_min" />
 
+    <com.tiagohs.hqr.helpers.tools.EmptyView
+        android:id="@+id/listEmptyView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone" />
+
 </RelativeLayout>

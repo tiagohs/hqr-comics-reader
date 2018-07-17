@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.AppBarLayout
 import android.support.v7.widget.LinearLayoutManager
+import android.view.MenuItem
 import android.view.View
 import android.view.animation.AnimationUtils
 import com.squareup.picasso.Callback
@@ -22,6 +23,7 @@ import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.contracts.ComicDetailsContract
 import com.tiagohs.hqr.ui.views.config.BaseActivity
 import kotlinx.android.synthetic.main.activity_comic_details.*
+import kotlinx.android.synthetic.main.placeholder_movie_details.*
 import javax.inject.Inject
 
 
@@ -46,7 +48,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     var comic: ComicViewModel? = null
 
-    override fun onGetMenuLayoutId(): Int = 0
+    override fun onGetMenuLayoutId(): Int = R.menu.menu_comic_details
 
     override fun onGetLayoutViewId(): Int {
         return R.layout.activity_comic_details
@@ -60,10 +62,13 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         permissions.onCheckAndRequestPermissions(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), this)
 
         presenter.onBindView(this)
+
         onInit()
     }
 
     private fun onInit() {
+        shimmer.startShimmerAnimation()
+
         val comicLink = intent.getStringExtra(COMIC_LINK) ?: ""
 
         if (comicLink.isNotEmpty()) {
@@ -71,14 +76,29 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         }
     }
 
-    override fun onError(ex: Throwable, message: Int) {
-        comicDetailsProgress.visibility = View.GONE
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
 
-        super.onError(ex, message)
+        when (item.itemId) {
+            R.id.actionOpenOnSite -> {
+                openUrl(comic?.pathLink)
+                return true
+            }
+
+            else -> return false
+        }
+    }
+
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
+        shimmer.stopShimmerAnimation()
+        shimmer.visibility = View.GONE
+
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {
-        comicDetailsProgress.visibility = View.VISIBLE
+        shimmer.stopShimmerAnimation()
+        shimmer.visibility = View.VISIBLE
 
         onInit()
 
@@ -156,9 +176,11 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         publishersList.adapter = SimpleItemAdapter(comic.publisher, this, onPublisherSelect())
 
         // VISIBLES
-        headerContainer.visibility = View.VISIBLE
+        comicDetailsAppBar.visibility = View.VISIBLE
         comicDetailsTabContainer.visibility = View.VISIBLE
-        comicDetailsProgress.visibility = View.GONE
+
+        shimmer.stopShimmerAnimation()
+        shimmer.visibility = View.GONE
 
         readBtn.visibility = View.VISIBLE
         readBtn.startAnimation(AnimationUtils.loadAnimation(this, com.github.clans.fab.R.anim.fab_scale_up))
@@ -199,7 +221,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     private fun onConfigureTabs() {
         tabLayout.visibility = View.VISIBLE
 
-        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager, resources.getStringArray(R.array.comic_details_tabs_values).toList(), comic!!)
+        comicsDetailsViewpager.adapter = ComicDetailsPagerAdapter(supportFragmentManager,listOf(getString(R.string.tab_info), getString(R.string.tab_chapter)), comic!!)
         tabLayout.setupWithViewPager(comicsDetailsViewpager)
     }
 

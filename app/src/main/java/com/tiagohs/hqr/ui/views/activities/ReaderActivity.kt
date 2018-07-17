@@ -85,10 +85,10 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
         presenter.onGetChapterDetails(comicPath, chapterPath)
     }
 
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         readerPageProgress.visibility = View.GONE
 
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {

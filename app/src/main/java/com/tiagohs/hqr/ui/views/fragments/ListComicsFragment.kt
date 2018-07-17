@@ -66,11 +66,10 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
             FETCH_BY_PUBLISHERS, FETCH_BY_SCANLATORS -> presenter.onGetComics(listComicsModel.listType, listComicsModel.link)
         }
     }
-
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         comicListProgress.visibility = View.GONE
 
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {
@@ -92,8 +91,9 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
 
         menu!!.clear()
         inflater!!.inflate(R.menu.menu_comics_list, menu)
-    }
 
+        //menu.findItem(R.id.menu_filter)?.isVisible = listComicsAdapter != null && !listComicsAdapter?.isEmpty!!
+    }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
 
@@ -126,10 +126,14 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         comicsList.setNestedScrollingEnabled(false)
 
         comicListProgress.visibility = View.GONE
+
+        setInformationViewStatus()
     }
 
     override fun onBindMoreComics(comics: List<ComicItem>) {
         listComicsAdapter?.onAddMoreItems(comics)
+
+        setInformationViewStatus()
     }
 
     override fun onBindItem(comic: ComicItem) {
@@ -161,5 +165,14 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
         return true
     }
 
+    fun setInformationViewStatus() {
+        val adapter = listComicsAdapter ?: return
 
+        if (adapter.isEmpty) {
+            listEmptyView.show(R.drawable.ic_comic_laucher_grey_128dp, R.string.no_comics)
+        } else {
+            listEmptyView.hide()
+        }
+
+    }
 }

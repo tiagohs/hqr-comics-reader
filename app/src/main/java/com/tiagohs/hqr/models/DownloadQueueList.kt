@@ -94,7 +94,7 @@ class DownloadQueueList(
     private fun setPagesSubject(pages: List<Page>?, subject: PublishSubject<String>?) {
         if (pages != null) {
             for (page in pages) {
-                page.setStatusSubject(subject!!)
+                page.setStatusSubject(subject)
             }
         }
     }

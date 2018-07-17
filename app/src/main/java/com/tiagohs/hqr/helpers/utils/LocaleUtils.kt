@@ -18,7 +18,7 @@ class LocaleUtils(
 
     private var systemLocale: Locale? = null
 
-    private var appLocale = getLocaleFromString(preferences.laguage())
+    private var appLocale = getLocaleFromString(preferences.language())
 
     private var currentLocale: Locale? = null
 

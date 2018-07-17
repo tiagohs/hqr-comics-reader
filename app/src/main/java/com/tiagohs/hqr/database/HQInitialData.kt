@@ -13,7 +13,7 @@ object HQRInitialData {
                     this.id = 1L
                     this.language = "pt-BR"
                     this.sourceDBS = getPortugueseCatalogue(realm)
-                },
+                }/*,
                 CatalogueSource().apply {
                     this.id = 2L
                     this.language = "en"
@@ -23,7 +23,7 @@ object HQRInitialData {
                     this.id = 3L
                     this.language = "es"
                     this.sourceDBS = getSpanishCatalogue(realm)
-                }
+                }*/
         )
     }
 
@@ -35,16 +35,16 @@ object HQRInitialData {
             this.hasPageSupport= false
             this.hasThumbnailSupport = false
             this.baseUrl = "https://hqbr.com.br/"
-            this.language = "pt-BR"
+            this.language = "BR"
         })
-
+/*
         list.add(realm.createObject(SourceDB::class.java, 2L).apply {
             this.name = "HQ Ultimate"
             this.hasPageSupport= true
             this.hasThumbnailSupport = true
             this.baseUrl = "http://hqultimate.site/"
             this.language = "pt-BR"
-        })
+        })*/
 
         return list
     }

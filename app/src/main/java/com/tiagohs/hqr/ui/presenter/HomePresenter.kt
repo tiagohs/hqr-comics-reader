@@ -47,7 +47,6 @@ class HomePresenter(
 
                          }, { error ->
                              Timber.e(error)
-                             mView?.onError(error)
                          }))
     }
 

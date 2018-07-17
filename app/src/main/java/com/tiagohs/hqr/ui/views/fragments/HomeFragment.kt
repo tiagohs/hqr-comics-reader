@@ -1,14 +1,10 @@
 package com.tiagohs.hqr.ui.views.fragments
 
-import android.net.Uri
 import android.os.Bundle
-import android.support.customtabs.CustomTabsIntent
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.helpers.extensions.getResourceColor
-import com.tiagohs.hqr.helpers.extensions.toast
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
 import com.tiagohs.hqr.models.base.ISource
@@ -93,10 +89,10 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         changeSource.setOnClickListener({ goToSources() })
     }
 
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         publishersListProgress.visibility = View.GONE
 
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {
@@ -261,19 +257,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     private fun goToSourcePage(baseUrl: String) {
-        val context = view?.context ?: return
-
-        try {
-            val url = Uri.parse(baseUrl)
-            val intent = CustomTabsIntent.Builder()
-                    .setToolbarColor(context.getResourceColor(R.color.colorPrimary))
-                    .setShowTitle(true)
-                    .build()
-            intent.launchUrl(activity, url)
-        } catch (e: Exception) {
-            context.toast(e.message)
-        }
-
+        openUrl(baseUrl)
     }
 
     private fun onPublisherCallback(): IPublisherCallback {

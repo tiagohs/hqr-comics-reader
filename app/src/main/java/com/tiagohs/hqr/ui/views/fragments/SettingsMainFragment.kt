@@ -1,27 +1,23 @@
 package com.tiagohs.hqr.ui.views.fragments
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.ActivityNotFoundException
-import android.content.Intent
+import android.Manifest
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.preference.ListPreference
 import android.preference.Preference
 import android.preference.PreferenceFragment
-import android.support.v4.content.ContextCompat
+import android.support.customtabs.CustomTabsIntent
 import android.text.format.Formatter
-import com.hippo.unifile.UniFile
+import com.afollestad.materialdialogs.MaterialDialog
 import com.tiagohs.hqr.App
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.download.DownloadProvider
 import com.tiagohs.hqr.dragger.components.HQRComponent
-import com.tiagohs.hqr.helpers.extensions.getFilePicker
+import com.tiagohs.hqr.helpers.extensions.getResourceColor
+import com.tiagohs.hqr.helpers.extensions.hasPermission
+import com.tiagohs.hqr.helpers.extensions.toast
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.utils.DiskUtils
-import java.io.File
+import com.tiagohs.hqr.helpers.utils.LocaleUtils
 import javax.inject.Inject
 
 class SettingsMainFragment: PreferenceFragment() {
@@ -33,7 +29,6 @@ class SettingsMainFragment: PreferenceFragment() {
         fun newFragment(): SettingsMainFragment {
             return SettingsMainFragment()
         }
-
     }
 
     @Inject
@@ -42,65 +37,103 @@ class SettingsMainFragment: PreferenceFragment() {
     @Inject
     lateinit var downloadProvider: DownloadProvider
 
+    @Inject
+    lateinit var localeUtils: LocaleUtils
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         addPreferencesFromResource(R.xml.pref_main)
 
         getApplicationComponent()?.inject(this)
 
-        configureListOfDirectories(findPreference(getString(R.string.key_download_directory)) as ListPreference)
-        configureStorageUsed(findPreference(getString(R.string.key_download_storage_used)) as Preference)
-        configureCacheStorageUsed(findPreference(getString(R.string.key_download_cache_used)) as Preference)
-
-    }
-
-    private fun configureListOfDirectories(preference: ListPreference) {
-        val externalDirs: List<String> = getExternalDirs() + activity.getString(R.string.custom_dir)
-
-        preference.setEntries(externalDirs.toTypedArray())
-        preference.setEntryValues(externalDirs.toTypedArray())
-        preference.setDefaultValue(0)
-
-        preference.setOnPreferenceChangeListener { p, value ->
-            val stringValue = value.toString()
-            val index = preference.findIndexOfValue(stringValue)
-            val directory = externalDirs.get(index)
-
-            if (index == externalDirs.lastIndex) {
-                customDirectorySelected(directory)
-            } else {
-                p.setSummary(
-                        if (index >= 0)
-                            preference.entries[index]
-                        else
-                            null)
-                preferences.downloadsDirectory().set(directory)
-            }
-
-            true
-
+        val hasPremissionToWrite= activity.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        if (hasPremissionToWrite) {
+            configureStorageUsed(findPreference(getString(R.string.key_download_storage_used)) as Preference)
+            configureCacheStorageUsed(findPreference(getString(R.string.key_download_cache_used)) as Preference)
+        } else {
+            preferenceScreen.removePreference(findPreference(getString(R.string.key_category_downloads)))
         }
+
+        configureGithubUrl(findPreference(getString(R.string.key_github)) as Preference)
     }
 
     private fun configureStorageUsed(preference: Preference) {
         preference.setSummary(getString(R.string.storage_used, downloadProvider.getDownloadDirectorySize()))
         preference.setOnPreferenceClickListener { p ->
-            downloadProvider.deleteAll()
-            preference.setSummary(getString(R.string.storage_used, downloadProvider.getDownloadDirectorySize()))
+
+            MaterialDialog.Builder(activity)
+                    .content(R.string.clear_storage_content)
+                    .positiveText(android.R.string.yes)
+                    .negativeText(android.R.string.no)
+                    .onPositive { _, _ -> clearStorageFolder(preference) }
+                    .build()
+                    .show()
 
             true
         }
     }
 
+    private fun clearStorageFolder(preference: Preference) {
+
+        try {
+            downloadProvider.deleteAll()
+            preference.setSummary(getString(R.string.storage_used, downloadProvider.getDownloadDirectorySize()))
+
+            activity.toast(R.string.sucess_storage_clear)
+        } catch (ex: Exception) {
+            activity.toast(R.string.unknown_error)
+        }
+
+    }
+
+    private fun configureGithubUrl(preference: Preference) {
+
+        preference.setOnPreferenceClickListener { p ->
+            val context = view?.context
+
+            if (context != null) {
+                try {
+                    val url = Uri.parse(getString(R.string.summary_github))
+                    val intent = CustomTabsIntent.Builder()
+                            .setToolbarColor(context.getResourceColor(R.color.colorPrimary))
+                            .setShowTitle(true)
+                            .build()
+                    intent.launchUrl(activity, url)
+                } catch (e: Exception) {
+                    context.toast(e.message)
+                }
+            }
+
+            true
+        }
+
+    }
 
     private fun configureCacheStorageUsed(preference: Preference) {
         preference.setSummary(getString(R.string.storage_used, getPicassoCacheDirSize()))
         preference.setOnPreferenceClickListener { p ->
-            val bol = DiskUtils.getPicassoCacheDir(activity.applicationContext)?.deleteRecursively()
-            preference.setSummary(getString(R.string.storage_used, getPicassoCacheDirSize()))
+
+            MaterialDialog.Builder(activity)
+                    .content(R.string.clear_cache_storage_content)
+                    .positiveText(android.R.string.yes)
+                    .negativeText(android.R.string.no)
+                    .onPositive { _, _ -> clearCacheFolder(preference) }
+                    .build()
+                    .show()
 
             true
+        }
+    }
+
+    private fun clearCacheFolder(preference: Preference) {
+
+        try {
+            DiskUtils.getPicassoCacheDir(activity.applicationContext)?.deleteRecursively()
+            preference.setSummary(getString(R.string.storage_used, getPicassoCacheDirSize()))
+
+            activity.toast(R.string.sucess_cache_clear)
+        } catch (ex: Exception) {
+            activity.toast(R.string.unknown_error)
         }
     }
 
@@ -114,53 +147,7 @@ class SettingsMainFragment: PreferenceFragment() {
         return Formatter.formatFileSize(activity.applicationContext, size)
     }
 
-    @SuppressLint("NewApi")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            DOWNLOAD_DIR_PRE_L -> if (data != null && resultCode == Activity.RESULT_OK) {
-                val uri = Uri.fromFile(File(data.data.path))
-                preferences.downloadsDirectory().set(uri.toString())
-            }
-            DOWNLOAD_DIR_L -> if (data != null && resultCode == Activity.RESULT_OK) {
-                val uri = data.data
-                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-
-                @Suppress("NewApi")
-                context.contentResolver.takePersistableUriPermission(uri, flags)
-
-                val file = UniFile.fromUri(context, uri)
-                preferences.downloadsDirectory().set(file.uri.toString())
-            }
-        }
-    }
-
-    private fun customDirectorySelected(currentDir: String) {
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            startActivityForResult(preferences.context.getFilePicker(currentDir), DOWNLOAD_DIR_PRE_L)
-        } else {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-            try {
-                startActivityForResult(intent, DOWNLOAD_DIR_L)
-            } catch (e: ActivityNotFoundException) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    startActivityForResult(preferences.context.getFilePicker(currentDir), DOWNLOAD_DIR_L)
-                }
-            }
-
-        }
-    }
-
-    private fun getExternalDirs(): List<String> {
-        val defaultDir = Environment.getExternalStorageDirectory().absolutePath +
-                File.separator + resources?.getString(R.string.app_name) +
-                File.separator + "downloads"
-
-        return mutableListOf(defaultDir, ContextCompat.getExternalFilesDirs(activity!!, "").filterNotNull().toString())
-    }
-
     private fun getApplicationComponent(): HQRComponent? {
-        return (activity!!.application as App).getHQRComponent()
+        return (activity?.application as App).getHQRComponent()
     }
 }

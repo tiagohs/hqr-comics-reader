@@ -1,9 +1,11 @@
 package com.tiagohs.hqr.download
 
+import android.Manifest
 import android.content.Context
 import android.net.Uri
 import com.hippo.unifile.UniFile
 import com.tiagohs.hqr.database.ISourceRepository
+import com.tiagohs.hqr.helpers.extensions.hasPermission
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.models.view_models.ChapterViewModel
@@ -74,6 +76,7 @@ class DownloadCache(
 
     @Synchronized
     fun addChapter(chapterDirName: String, comicFile: UniFile, comic: ComicViewModel) {
+        val hasPermission = context.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         var sourceDir = rootDir.files[comic.source!!.id]
 
         if (sourceDir == null) {
@@ -86,33 +89,45 @@ class DownloadCache(
         }
 
         val comicDirName = provider.getComicDirectoryName(comic)
-        var comicDir = sourceDir.files[comicDirName]
 
-        if (comicDir == null) {
-            comicDir = ComicDir(comicFile)
-            sourceDir.files += comicDirName to comicDir
+        if (hasPermission) {
+            var comicDir = sourceDir.files[comicDirName]
+
+            if (comicDir == null) {
+                comicDir = ComicDir(comicFile)
+                sourceDir.files += comicDirName to comicDir
+
+                comicDir.files += chapterDirName
+            }
         }
 
-        comicDir.files += chapterDirName
     }
 
     @Synchronized
     fun removeChapter(chapter: ChapterViewModel, comic: ComicViewModel) {
+        val hasPermission = context.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
         val sourceDir = rootDir.files[comic.source!!.id] ?: return
         val comicDir = sourceDir.files[provider.getComicDirectoryName(comic)] ?: return
         val chapterDirName = provider.getChapterDirectoryName(chapter)
 
-        if (chapterDirName in comicDir.files) {
-            comicDir.files -= chapterDirName
+        if (hasPermission) {
+            if (chapterDirName in comicDir.files) {
+                comicDir.files -= chapterDirName
+            }
         }
     }
 
     @Synchronized
     fun removeManga(comic: ComicViewModel) {
+        val hasPermission = context.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         val sourceDir = rootDir.files[comic.source!!.id] ?: return
         val comicDirName = provider.getComicDirectoryName(comic)
-        if (comicDirName in sourceDir.files) {
-            sourceDir.files -= comicDirName
+
+        if (hasPermission) {
+            if (comicDirName in sourceDir.files) {
+                sourceDir.files -= comicDirName
+            }
         }
     }
 

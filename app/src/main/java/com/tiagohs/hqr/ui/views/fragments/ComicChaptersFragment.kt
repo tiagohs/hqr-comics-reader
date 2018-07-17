@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.ui.views.fragments
 
+import android.Manifest
 import android.os.Bundle
 import android.support.v7.view.ActionMode
 import android.support.v7.widget.DividerItemDecoration
@@ -10,6 +11,7 @@ import android.view.MenuItem
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.helpers.extensions.hasPermission
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.ui.adapters.chapters.ChapterHolder
 import com.tiagohs.hqr.ui.adapters.chapters.ChapterItem
@@ -73,12 +75,15 @@ class ComicChaptersFragment:
 
         menu!!.clear()
         inflater!!.inflate(R.menu.menu_chapters, menu)
+
+        menu.findItem(R.id.actionDownload)?.isVisible = context?.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ?: false
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
 
         when (item!!.itemId) {
             R.id.actionDownload -> createActionMode()
+            R.id.actionOpenOnSite -> openUrl(comicViewModel?.pathLink)
             else -> return false
         }
 
@@ -115,10 +120,10 @@ class ComicChaptersFragment:
         chaptersList.adapter = adapter
     }
 
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         chaptersProgress.visibility = View.GONE
 
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {
@@ -187,8 +192,12 @@ class ComicChaptersFragment:
     }
 
     override fun onItemLongClick(position: Int) {
-        createActionMode()
-        toggleComic(position)
+        val hasPrmissionToWrite = context?.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ?: false
+
+        if (hasPrmissionToWrite) {
+            createActionMode()
+            toggleComic(position)
+        }
     }
 
     private fun toggleComic(position: Int) {

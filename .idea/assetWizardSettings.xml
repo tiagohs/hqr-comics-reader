@@ -112,7 +112,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/file/ic_file_download_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/E:/Arquivos%20de%20Programa/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_clear_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -122,11 +122,11 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="height" value="128" />
-                            <entry key="outputName" value="ic_file_download_black_128dp" />
+                            <entry key="height" value="100" />
+                            <entry key="outputName" value="ic_clear_black_24dp" />
                             <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="E:\Usuário\Desktop\ic_person_read_grey_128.svg" />
-                            <entry key="width" value="128" />
+                            <entry key="sourceFile" value="E:\Usuário\Desktop\bubble-speech-with-three-lines.svg" />
+                            <entry key="width" value="100" />
                           </map>
                         </option>
                       </PersistentState>

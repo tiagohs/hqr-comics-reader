@@ -43,12 +43,11 @@ class DownloadFragment:
         presenter.onBindView(this)
         presenter.onGetDownloads()
     }
-
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         downloadsListProgress.visibility = View.GONE
         setInformationViewStatus()
 
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {

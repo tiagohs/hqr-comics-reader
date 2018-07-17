@@ -6,5 +6,11 @@
         android:enabled="true"
         android:icon="@drawable/ic_download_white"
         android:title="@string/nav_download"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/actionOpenOnSite"
+        android:enabled="true"
+        android:title="@string/nav_go_to_site"
+        app:showAsAction="never" />
 </menu>

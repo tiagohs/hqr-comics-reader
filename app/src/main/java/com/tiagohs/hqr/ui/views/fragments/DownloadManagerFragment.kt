@@ -32,10 +32,10 @@ class DownloadManagerFragment: BaseFragment(), DownloadManagerContract.IDownload
     private var adapter: DownloadQueueAdapter? = null
     private var isRunning: Boolean = false
 
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         setInformationViewStatus()
 
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {

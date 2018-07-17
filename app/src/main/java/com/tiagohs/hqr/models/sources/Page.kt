@@ -61,7 +61,7 @@ class Page(
         }
     }
 
-    fun setStatusSubject(subject: PublishSubject<String>) {
+    fun setStatusSubject(subject: PublishSubject<String>?) {
         this.statusSubject = subject
     }
 

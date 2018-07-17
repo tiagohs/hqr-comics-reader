@@ -30,7 +30,6 @@ class SearchPresenter(
                 .subscribe({ comic -> mView?.onBindItem(comic!!)
                 }, { error ->
                     Timber.e(error)
-                    mView?.onError(error)
                 }))
     }
 

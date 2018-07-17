@@ -18,6 +18,6 @@
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="@dimen/progress_circular_default_width"
         android:layout_height="@dimen/progress_circular_default_height"
-        android:layout_gravity="center" />
+        android:layout_gravity="center_horizontal" />
 
 </FrameLayout>

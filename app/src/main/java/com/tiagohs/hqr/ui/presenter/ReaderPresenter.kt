@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.ui.presenter
 
+import android.Manifest
 import android.content.Context
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
@@ -7,6 +8,7 @@ import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.IHistoryRepository
 import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.download.DownloadProvider
+import com.tiagohs.hqr.helpers.extensions.hasPermission
 import com.tiagohs.hqr.helpers.extensions.saveTo
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.RetryWithDelay
@@ -89,7 +91,7 @@ class ReaderPresenter(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     model = it
-                    mView!!.onBindChapter(it, updateDataSet)
+                    mView?.onBindChapter(it, updateDataSet)
                  }, { error ->
                     Timber.e(error)
                     mView?.onError(error)
@@ -142,6 +144,8 @@ class ReaderPresenter(
     }
 
     private fun onLoadChapter(sourceId: Long, model: ReaderChapterViewModel): Observable<ReaderChapterViewModel> {
+        val hasPermissionToWrite = context.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
         val httpSource = sourceManager.get(sourceId)
 
         if (model.isDownloaded) {
@@ -152,22 +156,23 @@ class ReaderPresenter(
                                     model
                                 }
         } else {
-            val chapterDirName = provider.findChapterDirectory(model.chapter, model.comic, model.comic.source!!) ?: provider.getChapterDirectoryName(model.chapter)
-            val comicDir = provider.findComicDirectory(model.comic, model.comic.source!!) ?: provider.getComicDirectory(model.comic, model.comic.source!!)
+            if (hasPermissionToWrite) {
+                val chapterDirName = provider.findChapterDirectory(model.chapter, model.comic, model.comic.source!!) ?: provider.getChapterDirectoryName(model.chapter)
+                val comicDir = provider.findComicDirectory(model.comic, model.comic.source!!) ?: provider.getComicDirectory(model.comic, model.comic.source!!)
 
-            tempDirectory = comicDir?.findFile("${chapterDirName}_tmp")
+                tempDirectory = comicDir?.findFile("${chapterDirName}_tmp")
 
-            if (tempDirectory == null) {
-                tempDirectory = comicDir?.createDirectory("${chapterDirName}_tmp")
-            } else {
-                tempDirectory?.listFiles()?.forEach { it.delete() }
+                if (tempDirectory == null) {
+                    tempDirectory = comicDir?.createDirectory("${chapterDirName}_tmp")
+                } else {
+                    tempDirectory?.listFiles()?.forEach { it.delete() }
+                }
             }
 
             return httpSource!!.fetchPageList(model.chapter)
                     .map{
                         model.pages = it
-
-                        downloadSubject.onNext(it)
+                        if (hasPermissionToWrite) downloadSubject.onNext(it)
 
                         model
                     }

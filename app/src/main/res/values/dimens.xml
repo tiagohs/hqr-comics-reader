@@ -26,6 +26,10 @@
     <dimen name="item_simple_item_height">50dp</dimen>
     <dimen name="notification_badge_size">20dp</dimen>
 
+    <!-- List Comics -->
+    <dimen name="empty_view_second_icon_size">80dp</dimen>
+
+
     <!-- Root Activiry -->
     <dimen name="root_fragments_margin_bottom">60dp</dimen>
 
@@ -47,6 +51,7 @@
     <dimen name="comic_detail_header_container_margin_top">155dp</dimen>
     <dimen name="comic_detail_header_container_margin_start">135dp</dimen>
     <dimen name="comic_detail_header_container_margin_end">110dp</dimen>
+    <dimen name="icon_date_size">25dp</dimen>
 
     <!-- Comics Items -->
     <dimen name="item_comic_default_width">120dp</dimen>

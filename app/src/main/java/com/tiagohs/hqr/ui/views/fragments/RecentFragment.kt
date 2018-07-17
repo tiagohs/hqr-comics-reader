@@ -50,11 +50,10 @@ class RecentFragment: BaseFragment(), RecentContract.IRecentView, IComicDetailsL
 
         presenter.onUnbindView()
     }
-
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         recentListProgress.visibility = View.GONE
 
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {

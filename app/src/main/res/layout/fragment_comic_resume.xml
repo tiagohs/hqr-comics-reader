@@ -2,6 +2,7 @@
 <android.support.v4.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/comicDetailsScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -25,44 +26,77 @@
             android:gravity="center">
 
             <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                app:srcCompat="@drawable/ic_date_accent" />
+                android:layout_width="@dimen/icon_date_size"
+                android:layout_height="@dimen/icon_date_size"
+                app:srcCompat="@drawable/ic_date_accent"
+                tools:ignore="ContentDescription" />
 
             <TextView
                 android:id="@+id/datePublish"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="5dp" />
+                android:layout_marginStart="@dimen/margin_default_min" />
 
         </LinearLayout>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/authorsList"
+        <LinearLayout
+            android:id="@+id/authorsContainer"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="30dp"
-            android:clipToPadding="false" />
+            android:layout_height="wrap_content">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/scanlatorsList"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:textSize="@dimen/txt_size_small"
+                android:textColor="@color/colorSecondaryText"
+                android:text="@string/authors_title"/>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/authorsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/recycler_view_simple_items_default_min_height"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/scanlatorsContainer"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="30dp"
-            android:clipToPadding="false" />
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_default_min"
+                android:textSize="@dimen/txt_size_small"
+                android:textColor="@color/colorSecondaryText"
+                android:text="@string/scanlators_title"/>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/scanlatorsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/recycler_view_simple_items_default_min_height"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/summary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp" />
+            android:layout_marginTop="@dimen/margin_default_medium"
+            android:layout_marginBottom="@dimen/margin_default_medium" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/genresList"
             android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:minHeight="30dp"
+            android:layout_height="@dimen/recycler_view_simple_items_default_min_height"
+            android:minHeight="@dimen/recycler_view_simple_items_default_min_height"
             android:clipToPadding="false" />
 
     </LinearLayout>

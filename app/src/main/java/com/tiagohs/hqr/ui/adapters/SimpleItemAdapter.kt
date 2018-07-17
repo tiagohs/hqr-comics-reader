@@ -37,7 +37,7 @@ class SimpleItemAdapter(private val items: List<DefaultModelView>?,
         constructor(itemView: View, callback: ISimpleItemCallback) : this(itemView) {
             this.callback = callback
 
-            itemView.setOnClickListener(this)
+            itemView.item.setOnClickListener(this)
         }
 
         fun onBindItem(item: DefaultModelView) {

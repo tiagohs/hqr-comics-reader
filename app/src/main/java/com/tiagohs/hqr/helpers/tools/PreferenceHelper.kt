@@ -27,7 +27,7 @@ class PreferenceHelper(
 
     fun downloadsDirectory() = rxPrefs.getString(context.getString(R.string.key_download_directory), defaultDownloadsDir.toString())
     fun downloadOnlyOverWifi() = prefs.getBoolean(context.getString(R.string.key_download_only_wifi), true)
-    fun laguage() = prefs.getString(context.getString(R.string.key_language), "")
+    fun language() = prefs.getString(context.getString(R.string.key_language), "en")
     fun updateHqsInProgress() = rxPrefs.getBoolean(context.getString(R.string.key_update_hqs_in_progress), true)
 
     fun currentSource() = rxPrefs.getLong(context.getString(R.string.key_default_source), 1L)

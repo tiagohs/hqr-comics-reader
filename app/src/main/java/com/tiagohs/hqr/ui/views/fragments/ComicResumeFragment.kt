@@ -3,8 +3,8 @@ package com.tiagohs.hqr.ui.views.fragments
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.View
+import android.widget.LinearLayout
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.view_models.ComicViewModel
 import com.tiagohs.hqr.models.view_models.DefaultModelView
@@ -53,25 +53,28 @@ class ComicResumeFragment: BaseFragment() {
         if (!comic.publicationDate.isNullOrEmpty()) datePublish.text = comic.publicationDate
         else datePublishContainer.visibility = View.GONE
 
-        onBindList(comic.authors, authorsList, onAuthorSelect())
+        onBindList(comic.authors, authorsList, onAuthorSelect(), authorsContainer)
         onBindList(comic.genres, genresList, onGenreSelect())
-        onBindList(comic.scanlators, scanlatorsList, onScanlatorSelect())
+        onBindList(comic.scanlators, scanlatorsList, onScanlatorSelect(), scanlatorsContainer)
 
-        if (!comic.summary.isNullOrEmpty() || !comic.summary!!.equals("...")) summary.text = comic.summary
+        if (!comic.summary.isNullOrEmpty() && !comic.summary!!.equals("...")) summary.text = comic.summary
         else summary.text = getString(R.string.no_synopse)
     }
 
-    private fun onBindList(list: List<DefaultModelView>?, listItem: RecyclerView, callback: ISimpleItemCallback) {
+    private fun onBindList(list: List<DefaultModelView>?, listItem: RecyclerView, callback: ISimpleItemCallback, container: LinearLayout? = null) {
         if (list != null && list.isNotEmpty()) {
             listItem.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             listItem.adapter = SimpleItemAdapter(list, context, callback)
-        } else listItem.visibility = android.view.View.GONE
+        } else {
+            if (container != null)
+                container.visibility = View.GONE
+        }
     }
 
     fun onAuthorSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
             override fun onClick(item: DefaultModelView) {
-                Log.d("ComicDetails", "onAuthorSelect")
+
             }
         }
     }
@@ -79,7 +82,7 @@ class ComicResumeFragment: BaseFragment() {
     fun onGenreSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
             override fun onClick(item: DefaultModelView) {
-                Log.d("ComicDetails", "onGenreSelect")
+
             }
         }
     }

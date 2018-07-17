@@ -2,15 +2,6 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="@string/pref_title_general">
 
-        <ListPreference
-            android:defaultValue="1"
-            android:dialogTitle="@string/title_language"
-            android:entries="@array/pref_upload_quality_values"
-            android:entryValues="@array/pref_upload_quality_values"
-            android:key="@string/key_language"
-            android:summary="@string/summary_language"
-            android:title="@string/title_language" />
-
         <SwitchPreference
             android:defaultValue="true"
             android:key="@string/key_update_hqs_in_progress"
@@ -19,13 +10,9 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/pref_title_downloads">
-
-        <ListPreference
-            android:dialogTitle="@string/title_download_directory"
-            android:key="@string/key_download_directory"
-            android:summary="@string/summary_download_directory"
-            android:title="@string/title_download_directory" />
+    <PreferenceCategory
+        android:key="@string/key_category_downloads"
+        android:title="@string/pref_title_downloads">
 
         <SwitchPreference
             android:defaultValue="true"
@@ -54,11 +41,9 @@
             android:title="@string/title_version" />
 
         <Preference
+            android:key="@string/key_github"
             android:summary="@string/summary_github"
             android:title="@string/title_github">
-            <intent
-                android:action="android.intent.action.VIEW"
-                android:data="@string/url_github" />
         </Preference>
 
     </PreferenceCategory>

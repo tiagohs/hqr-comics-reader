@@ -1,11 +1,13 @@
 package com.tiagohs.hqr.download
 
+import android.Manifest
 import android.content.Context
 import android.webkit.MimeTypeMap
 import com.hippo.unifile.UniFile
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
+import com.tiagohs.hqr.helpers.extensions.hasPermission
 import com.tiagohs.hqr.helpers.extensions.launchNow
 import com.tiagohs.hqr.helpers.extensions.launchUI
 import com.tiagohs.hqr.helpers.extensions.saveTo
@@ -180,26 +182,28 @@ class Downloader(
 
     private fun downloadChapter(download: Download): Observable<Download> {
         return Observable.defer {
-            val chapterDirName = provider.getChapterDirectoryName(download.chapter)
+            val hasPermission = context.hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
-            val comicDir = provider.getComicDirectory(download.comic, download.sourceDB)
-            val tempDir = comicDir?.createDirectory("${chapterDirName}_tmp")
+            if (hasPermission) {
+                val chapterDirName = provider.getChapterDirectoryName(download.chapter)
+                val comicDir = provider.getComicDirectory(download.comic, download.sourceDB)
+                val tempDir = comicDir?.createDirectory("${chapterDirName}_tmp")
 
-            val pageListObservable = if (download.chapter.pages == null) {
-                download.source.fetchPageList(download.chapter)
-                        .doOnNext{ pages ->
-                            if (pages.isEmpty())
-                                throw Exception("Page list is empty")
+                val pageListObservable = if (download.chapter.pages == null) {
+                    download.source.fetchPageList(download.chapter)
+                            .doOnNext{ pages ->
+                                if (pages.isEmpty())
+                                    throw Exception("Page list is empty")
 
-                            download.chapter.pages = pages
-                        }
-            } else {
-                Observable.just(download.chapter.pages)
-            }
+                                download.chapter.pages = pages
+                            }
+                } else {
+                    Observable.just(download.chapter.pages)
+                }
 
-            pageListObservable
-                    .doOnNext { _ ->
-                        tempDir?.listFiles()
+                pageListObservable
+                        .doOnNext { _ ->
+                            tempDir?.listFiles()
                                     ?.filter { it.name!!.endsWith(".tmp") }
                                     ?.forEach { it.delete() }
 
@@ -219,6 +223,9 @@ class Downloader(
                             downloadNotification.onError(error.message, download.chapter.chapterName)
                             download
                         }
+            } else {
+                Observable.just(download)
+            }
         }
     }
 

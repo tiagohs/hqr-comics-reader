@@ -3,12 +3,13 @@
 <com.facebook.shimmer.ShimmerFrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/movieDetailsShimmer"
+    android:id="@+id/shimmer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
     android:orientation="vertical"
-    app:duration="800">
+    app:duration="400"
+    app:auto_start="true">
 
     <RelativeLayout
         android:layout_width="wrap_content"

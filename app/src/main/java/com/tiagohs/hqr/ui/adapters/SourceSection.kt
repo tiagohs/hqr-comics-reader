@@ -108,8 +108,8 @@ class SourceSection(
             val localeUtils: LocaleUtils): RecyclerView.ViewHolder(itemView) {
         private var sourceLanguage: TextView = itemView?.findViewById(R.id.sourceLanguage) as TextView
 
-        fun onBindItem(sourceName: String?) {
-            sourceLanguage.text = localeUtils.getDisplayName(sourceName, context!!)
+        fun onBindItem(sectionName: String?) {
+            sourceLanguage.text = localeUtils.getDisplayName(sectionName, context!!)
         }
 
     }

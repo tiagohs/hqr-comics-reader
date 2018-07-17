@@ -7,6 +7,12 @@ apply plugin: 'io.fabric'
 
 android {
     compileSdkVersion 27
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
     defaultConfig {
         applicationId "com.tiagohs.hqr"
         minSdkVersion 17

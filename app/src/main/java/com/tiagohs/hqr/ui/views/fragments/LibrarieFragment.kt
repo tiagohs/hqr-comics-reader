@@ -25,7 +25,7 @@ class LibrarieFragment: BaseFragment() {
     override fun onErrorAction() {}
 
     private fun onCofigureLibrariePageView() {
-        librarieViewpager.adapter = LibrariePagerAdapter(childFragmentManager, resources.getStringArray(R.array.librarie_tabs_values).toList())
+        librarieViewpager.adapter = LibrariePagerAdapter(childFragmentManager, listOf(getString(R.string.tab_favorite), getString(R.string.tab_downloads)))
         tabLibrarieLayout.setupWithViewPager(librarieViewpager)
     }
 

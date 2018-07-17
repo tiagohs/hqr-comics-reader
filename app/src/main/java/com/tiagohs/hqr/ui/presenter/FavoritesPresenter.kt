@@ -24,7 +24,6 @@ class FavoritesPresenter(
                 .subscribe({ comicItem -> mView?.onBindItem(comicItem) },
                         { error ->
                             Timber.e(error)
-                            mView?.onError(error)
                         }
                 ))
     }

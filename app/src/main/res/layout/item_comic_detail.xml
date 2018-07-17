@@ -27,7 +27,6 @@
                 android:layout_height="@dimen/item_comic_details_poster_height"
                 android:scaleType="centerCrop"
                 android:layout_gravity="center"
-                android:src="@drawable/img_placeholder"
                 android:contentDescription="@string/description_movie_poster"/>
 
             <TextView

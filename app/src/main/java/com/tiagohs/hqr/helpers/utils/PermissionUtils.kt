@@ -57,7 +57,7 @@ class PermissionUtils(val activity: Activity) {
         }
 
         if (!permissionNotGranted.isEmpty()) {
-            onCheckAndRequestPermissions(permissionNotGranted, callback)
+            //onCheckAndRequestPermissions(permissionNotGranted, callback)
         }
     }
 

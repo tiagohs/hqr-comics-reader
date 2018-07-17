@@ -8,6 +8,7 @@ import android.support.design.internal.BottomNavigationMenuView
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
+import com.afollestad.materialdialogs.MaterialDialog
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.download.DownloadManager
 import com.tiagohs.hqr.helpers.utils.PermissionUtils
@@ -187,17 +188,25 @@ class RootActivity: BaseActivity(), PermissionsCallback {
         }
     }
 
-    override fun onPermissionsGranted() {
-
-    }
+    override fun onPermissionsGranted() {}
 
     override fun onPermissionsDenied() {
 
+        MaterialDialog.Builder(this)
+                .content(R.string.persmission_needed_content)
+                .positiveText(android.R.string.yes)
+                .negativeText(android.R.string.no)
+                .build()
+                .show()
     }
 
     override fun onNeverAskAgain(requestCode: Int) {
 
+        MaterialDialog.Builder(this)
+                .content(R.string.persmission_needed_never_ask_content)
+                .positiveText(android.R.string.yes)
+                .negativeText(android.R.string.no)
+                .build()
+                .show()
     }
-
-
 }

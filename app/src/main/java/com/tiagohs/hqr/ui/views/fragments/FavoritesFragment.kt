@@ -47,13 +47,10 @@ class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IComi
 
         presenter.onUnbindView()
     }
-
-    override fun onError(ex: Throwable, message: Int) {
+    override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
         favoritesListProgress.visibility = View.GONE
 
-        setInformationViewStatus()
-
-        super.onError(ex, message)
+        super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {

@@ -1,6 +1,8 @@
 package com.tiagohs.hqr.ui.views.config
 
+import android.net.Uri
 import android.os.Bundle
+import android.support.customtabs.CustomTabsIntent
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
@@ -9,7 +11,9 @@ import android.view.MenuItem
 import com.tiagohs.hqr.App
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.dragger.components.HQRComponent
+import com.tiagohs.hqr.helpers.extensions.getResourceColor
 import com.tiagohs.hqr.helpers.extensions.snack
+import com.tiagohs.hqr.helpers.extensions.toast
 import com.tiagohs.hqr.helpers.utils.ServerUtils
 import com.tiagohs.hqr.ui.views.IActivityCallbacks
 import com.tiagohs.hqr.ui.views.activities.SettingsActivity
@@ -59,6 +63,22 @@ abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
         }
     }
 
+    fun openUrl(url: String?) {
+
+        if (!url.isNullOrEmpty()) {
+            try {
+                val urlUri = Uri.parse(url)
+                val intent = CustomTabsIntent.Builder()
+                        .setToolbarColor(getResourceColor(R.color.colorPrimary))
+                        .setShowTitle(true)
+                        .build()
+                intent.launchUrl(this, urlUri)
+            } catch (e: Exception) {
+                toast(e.message)
+            }
+        }
+    }
+
     protected fun startFragment(fragmentID: Int, fragment: Fragment) {
         val fm = supportFragmentManager
         val f = fm.findFragmentById(fragmentID)
@@ -97,19 +117,23 @@ abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
             toolbar!!.setSubtitle(title)
     }
 
-    open fun onError(ex: Throwable, message: Int) {
+    open fun onError(ex: Throwable, message: Int, withAction: Boolean = false) {
 
-        val finalMessage = if (message != 0) {
+        val finalMessage = if (message == 0) {
             R.string.unknown_error
         } else {
             message
         }
 
-        snack?.dismiss()
-        snack = snack(getString(finalMessage), Snackbar.LENGTH_INDEFINITE) {
-            setAction(R.string.action_retry) {
-                onErrorAction()
+        if (withAction) {
+            snack?.dismiss()
+            snack = snack(getString(finalMessage), Snackbar.LENGTH_INDEFINITE) {
+                setAction(R.string.action_retry) {
+                    onErrorAction()
+                }
             }
+        } else {
+            toast(finalMessage)
         }
     }
 

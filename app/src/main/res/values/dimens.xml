@@ -91,5 +91,6 @@
     <dimen name="placeholder_comic_details_list_publishers_margin_top">45dp</dimen>
     <dimen name="placeholder_comic_details_text_line_height">8dp</dimen>
     <dimen name="placeholder_comic_details_text_margin_top">15dp</dimen>
+    <dimen name="reader_view_pager_margin_bottom">60dp</dimen>
 
 </resources>

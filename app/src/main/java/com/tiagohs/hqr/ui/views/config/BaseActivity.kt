@@ -8,6 +8,8 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
 import com.tiagohs.hqr.App
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.dragger.components.HQRComponent
@@ -39,6 +41,10 @@ abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
             supportActionBar!!.setDisplayShowTitleEnabled(false)
         }
 
+    }
+
+    fun getConfiguratedAd(adView: AdView) {
+        adView.loadAd(AdRequest.Builder().build())
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

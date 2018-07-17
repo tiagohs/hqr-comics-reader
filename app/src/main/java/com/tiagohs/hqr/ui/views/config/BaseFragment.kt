@@ -9,7 +9,10 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
 import com.tiagohs.hqr.App
+import com.tiagohs.hqr.BuildConfig
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.helpers.extensions.getResourceColor
@@ -105,6 +108,10 @@ abstract class BaseFragment: Fragment() {
         } else {
             activity?.toast(finalMessage)
         }
+    }
+
+    fun showAd(adView: AdView) {
+        adView.loadAd(AdRequest.Builder().build())
     }
 
     abstract fun onErrorAction()

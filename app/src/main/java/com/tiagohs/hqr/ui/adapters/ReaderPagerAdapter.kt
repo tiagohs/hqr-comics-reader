@@ -3,6 +3,7 @@ package com.tiagohs.hqr.ui.adapters
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.support.design.widget.CoordinatorLayout
 import android.support.v4.view.PagerAdapter
 import android.view.LayoutInflater
 import android.view.View
@@ -10,11 +11,14 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import com.github.chrisbanes.photoview.OnViewTapListener
 import com.github.chrisbanes.photoview.PhotoViewAttacher
+import com.google.android.gms.ads.AdRequest
 import com.squareup.picasso.Callback
+import com.tiagohs.hqr.BuildConfig
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.models.view_models.ReaderChapterViewModel
+import kotlinx.android.synthetic.main.ad_retangule.view.*
 import kotlinx.android.synthetic.main.item_reader_chapter_apresentation.view.*
 import kotlinx.android.synthetic.main.item_reader_image.view.*
 import java.lang.Exception
@@ -42,6 +46,8 @@ class ReaderPagerAdapter(
 
         if (position == 0 && isFirstTime) {
             onShowComicApresentationView(view, page)
+        } else if(page.isAd) {
+            onLoadAd(view)
         } else {
             onLoadPage(view, page)
         }
@@ -49,6 +55,15 @@ class ReaderPagerAdapter(
         container.addView(view)
 
         return view
+    }
+
+    private fun onLoadAd(view: View) {
+        val adView = view.findViewById<CoordinatorLayout>(R.id.adRetanguleContainer)
+        val appId = BuildConfig.ADMOB_APP_ID
+
+        adView.adRetanguleView.adUnitId = appId
+        adView.adRetanguleView.loadAd(AdRequest.Builder().build())
+        adView.visibility = View.VISIBLE
     }
 
     private fun onShowComicApresentationView(view: View, page: Page) {

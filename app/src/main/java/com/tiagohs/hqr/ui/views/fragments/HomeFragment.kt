@@ -87,6 +87,8 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         popularsComicsTitleContainer.setOnClickListener({ goToComicsListPage() })
 
         changeSource.setOnClickListener({ goToSources() })
+
+        showAd(adView)
     }
 
     override fun onError(ex: Throwable, message: Int, withAction: Boolean) {

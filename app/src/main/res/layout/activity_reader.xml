@@ -9,7 +9,8 @@
     <com.tiagohs.hqr.helpers.tools.ReaderViewPager
         android:id="@+id/readerViewPager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/reader_view_pager_margin_bottom" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -25,10 +26,9 @@
 
     </RelativeLayout>
 
-    <FrameLayout
-        android:id="@+id/movie_detail_app_bar"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:fitsSystemWindows="true">
 
         <android.support.v7.widget.Toolbar
@@ -37,6 +37,7 @@
             android:layout_height="?attr/actionBarSize"
             app:layout_collapseMode="pin"
             android:background="@color/blackOpacity"
+            android:layout_alignParentTop="true"
             android:theme="?attr/actionBarTheme"/>
 
         <RelativeLayout
@@ -49,7 +50,8 @@
             android:orientation="horizontal"
             android:paddingEnd="@dimen/margin_default_medium"
             android:paddingStart="@dimen/margin_default_medium"
-            android:focusable="false">
+            android:focusable="false"
+            android:layout_alignParentBottom="true">
 
             <ImageButton
                 android:id="@+id/rightButton"
@@ -83,6 +85,16 @@
 
         </RelativeLayout>
 
-    </FrameLayout>
+    </RelativeLayout>
+
+    <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        android:layout_gravity="bottom">
+    </com.google.android.gms.ads.AdView>
 
 </android.support.design.widget.CoordinatorLayout>

@@ -118,7 +118,7 @@ class ReaderPresenter(
         }
     }
 
-    override fun onTrackUserHistory(page: Page) {
+    override fun onTrackUserHistory(page: Page?) {
         this.currentPage = page;
     }
 
@@ -171,7 +171,13 @@ class ReaderPresenter(
 
             return httpSource!!.fetchPageList(model.chapter)
                     .map{
-                        model.pages = it
+                        val pages = ArrayList<Page>()
+
+                        pages.addAll(it)
+                        pages.add(Page(it.lastIndex + 1, "", "", null, true))
+
+                        model.pages = pages
+
                         if (hasPermissionToWrite) downloadSubject.onNext(it)
 
                         model
@@ -229,6 +235,5 @@ class ReaderPresenter(
             isDownloaded = downloadManager.isChapterDownloaded(chapter, comic, true)
         }
     }
-
 
 }

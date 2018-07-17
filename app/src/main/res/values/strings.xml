@@ -1,7 +1,7 @@
 <resources>
     <string name="key_update_hqs_in_progress" translatable="false">key_update_hqs_in_progress</string>
     <string name="app_version" translatable="false">0.0.1</string>
-    <string name="summary_github" translatable="false">https://github.com/tiagohs/hqr-comics-reader</string>
+    <string name="summary_github" translatable="false">https://github.com/tiagohs/</string>
     <string name="title_github" translatable="false">Github</string>
     <string name="url_github" translatable="false">https://github.com/tiagohs/hqr-comics-reader</string>
     <string name="key_download_directory" translatable="false">key_download_directory</string>
@@ -133,6 +133,7 @@
     <string name="tab_chapter">Chapters</string>
     <string name="tab_favorite">Favorites</string>
     <string name="tab_downloads">Downloads</string>
+    <string name="app_ad_id">ca-app-pub-5405332351907920/3139650922</string>
 
     <string-array name="pref_languages_keys">
         <item>en</item>

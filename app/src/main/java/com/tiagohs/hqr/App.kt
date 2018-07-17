@@ -5,6 +5,7 @@ import android.content.Context
 import android.support.multidex.MultiDex
 import com.crashlytics.android.Crashlytics
 import com.facebook.stetho.Stetho
+import com.google.android.gms.ads.MobileAds
 import com.squareup.picasso.OkHttp3Downloader
 import com.squareup.picasso.Picasso
 import com.tiagohs.hqr.database.HQRInitialData
@@ -33,8 +34,8 @@ class App : Application() {
         instance = this
 
         MultiDex.install(this);
-
         Fabric.with(this, Crashlytics())
+        MobileAds.initialize(this, "ADMOB_APP_ID")
     }
 
     private fun onConfigureDagger() {

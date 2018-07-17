@@ -22,4 +22,7 @@
     <include
         layout="@layout/item_reader_chapter_apresentation" />
 
+    <include
+        layout="@layout/ad_retangule" />
+
 </RelativeLayout>

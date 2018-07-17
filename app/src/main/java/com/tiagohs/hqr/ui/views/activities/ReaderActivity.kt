@@ -12,6 +12,7 @@ import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import com.github.chrisbanes.photoview.OnViewTapListener
+import com.google.android.gms.ads.AdRequest
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.models.view_models.ReaderChapterViewModel
@@ -75,6 +76,8 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
         presenter.onBindView(this)
         presenter.onCreate()
 
+        adView.loadAd(AdRequest.Builder().build())
+
         onInit()
     }
 
@@ -135,7 +138,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
             }
         } else {
             readerViewPager.setCurrentItem(0)
-            presenter.onTrackUserHistory(model.chapter.pages?.get(0)!!)
+            presenter.onTrackUserHistory(model.chapter.pages?.get(0))
         }
 
         readerViewPager.addOnPageChangeListener(onConfigureViewPageListener())
@@ -156,7 +159,6 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
 
     }
 
-
     private fun onConfigureViewPageListener(): ViewPager.OnPageChangeListener {
         return object : ViewPager.OnPageChangeListener {
 
@@ -169,7 +171,9 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
 
                 val page = adapter?.pages?.getOrNull(position) ?: return
 
-                presenter.onTrackUserHistory(page)
+                if (!page.isAd) {
+                    presenter.onTrackUserHistory(page)
+                }
             }
         }
     }
@@ -179,6 +183,11 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     }
 
     fun onRequestNextChapter() {
+        adapter?.pages = emptyList()
+        adapter?.notifyDataSetChanged()
+
+        readerPageProgress.visibility = View.VISIBLE
+
         presenter.onRequestNextChapter()
     }
 
@@ -195,14 +204,15 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
                     toggleMenu()
                 }
             }
-
         }
     }
 
     private fun configurePagesOnSpinner() {
-        pagesSpinner.setItems(readerChapterViewModel?.pages!!.mapIndexed { index, s -> index + 1 })
+        val indexs = readerChapterViewModel?.pages?.mapIndexed { index, s -> index + 1 } ?: return
+
+        pagesSpinner.setItems(indexs)
         pagesSpinner.setOnItemSelectedListener({
-            view, position, id, page -> readerViewPager.setCurrentItem(position)
+            view, position, id, p -> readerViewPager.setCurrentItem(position)
         })
         pagesSpinner.selectedIndex = 0
     }
@@ -240,7 +250,8 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
         if (visible) {
             systemUi?.show()
 
-            movie_detail_app_bar.visibility = View.VISIBLE
+            toolbar.visibility = View.VISIBLE
+            readerBottomMenu.visibility = View.VISIBLE
 
             if (animate) {
                 val toolbarAnimation = AnimationUtils.loadAnimation(this, R.anim.enter_from_top)
@@ -265,7 +276,8 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
                 val toolbarAnimation = AnimationUtils.loadAnimation(this, R.anim.exit_to_top)
                 toolbarAnimation.setAnimationListener(object : ISimpleAnimationListener() {
                     override fun onAnimationEnd(animation: Animation) {
-                        movie_detail_app_bar.visibility = View.GONE
+                        toolbar.visibility = View.GONE
+                        readerBottomMenu.visibility = View.GONE
                     }
                 })
 

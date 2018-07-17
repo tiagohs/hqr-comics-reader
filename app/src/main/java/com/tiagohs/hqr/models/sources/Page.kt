@@ -11,7 +11,8 @@ class Page(
         var index: Int,
         var url: String = "",
         var imageUrl: String? = null,
-        var uri: Uri? = null
+        var uri: Uri? = null,
+        var isAd: Boolean = false
 ): ProgressListener, Parcelable {
 
     companion object CREATOR : Parcelable.Creator<Page> {

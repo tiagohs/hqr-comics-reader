@@ -23,6 +23,10 @@ class ListComicsPresenter(
     override fun onBindView(view: ListComicsContract.IListComicsView) {
         super.onBindView(view)
 
+        startInitializer()
+    }
+
+    private fun startInitializer() {
         interceptor.onBind()
         mSubscribers.add(interceptor.subscribeComicDetailSubject()
                 .observeOn(AndroidSchedulers.mainThread())
@@ -32,6 +36,7 @@ class ListComicsPresenter(
                     Timber.e(error)
                 }))
     }
+
 
     override fun onGetComics(listType: String, flag: String) {
 

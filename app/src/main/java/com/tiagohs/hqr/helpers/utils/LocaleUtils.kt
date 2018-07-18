@@ -31,7 +31,7 @@ class LocaleUtils(
 
     fun getLocaleImage(lang: String?, context: Context?): Drawable? {
         return when(lang) {
-            "pt-BR" -> context?.getResourceDrawable(R.drawable.ic_brazil)
+            "BR" -> context?.getResourceDrawable(R.drawable.ic_brazil)
             "en" -> context?.getResourceDrawable(R.drawable.ic_eua)
             "es" -> context?.getResourceDrawable(R.drawable.ic_spain)
             else -> null

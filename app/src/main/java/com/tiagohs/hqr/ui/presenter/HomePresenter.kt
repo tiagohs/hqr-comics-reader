@@ -34,25 +34,30 @@ class HomePresenter(
     override fun onBindView(view: HomeContract.IHomeView) {
         super.onBindView(view)
 
+        startInitializer()
+    }
+
+    private fun startInitializer() {
         homeInterceptor.onBind()
         mSubscribers.add(homeInterceptor.subscribeComicDetailSubject()
-                        .map { it.toModel() }
-                         .observeOn(AndroidSchedulers.mainThread())
-                         .subscribe({ comic ->
+                .map { it.toModel() }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ comic ->
 
-                             if (comic?.comic?.tags != null) {
-                                 if (comic.comic.tags!!.contains(IComic.POPULARS)) {
-                                     mView?.onBindPopularItem(comic)
-                                 }
-                                 if (comic.comic.tags!!.contains(IComic.RECENTS)) {
-                                     mView?.onBindLastestItem(comic)
-                                 }
-                             }
+                    if (comic?.comic?.tags != null) {
+                        if (comic.comic.tags!!.contains(IComic.POPULARS)) {
+                            mView?.onBindPopularItem(comic)
+                        }
+                        if (comic.comic.tags!!.contains(IComic.RECENTS)) {
+                            mView?.onBindLastestItem(comic)
+                        }
+                    }
 
-                         }, { error ->
-                             Timber.e(error)
-                         }))
+                }, { error ->
+                    Timber.e(error)
+                }))
     }
+
 
     override fun onUnbindView() {
         super.onUnbindView()
@@ -64,6 +69,8 @@ class HomePresenter(
     override fun onReset() {
         mSubscribers.dispose()
         mSubscribers = CompositeDisposable()
+
+        startInitializer()
     }
 
     override fun observeSourcesChanges() {

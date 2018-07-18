@@ -4,10 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="@dimen/item_circle_container_width"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/margin_default_medium"
+    android:layout_margin="@dimen/margin_default_min"
     android:orientation="vertical"
-    android:layout_marginEnd="@dimen/margin_default_min"
-    android:layout_marginStart="@dimen/margin_default_min"
     android:gravity="center">
 
     <ImageView

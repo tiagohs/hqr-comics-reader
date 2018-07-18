@@ -92,5 +92,7 @@
     <dimen name="placeholder_comic_details_text_line_height">8dp</dimen>
     <dimen name="placeholder_comic_details_text_margin_top">15dp</dimen>
     <dimen name="reader_view_pager_margin_bottom">60dp</dimen>
+    <dimen name="placeholder_comic_details_progress_height">3dp</dimen>
+    <dimen name="placeholder_comic_details_progress_margin_top">132dp</dimen>
 
 </resources>

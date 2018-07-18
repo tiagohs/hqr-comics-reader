@@ -1,179 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.facebook.shimmer.ShimmerFrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/shimmer"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="center"
-    android:orientation="vertical"
-    app:duration="400"
-    app:auto_start="true">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/placeholder">
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+    <ProgressBar
+        android:id="@+id/progress_movies_details"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/placeholder_comic_details_progress_height"
+        android:layout_marginTop="@dimen/placeholder_comic_details_progress_margin_top"
+        android:visibility="visible"
+        android:indeterminate="true" />
 
-        <View
-            android:layout_width="@dimen/comic_detail_poster_width"
-            android:layout_height="@dimen/comic_detail_poster_height"
-            android:layout_marginTop="@dimen/comic_detail_poster_margin_top"
-            android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:background="@color/placeholder_bg" />
+    <View
+        android:layout_width="@dimen/comic_detail_poster_width"
+        android:layout_height="@dimen/comic_detail_poster_height"
+        android:layout_marginTop="@dimen/comic_detail_poster_margin_top"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:background="@color/placeholder_bg" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="@dimen/comic_detail_header_container_margin_top"
-                android:layout_marginStart="@dimen/comic_detail_header_container_margin_start">
-
-                <View
-                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
-                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
-                    android:padding="@dimen/margin_default_min"
-                    android:background="@color/placeholder_bg" />
-
-                <View
-                    android:layout_width="@dimen/placeholder_comic_details_title_item_width"
-                    android:layout_height="@dimen/placeholder_comic_details_title_item_height"
-                    android:layout_marginTop="@dimen/margin_default_min"
-                    android:background="@color/placeholder_bg"/>
-
-                <View
-                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
-                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
-                    android:layout_marginTop="@dimen/placeholder_comic_details_list_publishers_margin_top"
-                    android:background="@color/placeholder_bg"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="80dp"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
-                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
-                    android:background="@color/placeholder_bg"/>
-
-                <View
-                    android:layout_width="@dimen/placeholder_comic_details_list_item_width"
-                    android:layout_height="@dimen/placeholder_comic_details_list_item_height"
-                    android:layout_marginStart="@dimen/margin_default_min"
-                    android:background="@color/placeholder_bg"/>
-
-            </LinearLayout>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/comic_detail_header_container_margin_top"
+            android:layout_marginStart="@dimen/comic_detail_header_container_margin_start">
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/placeholder_comic_details_text_margin_top"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
+                android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                android:layout_height="@dimen/placeholder_comic_details_list_item_height"
+                android:padding="@dimen/margin_default_min"
+                android:background="@color/placeholder_bg" />
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+                android:layout_width="@dimen/placeholder_comic_details_title_item_width"
+                android:layout_height="@dimen/placeholder_comic_details_title_item_height"
                 android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:background="@color/placeholder_bg"/>
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                android:layout_height="@dimen/placeholder_comic_details_list_item_height"
+                android:layout_marginTop="@dimen/placeholder_comic_details_list_publishers_margin_top"
                 android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/placeholder_comic_details_text_line_height"
-                android:layout_marginTop="@dimen/margin_default_min"
-                android:layout_marginStart="@dimen/activity_horizontal_margin"
-                android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                android:background="@color/placeholder_bg"/>
-
 
         </LinearLayout>
 
-    </RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="80dp"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:orientation="horizontal">
 
-</com.facebook.shimmer.ShimmerFrameLayout>
+            <View
+                android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                android:layout_height="@dimen/placeholder_comic_details_list_item_height"
+                android:background="@color/placeholder_bg"/>
+
+            <View
+                android:layout_width="@dimen/placeholder_comic_details_list_item_width"
+                android:layout_height="@dimen/placeholder_comic_details_list_item_height"
+                android:layout_marginStart="@dimen/margin_default_min"
+                android:background="@color/placeholder_bg"/>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/placeholder_comic_details_text_margin_top"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/placeholder_comic_details_text_line_height"
+            android:layout_marginTop="@dimen/margin_default_min"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:background="@color/placeholder_bg"/>
+
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -69,7 +69,6 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     }
 
     private fun onInit() {
-        shimmer.startShimmerAnimation()
 
         val comicLink = intent.getStringExtra(COMIC_LINK) ?: ""
         val sourceId = intent.getLongExtra(SOURCE_ID, 1L)
@@ -93,15 +92,13 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
     }
 
     override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
-        shimmer.stopShimmerAnimation()
-        shimmer.visibility = View.GONE
+        placeholder.visibility = View.GONE
 
         super.onError(ex, message, withAction)
     }
 
     override fun onErrorAction() {
-        shimmer.stopShimmerAnimation()
-        shimmer.visibility = View.VISIBLE
+        placeholder.visibility = View.VISIBLE
 
         onInit()
 
@@ -182,8 +179,7 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         comicDetailsAppBar.visibility = View.VISIBLE
         comicDetailsTabContainer.visibility = View.VISIBLE
 
-        shimmer.stopShimmerAnimation()
-        shimmer.visibility = View.GONE
+        placeholder.visibility = View.GONE
 
         readBtn.visibility = View.VISIBLE
         readBtn.startAnimation(AnimationUtils.loadAnimation(this, com.github.clans.fab.R.anim.fab_scale_up))

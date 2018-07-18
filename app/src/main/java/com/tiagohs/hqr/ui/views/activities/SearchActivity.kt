@@ -130,7 +130,7 @@ class SearchActivity : BaseActivity(), SearchView.OnQueryTextListener, IComicLis
 
     override fun onItemClick(view: View?, position: Int): Boolean {
         val comic = listComicsAdapter?.getItem(position) ?: return false
-        startActivity(ComicDetailsActivity.newIntent(this, comic.comic.pathLink!!))
+        startActivity(ComicDetailsActivity.newIntent(this, comic.comic.pathLink!!, comic.comic.source?.id!!))
 
         return true
     }

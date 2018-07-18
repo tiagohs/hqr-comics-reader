@@ -29,7 +29,7 @@ class SearchInterceptor(
         return sourceRepository.getSourceById(sourceId)
                 .observeOn(Schedulers.io())
                 .flatMap {
-                    hasPageSuport = it.hasPageSupport
+                    hasPageSuport = it.hasInAllPageSupport
 
                     sourceHttp!!.fetchSearchByQuery(query)
                 }

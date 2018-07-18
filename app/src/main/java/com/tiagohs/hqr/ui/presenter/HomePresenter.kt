@@ -16,6 +16,8 @@ import com.tiagohs.hqr.ui.adapters.publishers.PublisherItem
 import com.tiagohs.hqr.ui.contracts.HomeContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 
@@ -26,6 +28,8 @@ class HomePresenter(
         private val homeInterceptor: Contracts.IHomeInterceptor,
         private val comicRepository: IComicsRepository
 ): BasePresenter<HomeContract.IHomeView>(), HomeContract.IHomePresenter {
+
+    private var soureObservable: Disposable? = null
 
     override fun onBindView(view: HomeContract.IHomeView) {
         super.onBindView(view)
@@ -54,18 +58,26 @@ class HomePresenter(
         super.onUnbindView()
 
         homeInterceptor.onUnbind()
+        soureObservable?.dispose()
+    }
+
+    override fun onReset() {
+        mSubscribers.dispose()
+        mSubscribers = CompositeDisposable()
     }
 
     override fun observeSourcesChanges() {
-        mSubscribers.add(preferenceHelper.currentSource()
+        soureObservable = preferenceHelper.currentSource()
                 .asObservable()
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe({ sourceId: Long? ->
+                    mView?.onReset()
+                    onReset()
                     onGetHomeData(sourceId!!)
                 }, { error ->
                     Timber.e(error)
                     mView?.onError(error)
-                }))
+                })
     }
 
     override fun onGetHomeData(sourceId: Long) {

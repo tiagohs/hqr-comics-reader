@@ -142,7 +142,7 @@ class DownloadFragment:
 
     override fun onItemClick(view: View?, position: Int): Boolean {
         val downloadItem = adapter?.getItem(position) ?: return false
-        startActivity(ComicDetailsActivity.newIntent(context, downloadItem.comic.pathLink!!))
+        startActivity(ComicDetailsActivity.newIntent(context, downloadItem.comic.pathLink!!, downloadItem.comic.source?.id!!))
 
         return true
     }

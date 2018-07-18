@@ -75,6 +75,12 @@ class HomeInterceptor(
                             it,
                             sourceHttp,
                             IComic.POPULARS)
+                            .flatMap {
+                                if (it.isEmpty())
+                                    sourceHttp.fetchPopularComics()
+                                else
+                                    Observable.just(it)
+                            }
                 }
                 .doOnNext {
                     val source = sourceRepository.getSourceByIdRealm(sourceId)
@@ -97,6 +103,7 @@ class HomeInterceptor(
         val sourceHttp = sourceManager.get(sourceId)
 
         return defaultModelRepository.getAllPublishers(sourceId)
+                .flatMap { defaultModelRepository.getAllGenres(sourceId) }
                 .flatMap {
                     if (it.isNotEmpty())
                         Observable.just(it)

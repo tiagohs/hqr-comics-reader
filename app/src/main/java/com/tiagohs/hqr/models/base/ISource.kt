@@ -8,11 +8,15 @@ interface ISource{
     var baseUrl: String
     var language: String
 
-    var hasPageSupport: Boolean
     var hasThumbnailSupport: Boolean
 
     var lastPopularUpdate: String?
     var lastLastestUpdate: String?
+
+    var hasInAllPageSupport: Boolean
+    var hasInPublisherPageSupport: Boolean
+    var hasInScanlatorPageSupport: Boolean
+    var hasInGenresPageSupport: Boolean
 
     fun isCurrentSelect(currrentSourceId: Long): Boolean {
         return id == currrentSourceId
@@ -38,7 +42,11 @@ interface ISource{
 
         this.baseUrl = other.baseUrl
         this.language = other.language
-        this.hasPageSupport = other.hasPageSupport
         this.hasThumbnailSupport = other.hasThumbnailSupport
+
+        this.hasInAllPageSupport = other.hasInAllPageSupport
+        this.hasInGenresPageSupport = other.hasInGenresPageSupport
+        this.hasInPublisherPageSupport = other.hasInPublisherPageSupport
+        this.hasInScanlatorPageSupport = other.hasInScanlatorPageSupport
     }
 }

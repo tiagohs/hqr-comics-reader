@@ -6,10 +6,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.LinearLayout
 import com.tiagohs.hqr.R
-import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.models.view_models.DefaultModelView
-import com.tiagohs.hqr.models.view_models.FETCH_BY_SCANLATORS
-import com.tiagohs.hqr.models.view_models.ListComicsModel
+import com.tiagohs.hqr.models.view_models.*
 import com.tiagohs.hqr.ui.adapters.SimpleItemAdapter
 import com.tiagohs.hqr.ui.callbacks.ISimpleItemCallback
 import com.tiagohs.hqr.ui.views.activities.ListComicsActivity
@@ -82,7 +79,7 @@ class ComicResumeFragment: BaseFragment() {
     fun onGenreSelect(): ISimpleItemCallback {
         return object : ISimpleItemCallback {
             override fun onClick(item: DefaultModelView) {
-
+                startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_PUBLISHERS, item.name!!, item.pathLink!!)))
             }
         }
     }

@@ -74,6 +74,6 @@ class NotificationReceiver: BroadcastReceiver() {
     }
 
     private fun openChapter(context: Context, comic: ComicViewModel, chapter: ChapterViewModel) {
-        context.startActivity(ReaderActivity.newIntent(context, chapter.chapterPath!!, comic.pathLink!!))
+        context.startActivity(ReaderActivity.newIntent(context, chapter.chapterPath!!, comic.pathLink!!, comic.source?.id!!))
     }
 }

@@ -15,7 +15,7 @@ class ComicDetailsContract {
 
     interface IComicDetailsPresenter: IPresenter<IComicDetailsView> {
 
-        fun onGetComicData(comicPath: String)
+        fun onGetComicData(comicPath: String, sourceId: Long)
         fun getComicHistory(): ComicHistoryViewModel?
         fun addOrRemoveFromFavorite(comic: ComicViewModel)
     }

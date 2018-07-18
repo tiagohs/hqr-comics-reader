@@ -103,7 +103,7 @@ class DownloadManagerFragment: BaseFragment(), DownloadManagerContract.IDownload
         val adapter = adapter ?: return false
         val item = adapter.getItem(position) ?: return false
 
-        startActivity(ComicDetailsActivity.newIntent(context, item.download.comic.pathLink!!))
+        startActivity(ComicDetailsActivity.newIntent(context, item.download.comic.pathLink!!, item.download.comic.source?.id!!))
 
         return false
     }

@@ -5,10 +5,7 @@ import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.interceptors.config.Contracts
-import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.models.view_models.FETCH_ALL
-import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
-import com.tiagohs.hqr.models.view_models.FETCH_BY_SCANLATORS
+import com.tiagohs.hqr.models.view_models.*
 import com.tiagohs.hqr.ui.adapters.comics.ComicItem
 import com.tiagohs.hqr.ui.contracts.ListComicsContract
 import com.tiagohs.hqr.ui.presenter.config.BasePresenter
@@ -78,6 +75,7 @@ class ListComicsPresenter(
             FETCH_ALL -> return interceptor.onGetAllByLetter(flag)
             FETCH_BY_PUBLISHERS -> return interceptor.onGetAllByPublisher(flag)
             FETCH_BY_SCANLATORS -> return interceptor.onGetAllByScanlator(flag)
+            FETCH_BY_GENRES -> return interceptor.onGetAllByGenres(flag)
         }
 
         return interceptor.onGetAllByLetter(flag)
@@ -87,10 +85,10 @@ class ListComicsPresenter(
         return interceptor.hasMoreComics()
     }
 
-    override fun onGetMoreComics() {
+    override fun onGetMoreComics(flag: String) {
 
         if (interceptor.hasMoreComics()) {
-            mSubscribers.add(interceptor.onGetMore()
+            mSubscribers.add(interceptor.onGetMore(flag)
                     .subscribeOn(Schedulers.io())
                     .map { it.map { it.toModel() } }
                     .observeOn(AndroidSchedulers.mainThread())

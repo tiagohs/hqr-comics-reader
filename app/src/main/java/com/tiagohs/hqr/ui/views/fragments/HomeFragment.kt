@@ -121,6 +121,23 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         goToSiteButton.setOnClickListener { goToSourcePage(source.baseUrl) }
     }
 
+    override fun onReset() {
+        publishersList.visibility = View.INVISIBLE
+        publisherAdapter?.clear()
+        publisherAdapter?.notifyDataSetChanged()
+        publishersListProgress.visibility = View.VISIBLE
+
+        popularList.visibility = View.INVISIBLE
+        lastestUpdatesAdapter?.clear()
+        lastestUpdatesAdapter?.notifyDataSetChanged()
+        lastestListProgress.visibility = View.VISIBLE
+
+        lastestList.visibility = View.INVISIBLE
+        popularComicsAdapter?.clear()
+        popularComicsAdapter?.notifyDataSetChanged()
+        popularListProgress.visibility = View.VISIBLE
+    }
+
     override fun onBindPublishers(publishers: List<PublisherItem>) {
         publisherAdapter = PublishersAdapter(onPublisherCallback())
         publisherAdapter?.updateDataSet(publishers)
@@ -132,6 +149,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         publishersList.addOnScrollListener(createPublishersScrollListener(publishersLayoutManager))
         publishersList.setNestedScrollingEnabled(false)
 
+        publishersList.visibility = View.VISIBLE
         publishersListProgress.visibility = View.GONE
     }
 
@@ -153,6 +171,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         lastestList.addOnScrollListener(createLastestScrollListener(lastestLayoutManager))
         lastestList.setNestedScrollingEnabled(false)
 
+        lastestList.visibility = View.VISIBLE
         lastestListProgress.visibility = View.GONE
     }
 
@@ -175,6 +194,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         popularList.addOnScrollListener(createPopularsScrollListener(popularLayoutManager))
         popularList.setNestedScrollingEnabled(false)
 
+        popularList.visibility = View.VISIBLE
         popularListProgress.visibility = View.GONE
     }
 
@@ -194,7 +214,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
 
             override fun onItemClick(view: View?, position: Int): Boolean {
                 val comic = popularComicsAdapter?.getItem(position) ?: return false
-                startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!))
+                startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!, comic.comic.source?.id!!))
 
                 return true
             }
@@ -209,7 +229,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
 
             override fun onItemClick(view: View?, position: Int): Boolean {
                 val comic = lastestUpdatesAdapter?.getItem(position) ?: return false
-                startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!))
+                startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!, comic.comic.source?.id!!))
 
                 return true
             }

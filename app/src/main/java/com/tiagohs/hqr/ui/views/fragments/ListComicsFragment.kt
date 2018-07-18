@@ -63,7 +63,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     private fun onInit() {
         when (listComicsModel.listType) {
             FETCH_ALL -> presenter.onGetComics(listComicsModel.listType, "All")
-            FETCH_BY_PUBLISHERS, FETCH_BY_SCANLATORS -> presenter.onGetComics(listComicsModel.listType, listComicsModel.link)
+            FETCH_BY_PUBLISHERS, FETCH_BY_SCANLATORS, FETCH_BY_GENRES -> presenter.onGetComics(listComicsModel.listType, listComicsModel.link)
         }
     }
     override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
@@ -133,6 +133,8 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
     override fun onBindMoreComics(comics: List<ComicItem>) {
         listComicsAdapter?.onAddMoreItems(comics)
 
+        comicListProgress.visibility = View.GONE
+
         setInformationViewStatus()
     }
 
@@ -148,7 +150,13 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
 
             override fun onLoadMore(current_page: Int) {
                 if (presenter.hasMoreComics()) {
-                    presenter.onGetMoreComics()
+                    comicListProgress.visibility = View.VISIBLE
+
+                    when (listComicsModel.listType) {
+                        FETCH_ALL -> presenter.onGetMoreComics("All")
+                        FETCH_BY_PUBLISHERS, FETCH_BY_SCANLATORS, FETCH_BY_GENRES -> presenter.onGetMoreComics(listComicsModel.link)
+                    }
+
                 }
             }
         }
@@ -160,7 +168,7 @@ class ListComicsFragment: BaseFragment(), ListComicsContract.IListComicsView, IC
 
     override fun onItemClick(view: View?, position: Int): Boolean {
         val comic = listComicsAdapter?.getItem(position) ?: return false
-        startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!))
+        startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!, comic.comic.source?.id!!))
 
         return true
     }

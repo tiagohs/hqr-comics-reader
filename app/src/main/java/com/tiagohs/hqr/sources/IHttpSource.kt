@@ -26,8 +26,9 @@ interface IHttpSource {
     fun fetchComicDetails(comicPath: String): Observable<ComicViewModel>
 
     fun fetchAllComicsByLetter(letter: String): Observable<List<ComicViewModel>>
-    fun fetchAllComicsByPublisher(publisherPath: String): Observable<List<ComicViewModel>>
+    fun fetchAllComicsByPublisher(publisherPath: String, page: Int): Observable<List<ComicViewModel>>
     fun fetchAllComicsByScanlator(scanlatorPath: String): Observable<List<ComicViewModel>>
+    fun fetchAllComicsByGenre(genre: String, page: Int): Observable<List<ComicViewModel>>
 
     fun fetchSearchByQuery(query: String): Observable<List<ComicViewModel>>
     fun fetchPageList(chapter: ChapterViewModel): Observable<List<Page>>

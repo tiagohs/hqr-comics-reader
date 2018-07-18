@@ -11,9 +11,9 @@ class PublisherHolder(
 ): BaseFlexibleViewHolder(view, adapter) {
 
     fun bind(item: PublisherItem) {
-        view.publisherTitle.text = item.publisher.name
+        view.publisherTitle.text = item.publisher.name?.capitalize()
 
-        val backgroundDrawable = ScreenUtils.generateMaterialColorBackground(view.context, item.publisher.name ?: "", view.publisherImgBack)
+        val backgroundDrawable = ScreenUtils.generateMaterialColorBackground(view.context, item.publisher.name, view.publisherImgBack)
         view.publisherImgBack.setImageDrawable(backgroundDrawable)
     }
 }

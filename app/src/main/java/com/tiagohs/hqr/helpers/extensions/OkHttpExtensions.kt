@@ -13,7 +13,7 @@ fun Call.asObservable(): Observable<Response> {
         try {
             val response = call.execute()
             if (!call.isCanceled) {
-                if (response != null) {
+                if (response != null && !Thread.currentThread().isInterrupted) {
                     subscriber.onNext(response)
                     subscriber.onComplete()
                 } else {

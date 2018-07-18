@@ -13,7 +13,6 @@ import com.tiagohs.hqr.helpers.extensions.launchUI
 import com.tiagohs.hqr.helpers.extensions.saveTo
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.tools.RetryWithDelay
-import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.helpers.utils.DiskUtils
 import com.tiagohs.hqr.models.Download
 import com.tiagohs.hqr.models.DownloadQueueList
@@ -116,9 +115,8 @@ class Downloader(
     }
 
     fun queuerChapters(comic: ComicViewModel, chaptersToDownload: List<ChapterViewModel>, autoStart: Boolean) = launchUI {
-        val sourceId = preferenceHelper.currentSource().getOrDefault()
-        val sourceHttp = sourceManager.get(sourceId)
-        val source = sourceRepository.getSourceByIdRealm(sourceId)
+        val sourceHttp = sourceManager.get(comic.source?.id!!)
+        val source = sourceRepository.getSourceByIdRealm(comic.source?.id!!)
 
         val chaptersNotDownloaded = async {
             val comicDir = provider.findComicDirectory(comic, source!!)
@@ -192,8 +190,8 @@ class Downloader(
                 val pageListObservable = if (download.chapter.pages == null) {
                     download.source.fetchPageList(download.chapter)
                             .doOnNext{ pages ->
-                                if (pages.isEmpty())
-                                    throw Exception("Page list is empty")
+                                if (pages.size <= 1)
+                                    throw Exception("Esse Capítulo não está disponível para download.")
 
                                 download.chapter.pages = pages
                             }

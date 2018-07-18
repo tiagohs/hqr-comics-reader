@@ -23,7 +23,7 @@ abstract class HttpSourceBase(
 
     private val headers: Headers by lazy { headersBuilder().build() }
 
-    abstract protected val publishersEndpoint: String
+    abstract protected val homeCategoriesEndpoint: String
     abstract protected val lastestComicsEndpoint: String
     abstract protected val popularComicsEndpoint: String
 
@@ -34,7 +34,7 @@ abstract class HttpSourceBase(
     }
 
     override fun fetchPublishers(): Observable<List<DefaultModelView>> {
-        return fetch(GET(publishersEndpoint, headersBuilder().build()))
+        return fetch(GET(homeCategoriesEndpoint, headersBuilder().build()))
                     .map({ response: Response -> parsePublishersResponse(response) })
     }
 
@@ -81,12 +81,12 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseAllComicsByLetterResponse(response: Response) : List<ComicViewModel>
 
-    override fun fetchAllComicsByPublisher(publisherPath: String): Observable<List<ComicViewModel>> {
-        return fetch(GET(getAllComicsByPublisherEndpoint(publisherPath), headersBuilder().build()))
+    override fun fetchAllComicsByPublisher(publisherPath: String, page: Int): Observable<List<ComicViewModel>> {
+        return fetch(GET(getAllComicsByPublisherEndpoint(publisherPath, page), headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByPublisherResponse(response) })
     }
 
-    abstract protected fun getAllComicsByPublisherEndpoint(publisherPath: String): String
+    abstract protected fun getAllComicsByPublisherEndpoint(publisherPath: String, page: Int): String
 
     abstract protected fun parseAllComicsByPublisherResponse(response: Response) : List<ComicViewModel>
 
@@ -98,6 +98,15 @@ abstract class HttpSourceBase(
     abstract protected fun getAllComicsByScanlatorEndpoint(scanlatorPath: String): String
 
     abstract protected fun parseAllComicsByScanlatorResponse(response: Response) : List<ComicViewModel>
+
+    override fun fetchAllComicsByGenre(genre: String, page: Int): Observable<List<ComicViewModel>> {
+        return fetch(GET(getAllComicsByGenreEndpoint(genre, page), headersBuilder().build()))
+                .map({ response: Response -> parseAllComicsByGenreResponse(response) })
+    }
+
+    abstract protected fun getAllComicsByGenreEndpoint(genre: String, page: Int): String
+
+    abstract protected fun parseAllComicsByGenreResponse(response: Response) : List<ComicViewModel>
 
     override fun fetchSearchByQuery(query: String): Observable<List<ComicViewModel>> {
         return fetch(GET(getSearchByQueryEndpoint(query), headersBuilder().build()))
@@ -120,7 +129,7 @@ abstract class HttpSourceBase(
     }
 
     override fun fetchPageList(chapter: ChapterViewModel): Observable<List<Page>> {
-        return client.newCall(pageListRequest(chapter))
+        return client.newCall(GET(getReaderEndpoint(chapter.chapterPath!!), headersBuilder().build()))
                 .asObservableSuccess()
                 .map { response -> pageListParse(response, chapter.chapterPath) }
     }
@@ -128,7 +137,7 @@ abstract class HttpSourceBase(
     abstract protected fun pageListParse(response: Response, chapterPath: String?): List<Page>
 
     open protected fun pageListRequest(chapter: ChapterViewModel): Request {
-        return GET(chapter.chapterPath!!, headers)
+        return GET(getReaderEndpoint(chapter.chapterPath!!), headers)
     }
 
 

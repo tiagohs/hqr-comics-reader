@@ -11,6 +11,7 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import com.afollestad.materialdialogs.MaterialDialog
 import com.github.chrisbanes.photoview.OnViewTapListener
 import com.google.android.gms.ads.AdRequest
 import com.tiagohs.hqr.R
@@ -32,15 +33,17 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     companion object {
 
         const val COMIC_PATH = "CHAPTER_MODEL"
+        const val SOURCE_ID = "SOURCE_ID"
         const val CHAPTER_PATH = "CHAPTER_PATH"
 
         const val LEFT_REGION = 0.33f
         const val RIGHT_REGION = 0.66f
 
-        fun newIntent(context: Context?, chapterPath: String, comicPath: String): Intent {
+        fun newIntent(context: Context?, chapterPath: String, comicPath: String, sourceId: Long): Intent {
             val intent: Intent = Intent(context, ReaderActivity::class.java)
 
             intent.putExtra(COMIC_PATH, comicPath)
+            intent.putExtra(SOURCE_ID, sourceId)
             intent.putExtra(CHAPTER_PATH, chapterPath)
 
             return intent
@@ -84,12 +87,13 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     private fun onInit() {
         val comicPath = intent.getStringExtra(COMIC_PATH)
         val chapterPath = intent.getStringExtra(CHAPTER_PATH)
+        val sourceId = intent.getLongExtra(SOURCE_ID, 1L)
 
-        presenter.onGetChapterDetails(comicPath, chapterPath)
+        presenter.onGetChapterDetails(comicPath, sourceId, chapterPath)
     }
 
     override fun onError(ex: Throwable, message: Int, withAction: Boolean) {
-        readerPageProgress.visibility = View.GONE
+        //readerPageProgress.visibility = View.GONE
 
         super.onError(ex, message, withAction)
     }
@@ -98,6 +102,17 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
         readerPageProgress.visibility = View.VISIBLE
 
         onInit()
+    }
+
+    override fun onChapterUnavailable() {
+
+        MaterialDialog.Builder(this)
+                .content(R.string.chapter_not_available)
+                .positiveText(android.R.string.yes)
+                .onPositive { _, _ -> finish() }
+                .build()
+                .show()
+
     }
 
     override fun onDestroy() {

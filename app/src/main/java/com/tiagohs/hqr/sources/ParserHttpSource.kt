@@ -13,11 +13,13 @@ abstract class ParserHttpSource(
         private var client: OkHttpClient,
         private val chapterCache: ChapterCache) : HttpSourceBase(client, chapterCache) {
 
-    abstract val publisherListSelector: String
+    abstract val homeCategoriesListSelector: String
     abstract val lastestComicsSelector: String
     abstract val popularComicsSelector: String
     abstract val allComicsListSelector: String
+    abstract val allComicsByPublisherSelector: String
     abstract val searchComicsSelector: String
+
 
     override fun parsePublishersResponse(response: Response): List<DefaultModelView> {
         val publishers: ArrayList<DefaultModelView> = ArrayList()
@@ -25,8 +27,8 @@ abstract class ParserHttpSource(
         try {
             val document = response.asJsoup()
 
-            document.select(publisherListSelector).map { element ->
-                val publisher = parsePublisherByElement(element)
+            document.select(homeCategoriesListSelector).map { element ->
+                val publisher = parseHomeCategoriesByElement(element)
 
                 if (publisher != null)
                     publishers.add(publisher)
@@ -39,7 +41,7 @@ abstract class ParserHttpSource(
         return publishers
     }
 
-    abstract fun parsePublisherByElement(element: Element): DefaultModelView?
+    abstract fun parseHomeCategoriesByElement(element: Element): DefaultModelView?
 
     override fun parseLastestComicsResponse(response: Response): List<ComicViewModel> {
         var comics: List<ComicViewModel> = emptyList()
@@ -80,13 +82,17 @@ abstract class ParserHttpSource(
     abstract fun parsePopularComicsByElement(element: Element): ComicViewModel
 
     override fun parseAllComicsByLetterResponse(response: Response): List<ComicViewModel> {
-        var comics: List<ComicViewModel> = emptyList()
+        val comics: ArrayList<ComicViewModel> = ArrayList()
 
         try {
             val document = response.asJsoup()
 
-            comics = document.select(allComicsListSelector).map { element ->
-                parseAllComicsByLetterByElement(element)
+            document.select(allComicsListSelector).forEach { element ->
+                val comic = parseAllComicsByLetterByElement(element)
+
+                if (comic != null) {
+                    comics.add(comic)
+                }
             }
 
         } catch (ex: Exception) {
@@ -96,16 +102,20 @@ abstract class ParserHttpSource(
         return comics
     }
 
-    abstract fun parseAllComicsByLetterByElement(element: Element): ComicViewModel
+    abstract fun parseAllComicsByLetterByElement(element: Element): ComicViewModel?
 
     override fun parseAllComicsByPublisherResponse(response: Response): List<ComicViewModel> {
-        var comics: List<ComicViewModel> = emptyList()
+        val comics: ArrayList<ComicViewModel> = ArrayList()
 
         try {
             val document = response.asJsoup()
 
-            comics = document.select(allComicsListSelector).map { element ->
-                parseAllComicsByLetterByElement(element)
+            document.select(allComicsByPublisherSelector).forEach { element ->
+                val comic = parseAllComicsByPublisherByElement(element)
+
+                if (comic != null) {
+                    comics.add(comic)
+                }
             }
 
         } catch (ex: Exception) {
@@ -114,15 +124,21 @@ abstract class ParserHttpSource(
 
         return comics
     }
+
+    abstract fun parseAllComicsByPublisherByElement(element: Element): ComicViewModel?
 
     override fun parseAllComicsByScanlatorResponse(response: Response): List<ComicViewModel> {
-        var comics: List<ComicViewModel> = emptyList()
+        val comics: ArrayList<ComicViewModel> = ArrayList()
 
         try {
             val document = response.asJsoup()
 
-            comics = document.select(allComicsListSelector).map { element ->
-                parseAllComicsByLetterByElement(element)
+             document.select(allComicsListSelector).forEach { element ->
+                val comic = parseAllComicsByLetterByElement(element)
+
+                if (comic != null) {
+                    comics.add(comic)
+                }
             }
 
         } catch (ex: Exception) {
@@ -131,15 +147,42 @@ abstract class ParserHttpSource(
 
         return comics
     }
+
+    override fun parseAllComicsByGenreResponse(response: Response): List<ComicViewModel> {
+        val comics: ArrayList<ComicViewModel> = ArrayList()
+
+        try {
+            val document = response.asJsoup()
+
+            document.select(allComicsListSelector).forEach { element ->
+                val comic = parseAllComicsByLetterByElement(element)
+
+                if (comic != null) {
+                    comics.add(comic)
+                }
+            }
+
+        } catch (ex: Exception) {
+            Timber.e(ex)
+        }
+
+        return comics
+    }
+
+    abstract fun parseAllComicsByGenreByElement(element: Element): ComicViewModel?
 
     override fun parseSearchByQueryResponse(response: Response, query: String): List<ComicViewModel> {
-        var comics: List<ComicViewModel> = emptyList()
+        val comics: ArrayList<ComicViewModel> = ArrayList()
 
         try {
             val document = response.asJsoup()
 
-            comics = document.select(searchComicsSelector).map { element ->
-                parseSearchByQueryByElement(element)
+            document.select(searchComicsSelector).map { element ->
+                val comic = parseAllComicsByLetterByElement(element)
+
+                if (comic != null) {
+                    comics.add(comic)
+                }
             }
 
         } catch (ex: Exception) {
@@ -149,5 +192,5 @@ abstract class ParserHttpSource(
         return comics
     }
 
-    abstract fun parseSearchByQueryByElement(element: Element): ComicViewModel
+    abstract fun parseSearchByQueryByElement(element: Element): ComicViewModel?
 }

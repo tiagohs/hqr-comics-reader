@@ -11,12 +11,13 @@ class ReaderContract {
 
         fun onBindChapter(model: ReaderChapterViewModel, updateDataSet: Boolean)
         fun onPageDownloaded(page: Page)
+        fun onChapterUnavailable()
     }
 
     interface IReaderPresenter: IPresenter<IReaderView> {
 
         fun onCreate()
-        fun onGetChapterDetails(comicPath: String, chapterPath: String, updateDataSet: Boolean = false)
+        fun onGetChapterDetails(comicPath: String, sourceId: Long, chapterPath: String, updateDataSet: Boolean = false)
         fun onRequestNextChapter()
 
         fun onTrackUserHistory(page: Page?)

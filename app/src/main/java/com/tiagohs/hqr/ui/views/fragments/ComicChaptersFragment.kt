@@ -186,7 +186,7 @@ class ComicChaptersFragment:
             toggleComic(position)
             return true
         } else {
-            startActivity(ReaderActivity.newIntent(context, item.chapter.chapterPath!!, comicViewModel?.pathLink!!))
+            startActivity(ReaderActivity.newIntent(context, item.chapter.chapterPath!!, comicViewModel?.pathLink!!, comicViewModel?.source?.id!!))
             return false
         }
     }

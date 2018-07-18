@@ -105,7 +105,7 @@ class FavoritesFragment: BaseFragment(), FavoritesContract.IFavoritesView, IComi
 
     override fun onItemClick(view: View?, position: Int): Boolean {
         val comic = adapter?.getItem(position) ?: return false
-        startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!))
+        startActivity(ComicDetailsActivity.newIntent(context, comic.comic.pathLink!!, comic.comic.source?.id!!))
 
         return true
     }

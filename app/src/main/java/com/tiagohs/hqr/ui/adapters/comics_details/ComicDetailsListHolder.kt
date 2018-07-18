@@ -85,7 +85,7 @@ class ComicDetailsListHolder(
             }
 
             if (chapterViewModel != null) {
-                view.context.startActivity(ReaderActivity.newIntent(view.context, chapterViewModel.chapterPath!!, comic.pathLink!!))
+                view.context.startActivity(ReaderActivity.newIntent(view.context, chapterViewModel.chapterPath!!, comic.pathLink!!, comic.source?.id!!))
             }
         }
     }

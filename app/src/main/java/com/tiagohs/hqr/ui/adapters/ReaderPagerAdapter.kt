@@ -13,7 +13,6 @@ import com.github.chrisbanes.photoview.OnViewTapListener
 import com.github.chrisbanes.photoview.PhotoViewAttacher
 import com.google.android.gms.ads.AdRequest
 import com.squareup.picasso.Callback
-import com.tiagohs.hqr.BuildConfig
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.models.sources.Page
@@ -59,9 +58,7 @@ class ReaderPagerAdapter(
 
     private fun onLoadAd(view: View) {
         val adView = view.findViewById<CoordinatorLayout>(R.id.adRetanguleContainer)
-        val appId = BuildConfig.ADMOB_APP_ID
 
-        adView.adRetanguleView.adUnitId = appId
         adView.adRetanguleView.loadAd(AdRequest.Builder().build())
         adView.visibility = View.VISIBLE
     }

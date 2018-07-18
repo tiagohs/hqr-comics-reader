@@ -6,6 +6,7 @@ import android.os.Parcelable
 const val FETCH_ALL: String = "FETCH_ALL"
 const val FETCH_BY_SCANLATORS: String = "FETCH_BY_SCANLATORS"
 const val FETCH_BY_PUBLISHERS: String = "FETCH_BY_PUBLISHERS"
+const val FETCH_BY_GENRES: String = "FETCH_BY_GENRES"
 
 class ListComicsModel(
     val listType: String,

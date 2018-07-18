@@ -24,6 +24,8 @@ class HomeContract {
 
         fun onBindPopularItem(comic: ComicItem)
         fun onBindLastestItem(comic: ComicItem)
+
+        fun onReset()
     }
 
     interface IHomePresenter: IPresenter<IHomeView> {
@@ -39,5 +41,6 @@ class HomeContract {
         fun onGetMoreLastestComics()
 
         fun addOrRemoveFromFavorite(comic: ComicViewModel)
+        fun onReset()
     }
 }

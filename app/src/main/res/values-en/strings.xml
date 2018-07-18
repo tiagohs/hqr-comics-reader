@@ -72,7 +72,7 @@
     <string name="action_select_all">Select All</string>
     <string name="action_clear_all">Clear All</string>
     <string name="deleting">Deleting chapters &#8230;</string>
-    <string name="chapters_selected">Selected: : %1$d</string>
+    <string name="chapters_selected">Selected: %1$d</string>
     <string name="chapters_selected_title">Select bellow:</string>
     <string name="nav_librarie">My Librarie</string>
     <string name="action_start">Start</string>
@@ -129,4 +129,5 @@
         <item quantity="one">Are you sure you want to delete selected chapters?</item>
         <item quantity="other">Are you sure you want to delete selected chapters?</item>
     </plurals>
+    <string name="chapter_not_available">This chapter is not yet available. Please back often for updates.</string>
 </resources>

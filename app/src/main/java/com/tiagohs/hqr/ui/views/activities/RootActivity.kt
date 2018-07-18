@@ -141,7 +141,7 @@ class RootActivity: BaseActivity(), PermissionsCallback {
     }
 
     private fun openComic(comic: ComicViewModel) {
-        startActivity(ComicDetailsActivity.newIntent(this, comic.pathLink!!))
+        startActivity(ComicDetailsActivity.newIntent(this, comic.pathLink!!, comic.source?.id!!))
     }
 
     private fun setItemSelected(itemId: Int): Boolean {

@@ -3,7 +3,6 @@ package com.tiagohs.hqr.interceptors
 import com.tiagohs.hqr.database.IComicsRepository
 import com.tiagohs.hqr.database.ISourceRepository
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
-import com.tiagohs.hqr.helpers.tools.getOrDefault
 import com.tiagohs.hqr.interceptors.config.BaseComicsInterceptor
 import com.tiagohs.hqr.interceptors.config.Contracts
 import com.tiagohs.hqr.models.view_models.ComicViewModel
@@ -19,8 +18,7 @@ class ComicsDetailsInterceptor(
         private val sourceManager: SourceManager
 ): BaseComicsInterceptor(comicsRepository, preferenceHelper, sourceManager, sourceRepository), Contracts.IComicsDetailsInterceptor {
 
-    override fun onGetComicData(comicPath: String): Observable<ComicViewModel?> {
-        val sourceId = preferenceHelper.currentSource().getOrDefault()
+    override fun onGetComicData(comicPath: String, sourceId: Long): Observable<ComicViewModel?> {
         val sourceHttp = sourceManager.get(sourceId)
 
         return sourceRepository.getSourceById(sourceId)

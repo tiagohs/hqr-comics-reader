@@ -51,14 +51,13 @@ class DefaultModelsRepository(
 
     override fun insertRealm(defaultModelViewList: List<DefaultModelView>, sourceId: Long): List<DefaultModelView> {
         val realm = Realm.getDefaultInstance()
-        var defaultModelLocal: List<DefaultModel>? = null
         var defaultModelViewFinal: List<DefaultModelView>? = null
 
         val source: SourceDB? = sourceRepository.getSourceByIdRealm(sourceId)
 
         try {
             realm.executeTransaction { r ->
-                defaultModelLocal = DefaultModelFactory.createListOfDefaultModelForRealm(defaultModelViewList, source!!, r)
+                val defaultModelLocal = DefaultModelFactory.createListOfDefaultModelForRealm(defaultModelViewList, source!!, r)
                 r.insertOrUpdate(defaultModelLocal)
 
                 defaultModelViewFinal = DefaultModelFactory.createListOfDefaultModelView(defaultModelLocal, source)

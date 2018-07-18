@@ -44,8 +44,9 @@ object Contracts {
         fun onGetAllByLetter(letter: String): Observable<List<ComicViewModel>>
         fun onGetAllByScanlator(scanlator: String): Observable<List<ComicViewModel>>
         fun onGetAllByPublisher(publisher: String): Observable<List<ComicViewModel>>
+        fun onGetAllByGenres(genre: String): Observable<List<ComicViewModel>>
 
-        fun onGetMore(): Observable<List<ComicViewModel>>
+        fun onGetMore(flag: String): Observable<List<ComicViewModel>>
 
         fun hasMoreComics(): Boolean
         fun hasPageSuport(): Boolean
@@ -54,7 +55,7 @@ object Contracts {
 
     interface IComicsDetailsInterceptor: IBaseInterceptor, IBaseComicsInterceptor {
 
-        fun onGetComicData(comicPath: String): Observable<ComicViewModel?>
+        fun onGetComicData(comicPath: String, sourceId: Long): Observable<ComicViewModel?>
     }
 
     interface ISearchInterceptor: IBaseInterceptor, IBaseComicsInterceptor {

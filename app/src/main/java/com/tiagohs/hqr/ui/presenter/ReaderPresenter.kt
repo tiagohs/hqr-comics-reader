@@ -80,8 +80,7 @@ class ReaderPresenter(
         }
     }
 
-    override fun onGetChapterDetails(comicPath: String, chapterPath: String, updateDataSet: Boolean) {
-        val sourceId = preferenceHelper.currentSource().getOrDefault()
+    override fun onGetChapterDetails(comicPath: String, sourceId: Long, chapterPath: String, updateDataSet: Boolean) {
 
         mSubscribers.add(comicsRepository
                 .findByPathUrl(comicPath, sourceId)
@@ -91,7 +90,14 @@ class ReaderPresenter(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     model = it
-                    mView?.onBindChapter(it, updateDataSet)
+
+                    if (it.pages.size > 2) {
+                        mView?.onBindChapter(it, updateDataSet)
+                    } else {
+                        mView?.onChapterUnavailable()
+                    }
+
+
                  }, { error ->
                     Timber.e(error)
                     mView?.onError(error)
@@ -114,7 +120,7 @@ class ReaderPresenter(
                 tempDirectory?.delete()
             }
 
-            onGetChapterDetails(model?.comic?.pathLink!!, nextChapter.chapterPath!!, true)
+            onGetChapterDetails(model?.comic?.pathLink!!, model?.comic?.source?.id!!, nextChapter.chapterPath!!, true)
         }
     }
 

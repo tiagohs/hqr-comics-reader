@@ -13,6 +13,7 @@
     <string name="key_github" translatable="false">key_github</string>
     <string name="key_category_downloads" translatable="false">key_category_downloads</string>
     <string name="key_default_source" translatable="false">key_current_source</string>
+    <string name="app_ad_id" translatable="false">ca-app-pub-5405332351907920/3139650922</string>
 
     <string name="app_name">HQR</string>
     <string name="nav_home">Home</string>
@@ -133,7 +134,7 @@
     <string name="tab_chapter">Chapters</string>
     <string name="tab_favorite">Favorites</string>
     <string name="tab_downloads">Downloads</string>
-    <string name="app_ad_id">ca-app-pub-5405332351907920/3139650922</string>
+    <string name="chapter_not_available">This chapter is not yet available. Please back often for updates.</string>
 
     <string-array name="pref_languages_keys">
         <item>en</item>

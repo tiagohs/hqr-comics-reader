@@ -20,6 +20,7 @@ import kotlin.collections.ArrayList
 class HQBRSource(
         client: OkHttpClient,
         chapterCache: ChapterCache): ParserHttpSource(client, chapterCache) {
+
     override val id: Long = 1L
     override val name: String = "HQBR - Leitor Online de Quadrinhos"
     override val language: LocaleDTO = LocaleDTO("Brazil", "Portuguese", "BR", "PT", Locale("PT", "BR"))
@@ -27,21 +28,22 @@ class HQBRSource(
     override val hasThumbnailSupport: Boolean = false
     override val baseUrl: String get() = "https://hqbr.com.br"
 
-    override val publishersEndpoint: String get() = "$baseUrl/editoras/"
+    override val homeCategoriesEndpoint: String get() = "$baseUrl/editoras/"
     override val lastestComicsEndpoint: String get() = "$baseUrl/home"
     override val popularComicsEndpoint: String get() = "$baseUrl/home"
 
-    override val publisherListSelector: String get() = "table > tbody > tr"
+    override val homeCategoriesListSelector: String get() = "table > tbody > tr"
     override val lastestComicsSelector: String get() = ".site-content .home-articles"
     override val popularComicsSelector: String get() = ".widget-area > ul li"
     override val allComicsListSelector: String get() = "table > tbody > tr"
+    override val allComicsByPublisherSelector: String = "table > tbody > tr"
     override val searchComicsSelector: String get() = "table > tbody > tr"
 
     override fun getReaderEndpoint(hqReaderPath: String): String {
-        return hqReaderPath
+        return "${hqReaderPath}?q=fullchapter"
     }
 
-    override fun getAllComicsByPublisherEndpoint(publisherPath: String): String {
+    override fun getAllComicsByPublisherEndpoint(publisherPath: String, page: Int): String {
         return publisherPath
     }
 
@@ -61,7 +63,11 @@ class HQBRSource(
         return "$baseUrl/hqs?utf8=✓&search=${query}"
     }
 
-    override fun parsePublisherByElement(element: Element): DefaultModelView? {
+    override fun getAllComicsByGenreEndpoint(genre: String, page: Int): String {
+        return "$baseUrl/$genre"
+    }
+
+    override fun parseHomeCategoriesByElement(element: Element): DefaultModelView? {
         var title: String = ""
         var link: String = ""
 
@@ -122,7 +128,7 @@ class HQBRSource(
         }
     }
 
-    override fun parseAllComicsByLetterByElement(element: Element): ComicViewModel {
+    override fun parseAllComicsByLetterByElement(element: Element): ComicViewModel? {
         var title: String = ""
         var status: String = ""
         var link: String = ""
@@ -164,7 +170,15 @@ class HQBRSource(
         }
     }
 
-    override fun parseSearchByQueryByElement(element: Element): ComicViewModel {
+    override fun parseAllComicsByPublisherByElement(element: Element): ComicViewModel? {
+        return parseAllComicsByLetterByElement(element)
+    }
+
+    override fun parseSearchByQueryByElement(element: Element): ComicViewModel? {
+        return parseAllComicsByLetterByElement(element)
+    }
+
+    override fun parseAllComicsByGenreByElement(element: Element): ComicViewModel? {
         return parseAllComicsByLetterByElement(element)
     }
 

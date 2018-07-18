@@ -14,11 +14,16 @@ open class SourceDB: ISource,  RealmObject() {
     override var baseUrl: String = ""
     override var language: String = ""
 
-    override var hasPageSupport: Boolean = false
     override var hasThumbnailSupport: Boolean = false
 
     override var lastPopularUpdate: String? = null
     override var lastLastestUpdate: String? = null
+
+    override var hasInAllPageSupport: Boolean = false
+    override var hasInPublisherPageSupport: Boolean = false
+    override var hasInScanlatorPageSupport: Boolean = false
+    override var hasInGenresPageSupport: Boolean = false
+
 
     fun create(): SourceDB {
         return SourceDB().apply {

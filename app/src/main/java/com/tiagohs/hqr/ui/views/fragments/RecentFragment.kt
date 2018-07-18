@@ -13,7 +13,7 @@ import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListAdapter
 import com.tiagohs.hqr.ui.adapters.comics_details.ComicDetailsListItem
 import com.tiagohs.hqr.ui.callbacks.IComicDetailsListCallback
 import com.tiagohs.hqr.ui.contracts.RecentContract
-import com.tiagohs.hqr.ui.views.activities.ReaderActivity
+import com.tiagohs.hqr.ui.views.activities.ComicDetailsActivity
 import com.tiagohs.hqr.ui.views.config.BaseFragment
 import kotlinx.android.synthetic.main.fragment_recent.*
 import javax.inject.Inject
@@ -129,7 +129,7 @@ class RecentFragment: BaseFragment(), RecentContract.IRecentView, IComicDetailsL
 
     override fun onItemClick(view: View?, position: Int): Boolean {
         val historyItem = adapter?.getItem(position) ?: return false
-        startActivity(ReaderActivity.newIntent(context, historyItem.getLastChapterReaded()?.chapterPath!!, historyItem.comic.pathLink!!))
+        startActivity(ComicDetailsActivity.newIntent(context, historyItem.comic.pathLink!!, historyItem.comic.source?.id!!))
 
         return true
     }

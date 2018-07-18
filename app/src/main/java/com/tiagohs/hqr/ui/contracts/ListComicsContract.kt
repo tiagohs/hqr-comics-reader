@@ -21,7 +21,7 @@ class ListComicsContract {
         fun hasMoreComics(): Boolean
         fun hasPagesSupport(): Boolean
         fun getOriginalList(): List<ComicViewModel>
-        fun onGetMoreComics()
+        fun onGetMoreComics(flag: String)
 
         fun addOrRemoveFromFavorite(comic: ComicViewModel)
     }

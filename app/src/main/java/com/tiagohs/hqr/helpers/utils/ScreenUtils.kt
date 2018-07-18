@@ -31,19 +31,19 @@ class ScreenUtils {
             }
         }
 
-        fun generateMaterialColorBackground(context: Context?, text: String, imageView: ImageView) : TextDrawable {
+        fun generateMaterialColorBackground(context: Context?, text: String?, imageView: ImageView) : TextDrawable {
             val generator = ColorGenerator.MATERIAL
 
             if (!text.isNullOrEmpty()) {
                 return TextDrawable.builder()
                         .beginConfig()
                         .endConfig()
-                        .buildRound(text.elementAt(0).toString(), generator.getRandomColor());
+                        .buildRound(text?.elementAt(0).toString().toUpperCase(), generator.getRandomColor());
             } else {
                 return TextDrawable.builder()
                         .beginConfig()
                         .endConfig()
-                        .buildRound(text, generator.getRandomColor());
+                        .buildRound("A", generator.getRandomColor());
             }
         }
 
@@ -78,11 +78,11 @@ class ScreenUtils {
         fun getStatusConstant(status: String?): String? {
 
             if (status != null) {
-                if (status.contains("Concluído") or status.contains("Completed") or status.contains(COMPLETED)) {
+                if (status.toLowerCase().contains("concluído") or status.contains("completed") or status.contains(COMPLETED)) {
                     return COMPLETED
-                } else if (status.contains("Em Andamento") or status.contains("Ongoing") or status.contains(ONGOING)) {
+                } else if (status.toLowerCase().contains("em andamento") or status.contains("ongoing") or status.contains(ONGOING)) {
                     return ONGOING
-                } else if (status.contains("Cancelado") or status.contains("Canceled") or status.contains(CANCELED)) {
+                } else if (status.toLowerCase().contains("cancelado") or status.contains("canceled") or status.contains(CANCELED)) {
                     return CANCELED
                 }
             }

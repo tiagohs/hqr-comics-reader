@@ -31,11 +31,13 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
 
     companion object {
         const val COMIC_LINK = "comic_link"
+        const val SOURCE_ID = "SOURCE_ID"
 
-        fun newIntent(context: Context?, comicLink: String): Intent {
+        fun newIntent(context: Context?, comicLink: String, sourceId: Long): Intent {
             val intent: Intent = Intent(context, ComicDetailsActivity::class.java)
 
             intent.putExtra(COMIC_LINK, comicLink)
+            intent.putExtra(SOURCE_ID, sourceId)
 
             return intent
         }
@@ -70,9 +72,10 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         shimmer.startShimmerAnimation()
 
         val comicLink = intent.getStringExtra(COMIC_LINK) ?: ""
+        val sourceId = intent.getLongExtra(SOURCE_ID, 1L)
 
         if (comicLink.isNotEmpty()) {
-            presenter.onGetComicData(comicLink)
+            presenter.onGetComicData(comicLink, sourceId)
         }
     }
 
@@ -186,19 +189,19 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
         readBtn.startAnimation(AnimationUtils.loadAnimation(this, com.github.clans.fab.R.anim.fab_scale_up))
 
         readBtn.text = if (history != null)
-            "Continuar"
+            getString(R.string.resume)
         else
-            "Ler"
+            getString(R.string.read)
 
         readBtn.setOnClickListener {
 
             if (history != null) {
-                startActivity(ReaderActivity.newIntent(this, history.chapter?.chapterPath!!, comic.pathLink!!))
+                startActivity(ReaderActivity.newIntent(this, history.chapter?.chapterPath!!, comic.pathLink!!, comic.source?.id!!))
             } else {
                 val chapter = comic.chapters?.last()
 
                 if (chapter != null) {
-                    startActivity(ReaderActivity.newIntent(this, chapter.chapterPath!!, comic.pathLink!!))
+                    startActivity(ReaderActivity.newIntent(this, chapter.chapterPath!!, comic.pathLink!!, comic.source?.id!!))
                 }
             }
         }

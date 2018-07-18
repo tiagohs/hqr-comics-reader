@@ -23,8 +23,8 @@ class ComicDetailsPresenter(
 
     private var history: ComicHistoryViewModel? = null
 
-    override fun onGetComicData(comicPath: String) {
-        mSubscribers.add(interceptor.onGetComicData(comicPath)
+    override fun onGetComicData(comicPath: String, sourceId: Long) {
+        mSubscribers.add(interceptor.onGetComicData(comicPath, sourceId)
                 .doOnNext { this.history = historyRepository.findByComicIdRealm(it!!.id) }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(

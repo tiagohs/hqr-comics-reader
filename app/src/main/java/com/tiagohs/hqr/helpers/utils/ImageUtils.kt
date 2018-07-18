@@ -37,7 +37,7 @@ class ImageUtils {
             val loader = Picasso.get()
             var request: RequestCreator? = null
 
-            if (url != null)
+            if (!url.isNullOrEmpty())
                 request = loader.load(url)
 
             if (skipCache)
@@ -55,7 +55,7 @@ class ImageUtils {
             val loader = Picasso.get()
             var request: RequestCreator? = null
 
-            if (url != null)
+            if (!url.isNullOrEmpty())
                 request = loader.load(url)
 
             if (placeholderPath != null)
@@ -110,7 +110,7 @@ class ImageUtils {
             val loader = Picasso.get()
             var request: RequestCreator? = null
 
-            if (url != null)
+            if (!url.isNullOrEmpty())
                 request = loader.load(url)
 
             if (placeholderPath != null)
@@ -133,7 +133,7 @@ class ImageUtils {
             val loader = Picasso.get()
             var request: RequestCreator? = null
 
-            if (url != null)
+            if (!url.isNullOrEmpty())
                 request = loader.load(url)
 
             if (placeholderPath != null)
@@ -153,7 +153,7 @@ class ImageUtils {
             val loader = Picasso.get()
             var request: RequestCreator? = null
 
-            if (url != null)
+            if (!url.isNullOrEmpty())
                 request = loader.load(url)
 
             if (errorPath != null)

@@ -14,7 +14,9 @@ The HQR is a free application for reading comics online, with the best user expe
 - Load images quickly;
 - Stop and read from were you stop;
 
-### DOWNLOAD: <a href="https://github.com/tiagohs/hqr-comics-reader/raw/master/app/apk/release/app-release.apk">Click Here</a>
+### DOWNLOAD: 
+
+Get the app from our <a href="https://github.com/tiagohs/hqr-comics-reader/releases">releases</a> page.
 
 ### SOURCES:
 

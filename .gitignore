@@ -7,4 +7,6 @@
 .DS_Store
 /build
 /captures
+/keystore
 .externalNativeBuild
+ids.txt

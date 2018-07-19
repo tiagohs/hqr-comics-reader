@@ -17,7 +17,7 @@ android {
         applicationId "com.tiagohs.hqr"
         minSdkVersion 17
         targetSdkVersion 27
-        versionCode 4
+        versionCode 7
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -32,8 +32,13 @@ android {
         release {
             multiDexEnabled true
             minifyEnabled false
+            multiDexKeepProguard file('multidex-config.pro')
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+
+    dexOptions {
+        preDexLibraries = false
     }
 }
 

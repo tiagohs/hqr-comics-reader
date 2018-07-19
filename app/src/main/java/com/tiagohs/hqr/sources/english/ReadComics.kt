@@ -12,6 +12,7 @@ import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.sources.ParserHttpSource
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import timber.log.Timber
 import java.util.*
@@ -214,57 +215,68 @@ class ReadComics(
         return parseSearchByQueryByElement(element)
     }
 
-    override fun parseComicDetailsResponse(response: Response, comicPath: String): ComicViewModel {
-        val document = response.asJsoup()
-        val content = document.select("#primary #content .region-content .content").first()
+    override fun parseComicDetailsResponse(response: Response, comicPath: String): ComicViewModel? {
+        
+        var document: Document? = null
+        try {
+            document = response.asJsoup()
+        } catch(ex: Exception) {
+            Timber.e(ex)
+        }
+        
+        if (document != null) {
+            val content = document.select("#primary #content .region-content .content").first()
 
-        val posterPath = content.select(".field-name-body .pic img").first()?.attr("src")
-        val summary = content.select(".field-name-body .summary").first()?.text()
+            val posterPath = content.select(".field-name-body .pic img").first()?.attr("src")
+            val summary = content.select(".field-name-body .summary").first()?.text()
 
-        var name: String? = ""
-        var publicationDate: String? = ""
-        var status: String? = ""
+            var name: String? = ""
+            var publicationDate: String? = ""
+            var status: String? = ""
 
-        content.select(".field-name-body .info").forEach { element: Element? ->
-            val title = element?.text() ?: ""
+            content.select(".field-name-body .info").forEach { element: Element? ->
+                val title = element?.text() ?: ""
 
-            if (title.contains("Comic Title")) {
-                name = element?.text()
-            } else if (title.contains("Publication Run")) {
-                publicationDate = element?.text()
-            } else if (title.contains("Status")) {
-                status = element?.text()
+                if (title.contains("Comic Title")) {
+                    name = element?.text()
+                } else if (title.contains("Publication Run")) {
+                    publicationDate = element?.text()
+                } else if (title.contains("Status")) {
+                    status = element?.text()
+                }
+            }
+
+            val genres: ArrayList<DefaultModelView> = ArrayList()
+            content.select(".field-name-field-genres .field-item").forEach { element: Element ->
+                genres.add(parseSimpleItemByElement(element.select("a").first(), DefaultModel.GENRE))
+            }
+
+            val publishers: ArrayList<DefaultModelView> = ArrayList()
+            content.select(".field-name-field-publisher .field-item").forEach { element: Element ->
+                publishers.add(parseSimpleItemByElement(element.select("a").first(), DefaultModel.GENRE))
+            }
+
+            val chapters: ArrayList<ChapterViewModel> = ArrayList()
+            content.select("#chapterlist .chapter").forEach { element: Element ->
+                chapters.add(parseChapterByElement(element.select("a").first(), DefaultModel.GENRE))
+            }
+
+            return ComicViewModel().apply {
+                this.pathLink = comicPath
+                this.posterPath = "https://readcomicbooksonline.org${posterPath}"
+                this.name = name?.replace("Comic Title: ", "")
+                this.publicationDate = publicationDate
+                this.status = ScreenUtils.getStatusConstant(status)
+                this.summary = summary
+                this.publisher = publishers
+                this.chapters = chapters
+                this.genres = genres
+
+                this.inicialized = true
             }
         }
-
-        val genres: ArrayList<DefaultModelView> = ArrayList()
-        content.select(".field-name-field-genres .field-item").forEach { element: Element ->
-            genres.add(parseSimpleItemByElement(element.select("a").first(), DefaultModel.GENRE))
-        }
-
-        val publishers: ArrayList<DefaultModelView> = ArrayList()
-        content.select(".field-name-field-publisher .field-item").forEach { element: Element ->
-            publishers.add(parseSimpleItemByElement(element.select("a").first(), DefaultModel.GENRE))
-        }
-
-        val chapters: ArrayList<ChapterViewModel> = ArrayList()
-        content.select("#chapterlist .chapter").forEach { element: Element ->
-            chapters.add(parseChapterByElement(element.select("a").first(), DefaultModel.GENRE))
-        }
-
-        return ComicViewModel().apply {
-            this.pathLink = comicPath
-            this.posterPath = "https://readcomicbooksonline.org${posterPath}"
-            this.name = name?.replace("Comic Title: ", "")
-            this.publicationDate = publicationDate
-            this.status = ScreenUtils.getStatusConstant(status)
-            this.summary = summary
-            this.publisher = publishers
-            this.chapters = chapters
-            this.genres = genres
-
-            this.inicialized = true
-        }
+        
+        return null
     }
 
     override fun parseReaderResponse(response: Response, chapterPath: String?): ChapterViewModel {

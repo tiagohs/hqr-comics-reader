@@ -24,10 +24,12 @@ class DownloadManagerPresenter(
 
 
     override fun onUnbindView() {
-        super.onUnbindView()
-
-        progressSubscribes.forEach { download, disposable -> disposable.dispose() }
+        progressSubscribes.forEach {
+            (download, disposable) ->
+                disposable.dispose() }
         progressSubscribes.clear()
+
+        super.onUnbindView()
     }
 
     override fun onCreate() {

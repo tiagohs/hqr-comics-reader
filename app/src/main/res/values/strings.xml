@@ -17,7 +17,7 @@
     <!-- DEV
     <string name="app_ad_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>-->
 
-    <!-- PRODUCTION -->
+    <!-- PRODUCTION-->
     <string name="app_ad_id" translatable="false">ca-app-pub-5405332351907920/3139650922</string>
 
     <string name="app_name">HQR</string>
@@ -140,6 +140,7 @@
     <string name="tab_favorite">Favorites</string>
     <string name="tab_downloads">Downloads</string>
     <string name="chapter_not_available">This chapter is not yet available. Please back often for updates.</string>
+    <string name="comic_not_available">This comic dont have any chapter to read.</string>
 
     <string-array name="pref_languages_keys">
         <item>en</item>

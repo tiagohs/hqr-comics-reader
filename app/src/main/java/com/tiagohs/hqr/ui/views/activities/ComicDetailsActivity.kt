@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.MenuItem
 import android.view.View
 import android.view.animation.AnimationUtils
+import com.afollestad.materialdialogs.MaterialDialog
 import com.squareup.picasso.Callback
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.AppBarMovieListener
@@ -194,15 +195,32 @@ class ComicDetailsActivity: BaseActivity(), ComicDetailsContract.IComicDetailsVi
             if (history != null) {
                 startActivity(ReaderActivity.newIntent(this, history.chapter?.chapterPath!!, comic.pathLink!!, comic.source?.id!!))
             } else {
-                val chapter = comic.chapters?.last()
 
-                if (chapter != null) {
-                    startActivity(ReaderActivity.newIntent(this, chapter.chapterPath!!, comic.pathLink!!, comic.source?.id!!))
+                if (comic.chapters != null) {
+                    if (comic.chapters!!.isNotEmpty()) {
+                        val chapter = comic.chapters?.last()
+
+                        if (chapter != null) {
+                            startActivity(ReaderActivity.newIntent(this, chapter.chapterPath!!, comic.pathLink!!, comic.source?.id!!))
+                        }
+                    } else {
+                        showNotChapterAvailableMessage()
+                    }
+                } else {
+                    showNotChapterAvailableMessage()
                 }
             }
         }
 
         onConfigureFavoriteBtn(comic)
+    }
+
+    private fun showNotChapterAvailableMessage() {
+        MaterialDialog.Builder(this)
+                .content(R.string.comic_not_available)
+                .positiveText(android.R.string.yes)
+                .build()
+                .show()
     }
 
     override fun onConfigureFavoriteBtn(comic: ComicViewModel) {

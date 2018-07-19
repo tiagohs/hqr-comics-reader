@@ -13,6 +13,7 @@ import com.tiagohs.hqr.dragger.components.DaggerHQRComponent
 import com.tiagohs.hqr.dragger.components.HQRComponent
 import com.tiagohs.hqr.dragger.modules.AppModule
 import com.tiagohs.hqr.models.database.CatalogueSource
+import com.tiagohs.hqr.notification.Notifications
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider
 import io.fabric.sdk.android.Fabric
 import io.realm.Realm
@@ -29,6 +30,7 @@ class App : Application() {
 
         onConfigureDagger()
         onConfigureRealm()
+        setupNotificationChannels()
         // onConfigurePicasso()
 
         instance = this
@@ -90,6 +92,12 @@ class App : Application() {
     fun getHQRComponent(): HQRComponent? {
         return mHQRComponent
     }
+
+
+    protected open fun setupNotificationChannels() {
+        Notifications.createChannels(this)
+    }
+
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)

@@ -23,7 +23,7 @@ interface IHttpSource {
     fun fetchPopularComics(): Observable<List<ComicViewModel>>
 
     fun fetchReaderComics(hqReaderPath: String): Observable<ChapterViewModel>
-    fun fetchComicDetails(comicPath: String): Observable<ComicViewModel>
+    fun fetchComicDetails(comicPath: String): Observable<ComicViewModel?>
 
     fun fetchAllComicsByLetter(letter: String): Observable<List<ComicViewModel>>
     fun fetchAllComicsByPublisher(publisherPath: String, page: Int): Observable<List<ComicViewModel>>

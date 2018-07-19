@@ -120,4 +120,5 @@
     <string name="persmission_needed_never_ask_content">Precisamos de sua autorização de Escrita para que a funcionalidade de Download funcione no App! Vá em Configurações/Aplicativos/HQR/Permissões e ative Armanezamento. </string>
     <string name="download_queue_error">Um erro ocorreu durante o download do capítulo. Por favor, tente novamente.</string>
     <string name="chapter_not_available">Esse capítulo não está dísponível. Por favor tente novamente ou contate a Fonte.</string>
+    <string name="comic_not_available">Essa HQ não possui nenhum capítulo dísponivel.</string>
 </resources>

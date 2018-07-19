@@ -63,9 +63,9 @@ class DownloadManagerFragment: BaseFragment(), DownloadManagerContract.IDownload
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-
         presenter.onUnbindView()
+
+        super.onDestroyView()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater?) {

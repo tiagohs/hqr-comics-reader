@@ -12,7 +12,9 @@ import com.tiagohs.hqr.models.view_models.DefaultModelView
 import com.tiagohs.hqr.sources.ParserHttpSource
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import timber.log.Timber
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.ArrayList
@@ -204,66 +206,84 @@ class HQBRSource(
     }
 
     override fun pageListParse(response: Response, chapterPath: String?): List<Page> {
-        val document = response.asJsoup()
-        val script = document.select("#chapter_pages script").first() // Get the script part
-
-        val p = Pattern.compile("pages = \\[((.*))\\]") // Regex for the value of the html
-        val m = p.matcher(script.html())
-
+        var document: Document? = null
         val pages: ArrayList<Page> = ArrayList()
+        try {
+            document = response.asJsoup()
+        } catch(ex: Exception) {
+            Timber.e(ex)
+        }
+        
+        if (document != null) {
+            
+            val script = document.select("#chapter_pages script").first() // Get the script part
 
-        while( m.find() )
-        {
-            val imagesUrl = m.group(1).replace("\"", "").split(",")
+            val p = Pattern.compile("pages = \\[((.*))\\]") // Regex for the value of the html
+            val m = p.matcher(script.html())
 
-            imagesUrl.forEach { imageUrl: String ->
-                pages.add(Page(pages.size, chapterPath!!, "$baseUrl$imageUrl"))
+            while( m.find() )
+            {
+                val imagesUrl = m.group(1).replace("\"", "").split(",")
+
+                imagesUrl.forEach { imageUrl: String ->
+                    pages.add(Page(pages.size, chapterPath!!, "$baseUrl$imageUrl"))
+                }
+
             }
-
         }
 
         return pages
     }
 
-    override fun parseComicDetailsResponse(response: Response, comicPath: String): ComicViewModel {
-        val document = response.asJsoup()
+    override fun parseComicDetailsResponse(response: Response, comicPath: String): ComicViewModel? {
 
-        val title = document.select(".container div h2").first()?.text()
-        val posterPath = document.select(".container blockquote imgLeft img").first()?.attr("src")
+        var document: Document? = null
+        try {
+            document = response.asJsoup()
+        } catch(ex: Exception) {
+            Timber.e(ex)
+        }
+        
+        if (document != null) {
+            val title = document.select(".container div h2").first()?.text()
+            val posterPath = document.select(".container blockquote imgLeft img").first()?.attr("src")
 
-        var status: String = ""
-        var publisher: List<DefaultModelView> = ArrayList()
-        var scanlators: List<DefaultModelView> = ArrayList()
-        document.select(".container div").forEach { element: Element? ->
-            if (element!!.text().contains("Status")) {
-                status = element.select("span").text()
-            } else if (element.text().contains("Editora")) {
-                publisher = element.select("a").map { element -> parseSimpleItemByElement(element, DefaultModel.PUBLISHER) }
-            } else if (element.text().contains("Equipe responsável")) {
-                scanlators = element.select("a").map { element -> parseSimpleItemByElement(element, DefaultModel.SCANLATOR) }
+            var status: String = ""
+            var publisher: List<DefaultModelView> = ArrayList()
+            var scanlators: List<DefaultModelView> = ArrayList()
+            document.select(".container div").forEach { element: Element? ->
+                if (element!!.text().contains("Status")) {
+                    status = element.select("span").text()
+                } else if (element.text().contains("Editora")) {
+                    publisher = element.select("a").map { element -> parseSimpleItemByElement(element, DefaultModel.PUBLISHER) }
+                } else if (element.text().contains("Equipe responsável")) {
+                    scanlators = element.select("a").map { element -> parseSimpleItemByElement(element, DefaultModel.SCANLATOR) }
+                }
+            }
+
+            val summary = document.select(".container blockquote").first()?.text()
+
+            var chapters: List<ChapterViewModel> = ArrayList()
+            var i = 0
+            chapters = document.select(".container table tbody tr").map { element ->
+                parseChapterItemByElement("td a", element, title, i++)
+            }
+
+            return ComicViewModel().apply {
+                this.pathLink = comicPath
+                this.posterPath = "$baseUrl${posterPath}"
+                this.name = title
+                this.status = ScreenUtils.getStatusConstant(status)
+                this.summary = summary
+                this.publisher = publisher
+                this.chapters = chapters
+                this.scanlators = scanlators
+
+                this.inicialized = true
             }
         }
 
-        val summary = document.select(".container blockquote").first()?.text()
-
-        var chapters: List<ChapterViewModel> = ArrayList()
-        var i = 0
-        chapters = document.select(".container table tbody tr").map { element ->
-            parseChapterItemByElement("td a", element, title, i++)
-        }
-
-        return ComicViewModel().apply {
-            this.pathLink = comicPath
-            this.posterPath = "$baseUrl${posterPath}"
-            this.name = title
-            this.status = ScreenUtils.getStatusConstant(status)
-            this.summary = summary
-            this.publisher = publisher
-            this.chapters = chapters
-            this.scanlators = scanlators
-
-            this.inicialized = true
-        }
+        return null
     }
 
     fun parseSimpleItemByElement(selector: String, element: Element, type: String): DefaultModelView {

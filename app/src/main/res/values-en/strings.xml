@@ -130,4 +130,5 @@
         <item quantity="other">Are you sure you want to delete selected chapters?</item>
     </plurals>
     <string name="chapter_not_available">This chapter is not yet available. Please back often for updates.</string>
+    <string name="comic_not_available">This comic dont have any chapter to read.</string>
 </resources>

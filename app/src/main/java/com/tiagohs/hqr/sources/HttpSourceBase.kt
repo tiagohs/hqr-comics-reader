@@ -63,14 +63,14 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseReaderResponse(response: Response, chapterPath: String?) : ChapterViewModel
 
-    override fun fetchComicDetails(comicPath: String): Observable<ComicViewModel> {
+    override fun fetchComicDetails(comicPath: String): Observable<ComicViewModel?> {
         return fetch(GET(getComicDetailsEndpoint(comicPath), headersBuilder().build()))
                 .map({ response: Response -> parseComicDetailsResponse(response, comicPath) })
     }
 
     abstract protected fun getComicDetailsEndpoint(comicPath: String): String
 
-    abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : ComicViewModel
+    abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : ComicViewModel?
 
     override fun fetchAllComicsByLetter(letter: String): Observable<List<ComicViewModel>> {
         return fetch(GET(getAllComicsByLetterEndpoint(letter), headersBuilder().build()))

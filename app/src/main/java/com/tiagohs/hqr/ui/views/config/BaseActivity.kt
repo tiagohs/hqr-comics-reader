@@ -21,6 +21,8 @@ import com.tiagohs.hqr.ui.views.IActivityCallbacks
 import com.tiagohs.hqr.ui.views.activities.SettingsActivity
 import kotlinx.android.synthetic.main.activity_root.*
 
+
+
 abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
 
     var snack: Snackbar? = null
@@ -139,7 +141,7 @@ abstract class BaseActivity : AppCompatActivity(), IActivityCallbacks {
                 }
             }
         } else {
-            toast(finalMessage)
+            runOnUiThread(Runnable { toast(finalMessage) })
         }
     }
 

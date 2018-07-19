@@ -5,8 +5,8 @@
 /.idea/modules.xml
 /.idea/workspace.xml
 .DS_Store
+/keystore
 /build
 /captures
-/keystore
 .externalNativeBuild
 ids.txt

@@ -20,10 +20,3 @@ android:
   - sys-img-${ANDROID_ABI}-${ANDROID_TARGET}
 script:
 - chmod +x gradlew
-deploy:
-  provider: releases
-  api_key:
-    secure: lOSNYIVy53oaf6jN/s37SoqyHrzoDFFrEty204myIR5XoBx4zxeVY9H9GYSyD27Ywp0foErhFHIuoggPahU9EMJkPsNSm5Uatl7A/MqOdn1kkINoHxPcLOpfSkA8IntA6ZaP791uh+PJK9aCuvit4GEA7xzU4pWW7dRhNfyjVaeQwcNsGqeaCHIhL1TY99xruzUH8ua/Qa82A+oLQmZMqstTjeFP942LXA4egsWEvsPNqSkUqjjxc7Ku7cgILSkG5vA6i3rMWCUO4rO2wtB2bwk5fzPaCtweYt4TP5IutRI55V/3NMz6CESCUXmoKIBR5ympHHhcXJSZCTtMxF0MaBML64h2RSi3v1IIvYuVCqeun5Qt9ET/8g45mpuR6GDc6VhGizQku15M6G4cmcQEP3g0dEiSTRyWtr4Tv/4LBom8WLzBfHLL4UcL7yU46MScA70v3svb8DAbTIHmhBoNnsolIUs7KNXI9dtKEmc1NyQHO/ijWqTaWEEByyhF5nUG56hJeahT/+FcmZdYhajIrKWZAA+DAOXyo0nRgLXgTxzrffs2HS9LCnxxd1072GeVB+1GKKpY3Vyc+5us8rxSfe9AsnIsqF1RBjeiW/oUyJiGWFfpjw6FMQwzM/y/XneMLj8orsDZX8PvYpvyfZJaXnb1GrrJ1/pj6UXprZiihpg=
-  file: app-release.apk
-  on:
-    repo: tiagohs/hqr-comics-reader

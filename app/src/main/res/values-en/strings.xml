@@ -131,4 +131,8 @@
     </plurals>
     <string name="chapter_not_available">This chapter is not yet available. Please back often for updates.</string>
     <string name="comic_not_available">This comic dont have any chapter to read.</string>
+    <string name="no_updates">No new updates available</string>
+    <string name="checking_updates">Checking for new Updates&#8230;</string>
+    <string name="title_check_update_automatic">Check for updates</string>
+    <string name="check_update_automatic">Automatically check for application updates</string>
 </resources>

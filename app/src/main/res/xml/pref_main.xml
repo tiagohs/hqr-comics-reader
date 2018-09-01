@@ -8,6 +8,12 @@
             android:summary="@string/summary_update_hqs_in_progress"
             android:title="@string/title_update_hqs_in_progress" />
 
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/auto_updates_key"
+            android:summary="@string/auto_updates_summary"
+            android:title="@string/auto_updates_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -36,7 +42,14 @@
             android:selectable="false"
             android:summary="@string/summary_about" />
 
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/key_check_update_automatic"
+            android:summary="@string/check_update_automatic"
+            android:title="@string/title_check_update_automatic" />
+
         <Preference
+            android:key="@string/key_update_version"
             android:summary="@string/app_version"
             android:title="@string/title_version" />
 
@@ -47,4 +60,6 @@
         </Preference>
 
     </PreferenceCategory>
+
+
 </PreferenceScreen>

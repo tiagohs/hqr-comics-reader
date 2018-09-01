@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.helpers.extensions
 
+import com.tiagohs.hqr.helpers.tools.ProgressListener
 import io.reactivex.Observable
 import okhttp3.*
 import okio.*
@@ -49,10 +50,6 @@ fun OkHttpClient.newCallWithProgress(request: Request, listener: ProgressListene
             .build()
 
     return progressClient.newCall(request)
-}
-
-interface ProgressListener {
-    fun update(bytesRead: Long, contentLength: Long, done: Boolean)
 }
 
 class ProgressResponseBody(private val responseBody: ResponseBody, private val progressListener: ProgressListener) : ResponseBody() {

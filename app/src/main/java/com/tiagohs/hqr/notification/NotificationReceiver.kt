@@ -46,6 +46,14 @@ class NotificationReceiver: BroadcastReceiver() {
             return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
         }
 
+        fun dismissNotificationPendingBroadcast(context: Context, notificationId: Int): PendingIntent {
+            val intent = Intent(context, NotificationReceiver::class.java).apply {
+                action = ACTION_DISMISS_NOTIFICATION
+                putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+            }
+            return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
         private fun createNotificationPendingBroadcast(context: Context, notificationAction: String): PendingIntent {
             val intent = Intent(context, NotificationReceiver::class.java).apply {
                 action = notificationAction

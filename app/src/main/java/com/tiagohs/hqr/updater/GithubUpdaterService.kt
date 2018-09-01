@@ -13,11 +13,11 @@ interface GithubUpdaterService {
     companion object {
         const val BASE_GITHUB_API_URL = "https://api.github.com";
 
-        fun create(client: OkHttpClient, factory: RxJava2CallAdapterFactory): GithubUpdaterService {
+        fun create(client: OkHttpClient): GithubUpdaterService {
             val retrofit = Retrofit.Builder()
                     .baseUrl(BASE_GITHUB_API_URL)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(factory)
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .client(client)
                     .build()
 

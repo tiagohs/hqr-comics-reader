@@ -6,6 +6,8 @@ import com.tiagohs.hqr.notification.NotificationReceiver
 import com.tiagohs.hqr.ui.adapters.SourceSection
 import com.tiagohs.hqr.ui.views.activities.*
 import com.tiagohs.hqr.ui.views.fragments.*
+import com.tiagohs.hqr.updater.UpdaterJob
+import com.tiagohs.hqr.updater.UpdaterService
 import dagger.Component
 import javax.inject.Singleton
 
@@ -36,7 +38,9 @@ interface HQRComponent {
     fun inject(settingsMainFragment: SettingsMainFragment)
     fun inject(comicChaptersFragment: ComicChaptersFragment)
     fun inject(downloadManagerFragment: DownloadManagerFragment)
+    fun inject(updaterJob: UpdaterJob)
 
+    fun inject(updaterService: UpdaterService)
     fun inject(downloaderService: DownloaderService)
     fun inject(sourceSection: SourceSection)
     fun inject(favoritesFragment: FavoritesFragment)

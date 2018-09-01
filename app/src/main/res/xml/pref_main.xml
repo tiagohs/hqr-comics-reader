@@ -8,6 +8,12 @@
             android:summary="@string/summary_update_hqs_in_progress"
             android:title="@string/title_update_hqs_in_progress" />
 
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/auto_updates_key"
+            android:summary="@string/auto_updates_summary"
+            android:title="@string/auto_updates_title" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -54,4 +60,6 @@
         </Preference>
 
     </PreferenceCategory>
+
+
 </PreferenceScreen>

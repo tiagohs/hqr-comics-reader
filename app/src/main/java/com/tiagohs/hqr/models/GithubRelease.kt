@@ -8,7 +8,7 @@ class GithubRelease(
         @SerializedName("assets") val assets: List<Assets>
 ) {
 
-    val downloadLink = assets[0].downloadLink
+    var downloadLink = assets[0].downloadLink
 
     inner class Assets(@SerializedName("browser_download_url") val downloadLink: String)
 }

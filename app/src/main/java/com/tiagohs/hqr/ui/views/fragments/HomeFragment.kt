@@ -88,7 +88,6 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
 
         changeSource.setOnClickListener({ goToSources() })
 
-        showAd(adView)
     }
 
     override fun onError(ex: Throwable, message: Int, withAction: Boolean) {

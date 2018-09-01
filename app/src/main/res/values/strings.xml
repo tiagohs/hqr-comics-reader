@@ -121,7 +121,7 @@
     <string name="home_title">Home</string>
     <string name="lirarie_title">My Librarie</string>
     <string name="recents_title">Recent</string>
-    <string name="unknown_error">>An error occurred, please try again.</string>
+    <string name="unknown_error">An error occurred, please try again.</string>
     <string name="clear_storage_content">Are you sure? this will delete all your downloaded comics.</string>
     <string name="clear_cache_storage_content">Are you sure?</string>
     <string name="nav_go_to_site">Open site</string>
@@ -143,6 +143,18 @@
     <string name="check_update_automatic">Automatically check for application updates</string>
     <string name="checking_updates">Checking for new Updates&#8230;</string>
     <string name="no_updates">No new updates available</string>
+    <string name="updater_notification_download_started">Download in progress..</string>
+    <string name="updater_notification_download_finished">Download finished</string>
+    <string name="updater_notification_download_error">Error during the download</string>
+    <string name="action_install">Install</string>
+    <string name="action_cancel">Clear</string>
+    <string name="updater_notification_download_available">New Update Available!</string>
+    <string name="auto_updates_key">auto_updates_key</string>
+    <string name="auto_updates_title">Check for updates</string>
+    <string name="auto_updates_summary">Check automatically for updates</string>
+    <string name="check_new_update_avalible">New Update Available!</string>
+    <string name="download">Download</string>
+    <string name="ignore">Ignore</string>
 
     <string-array name="pref_languages_keys">
         <item>en</item>

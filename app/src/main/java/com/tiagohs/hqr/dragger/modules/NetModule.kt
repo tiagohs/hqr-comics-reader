@@ -39,7 +39,7 @@ class NetModule {
 
     @Provides
     internal fun provideGithubUpdaterService(client: OkHttpClient, factory: RxJava2CallAdapterFactory): GithubUpdaterService {
-        return GithubUpdaterService.create(client, factory)
+        return GithubUpdaterService.create(client)
     }
 
     @Provides

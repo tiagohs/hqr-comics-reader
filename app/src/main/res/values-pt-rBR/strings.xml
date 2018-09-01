@@ -125,4 +125,15 @@
     <string name="check_update_automatic">Procurar por atualizações automaticamente</string>
     <string name="checking_updates">Procurando por atualizações&#8230;</string>
     <string name="no_updates">Sem atualizações disponíveis</string>
+    <string name="updater_notification_download_started">Download em progresso..</string>
+    <string name="updater_notification_download_finished">Download finalizado</string>
+    <string name="updater_notification_download_error">Erro durante o download</string>
+    <string name="action_install">Instalar</string>
+    <string name="action_cancel">Limpar</string>
+    <string name="updater_notification_download_available">Nova atualização dísponivel!</string>
+    <string name="auto_updates_title">Procurar por atualizações</string>
+    <string name="auto_updates_summary">Procurar por atualizações automaticamente</string>
+    <string name="download">Download</string>
+    <string name="check_new_update_avalible">Nova atualização disponível!</string>
+    <string name="ignore">Ignorar</string>
 </resources>

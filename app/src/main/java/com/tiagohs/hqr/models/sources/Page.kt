@@ -3,7 +3,7 @@ package com.tiagohs.hqr.models.sources
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
-import com.tiagohs.hqr.helpers.extensions.ProgressListener
+import com.tiagohs.hqr.helpers.tools.ProgressListener
 import com.tiagohs.hqr.models.database.comics.Chapter
 import io.reactivex.subjects.PublishSubject
 

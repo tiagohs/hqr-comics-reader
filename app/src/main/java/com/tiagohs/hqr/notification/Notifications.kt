@@ -13,6 +13,11 @@ object Notifications {
     const val ID_DOWNLOAD_CHAPTER = 201
     const val ID_DOWNLOAD_CHAPTER_ERROR = 202
 
+    const val CHANNEL_UPDATER = "updater_channel"
+    const val ID_UPDATER = 1
+
+    const val CHANNEL_COMMON = "common_channel"
+
     fun createChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 

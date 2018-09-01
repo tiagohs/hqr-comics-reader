@@ -1,8 +1,9 @@
 package com.tiagohs.hqr.dragger.modules
 
 import android.app.Application
-import com.tiagohs.hqr.dragger.scopes.PerFragment
 import com.tiagohs.hqr.helpers.tools.CallInterceptor
+import com.tiagohs.hqr.updater.GithubUpdaterChecker
+import com.tiagohs.hqr.updater.GithubUpdaterService
 import dagger.Module
 import dagger.Provides
 import okhttp3.Cache
@@ -31,10 +32,18 @@ class NetModule {
                 .build()
     }
 
-    @PerFragment
     @Provides
     internal fun providesRxJava2CallAdapterFactory(): RxJava2CallAdapterFactory {
         return RxJava2CallAdapterFactory.create()
     }
 
+    @Provides
+    internal fun provideGithubUpdaterService(client: OkHttpClient, factory: RxJava2CallAdapterFactory): GithubUpdaterService {
+        return GithubUpdaterService.create(client)
+    }
+
+    @Provides
+    internal fun provideGithubUpdaterChecker(service: GithubUpdaterService): GithubUpdaterChecker {
+        return GithubUpdaterChecker(service)
+    }
 }

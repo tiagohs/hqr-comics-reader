@@ -5,10 +5,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.preference.Preference
 import android.preference.PreferenceFragment
+import android.preference.SwitchPreference
 import android.support.customtabs.CustomTabsIntent
 import android.text.format.Formatter
 import com.afollestad.materialdialogs.MaterialDialog
 import com.tiagohs.hqr.App
+import com.tiagohs.hqr.BuildConfig
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.download.DownloadProvider
 import com.tiagohs.hqr.dragger.components.HQRComponent
@@ -18,6 +20,12 @@ import com.tiagohs.hqr.helpers.extensions.toast
 import com.tiagohs.hqr.helpers.tools.PreferenceHelper
 import com.tiagohs.hqr.helpers.utils.DiskUtils
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
+import com.tiagohs.hqr.updater.GithubUpdaterChecker
+import com.tiagohs.hqr.updater.GithubVersionResults
+import com.tiagohs.hqr.updater.UpdaterJob
+import com.tiagohs.hqr.updater.UpdaterService
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
 class SettingsMainFragment: PreferenceFragment() {
@@ -40,6 +48,9 @@ class SettingsMainFragment: PreferenceFragment() {
     @Inject
     lateinit var localeUtils: LocaleUtils
 
+    @Inject
+    lateinit var updaterChecker: GithubUpdaterChecker
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         addPreferencesFromResource(R.xml.pref_main)
@@ -55,6 +66,62 @@ class SettingsMainFragment: PreferenceFragment() {
         }
 
         configureGithubUrl(findPreference(getString(R.string.key_github)) as Preference)
+        configureUpdateVersion(findPreference(getString(R.string.key_update_version)) as Preference)
+        configureCheckForUpdatesAutomatically(findPreference(getString(R.string.auto_updates_key)) as SwitchPreference)
+    }
+
+    private fun configureCheckForUpdatesAutomatically(switchPreference: SwitchPreference) {
+        switchPreference.setOnPreferenceChangeListener { preference, newValue ->
+
+            if (switchPreference.isChecked) {
+                UpdaterJob.cancelTask()
+
+                switchPreference.isChecked = false
+            } else {
+                UpdaterJob.setupTask()
+
+                switchPreference.isChecked = true
+            }
+
+            false
+        }
+    }
+
+    private fun configureUpdateVersion(preference: Preference) {
+        preference.setSummary(BuildConfig.VERSION_NAME)
+
+        preference.setOnPreferenceClickListener { p ->
+            activity.toast(getString(R.string.checking_updates))
+
+            updaterChecker.checkForUpdate()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({ result ->
+
+                        when (result) {
+                            is GithubVersionResults.NewUpdate -> {
+                                val body = result.release.changeLog
+                                val url = result.release.assets[0].downloadLink
+
+                                MaterialDialog.Builder(activity)
+                                        .title(R.string.check_new_update_avalible)
+                                        .content(body)
+                                        .positiveText(R.string.download)
+                                        .negativeText(R.string.ignore)
+                                        .onPositive { _, _ -> UpdaterService.downloadUpdate(activity, url) }
+                                        .build()
+                                        .show()
+
+                            }
+                            is GithubVersionResults.NoNewUpdate -> {
+                                activity.toast(getString(R.string.no_updates))
+                            }
+                        }
+
+                    }, { error -> activity.toast(R.string.unknown_error) })
+
+            true
+        }
     }
 
     private fun configureStorageUsed(preference: Preference) {

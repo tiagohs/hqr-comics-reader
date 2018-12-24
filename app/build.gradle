@@ -17,7 +17,7 @@ android {
         applicationId "com.tiagohs.hqr"
         minSdkVersion 17
         targetSdkVersion 27
-        versionCode 8
+        versionCode 9
         versionName "0.0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

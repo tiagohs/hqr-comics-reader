@@ -32,7 +32,6 @@ class SourceManager(
     }
 
     private fun createSources(): List<IHttpSource> = listOf(
-            HQBRSource(client, chapterCache),
             ReadComics(client, chapterCache)
     )
 }

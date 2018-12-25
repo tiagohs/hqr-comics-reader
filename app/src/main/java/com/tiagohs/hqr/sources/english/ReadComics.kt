@@ -22,7 +22,7 @@ class ReadComics(
         client: OkHttpClient,
         chapterCache: ChapterCache): ParserHttpSource(client, chapterCache) {
 
-    override val id: Long = 4L
+    override val id: Long = 1L
     override val name: String = "Read Comics Book Online"
     override val language: LocaleDTO = LocaleDTO("Estados Unidos", "English", "EUA", "EN", Locale("EN"))
     override val hasPageSupport: Boolean = false
@@ -108,8 +108,8 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = title.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${img}"
-            this.pathLink = "https://readcomicbooksonline.org${link}"
+            this.posterPath = "https://readcomicbooksonline.me${img}"
+            this.pathLink = "https://readcomicbooksonline.me${link}"
         }
     }
 
@@ -132,8 +132,8 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = title.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${img}"
-            this.pathLink = "https://readcomicbooksonline.org${link}"
+            this.posterPath = "https://readcomicbooksonline.me${img}"
+            this.pathLink = "https://readcomicbooksonline.me${link}"
         }
     }
 
@@ -173,7 +173,7 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = name.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${posterPath}"
+            this.posterPath = "https://readcomicbooksonline.me${posterPath}"
             this.pathLink = "$baseUrl${link}"
         }
 
@@ -196,7 +196,7 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = name.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${posterPath}"
+            this.posterPath = "https://readcomicbooksonline.me${posterPath}"
             this.pathLink = "$baseUrl${link}"
         }
     }
@@ -263,7 +263,7 @@ class ReadComics(
 
             return ComicViewModel().apply {
                 this.pathLink = comicPath
-                this.posterPath = "https://readcomicbooksonline.org${posterPath}"
+                this.posterPath = "https://readcomicbooksonline.me{posterPath}"
                 this.name = name?.replace("Comic Title: ", "")
                 this.publicationDate = publicationDate
                 this.status = ScreenUtils.getStatusConstant(status)
@@ -300,7 +300,7 @@ class ReadComics(
                 val imageUrl = element.attr("src")
 
                 if (!imageUrl.isNullOrEmpty()) {
-                    pages.add(Page(pages.size, chapterPath!!, "https://readcomicbooksonline.org/reader/$imageUrl"))
+                    pages.add(Page(pages.size, chapterPath!!, "https://readcomicbooksonline.me/reader/$imageUrl"))
                 }
             }
 

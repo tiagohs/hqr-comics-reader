@@ -17,16 +17,18 @@ android {
         applicationId "com.tiagohs.hqr"
         minSdkVersion 17
         targetSdkVersion 27
-        versionCode 9
+        versionCode 10
         versionName "0.0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
 
-        buildConfigField "String", "ADMOB_APP_ID", "${ADMOB_APP_ID}"
     }
     buildTypes {
         debug {
             multiDexEnabled true
+
+            buildConfigField "String", "ADMOB_APP_BANNER_ID", '"ca-app-pub-3940256099942544/6300978111"'
+            buildConfigField "String", "ADMOB_APP_INTESTETIAL_ID", '"ca-app-pub-3940256099942544/1033173712"'
         }
 
         release {
@@ -34,6 +36,9 @@ android {
             minifyEnabled false
             multiDexKeepProguard file('multidex-config.pro')
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            buildConfigField "String", "ADMOB_APP_BANNER_ID", '"ca-app-pub-5405332351907920/3139650922"'
+            buildConfigField "String", "ADMOB_APP_INTESTETIAL_ID", '"ca-app-pub-5405332351907920/1744071178"'
         }
     }
 

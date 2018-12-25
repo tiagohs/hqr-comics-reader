@@ -31,7 +31,16 @@
                 android:layout_height="match_parent"
                 android:layout_marginBottom="@dimen/root_fragments_margin_bottom" />
 
+            <FrameLayout
+                android:id="@+id/bannerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:gravity="center"
+                android:layout_above="@id/shadow" />
+
             <View
+                android:id="@+id/shadow"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/bottom_navigation_shadow_height"
                 android:layout_above="@id/rootBottomNavigation"

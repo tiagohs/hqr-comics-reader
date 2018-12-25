@@ -22,4 +22,14 @@
     <include
         layout="@layout/item_reader_chapter_apresentation" />
 
+
+    <FrameLayout
+        android:id="@+id/bannerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone"
+        />
+
+
 </RelativeLayout>

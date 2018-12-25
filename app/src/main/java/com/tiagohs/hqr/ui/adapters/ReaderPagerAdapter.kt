@@ -12,12 +12,14 @@ import android.widget.LinearLayout
 import com.github.chrisbanes.photoview.OnViewTapListener
 import com.github.chrisbanes.photoview.PhotoViewAttacher
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.squareup.picasso.Callback
+import com.tiagohs.hqr.BuildConfig
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.utils.ImageUtils
 import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.models.view_models.ReaderChapterViewModel
-import kotlinx.android.synthetic.main.ad_retangule.view.*
 import kotlinx.android.synthetic.main.item_reader_chapter_apresentation.view.*
 import kotlinx.android.synthetic.main.item_reader_image.view.*
 import java.lang.Exception
@@ -57,10 +59,16 @@ class ReaderPagerAdapter(
     }
 
     private fun onLoadAd(view: View) {
-        val adView = view.findViewById<CoordinatorLayout>(R.id.adRetanguleContainer)
+        val addView = AdView(context);
+        addView.adSize = AdSize.MEDIUM_RECTANGLE
+        addView.adUnitId = BuildConfig.ADMOB_APP_BANNER_ID
 
-        adView.adRetanguleView.loadAd(AdRequest.Builder().build())
-        adView.visibility = View.VISIBLE
+        view.bannerContainer.addView(addView)
+        view.chapterPageProgress?.visibility = View.GONE
+        view.bannerContainer.visibility = View.VISIBLE
+
+        val adRequest = AdRequest.Builder().build()
+        addView.loadAd(adRequest)
     }
 
     private fun onShowComicApresentationView(view: View, page: Page) {
@@ -106,6 +114,7 @@ class ReaderPagerAdapter(
     }
 
     private fun onLoadPage(view: View, page: Page) {
+        view.bannerContainer.visibility = View.GONE
 
         if (page.status == Page.READY) {
             ImageUtils.load(view.chapterImg, page.uri, object : Callback {

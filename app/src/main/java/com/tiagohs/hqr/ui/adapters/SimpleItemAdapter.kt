@@ -20,11 +20,13 @@ class SimpleItemAdapter(private val items: List<DefaultModelView>?,
     }
 
     override fun getItemCount(): Int {
-        return items!!.size
+        return items?.size ?: 0
     }
 
     override fun onBindViewHolder(holder: SimpleItemrViewHolder, position: Int) {
-        holder.onBindItem(items!![position])
+        val items = items ?: return
+
+        holder.onBindItem(items[position])
     }
 
     class SimpleItemrViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {

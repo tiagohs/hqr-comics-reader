@@ -9,11 +9,11 @@ object HQRInitialData {
 
     fun initialData(realm: Realm?): List<CatalogueSource> {
         return arrayListOf(
-                CatalogueSource().apply {
+                /*CatalogueSource().apply {
                     this.id = 1L
                     this.language = "pt-BR"
                     this.sourceDBS = getPortugueseCatalogue(realm)
-                },
+                },*/
                 CatalogueSource().apply {
                     this.id = 2L
                     this.language = "en"
@@ -56,10 +56,10 @@ object HQRInitialData {
 
         if (realm != null) {
 
-            list.add(realm.createObject(SourceDB::class.java, 4L).apply {
+            list.add(realm.createObject(SourceDB::class.java, 1L).apply {
                 this.name = "Read Comics Book Online"
                 this.hasThumbnailSupport = false
-                this.baseUrl = "https://readcomicbooksonline.org/"
+                this.baseUrl = "https://readcomicsonline.me/"
                 this.language = "en"
                 this.hasInAllPageSupport = false
                 this.hasInGenresPageSupport = true

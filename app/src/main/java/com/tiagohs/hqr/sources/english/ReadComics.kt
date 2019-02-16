@@ -22,22 +22,22 @@ class ReadComics(
         client: OkHttpClient,
         chapterCache: ChapterCache): ParserHttpSource(client, chapterCache) {
 
-    override val id: Long = 4L
+    override val id: Long = 1L
     override val name: String = "Read Comics Book Online"
     override val language: LocaleDTO = LocaleDTO("Estados Unidos", "English", "EUA", "EN", Locale("EN"))
     override val hasPageSupport: Boolean = false
     override val hasThumbnailSupport: Boolean = false
-    override val baseUrl: String get() = "https://readcomicbooksonline.org"
+    override val baseUrl: String get() = "https://readcomicsonline.me/"
 
     override val homeCategoriesEndpoint: String get() = "$baseUrl/"
     override val lastestComicsEndpoint: String get() = "$baseUrl/"
     override val popularComicsEndpoint: String get() = "$baseUrl/"
 
     override val homeCategoriesListSelector: String get() = "#block-views-genre-select-block .content table tbody td"
-    override val lastestComicsSelector: String get() = "#page #main #primary #comic .frontpage .cellbox"
-    override val popularComicsSelector: String get() = "#page #main #header-block .content .popbox"
+    override val lastestComicsSelector: String get() = ".frontpage .cellbox"
+    override val popularComicsSelector: String get() = "#preface-area .region .popbox"
     override val allComicsListSelector: String get() = "#primary #content .view-comics-list table tbody td"
-    override val allComicsByPublisherSelector: String = "#primary #content .region-content .node-comic"
+    override val allComicsByPublisherSelector: String = "#primary #content-wrap .content article"
     override val searchComicsSelector: String get() = "#primary #content .view-comics-list table tbody td"
 
     override fun getReaderEndpoint(hqReaderPath: String): String {
@@ -108,8 +108,8 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = title.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${img}"
-            this.pathLink = "https://readcomicbooksonline.org${link}"
+            this.posterPath = "https://readcomicsonline.me${img}"
+            this.pathLink = "https://readcomicsonline.me${link}"
         }
     }
 
@@ -132,8 +132,8 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = title.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${img}"
-            this.pathLink = "https://readcomicbooksonline.org${link}"
+            this.posterPath = "https://readcomicsonline.me${img}"
+            this.pathLink = "https://readcomicsonline.me${link}"
         }
     }
 
@@ -173,16 +173,15 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = name.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${posterPath}"
+            this.posterPath = "https://readcomicsonline.me${posterPath}"
             this.pathLink = "$baseUrl${link}"
         }
 
     }
 
     override fun parseAllComicsByGenreByElement(element: Element): ComicViewModel? {
-        val content = element.select(".field-name-body .splash")?.first()
 
-        val posterPath = content?.select(".pic img")?.first()?.attr("src")
+        val posterPath = element.select(".field-name-field-pic img")?.first()?.attr("src")
         val titleSelector = element.select("header h2 a")?.first()
 
         var name: String = ""
@@ -196,7 +195,7 @@ class ReadComics(
 
         return ComicViewModel().apply {
             this.name = name.replace("Comic Title: ", "")
-            this.posterPath = "https://readcomicbooksonline.org${posterPath}"
+            this.posterPath = "https://readcomicsonline.me${posterPath}"
             this.pathLink = "$baseUrl${link}"
         }
     }
@@ -227,8 +226,17 @@ class ReadComics(
         if (document != null) {
             val content = document.select("#primary #content .region-content .content").first()
 
-            val posterPath = content.select(".field-name-body .pic img").first()?.attr("src")
-            val summary = content.select(".field-name-body .summary").first()?.text()
+            var posterPath = content.select(".field-name-body .pic img").first()?.attr("src")
+
+            if (posterPath === null) {
+                posterPath = content.select(".field-name-field-pic .field-item img").first()?.attr("src")
+            }
+
+            var summary = content.select(".field-name-field-synopsis .field-item").first()?.text()
+
+            if (summary === null) {
+                summary = content.select(".field-name-body .summary").first()?.text()
+            }
 
             var name: String? = ""
             var publicationDate: String? = ""
@@ -263,7 +271,7 @@ class ReadComics(
 
             return ComicViewModel().apply {
                 this.pathLink = comicPath
-                this.posterPath = "https://readcomicbooksonline.org${posterPath}"
+                this.posterPath = "https://readcomicsonline.me${posterPath}"
                 this.name = name?.replace("Comic Title: ", "")
                 this.publicationDate = publicationDate
                 this.status = ScreenUtils.getStatusConstant(status)
@@ -293,14 +301,14 @@ class ReadComics(
 
         try {
             val document = response.asJsoup()
-            val containers = document.select("#omv table")?.get(1)
-            val imagesContainer = containers?.select("tbody tr td")?.get(2)
+            val containers = document.select("#omv table")
+            val imagesContainer = containers?.select("table tbody tr td")?.get(0)
 
             imagesContainer?.select("img")?.forEach { element ->
                 val imageUrl = element.attr("src")
 
                 if (!imageUrl.isNullOrEmpty()) {
-                    pages.add(Page(pages.size, chapterPath!!, "https://readcomicbooksonline.org/reader/$imageUrl"))
+                    pages.add(Page(pages.size, chapterPath!!, "https://readcomicsonline.me/reader/$imageUrl"))
                 }
             }
 

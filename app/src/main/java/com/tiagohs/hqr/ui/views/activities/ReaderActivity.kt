@@ -13,7 +13,8 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import com.afollestad.materialdialogs.MaterialDialog
 import com.github.chrisbanes.photoview.OnViewTapListener
-import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.*
+import com.tiagohs.hqr.BuildConfig
 import com.tiagohs.hqr.R
 import com.tiagohs.hqr.models.sources.Page
 import com.tiagohs.hqr.models.view_models.ReaderChapterViewModel
@@ -59,6 +60,7 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     private var readerChapterViewModel: ReaderChapterViewModel? = null
 
     private var adapter: ReaderPagerAdapter? = null
+    private lateinit var interstitialAd: InterstitialAd
 
     override fun onGetLayoutViewId(): Int {
         return R.layout.activity_reader
@@ -79,9 +81,27 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
         presenter.onBindView(this)
         presenter.onCreate()
 
-        adView.loadAd(AdRequest.Builder().build())
+        onLoadAd()
+        configureInterstitialAd()
 
         onInit()
+    }
+
+    private fun onLoadAd() {
+        val addView = AdView(this);
+        addView.adSize = AdSize.BANNER
+        addView.adUnitId = BuildConfig.ADMOB_APP_BANNER_ID
+
+        bannerContainer.addView(addView)
+
+        val adRequest = AdRequest.Builder().build()
+        addView.loadAd(adRequest)
+    }
+
+    private fun configureInterstitialAd() {
+        interstitialAd = InterstitialAd(this)
+        interstitialAd.setAdUnitId(BuildConfig.ADMOB_APP_INTESTETIAL_ID)
+        interstitialAd.loadAd(AdRequest.Builder().build())
     }
 
     private fun onInit() {
@@ -198,6 +218,24 @@ class ReaderActivity: BaseActivity(), ReaderContract.IReaderView, IOnTouch {
     }
 
     fun onRequestNextChapter() {
+
+        if (interstitialAd.isLoaded()) {
+            interstitialAd.show();
+
+            interstitialAd.adListener = object : AdListener() {
+                override fun onAdClosed() {
+                    super.onAdClosed()
+
+                    requestNext()
+                }
+            }
+        } else {
+            requestNext()
+        }
+
+    }
+
+    private fun requestNext() {
         adapter?.pages = emptyList()
         adapter?.notifyDataSetChanged()
 

@@ -33,6 +33,8 @@ abstract class EndlessRecyclerView : RecyclerView.OnScrollListener {
         visibleItemCount = recyclerView!!.childCount
         totalItemCount = mLayoutManager!!.itemCount
 
+
+
         // Check the layout manager type in order to determine the last visible position
         if (mLayoutManager is LinearLayoutManager) {
 

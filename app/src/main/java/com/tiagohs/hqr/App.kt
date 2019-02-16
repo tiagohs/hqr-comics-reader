@@ -20,6 +20,9 @@ import com.uphyca.stetho_realm.RealmInspectorModulesProvider
 import io.fabric.sdk.android.Fabric
 import io.realm.Realm
 import io.realm.RealmConfiguration
+import io.reactivex.plugins.RxJavaPlugins
+
+
 
 class App : Application() {
 
@@ -34,13 +37,15 @@ class App : Application() {
         onConfigureRealm()
         setupNotificationChannels()
         setupJobManager()
-        // onConfigurePicasso()
+        onConfigurePicasso()
 
         instance = this
 
         MultiDex.install(this);
         Fabric.with(this, Crashlytics())
         MobileAds.initialize(this, "ADMOB_APP_ID")
+
+        RxJavaPlugins.setErrorHandler { throwable -> }
     }
 
     private fun onConfigureDagger() {
@@ -93,7 +98,7 @@ class App : Application() {
 
     private fun onConfigurePicasso() {
         val build = Picasso.Builder(this)
-                                        .downloader(OkHttp3Downloader(applicationContext, Integer.MAX_VALUE.toLong()))
+                                        //.downloader(OkHttp3Downloader(applicationContext, Integer.MAX_VALUE.toLong()))
                                         .build()
 
         build.setIndicatorsEnabled(true)
@@ -105,7 +110,6 @@ class App : Application() {
     fun getHQRComponent(): HQRComponent? {
         return mHQRComponent
     }
-
 
     private fun setupNotificationChannels() {
         Notifications.createChannels(this)

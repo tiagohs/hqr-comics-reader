@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.ui.views.fragments
 
 import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.support.v7.view.ActionMode
 import android.support.v7.widget.DividerItemDecoration
@@ -11,8 +12,12 @@ import android.view.MenuItem
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
 import com.tiagohs.hqr.R
+import com.tiagohs.hqr.download.DownloaderService
 import com.tiagohs.hqr.helpers.extensions.hasPermission
+import com.tiagohs.hqr.helpers.utils.PermissionUtils
+import com.tiagohs.hqr.helpers.utils.PermissionsCallback
 import com.tiagohs.hqr.models.view_models.ComicViewModel
+import com.tiagohs.hqr.notification.Notifications
 import com.tiagohs.hqr.ui.adapters.chapters.ChapterHolder
 import com.tiagohs.hqr.ui.adapters.chapters.ChapterItem
 import com.tiagohs.hqr.ui.adapters.chapters.ChaptersListAdapter
@@ -58,6 +63,8 @@ class ComicChaptersFragment:
 
     private var actionModeMenu: Menu? = null
 
+    private lateinit var permissions: PermissionUtils
+
     override fun getViewID(): Int {
         return R.layout.fragment_comic_chapters
     }
@@ -67,6 +74,7 @@ class ComicChaptersFragment:
         setHasOptionsMenu(true)
 
         comicViewModel = arguments?.getParcelable(COMIC)
+        permissions = PermissionUtils(activity!!)
     }
 
 
@@ -175,7 +183,29 @@ class ComicChaptersFragment:
     }
 
     override fun onDownloadSelect(chapter: ChapterItem) {
-        presenter.downloadChapters(listOf(chapter))
+        val permissionList = arrayListOf<String>(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            permissionList.add(Manifest.permission.FOREGROUND_SERVICE)
+        }
+
+        permissions.onCheckAndRequestPermissions(permissionList.toList(), object : PermissionsCallback {
+            override fun onPermissionsGranted() {
+                presenter.downloadChapters(listOf(chapter))
+            }
+
+            override fun onPermissionsDenied() {
+                MaterialDialog.Builder(context!!)
+                        .content(R.string.persmission_needed_content)
+                        .positiveText(android.R.string.yes)
+                        .negativeText(android.R.string.no)
+                        .build()
+                        .show()
+            }
+
+            override fun onNeverAskAgain(requestCode: Int) {}
+        })
+
     }
 
     override fun onItemClick(view: View?, position: Int): Boolean {

@@ -59,7 +59,7 @@ object HQRInitialData {
             list.add(realm.createObject(SourceDB::class.java, 1L).apply {
                 this.name = "Read Comics Book Online"
                 this.hasThumbnailSupport = false
-                this.baseUrl = "https://readcomicbooksonline.me/"
+                this.baseUrl = "https://readcomicsonline.me/"
                 this.language = "en"
                 this.hasInAllPageSupport = false
                 this.hasInGenresPageSupport = true

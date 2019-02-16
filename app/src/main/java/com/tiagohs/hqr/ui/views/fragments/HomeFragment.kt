@@ -8,10 +8,7 @@ import com.tiagohs.hqr.R
 import com.tiagohs.hqr.helpers.tools.EndlessRecyclerView
 import com.tiagohs.hqr.helpers.utils.LocaleUtils
 import com.tiagohs.hqr.models.base.ISource
-import com.tiagohs.hqr.models.view_models.ComicViewModel
-import com.tiagohs.hqr.models.view_models.FETCH_ALL
-import com.tiagohs.hqr.models.view_models.FETCH_BY_PUBLISHERS
-import com.tiagohs.hqr.models.view_models.ListComicsModel
+import com.tiagohs.hqr.models.view_models.*
 import com.tiagohs.hqr.ui.adapters.comics.ComicHolder
 import com.tiagohs.hqr.ui.adapters.comics.ComicItem
 import com.tiagohs.hqr.ui.adapters.comics.ComicsListAdapter
@@ -285,7 +282,7 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
         return object : IPublisherCallback {
             override fun onItemClick(view: View?, position: Int): Boolean {
                 val item = publisherAdapter?.getItem(position) ?: return false
-                startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_PUBLISHERS, item.publisher.name!!, item.publisher.pathLink!!)))
+                startActivity(ListComicsActivity.newIntent(context, ListComicsModel(FETCH_BY_GENRES, item.publisher.name!!, item.publisher.pathLink!!)))
 
                 return true
             }

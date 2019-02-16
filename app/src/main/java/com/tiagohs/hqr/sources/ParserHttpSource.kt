@@ -154,8 +154,8 @@ abstract class ParserHttpSource(
         try {
             val document = response.asJsoup()
 
-            document.select(allComicsListSelector).forEach { element ->
-                val comic = parseAllComicsByLetterByElement(element)
+            document.select(allComicsByPublisherSelector).forEach { element ->
+                val comic = parseAllComicsByGenreByElement(element)
 
                 if (comic != null) {
                     comics.add(comic)

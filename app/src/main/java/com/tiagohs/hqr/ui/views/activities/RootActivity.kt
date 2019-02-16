@@ -2,6 +2,7 @@ package com.tiagohs.hqr.ui.views.activities
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.support.design.internal.BottomNavigationItemView
 import android.support.design.internal.BottomNavigationMenuView
@@ -67,7 +68,13 @@ class RootActivity: BaseActivity(), PermissionsCallback {
         supportActionBar!!.setDisplayHomeAsUpEnabled(false)
         onLoadAd()
 
-        permissions.onCheckAndRequestPermissions(listOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), this)
+        val permissionList = arrayListOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            permissionList.add(Manifest.permission.FOREGROUND_SERVICE)
+        }
+
+        permissions.onCheckAndRequestPermissions(permissionList, this)
 
         onInit()
     }

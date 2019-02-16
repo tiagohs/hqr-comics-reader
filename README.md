@@ -22,7 +22,7 @@ Get the app from our <a href="https://github.com/tiagohs/hqr-comics-reader/relea
 
 <ul>
   <li><a href="https://hqbr.com.br/"><strong>BR</strong>: HQBR</a></li>
-  <li><a href="https://readcomicbooksonline.org/"><strong>EN</strong>: Read Comics Book Online</a></li>
+  <li><a href="https://readcomicsonline.me/"><strong>EN</strong>: Read Comics Book Online</a></li>
 </ul>
 
 ### DISCLAIMER:

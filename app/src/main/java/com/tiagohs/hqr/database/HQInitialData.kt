@@ -7,13 +7,13 @@ import io.realm.RealmList
 
 object HQRInitialData {
 
-    fun initialData(realm: Realm?): List<CatalogueSource> {
+    fun initialData(realm: Realm): List<CatalogueSource> {
         return arrayListOf(
-                /*CatalogueSource().apply {
+                CatalogueSource().apply {
                     this.id = 1L
                     this.language = "pt-BR"
                     this.sourceDBS = getPortugueseCatalogue(realm)
-                },*/
+                },
                 CatalogueSource().apply {
                     this.id = 2L
                     this.language = "en"
@@ -27,26 +27,18 @@ object HQRInitialData {
         )
     }
 
-    private fun getPortugueseCatalogue(realm: Realm?): RealmList<SourceDB> {
+    private fun getPortugueseCatalogue(realm: Realm): RealmList<SourceDB> {
         val list = RealmList<SourceDB>()
 
-        list.add(realm!!.createObject(SourceDB::class.java, 1L).apply {
-            this.name = "HQBR - Leitor Online de Quadrinhos"
-            this.hasThumbnailSupport = false
-            this.baseUrl = "https://hqbr.com.br/"
-            this.language = "BR"
-            this.hasInAllPageSupport = false
-            this.hasInGenresPageSupport = false
-            this.hasInPublisherPageSupport = false
-        })
-/*
         list.add(realm.createObject(SourceDB::class.java, 2L).apply {
             this.name = "HQ Ultimate"
-            this.hasPageSupport= true
             this.hasThumbnailSupport = true
+            this.hasInAllPageSupport = true
+            this.hasInGenresPageSupport = true
+            this.hasInPublisherPageSupport = true
             this.baseUrl = "http://hqultimate.site/"
-            this.language = "pt-BR"
-        })*/
+            this.language = "BR"
+        })
 
         return list
     }

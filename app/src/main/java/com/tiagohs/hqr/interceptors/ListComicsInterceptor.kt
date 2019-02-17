@@ -39,7 +39,7 @@ class ListComicsInterceptor(
 
         type = FETCH_ALL
 
-        return onGetAllByFlag(sourceHttp?.fetchAllComicsByLetter(letter)!!, sourceHttp, sourceId)
+        return onGetAllByFlag(sourceHttp?.fetchAllComicsByLetter(letter, page++)!!, sourceHttp, sourceId)
     }
 
     override fun onGetAllByScanlator(scanlator: String): Observable<List<ComicViewModel>> {

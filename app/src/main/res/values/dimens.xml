@@ -31,7 +31,7 @@
 
 
     <!-- Root Activiry -->
-    <dimen name="root_fragments_margin_bottom">120dp</dimen>
+    <dimen name="root_fragments_margin_bottom">80dp</dimen>
 
     <!-- Reader -->
     <dimen name="reader_direction_btn_width">40dp</dimen>

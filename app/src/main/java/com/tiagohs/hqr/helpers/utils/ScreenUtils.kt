@@ -78,9 +78,14 @@ class ScreenUtils {
         fun getStatusConstant(status: String?): String? {
 
             if (status != null) {
-                if (status.toLowerCase().contains("concluído") or status.contains("completed") or status.contains(COMPLETED)) {
+                if (status.toLowerCase().contains("concluído") or
+                        status.toLowerCase().contains("completo") or
+                        status.contains("completed") or status.contains(COMPLETED)) {
                     return COMPLETED
-                } else if (status.toLowerCase().contains("em andamento") or status.contains("ongoing") or status.contains(ONGOING)) {
+                } else if (
+                        status.toLowerCase().contains("em andamento") or
+                        status.toLowerCase().contains("ativo") or
+                        status.contains("ongoing") or status.contains(ONGOING)) {
                     return ONGOING
                 } else if (status.toLowerCase().contains("cancelado") or status.contains("canceled") or status.contains(CANCELED)) {
                     return CANCELED

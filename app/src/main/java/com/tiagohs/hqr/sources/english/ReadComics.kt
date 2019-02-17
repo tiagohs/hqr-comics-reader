@@ -52,7 +52,7 @@ class ReadComics(
         return scanlatorPath
     }
 
-    override fun getAllComicsByLetterEndpoint(letter: String): String {
+    override fun getAllComicsByLetterEndpoint(letter: String, page: Int): String {
         return "$baseUrl/comics-list"
     }
 

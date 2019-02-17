@@ -2,7 +2,7 @@ package com.tiagohs.hqr.sources
 
 import com.tiagohs.hqr.download.cache.ChapterCache
 import com.tiagohs.hqr.sources.english.ReadComics
-import com.tiagohs.hqr.sources.portuguese.HQBRSource
+import com.tiagohs.hqr.sources.portuguese.HQUltimate
 import okhttp3.OkHttpClient
 
 class SourceManager(
@@ -32,6 +32,7 @@ class SourceManager(
     }
 
     private fun createSources(): List<IHttpSource> = listOf(
-            ReadComics(client, chapterCache)
+            ReadComics(client, chapterCache),
+            HQUltimate(client, chapterCache)
     )
 }

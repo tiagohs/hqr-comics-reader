@@ -72,12 +72,13 @@ abstract class HttpSourceBase(
 
     abstract protected fun parseComicDetailsResponse(response: Response, comicPath: String) : ComicViewModel?
 
-    override fun fetchAllComicsByLetter(letter: String): Observable<List<ComicViewModel>> {
-        return fetch(GET(getAllComicsByLetterEndpoint(letter), headersBuilder().build()))
+    override fun fetchAllComicsByLetter(letter: String, page: Int): Observable<List<ComicViewModel>> {
+        val s = getAllComicsByLetterEndpoint(letter, page)
+        return fetch(GET(s, headersBuilder().build()))
                 .map({ response: Response -> parseAllComicsByLetterResponse(response) })
     }
 
-    abstract protected fun getAllComicsByLetterEndpoint(letter: String): String
+    abstract protected fun getAllComicsByLetterEndpoint(letter: String, page: Int): String
 
     abstract protected fun parseAllComicsByLetterResponse(response: Response) : List<ComicViewModel>
 

@@ -22,23 +22,7 @@ abstract class ParserHttpSource(
 
 
     override fun parsePublishersResponse(response: Response): List<DefaultModelView> {
-        val publishers: ArrayList<DefaultModelView> = ArrayList()
-
-        try {
-            val document = response.asJsoup()
-
-            document.select(homeCategoriesListSelector).map { element ->
-                val publisher = parseHomeCategoriesByElement(element)
-
-                if (publisher != null)
-                    publishers.add(publisher)
-            }
-
-        } catch (ex: Exception) {
-            Timber.e(ex)
-        }
-
-        return publishers
+        return emptyList()
     }
 
     abstract fun parseHomeCategoriesByElement(element: Element): DefaultModelView?

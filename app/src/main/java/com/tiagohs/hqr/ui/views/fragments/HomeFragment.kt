@@ -135,17 +135,23 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     override fun onBindPublishers(publishers: List<PublisherItem>) {
-        publisherAdapter = PublishersAdapter(onPublisherCallback())
-        publisherAdapter?.updateDataSet(publishers)
 
-        val publishersLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        publishersList.adapter = publisherAdapter
-        publishersList.layoutManager = publishersLayoutManager
+        if (publishers.isNotEmpty()) {
+            publisherAdapter = PublishersAdapter(onPublisherCallback())
+            publisherAdapter?.updateDataSet(publishers)
 
-        publishersList.addOnScrollListener(createPublishersScrollListener(publishersLayoutManager))
-        publishersList.setNestedScrollingEnabled(false)
+            val publishersLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            publishersList.adapter = publisherAdapter
+            publishersList.layoutManager = publishersLayoutManager
 
-        publishersList.visibility = View.VISIBLE
+            publishersList.addOnScrollListener(createPublishersScrollListener(publishersLayoutManager))
+            publishersList.setNestedScrollingEnabled(false)
+
+            publishersList.visibility = View.VISIBLE
+        } else {
+            publishersList.visibility = View.GONE
+        }
+
         publishersListProgress.visibility = View.GONE
     }
 
@@ -158,14 +164,19 @@ class HomeFragment : BaseFragment(), HomeContract.IHomeView {
     }
 
     override fun onBindLastestUpdates(lastestUpdates: List<ComicItem>) {
-        lastestUpdatesAdapter = ComicsListAdapter(lastestUpdates, onLastestCallback())
 
-        val lastestLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        lastestList.adapter = lastestUpdatesAdapter
-        lastestList.layoutManager = lastestLayoutManager
+        if (lastestUpdates.isNotEmpty()) {
+            lastestUpdatesAdapter = ComicsListAdapter(lastestUpdates, onLastestCallback())
 
-        lastestList.addOnScrollListener(createLastestScrollListener(lastestLayoutManager))
-        lastestList.setNestedScrollingEnabled(false)
+            val lastestLayoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            lastestList.adapter = lastestUpdatesAdapter
+            lastestList.layoutManager = lastestLayoutManager
+
+            lastestList.addOnScrollListener(createLastestScrollListener(lastestLayoutManager))
+            lastestList.setNestedScrollingEnabled(false)
+        } else {
+            lastestList.visibility = View.GONE
+        }
 
         lastestList.visibility = View.VISIBLE
         lastestListProgress.visibility = View.GONE

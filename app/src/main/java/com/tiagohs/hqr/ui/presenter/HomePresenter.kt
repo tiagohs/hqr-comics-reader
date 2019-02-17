@@ -117,9 +117,7 @@ class HomePresenter(
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { publishers ->
-                            if (publishers!!.isNotEmpty()) {
-                                mView!!.onBindPublishers(publishers)
-                            }
+                            mView?.onBindPublishers(publishers)
                         },
                         { error ->
                             Timber.e(error)

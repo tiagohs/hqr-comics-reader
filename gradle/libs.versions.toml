@@ -1,0 +1,126 @@
+# Same base as the Script Reader catalog; Compose Multiplatform for the shared screens (Android and web, ADR-022).
+[versions]
+kotlin = "2.4.21"
+agp = "9.4.1"
+compileSdk = "37"
+minSdk = "26"
+targetSdk = "37"
+ksp = "2.3.12"
+compose-multiplatform = "1.12.2"
+cmp-material3 = "1.9.0"
+cmp-adaptive = "1.3.0"
+jb-navigation = "2.10.0"
+jb-lifecycle = "2.11.0"
+room3 = "3.0.3"
+sqlite = "2.7.1"
+settings = "1.3.0"
+coroutines = "1.11.0"
+serialization = "1.11.0"
+ktor = "3.6.0"
+koin = "4.2.2"
+coil = "3.6.3"
+materialkolor = "5.0.1"
+telephoto = "0.19.0"
+ksoup = "0.2.6"
+okio = "3.18.2"
+activity-compose = "1.13.0"
+work = "2.11.0"
+documentfile = "1.1.0"
+firebase-bom = "35.0.2"
+google-services = "4.5.0"
+firebase-crashlytics-gradle = "3.0.8"
+kotest = "6.2.5"
+turbine = "1.2.1"
+junit = "4.13.2"
+robolectric = "4.17"
+roborazzi = "1.76.0"
+kover = "0.9.11"
+ktlint-gradle = "14.2.0"
+detekt = "1.23.8"
+
+[libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
+ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
+room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+room3-testing = { module = "androidx.room3:room3-testing", version.ref = "room3" }
+sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+sqlite-web = { module = "androidx.sqlite:sqlite-web", version.ref = "sqlite" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "settings" }
+multiplatform-settings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "settings" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+koin-androidx-workmanager = { module = "io.insert-koin:koin-androidx-workmanager", version.ref = "koin" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
+materialkolor = { module = "com.materialkolor:material-kolor", version.ref = "materialkolor" }
+materialkolor-utilities = { module = "com.materialkolor:material-color-utilities", version.ref = "materialkolor" }
+telephoto-zoomable = { module = "me.saket.telephoto:zoomable", version.ref = "telephoto" }
+cmp-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
+cmp-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-multiplatform" }
+cmp-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
+cmp-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose-multiplatform" }
+cmp-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
+cmp-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "cmp-material3" }
+cmp-material3-nav-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "cmp-material3" }
+cmp-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "cmp-adaptive" }
+cmp-adaptive-layout = { module = "org.jetbrains.compose.material3.adaptive:adaptive-layout", version.ref = "cmp-adaptive" }
+jb-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jb-navigation" }
+jb-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "jb-lifecycle" }
+jb-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jb-lifecycle" }
+jb-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jb-lifecycle" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
+androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version = "1.4.1" }
+androidx-test-runner = { module = "androidx.test:runner", version = "1.6.2" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version = "1.2.1" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-bom = { module = "androidx.compose:compose-bom", version = "2026.09.00" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+junit = { module = "junit:junit", version.ref = "junit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+robolectric-android-all = { module = "org.robolectric:android-all-instrumented", version = "15-robolectric-13954326-i7" }
+roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
+roborazzi-junit-rule = { module = "io.github.takahirom.roborazzi:roborazzi-junit-rule", version.ref = "roborazzi" }
+# used by build-logic
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+compose-compiler-gradle-plugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
+compose-multiplatform-gradle-plugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose-multiplatform" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-kmp-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+room3 = { id = "androidx.room3", version.ref = "room3" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebase-crashlytics-gradle" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }

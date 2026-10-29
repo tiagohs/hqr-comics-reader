@@ -1,0 +1,143 @@
+# HQR: tests, the Android APKs and the web app, on Tiago's Mac as a self-hosted runner (labels "self-hosted, macOS").
+#
+# Self-hosted minutes are free, so this runs on every push to the rewrite branches (Tiago asked for CI on his Mac,
+# Oct 2026) and by hand (Actions › CI › Run workflow). Nothing is uploaded as an Actions artifact (storage quota):
+# reports and screenshots stay on the Mac in ~/hqr-ci/<run id>/, the APKs and the web zip go to a draft GitHub release
+# "ci-<branch>" (replaced on each green run) and the web app is published to the gh-pages branch (GitHub Pages).
+#
+# The Mac provides a JDK (21 or 17), the Android SDK (ANDROID_HOME or ~/Library/Android/sdk), python3 and gh.
+# Release signing: with the secrets HQR_KEYSTORE_BASE64 and HQR_KEYSTORE_PASSWORD the release APK is signed with the
+# app key; without them it is signed with the Mac's debug key (installable for testing only).
+name: CI
+
+on:
+  push:
+    branches: ["rewrite/**"]
+  workflow_dispatch:
+    inputs:
+      publish_web:
+        description: "Publish the web app to GitHub Pages (gh-pages branch)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+  GRADLE_FLAGS: --continue -Phqr.ios=false
+
+jobs:
+  build:
+    name: Tests, APKs and web
+    runs-on: [self-hosted, macOS]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Toolchain and results folder
+        run: |
+          JDK=$(/usr/libexec/java_home -v 21 2>/dev/null || /usr/libexec/java_home -v 17)
+          echo "JAVA_HOME=$JDK" >> "$GITHUB_ENV"
+          SDK="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "sdk.dir=$SDK" > local.properties
+          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+          RESULTS="$HOME/hqr-ci/${{ github.run_id }}"
+          mkdir -p "$RESULTS"
+          echo "RESULTS=$RESULTS" >> "$GITHUB_ENV"
+          "$JDK/bin/java" -version
+
+      - name: Strings in the three languages
+        run: python3 scripts/strings/check_strings.py
+
+      - name: Tests, coverage, ktlint, detekt and lint
+        id: tests
+        run: ./gradlew check detekt $GRADLE_FLAGS
+
+      - name: Failed tests in the log
+        if: failure() && steps.tests.outcome == 'failure'
+        run: |
+          python3 - <<'PY'
+          import glob, re
+          for f in glob.glob("**/build/test-results/**/*.xml", recursive=True):
+              s = open(f, encoding="utf-8", errors="replace").read()
+              for m in re.finditer(r'<testcase name="([^"]*)" classname="([^"]*)"[^>]*>\s*<failure message="([^"]*)', s):
+                  print(f"::error title={m.group(2)}.{m.group(1)}::{m.group(3)[:500]}")
+          PY
+          grep -h "\]$" build/reports/detekt/*.txt 2>/dev/null | head -50 || true
+
+      - name: Signing
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.HQR_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.HQR_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "HQR_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+            echo "HQR_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "with=app" >> "$GITHUB_OUTPUT"
+          else
+            echo "with=debug" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: APKs and web app
+        run: |
+          ./gradlew :android:assembleDebug :android:assembleRelease :web:wasmJsBrowserDistribution $GRADLE_FLAGS \
+            -Phqr.versionCode=$((100 + ${{ github.run_number }}))
+
+      - name: Keep reports and screenshots on the Mac
+        if: always()
+        run: |
+          rsync -a --prune-empty-dirs --include '*/' --include 'reports/**' --include 'test-results/**' \
+            --include 'screenshots/**' --exclude '*' . "$RESULTS/" 2>/dev/null || true
+          echo "Reports: $RESULTS" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Draft release with the APKs and the web zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          BRANCH="${GITHUB_REF_NAME//\//-}"
+          TAG="ci-$BRANCH"
+          VERSION=$(grep -E '^\s*versionName\s*=' android/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')
+          BASE="hqr-v$VERSION-$((100 + ${{ github.run_number }}))"
+          SUFFIX=""
+          if [ "${{ steps.signing.outputs.with }}" = "debug" ]; then SUFFIX="-test-signed"; fi
+          rm -rf dist && mkdir dist
+          cp android/build/outputs/apk/debug/android-universal-debug.apk "dist/$BASE-debug.apk"
+          cp android/build/outputs/apk/release/android-universal-release.apk "dist/$BASE-release$SUFFIX.apk"
+          (cd web/build/dist/wasmJs/productionExecutable && zip -qr "$GITHUB_WORKSPACE/dist/$BASE-web.zip" .)
+          TITLE="HQR $BASE (${{ github.ref_name }}, testado)"
+          NOTES="Build ${{ github.sha }} da branch ${{ github.ref_name }}. Teste interno: não publicar."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --draft --target "${{ github.sha }}" --title "$TITLE" --notes "$NOTES"
+            for asset in $(gh release view "$TAG" --json assets -q '.assets[].name'); do
+              gh release delete-asset "$TAG" "$asset" --yes
+            done
+          else
+            gh release create "$TAG" --draft --target "${{ github.sha }}" --title "$TITLE" --notes "$NOTES"
+          fi
+          gh release upload "$TAG" dist/* --clobber
+          echo "Draft release: $(gh release view "$TAG" --json url -q .url)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish the web app (gh-pages)
+        if: github.event_name == 'push' || inputs.publish_web
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PAGES="$RUNNER_TEMP/pages"
+          rm -rf "$PAGES" && mkdir -p "$PAGES"
+          cp -R web/build/dist/wasmJs/productionExecutable/. "$PAGES/"
+          touch "$PAGES/.nojekyll"
+          cd "$PAGES"
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="hqr-ci" -c user.email="hqr-ci@users.noreply.github.com" commit -qm "Web ${{ github.sha }}"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" gh-pages
+          echo "Web: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.presentation.reader
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tiagohs.hqr.domain.model.Chapter
@@ -57,6 +58,7 @@ class ReaderViewModel(
     private val settingsStore: ReaderSettingsStore,
     private val pageSource: ChapterPages,
     private val clock: Clock,
+    private val saved: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     data class Transition(
         val finished: Chapter,
@@ -86,15 +88,20 @@ class ReaderViewModel(
     val state: StateFlow<State> = _state.asStateFlow()
     private var saveJob: Job? = null
     private var allChapters: List<Chapter> = emptyList()
+    private var endDismissed = false
 
     init {
-        viewModelScope.launch { open(chapterId, startPage) }
+        // RF-88: after the process dies, the chapter and page the reader was on win over the route's arguments.
+        val chapter = saved.get<Long>(KEY_CHAPTER) ?: chapterId
+        val page = saved.get<Int>(KEY_PAGE) ?: startPage
+        viewModelScope.launch { open(chapter, page) }
     }
 
     private suspend fun open(
         id: Long,
         page: Int,
     ) {
+        endDismissed = false
         _state.update { it.copy(loading = true, error = null, transition = null, pages = emptyList(), failedPages = emptySet()) }
         val manga = mangas.get(mangaId) ?: return
         val chapter = chapters.get(id) ?: return
@@ -102,21 +109,34 @@ class ReaderViewModel(
         val settings = settingsStore.forManga(manga)
         attempt { pageSource.pages(manga, chapter) }
             .onSuccess { pages ->
-                val start = if (page < 0) chapter.lastPage.takeIf { !chapter.read } ?: 0 else page
+                val start =
+                    (
+                        if (page <
+                            0
+                        ) {
+                            chapter.lastPage.takeIf { !chapter.read } ?: 0
+                        } else {
+                            page
+                        }
+                    ).coerceIn(0, (pages.size - 1).coerceAtLeast(0))
+                // History and the opening page are written before the reader shows, so a fast first swipe is never
+                // overwritten by them (RF-43).
+                history.record(chapter.id, clock.now().toEpochMilliseconds())
+                if (pages.isNotEmpty()) chapters.saveProgress(chapter.id, start, pages.size)
+                saved[KEY_CHAPTER] = chapter.id
+                saved[KEY_PAGE] = start
                 _state.update {
                     it.copy(
                         manga = manga,
                         chapter = chapter,
                         pages = pages,
-                        page = start.coerceIn(0, (pages.size - 1).coerceAtLeast(0)),
+                        page = start,
                         loading = false,
                         settings = settings,
                         previous = ReadingRules.previousChapter(allChapters, chapter),
                         next = ReadingRules.nextChapter(allChapters, chapter),
                     )
                 }
-                history.record(chapter.id, clock.now().toEpochMilliseconds())
-                if (pages.isNotEmpty()) save(start.coerceIn(0, pages.size - 1), immediate = true)
             }.onFailure { e ->
                 _state.update { it.copy(manga = manga, chapter = chapter, loading = false, error = e.toErrorKind(), settings = settings) }
             }
@@ -127,6 +147,8 @@ class ReaderViewModel(
         val current = _state.value
         if (page == current.page || current.pages.isEmpty()) return
         _state.update { it.copy(page = page) }
+        saved[KEY_PAGE] = page
+        if (page < current.pageCount - 1) endDismissed = false
         save(page, immediate = false)
     }
 
@@ -135,6 +157,8 @@ class ReaderViewModel(
         val s = _state.value
         val chapter = s.chapter ?: return
         save(s.pageCount - 1, immediate = true)
+        // After "back to reading", staying at the end does not reopen the transition.
+        if (endDismissed) return
         val next = s.next
         _state.update {
             it.copy(
@@ -151,7 +175,10 @@ class ReaderViewModel(
         }
     }
 
-    fun dismissTransition() = _state.update { it.copy(transition = null) }
+    fun dismissTransition() {
+        endDismissed = true
+        _state.update { it.copy(transition = null) }
+    }
 
     fun toggleMenu() = _state.update { it.copy(menuVisible = !it.menuVisible) }
 
@@ -213,5 +240,7 @@ class ReaderViewModel(
 
     companion object {
         const val SAVE_DELAY_MS = 500L
+        private const val KEY_CHAPTER = "reader.chapter"
+        private const val KEY_PAGE = "reader.page"
     }
 }

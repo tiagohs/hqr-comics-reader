@@ -5,11 +5,14 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTouchInput
 import com.tiagohs.hqr.data.db.HqrDatabase
+import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.ui.navigation.HqrApp
@@ -81,6 +84,30 @@ class AppScreensTest {
         screenTest {
             val db = startTestKoin()
             assertEquals(1, readFlow(db, "demo", { "Kaiju Express" }, 5_000))
+        }
+
+    @Test
+    fun RF43_webtoonEndMarksTheChapterReadAndShowsTheTransition() =
+        screenTest {
+            val db = startTestKoin { listOf(DemoSource(pageCount = 3, kind = ReadingKind.MANHWA)) }
+            setContent { HqrApp(systemDark = true) }
+            waitFor(hasText("Explore"))
+            onAllNodes(hasText("Explore"))[0].performClick()
+            waitFor(hasText("MangaDex"))
+            onAllNodes(hasText("MangaDex"))[0].performClick()
+            waitFor(hasText("Kaiju Express"))
+            onAllNodes(hasText("Kaiju Express"))[0].performClick()
+            waitFor(hasText("Read"))
+            onAllNodes(hasText("Read"))[0].performClick()
+            waitFor(hasContentDescription("1 of 3"))
+            onNode(hasScrollAction()).performScrollToIndex(2)
+            waitFor(hasText("THE END!"))
+            screenshot("demo-SCR-RDR-003-webtoon-end")
+            repeat(30) {
+                if (runBlocking { db.progressDao().listForManga(1).any { it.read } }) return@screenTest
+                Thread.sleep(100)
+            }
+            error("the chapter was not marked read")
         }
 
     @Test

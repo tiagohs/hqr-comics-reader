@@ -37,9 +37,12 @@ function step(statementId, bindings) {
   const st = stmts.get(statementId);
   st.reset(true);
   if (bindings) {
-    for (let i = 1; i < bindings.length; i++) {
+    // Room binds 1-based; the array may come 0-based (index - 1) or 1-based with an empty slot 0. Accept both.
+    const offset = bindings.length === st.parameterCount + 1 && bindings[0] === undefined ? 0 : 1;
+    for (let i = 0; i < bindings.length; i++) {
+      if (offset === 0 && i === 0) continue;
       const v = bindings[i];
-      st.bind(i, v === undefined ? null : v);
+      st.bind(i + offset, v === undefined ? null : v);
     }
   }
   const rows = [];
@@ -59,9 +62,13 @@ function step(statementId, bindings) {
 }
 
 function close(statementId, databaseId) {
-  if (statementId != null && stmts.has(statementId)) {
-    stmts.get(statementId).finalize();
-    stmts.delete(statementId);
+  // A statement close may carry its database id too: then only the statement closes.
+  if (statementId != null) {
+    if (stmts.has(statementId)) {
+      stmts.get(statementId).finalize();
+      stmts.delete(statementId);
+    }
+    return;
   }
   if (databaseId != null && dbs.has(databaseId)) {
     dbs.get(databaseId).close();

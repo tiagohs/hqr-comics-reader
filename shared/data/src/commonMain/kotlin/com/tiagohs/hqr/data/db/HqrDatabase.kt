@@ -13,7 +13,7 @@ import androidx.room3.RoomDatabaseConstructor
         MangaCategoryEntity::class, MergeEntity::class, MergeMemberEntity::class, DownloadEntity::class,
         SavedSearchEntity::class, FeedItemEntity::class, RecentSearchEntity::class, ServerEntity::class,
     ],
-    version = 1,
+    version = HqrDatabase.VERSION,
     exportSchema = true,
 )
 @ConstructedBy(HqrDatabaseConstructor::class)
@@ -40,6 +40,7 @@ abstract class HqrDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "library.db"
+        const val VERSION = 1
     }
 }
 

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,6 +36,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,6 +67,7 @@ import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_retry
+import com.tiagohs.hqr.ui.resources.chapter_short
 import com.tiagohs.hqr.ui.resources.error_title
 import com.tiagohs.hqr.ui.resources.reader_back_to_work
 import com.tiagohs.hqr.ui.resources.reader_chapter_unavailable
@@ -91,6 +92,9 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+
+/** Pages kept composed on each side of the visible one, so their images load ahead (RF-41). */
+private const val MAX_PRELOAD = 6
 
 /** SCR-RDR-001: zero chrome until a center tap; the bars use the cover color (RF-36 to RF-43, RF-98). */
 @Composable
@@ -133,7 +137,8 @@ fun ReaderScreen(
                         onBack,
                     )
                 state.transition != null -> TransitionPage(state, viewModel, onBack)
-                else -> Pages(state, viewModel)
+                // A new chapter starts a new pager/list at its own page.
+                else -> key(state.chapter?.id) { Pages(state, viewModel) }
             }
             AnimatedVisibility(state.menuVisible && state.transition == null && !state.loading, enter = fadeIn(), exit = fadeOut()) {
                 ReaderMenu(state, viewModel, onBack, onSettings = { settingsOpen = true })
@@ -168,10 +173,28 @@ private fun Pages(
     when (settings.mode) {
         ReaderMode.WEBTOON -> {
             val list = rememberLazyListState(initialFirstVisibleItemIndex = state.page)
+            val pageCount = state.pageCount
             LaunchedEffect(list) {
-                snapshotFlow { list.firstVisibleItemIndex }.collect { index ->
-                    if (index >= state.pageCount) viewModel.onReachedEnd() else viewModel.onPageChanged(index)
+                // The page is the first visible one; the end is the bottom of the list with the last page on screen
+                // (RF-43), even when the last pages fit on one screen.
+                snapshotFlow {
+                    val lastVisible =
+                        list.layoutInfo.visibleItemsInfo
+                            .lastOrNull()
+                            ?.index ?: 0
+                    Triple(list.firstVisibleItemIndex, lastVisible, list.canScrollForward)
+                }.collect { (first, lastVisible, canScroll) ->
+                    if (!canScroll && lastVisible >= pageCount - 1 && list.layoutInfo.totalItemsCount > 0) {
+                        viewModel.onPageChanged(pageCount - 1)
+                        viewModel.onReachedEnd()
+                    } else {
+                        viewModel.onPageChanged(first.coerceAtMost(pageCount - 1))
+                    }
                 }
+            }
+            LaunchedEffect(state.page) {
+                // The page slider moves the list too (RF-40).
+                if (state.page != list.firstVisibleItemIndex && state.page < pageCount) list.scrollToItem(state.page)
             }
             LazyColumn(
                 state = list,
@@ -183,7 +206,6 @@ private fun Pages(
                     ->
                     i
                 }) { index, page -> PageImage(state, index, page.imageUrl, page.headers, ContentScale.FillWidth) }
-                item { Spacer(Modifier.height(200.dp)) }
             }
         }
         else -> {
@@ -214,7 +236,7 @@ private fun Pages(
                     detectTapGestures { offset -> tap(offset.x / size.width, offset.y / size.height, prev, next) }
                 }
             if (settings.mode == ReaderMode.VERTICAL) {
-                VerticalPager(pager, modifier = tapModifier, beyondViewportPageCount = 1) { index ->
+                VerticalPager(pager, modifier = tapModifier, beyondViewportPageCount = settings.preload.coerceIn(1, MAX_PRELOAD)) { index ->
                     if (index <
                         state.pageCount
                     ) {
@@ -222,7 +244,12 @@ private fun Pages(
                     }
                 }
             } else {
-                HorizontalPager(pager, modifier = tapModifier, reverseLayout = rtl, beyondViewportPageCount = 1) { index ->
+                HorizontalPager(
+                    pager,
+                    modifier = tapModifier,
+                    reverseLayout = rtl,
+                    beyondViewportPageCount = settings.preload.coerceIn(1, MAX_PRELOAD),
+                ) { index ->
                     if (index <
                         state.pageCount
                     ) {
@@ -296,7 +323,7 @@ private fun ReaderMenu(
                 if (chapter != null) {
                     Text(
                         listOfNotNull(
-                            "Cap. " + chapter.number.chapterLabel(),
+                            stringResource(Res.string.chapter_short, chapter.number.chapterLabel()),
                             chapter.source.title,
                             chapter.source.group,
                         ).joinToString(" · "),
@@ -392,7 +419,7 @@ private fun TransitionPage(
         )
         Text(stringResource(Res.string.reader_you_finished), style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
         Text(
-            "Cap. " + transition.finished.number.chapterLabel(),
+            stringResource(Res.string.chapter_short, transition.finished.number.chapterLabel()),
             style = MaterialTheme.typography.headlineMedium,
             color = colors.onSurface,
             textAlign = TextAlign.Center,
@@ -413,7 +440,10 @@ private fun TransitionPage(
             ) {
                 Text(stringResource(Res.string.reader_next), style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant)
                 Text(
-                    listOfNotNull("Cap. " + next.number.chapterLabel(), next.source.title).joinToString(" · "),
+                    listOfNotNull(
+                        stringResource(Res.string.chapter_short, next.number.chapterLabel()),
+                        next.source.title,
+                    ).joinToString(" · "),
                     style = MaterialTheme.typography.titleLarge,
                     color = colors.onSurface,
                 )

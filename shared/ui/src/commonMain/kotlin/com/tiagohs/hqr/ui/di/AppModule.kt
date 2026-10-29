@@ -64,7 +64,7 @@ val coreModule: Module =
         viewModel { (id: SourceId) -> BrowseSourceViewModel(id, get(), get()) }
         viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get()) }
         viewModel { (mangaId: Long, chapterId: Long, page: Int) ->
-            ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get())
+            ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get())
         }
     }
 

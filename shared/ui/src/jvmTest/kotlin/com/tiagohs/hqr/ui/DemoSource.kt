@@ -16,8 +16,10 @@ import java.io.File
 import javax.imageio.ImageIO
 
 /** A fictional source with drawn covers and pages: no network, no copyrighted art. */
-class DemoSource :
-    CatalogSource,
+class DemoSource(
+    private val pageCount: Int = 22,
+    private val kind: ReadingKind = ReadingKind.MANGA,
+) : CatalogSource,
     SearchSource,
     ImageSource {
     override val id = SourceId("demo")
@@ -53,7 +55,7 @@ class DemoSource :
                 "Depois que o último farol do norte se apaga, uma ferreira que forja lâminas para fantasmas " +
                     "precisa atravessar o gelo antes da longa noite.",
             language = "pt-br",
-            kind = ReadingKind.MANGA,
+            kind = kind,
         )
 
     override suspend fun popular(page: Int) = MangaPage((0 until 9).map { manga(it) }, false)
@@ -89,7 +91,7 @@ class DemoSource :
     override suspend fun pages(
         manga: SourceManga,
         chapter: SourceChapter,
-    ) = (0 until 22).map { SourcePage(it, "demo://page/$it") }
+    ) = (0 until pageCount).map { SourcePage(it, "demo://page/$it") }
 
     override suspend fun image(
         url: String,

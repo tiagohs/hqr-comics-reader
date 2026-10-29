@@ -58,7 +58,7 @@ class MemoryImageCache(
         }
 }
 
-/** Disk LRU by last access (file modification time), trimmed to [maxBytes]. */
+/** Disk cache trimmed to [maxBytes], oldest written first. */
 class DiskImageCache(
     private val fs: FileSystem,
     private val dir: Path,
@@ -72,7 +72,8 @@ class DiskImageCache(
         mutex.withLock {
             val path = file(key)
             if (!fs.exists(path)) return@withLock null
-            fs.read(path) { readByteArray() }.also { bytes -> fs.write(path) { write(bytes) } }
+            // Recency comes from the write time: rewriting a page on every read costs more than a slightly older LRU.
+            fs.read(path) { readByteArray() }
         }
 
     override suspend fun put(

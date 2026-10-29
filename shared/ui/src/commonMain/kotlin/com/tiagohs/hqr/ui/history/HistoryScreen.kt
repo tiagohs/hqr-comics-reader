@@ -30,8 +30,10 @@ import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.LoadingState
+import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_cancel
+import com.tiagohs.hqr.ui.resources.chapter_short
 import com.tiagohs.hqr.ui.resources.history_clear
 import com.tiagohs.hqr.ui.resources.history_clear_confirm
 import com.tiagohs.hqr.ui.resources.history_empty_message
@@ -103,7 +105,12 @@ fun HistoryScreen(
                                 headlineContent = { Text(entry.manga.title, maxLines = 1) },
                                 supportingContent = {
                                     val page = chapter.pageCount?.let { stringResource(Res.string.manga_page_of, chapter.lastPage + 1, it) }
-                                    Text(listOfNotNull("Cap. " + chapter.number.chapterLabel(), page).joinToString(" · "))
+                                    Text(
+                                        listOfNotNull(
+                                            stringResource(Res.string.chapter_short, chapter.number.chapterLabel()),
+                                            page,
+                                        ).joinToString(" · "),
+                                    )
                                 },
                                 leadingContent = { Box(Modifier.width(48.dp)) { Cover(entry.manga.source, shape = HqrShapes.coverSmall) } },
                                 trailingContent = {
@@ -116,7 +123,7 @@ fun HistoryScreen(
                                         onResume(
                                             entry.manga.id,
                                             chapter.id,
-                                            if (chapter.read) 0 else chapter.lastPage,
+                                            if (chapter.read) 0 else RESUME,
                                         )
                                     },
                             )

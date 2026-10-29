@@ -30,7 +30,10 @@ class RoomMangaRepository(
 ) : MangaRepository {
     private val dao = db.mangaDao()
 
-    override suspend fun upsert(source: SourceManga): Manga {
+    /** Find and write in one transaction: two screens saving the same work at once never collide on the key. */
+    override suspend fun upsert(source: SourceManga): Manga = db.withWriteTransaction { upsertUnlocked(source) }
+
+    private suspend fun upsertUnlocked(source: SourceManga): Manga {
         val now = clock.now().toEpochMilliseconds()
         val existing = dao.find(source.sourceId.value, source.key)
         if (existing == null) {

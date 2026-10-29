@@ -20,7 +20,11 @@ class SafFileTree(
     private val resolver: ContentResolver,
     private val treeUri: () -> String?,
 ) : FileTree {
-    private val cache = HashMap<String, String>()
+    // Path → document id, per chosen folder: Coil reads covers in parallel, and the ids of one folder never serve
+    // another one.
+    private val caches = java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.ConcurrentHashMap<String, String>>()
+    private val cache: MutableMap<String, String>
+        get() = caches.getOrPut(treeUri().orEmpty()) { java.util.concurrent.ConcurrentHashMap() }
 
     override suspend fun isReady(): Boolean =
         withContext(Dispatchers.IO) {

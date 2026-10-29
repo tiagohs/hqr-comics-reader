@@ -53,7 +53,7 @@ class SourceRegistryTest {
     }
 
     @Test
-    fun RF32_chapterLabels() {
+    fun RF30_chapterLabels() {
         12.0.chapterLabel() shouldBe "12"
         10.5.chapterLabel() shouldBe "10.5"
     }

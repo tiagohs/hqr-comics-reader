@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.presentation
 
+import androidx.lifecycle.SavedStateHandle
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.SourceChapter
@@ -16,7 +17,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -64,7 +64,8 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
         mangaId: Long,
         chapterId: Long,
         startPage: Int = -1,
-    ) = ReaderViewModel(mangaId, chapterId, startPage, db.mangas, db.chapters, db.history, settings, pages, fixedClock)
+        saved: SavedStateHandle = SavedStateHandle(),
+    ) = track(ReaderViewModel(mangaId, chapterId, startPage, db.mangas, db.chapters, db.history, settings, pages, fixedClock, saved))
 
     /** Waits in real time for work done on Room's threads. */
     private suspend fun eventually(condition: suspend () -> Boolean) =
@@ -84,8 +85,24 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
             vm.onPageChanged(7)
             vm.onPageChanged(8)
             vm.state.value.page shouldBe 8
-            advanceTimeBy(ReaderViewModel.SAVE_DELAY_MS + 100)
             eventually { db.chapters.get(chapters[0].id)?.lastPage == 8 }
+        }
+
+    @Test
+    fun RF88_afterProcessDeathTheSavedPageWinsOverTheRoute() =
+        runTest {
+            val (id, chapters) = work(1.0, 2.0)
+            val saved = SavedStateHandle()
+            val first = reader(id, chapters[0].id, 0, saved)
+            first.loaded()
+            first.goToNext()
+            first.state.first { !it.loading && it.chapter?.number == 2.0 }
+            first.onPageChanged(7)
+            // The process dies: a new ViewModel gets the old route (chapter 1, page 0) and the saved state.
+            val again = reader(id, chapters[0].id, 0, SavedStateHandle(saved.keys().associateWith { saved.get<Any>(it) }))
+            val state = again.state.first { !it.loading }
+            state.chapter?.number shouldBe 2.0
+            state.page shouldBe 7
         }
 
     @Test
@@ -106,11 +123,27 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF42_backToReadingAtTheEndDoesNotReopenTheTransition() =
+        runTest {
+            val (id, chapters) = work(1.0, 2.0)
+            val vm = reader(id, chapters[0].id, 0)
+            vm.loaded()
+            vm.onReachedEnd()
+            (vm.state.value.transition != null) shouldBe true
+            vm.dismissTransition()
+            vm.onReachedEnd()
+            vm.state.value.transition shouldBe null
+            vm.onPageChanged(3)
+            vm.onReachedEnd()
+            (vm.state.value.transition != null) shouldBe true
+        }
+
+    @Test
     fun RF59_openingRecordsHistory() =
         runTest {
             val (id, chapters) = work(1.0)
             reader(id, chapters[0].id, 0).loaded()
-            val history = HistoryViewModel(db.history, fixedClock, TimeZone.UTC)
+            val history = track(HistoryViewModel(db.history, fixedClock, TimeZone.UTC))
             val day =
                 history.state
                     .first { !it.loading }
@@ -157,9 +190,9 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
             vm.loaded()
             val webtoon = ReaderSettings(mode = com.tiagohs.hqr.presentation.reader.ReaderMode.WEBTOON)
             vm.updateSettings(webtoon, onlyThisWork = true)
-            settings.perManga[id] shouldBe webtoon
+            eventually { settings.perManga[id] == webtoon }
             vm.updateSettings(webtoon.copy(showPageNumber = false), onlyThisWork = false)
-            settings.global.showPageNumber shouldBe false
+            eventually { !settings.global.showPageNumber }
             vm.onPageFailed(3)
             vm.state.value.failedPages shouldContainExactly setOf(3)
             vm.onPageRetry(3)

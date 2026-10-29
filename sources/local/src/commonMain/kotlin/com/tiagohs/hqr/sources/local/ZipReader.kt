@@ -26,19 +26,19 @@ class ZipReader(
 
     suspend fun entries(): List<Entry> {
         val fileSize = tree.size(path)
-        if (fileSize < EOCD_SIZE) throw invalid("arquivo curto demais")
+        ensure(fileSize >= EOCD_SIZE, "arquivo curto demais")
         val tailLength = minOf(fileSize, (EOCD_SIZE + MAX_COMMENT).toLong()).toInt()
         val tail = tree.read(path, fileSize - tailLength, tailLength)
         val eocd = (tail.size - EOCD_SIZE downTo 0).firstOrNull { tail.u32(it) == EOCD_SIGNATURE } ?: throw invalid("sem diretório")
         val count = tail.u16(eocd + EOCD_COUNT)
         val cdSize = tail.u32(eocd + EOCD_CD_SIZE)
         val cdOffset = tail.u32(eocd + EOCD_CD_OFFSET)
-        if (cdOffset + cdSize > fileSize) throw invalid("diretório fora do arquivo")
+        ensure(cdOffset + cdSize <= fileSize, "diretório fora do arquivo")
         val cd = tree.read(path, cdOffset, cdSize.toInt())
         val entries = ArrayList<Entry>(count)
         var p = 0
         repeat(count) {
-            if (p + CD_HEADER > cd.size || cd.u32(p) != CD_SIGNATURE) throw invalid("entrada inválida")
+            ensure(p + CD_HEADER <= cd.size && cd.u32(p) == CD_SIGNATURE, "entrada inválida")
             val method = cd.u16(p + CD_METHOD)
             val compressed = cd.u32(p + CD_COMPRESSED)
             val size = cd.u32(p + CD_SIZE)
@@ -46,9 +46,11 @@ class ZipReader(
             val extraLength = cd.u16(p + CD_EXTRA_LENGTH)
             val commentLength = cd.u16(p + CD_COMMENT_LENGTH)
             val offset = cd.u32(p + CD_LOCAL_OFFSET)
+            ensure(p + CD_HEADER + nameLength <= cd.size, "nome fora do diretório")
             val name = cd.decodeToString(p + CD_HEADER, p + CD_HEADER + nameLength).replace('\\', '/')
             p += CD_HEADER + nameLength + extraLength + commentLength
             if (name.endsWith("/") || !isSafe(name)) return@repeat
+            ensure(compressed <= fileSize && offset <= fileSize, "entrada maior que o arquivo")
             entries += Entry(name, method, compressed, size, offset)
         }
         return entries
@@ -74,11 +76,18 @@ class ZipReader(
         }
     }
 
+    private fun ensure(
+        valid: Boolean,
+        reason: String,
+    ) {
+        if (!valid) throw invalid(reason)
+    }
+
     private fun invalid(reason: String) = SourceException("CBZ inválido ($reason): $path", SourceException.Kind.PARSE)
 
     companion object {
         const val MAX_ENTRY_BYTES = 64L * 1024 * 1024
-        private const val MAX_RATIO = 1000
+        private const val MAX_RATIO = 100
         private const val EOCD_SIZE = 22
         private const val MAX_COMMENT = 65_535
         private const val CD_HEADER = 46

@@ -82,7 +82,7 @@ class ReadingRulesTest {
     }
 
     @Test
-    fun chapterLabelDropsTheZeroDecimal() {
+    fun RF30_chapterLabelDropsTheZeroDecimal() {
         12.0.chapterLabel() shouldBe "12"
         10.5.chapterLabel() shouldBe "10.5"
     }

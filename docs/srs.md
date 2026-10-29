@@ -74,11 +74,11 @@ Android 8.0 (API 26) ou superior; iOS e iPadOS 17 ou superior. Celulares, tablet
 | C-05 | Mesma organização e tecnologia do Script Reader: `android/`, `shared/` (KMP: `domain`, `data`, `presentation`) e `ios/` depois; Kotlin, Compose e Material 3, Koin, Room, Ktor, Coil 3, Ksoup e o mesmo catálogo de versões. |
 | C-06 | A lógica segue o desenho do Mihon/TachiyomiSY (Apache-2.0). Todo trecho de código derivado deles mantém o aviso de licença, e o Sobre traz o NOTICE. |
 | C-07 | Código, pastas e comentários em inglês; documentos em português. |
-| C-08 | GitHub sem custo: CI só por disparo manual e dentro da cota gratuita. |
+| C-08 | GitHub sem custo: CI só no runner do Mac do Tiago (sem minutos pagos) ou por disparo manual dentro da cota gratuita. |
 | C-09 | Android primeiro. O iOS só começa depois que o Tiago aprovar as telas do Android. |
 | C-10 | Desenvolvedor solo. |
 | C-11 | Nova chave de assinatura e `applicationId` `com.tiagohs.hqr.reader`, registrados na verificação de desenvolvedor do Android; a chave da 0.0.5 nunca é registrada nem usada (ela está no histórico público). A 0.0.5 segue `com.tiagohs.hqr`, e os dois instalam lado a lado. |
-| C-12 | A web é hospedada de graça no GitHub Pages e publicada manualmente, sem workflow automático. O projeto não opera ponte nem proxy: cada usuário publica a sua no plano grátis do Cloudflare Workers. |
+| C-12 | A web é hospedada de graça no GitHub Pages, publicada pelo CI do Mac do Tiago (branch `gh-pages`). O projeto não opera ponte nem proxy: cada usuário publica a sua no plano grátis do Cloudflare Workers. |
 
 ### 2.5 Premissas e dependências
 
@@ -385,7 +385,7 @@ Prioridade: Must (lançamento), Should (importante), Could (desejável).
 | RNF-17 | Confiabilidade | Isolamento de falhas | Falha de rede ou de fonte nunca apaga biblioteca, progresso, histórico ou baixados (testado com a fonte falhando em cada etapa) |
 | RNF-18 | Confiabilidade | Banco de dados | Toda versão do esquema tem migração testada; zero perda de dados entre versões |
 | RNF-19 | Operação | Observabilidade | Crashlytics no Android, com o mapping do R8 enviado a cada versão; nenhum endereço de conteúdo nos registros |
-| RNF-20 | Custo | Operação | Zero servidor e zero custo recorrente; CI só manual, dentro da cota gratuita |
+| RNF-20 | Custo | Operação | Zero servidor e zero custo recorrente; CI no runner do Mac do Tiago ou manual, dentro da cota gratuita |
 | RNF-21 | Confiabilidade | Downloads | Retomam depois de falha de rede sem baixar de novo as páginas completas; cada imagem salva é conferida (decodifica) |
 | RNF-22 | Eficiência | Bateria | Downloads e backup só pelo agendador do sistema, com as restrições de rede; nenhum wake lock adquirido diretamente pelo app |
 | RNF-23 | Eficiência | Cache de imagens | Disco: LRU de 300 MB (ajustável de 100 MB a 2 GB); memória: até 25% do heap; capas da biblioteca fora do LRU |
@@ -445,6 +445,6 @@ Prioridade: Must (lançamento), Should (importante), Could (desejável).
 | Anúncios | AdMob (banner e intersticial no leitor) | Nenhum (C-02) |
 | Rede | `usesCleartextTraffic=true` | Só HTTPS (RNF-09) |
 | Assinatura | Keystore no histórico público e senha no `build.gradle` | Chave nova; senha nos secrets e em `local.properties` (C-11) |
-| CI | Travis e CircleCI | GitHub Actions só manual (C-08) |
+| CI | Travis e CircleCI | GitHub Actions no runner do Mac do Tiago (C-08) |
 | Fontes | HQUltimate e ReadComicsOnline (fora do ar) | MangaDex, Arquivos locais, Servidores; HQ Now no GitHub |
 | Testes | Modelo vazio | Testes por ID, Roborazzi, Kover (RNF-15) |

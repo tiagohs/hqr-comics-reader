@@ -12,6 +12,8 @@ import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.AfterTest
@@ -164,5 +166,16 @@ class LibraryRepositoriesTest {
             history.observe().first().size shouldBe 1
             history.clear()
             history.observe().first() shouldBe emptyList()
+        }
+
+    @Test
+    fun RF90_parallelSavesOfTheSameWorkKeepOneRow() =
+        runTest {
+            val work = SourceManga(SourceId.MANGADEX, "same", "Obra")
+            val ids =
+                kotlinx.coroutines.coroutineScope {
+                    (1..20).map { async(kotlinx.coroutines.Dispatchers.Default) { mangas.upsert(work).id } }.awaitAll()
+                }
+            ids.toSet().size shouldBe 1
         }
 }

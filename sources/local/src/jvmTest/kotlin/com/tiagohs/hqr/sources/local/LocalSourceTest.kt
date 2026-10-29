@@ -97,6 +97,48 @@ class LocalSourceTest {
         }
 
     @Test
+    fun RF13_namesWithBangAndHashStillLoad() =
+        runTest {
+            val bytes = kotlin.random.Random(7).nextBytes(3000)
+            write("Yotsuba&!/Vol #1!.cbz", cbz("p!1.jpg" to bytes))
+            val manga = SourceManga(SourceId.LOCAL, "Yotsuba&!", "Yotsuba&!")
+            val ref = source.pages(manga, source.chapters(manga).single()).single().imageUrl
+            source.load(ref) shouldBe bytes
+        }
+
+    @Test
+    fun RNF26_ratioAboveOneHundredIsRefused() =
+        runTest {
+            write("Bomb/1.cbz", cbz("p.jpg" to ByteArray(200_000)))
+            val manga = SourceManga(SourceId.LOCAL, "Bomb", "Bomb")
+            val ref = source.pages(manga, source.chapters(manga).single()).single().imageUrl
+            shouldThrow<SourceException> { source.load(ref) }.kind shouldBe SourceException.Kind.PARSE
+        }
+
+    @Test
+    fun RNF26_truncatedOrLyingArchivesAreRefused() =
+        runTest {
+            val good = cbz("p.jpg" to kotlin.random.Random(1).nextBytes(100))
+            // Central directory says the entry is bigger than the whole file.
+            val lying = good.copyOf()
+            val cd =
+                lying.indices.last { i ->
+                    i + 3 < lying.size &&
+                        lying[i] == 0x50.toByte() &&
+                        lying[i + 1] == 0x4b.toByte() &&
+                        lying[i + 2] == 1.toByte() &&
+                        lying[i + 3] == 2.toByte()
+                }
+            lying[cd + 20] = 0x7f
+            lying[cd + 23] = 0x7f
+            write("L/1.cbz", lying)
+            shouldThrow<SourceException> { ZipReader(OkioFileTree(fs, root), "L/1.cbz").entries() }
+            // Truncated: the end record cut off.
+            write("T/1.cbz", good.copyOf(good.size - 30))
+            shouldThrow<SourceException> { ZipReader(OkioFileTree(fs, root), "T/1.cbz").entries() }
+        }
+
+    @Test
     fun RNF26_pathsWithDotDotAreIgnored() {
         ZipReader.isSafe("../evil.jpg") shouldBe false
         ZipReader.isSafe("a/../../b.jpg") shouldBe false
@@ -115,7 +157,7 @@ class LocalSourceTest {
         }
 
     @Test
-    fun noFolderChosenIsAClearError() =
+    fun RF13_noFolderChosenIsAClearError() =
         runTest {
             shouldThrow<SourceException> { LocalSource(OkioFileTree(fs, "/nada".toPath())).popular(1) }
         }

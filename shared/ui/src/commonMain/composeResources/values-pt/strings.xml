@@ -124,4 +124,7 @@
     <string name="settings_cover_color">Cor da capa</string>
     <string name="settings_cover_color_hint">A obra e o leitor ganham as cores da capa</string>
     <string name="date_short">%1$s/%2$s/%3$s</string>
+    <string name="chapter_short">Cap. %1$s</string>
+    <string name="library_tab_all">Todas</string>
+    <string name="library_tab_uncategorized">Sem categoria</string>
 </resources>

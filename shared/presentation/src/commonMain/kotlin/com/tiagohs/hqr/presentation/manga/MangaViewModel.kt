@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -49,7 +48,7 @@ class MangaViewModel(
 
     val state: StateFlow<State> =
         combine(
-            mangas.observe(mangaId).filterNotNull(),
+            mangas.observe(mangaId),
             chapters.observe(mangaId),
             combine(refreshing, error, ::Pair),
             order,
@@ -85,7 +84,12 @@ class MangaViewModel(
         viewModelScope.launch {
             refreshing.value = true
             error.value = null
-            val manga = mangas.get(mangaId) ?: return@launch
+            val manga = mangas.get(mangaId)
+            if (manga == null) {
+                error.value = ErrorKind.NOT_FOUND
+                refreshing.value = false
+                return@launch
+            }
             attempt {
                 val source = registry.require(manga.sourceId)
                 val details = source.details(manga.source)

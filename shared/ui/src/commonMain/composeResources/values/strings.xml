@@ -124,4 +124,7 @@
     <string name="settings_cover_color">Cover color</string>
     <string name="settings_cover_color_hint">The work and the reader take the colors of the cover</string>
     <string name="date_short">%2$s/%1$s/%3$s</string>
+    <string name="chapter_short">Ch. %1$s</string>
+    <string name="library_tab_all">All</string>
+    <string name="library_tab_uncategorized">No category</string>
 </resources>

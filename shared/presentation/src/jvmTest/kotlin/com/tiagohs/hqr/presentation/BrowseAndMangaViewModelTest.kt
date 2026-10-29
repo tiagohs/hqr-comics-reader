@@ -25,12 +25,12 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
     @Test
     fun RF21_popularLoadsAndContinuesAtTheEnd() =
         runTest {
-            val vm = BrowseSourceViewModel(source.id, registry, db.mangas)
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))
             awaitIdle(vm).items.size shouldBe 2
             vm.loadMore()
-            awaitIdle(vm).items.size shouldBe 4
+            vm.state.first { it.items.size == 4 && !it.loadingMore }
             vm.loadMore()
-            val last = awaitIdle(vm)
+            val last = vm.state.first { it.items.size == 6 && !it.loadingMore }
             last.items.size shouldBe 6
             last.hasNextPage shouldBe false
             vm.loadMore()
@@ -40,29 +40,46 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
     @Test
     fun RF21_latestAndSearchAreSeparateListings() =
         runTest {
-            val vm = BrowseSourceViewModel(source.id, registry, db.mangas)
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))
             awaitIdle(vm)
             vm.show(Listing.LATEST)
-            awaitIdle(vm).items.first().key shouldBe "l1-1"
+            vm.state.first { !it.loading && it.items.firstOrNull()?.key == "l1-1" }
             vm.search("naruto")
-            awaitIdle(vm).items.first().key shouldBe "s:naruto:1-1"
+            vm.state.first { !it.loading && it.items.firstOrNull()?.key == "s:naruto:1-1" }
         }
 
     @Test
     fun RF05_failureStaysInTheSourceWithItsKind() =
         runTest {
             source.fail = SourceException.Kind.NETWORK
-            val vm = BrowseSourceViewModel(source.id, registry, db.mangas)
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))
             awaitIdle(vm).error shouldBe ErrorKind.NETWORK
             source.fail = null
             vm.retry()
-            awaitIdle(vm).items.size shouldBe 2
+            vm.state.first { !it.loading && it.items.size == 2 }.error shouldBe null
+        }
+
+    @Test
+    fun RF05_unknownSourceIsAnErrorNotACrash() =
+        runTest {
+            val vm =
+                track(
+                    BrowseSourceViewModel(
+                        com.tiagohs.hqr.domain.model
+                            .SourceId("gone"),
+                        registry,
+                        db.mangas,
+                    ),
+                )
+            vm.state.first { !it.loading }.error shouldBe ErrorKind.UNAVAILABLE
+            val manga = track(MangaViewModel(999, registry, db.mangas, db.chapters))
+            manga.state.first { !it.refreshing && it.error != null }.error shouldBe ErrorKind.NOT_FOUND
         }
 
     @Test
     fun RF26_inLibraryKeysAreMarked() =
         runTest {
-            val vm = BrowseSourceViewModel(source.id, registry, db.mangas)
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))
             val first = awaitIdle(vm).items.first()
             val id = vm.open(first)
             db.mangas.setInLibrary(id, true)
@@ -73,7 +90,7 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
     fun RF29_RF31_workLoadsDetailsChaptersAndAction() =
         runTest {
             val id = db.mangas.upsert(source.popular(1).items.first()).id
-            val vm = MangaViewModel(id, registry, db.mangas, db.chapters)
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters))
             val state = vm.state.first { !it.refreshing && it.chapters.size == 3 }
             state.manga?.source?.description shouldBe "Sinopse de Obra p1-1"
             state.action
@@ -92,7 +109,7 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
     fun RF32_markPreviousAsReadAndFilterUnread() =
         runTest {
             val id = db.mangas.upsert(source.popular(1).items.first()).id
-            val vm = MangaViewModel(id, registry, db.mangas, db.chapters)
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters))
             val third =
                 vm.state
                     .first { it.chapters.size == 3 }
@@ -117,7 +134,7 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
     fun RF33_refreshFailureKeepsWhatWasThere() =
         runTest {
             val id = db.mangas.upsert(source.popular(1).items.first()).id
-            val vm = MangaViewModel(id, registry, db.mangas, db.chapters)
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters))
             vm.state.first { it.chapters.size == 3 }
             source.fail = SourceException.Kind.SERVER
             vm.refresh()
@@ -130,13 +147,13 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
     fun RF52_libraryShowsWhatWasAddedAndContinueReading() =
         runTest {
             val id = db.mangas.upsert(source.popular(1).items.first()).id
-            val manga = MangaViewModel(id, registry, db.mangas, db.chapters)
+            val manga = track(MangaViewModel(id, registry, db.mangas, db.chapters))
             manga.state.first { it.chapters.size == 3 }
             manga.toggleLibrary()
             val ch = db.chapters.list(id).first { it.number == 1.0 }
             db.chapters.saveProgress(ch.id, 4, 22)
             db.history.record(ch.id, 10)
-            val library = LibraryViewModel(db.mangas, db.categories, db.history)
+            val library = track(LibraryViewModel(db.mangas, db.categories, db.history))
             val state = library.state.first { it.items.isNotEmpty() && it.continueReading != null }
             state.tabs.first().count shouldBe 1
             state.continueReading?.chapter?.lastPage shouldBe 4

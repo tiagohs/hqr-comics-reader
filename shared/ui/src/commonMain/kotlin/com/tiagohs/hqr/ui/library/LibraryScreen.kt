@@ -44,12 +44,15 @@ import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.HalftoneProgress
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.UnreadBalloon
+import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_continue
 import com.tiagohs.hqr.ui.resources.action_search
 import com.tiagohs.hqr.ui.resources.library_continue_reading
 import com.tiagohs.hqr.ui.resources.library_empty_message
 import com.tiagohs.hqr.ui.resources.library_empty_title
+import com.tiagohs.hqr.ui.resources.library_tab_all
+import com.tiagohs.hqr.ui.resources.library_tab_uncategorized
 import com.tiagohs.hqr.ui.resources.library_unread
 import com.tiagohs.hqr.ui.resources.library_up_to_date
 import com.tiagohs.hqr.ui.resources.manga_continue_chapter
@@ -103,7 +106,15 @@ fun LibraryScreen(
                                 Tab(
                                     selected = tab.id == state.selectedTab,
                                     onClick = { viewModel.selectTab(tab.id) },
-                                    text = { Text("${tab.name} ${tab.count}") },
+                                    text = {
+                                        val name =
+                                            when (tab.id) {
+                                                LibraryViewModel.ALL -> stringResource(Res.string.library_tab_all)
+                                                LibraryViewModel.UNCATEGORIZED -> stringResource(Res.string.library_tab_uncategorized)
+                                                else -> tab.name
+                                            }
+                                        Text("$name ${tab.count}")
+                                    },
                                 )
                             }
                         }
@@ -184,6 +195,6 @@ private fun ContinueCard(
             )
             if (total > 0) HalftoneProgress((chapter.lastPage + 1f) / total)
         }
-        Button(onClick = { onContinue(entry.manga.id, chapter.id, chapter.lastPage) }) { Text(stringResource(Res.string.action_continue)) }
+        Button(onClick = { onContinue(entry.manga.id, chapter.id, RESUME) }) { Text(stringResource(Res.string.action_continue)) }
     }
 }

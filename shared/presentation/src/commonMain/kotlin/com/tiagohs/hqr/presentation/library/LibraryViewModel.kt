@@ -31,6 +31,7 @@ class LibraryViewModel(
         val isEmpty: Boolean get() = !loading && tabs.firstOrNull()?.count == 0
     }
 
+    /** [name] is empty for the built-in tabs ([ALL], [UNCATEGORIZED]); the screen names them in the app language. */
     data class Tab(
         val id: Long,
         val name: String,
@@ -73,10 +74,10 @@ class LibraryViewModel(
     ): List<Tab> {
         val uncategorized = items.count { it.categoryIds.isEmpty() }
         return buildList {
-            add(Tab(ALL, "Todas", items.size))
+            add(Tab(ALL, "", items.size))
             categories.forEach { cat -> add(Tab(cat.id, cat.name, items.count { cat.id in it.categoryIds })) }
             // RF-53: "Sem categoria" only shows when some work has none and there are categories.
-            if (categories.isNotEmpty() && uncategorized > 0) add(Tab(UNCATEGORIZED, "Sem categoria", uncategorized))
+            if (categories.isNotEmpty() && uncategorized > 0) add(Tab(UNCATEGORIZED, "", uncategorized))
         }
     }
 

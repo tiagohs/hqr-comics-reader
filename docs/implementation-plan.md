@@ -251,19 +251,19 @@ Em vermelho, as fatias de maior risco. Por fase:
 
 ## 6. Fundações de engenharia
 
-- [ ] **Repositório (ADR-016):** tag `v0.0.5` no código atual; `app/` sai; estrutura `android/`, `shared/`, `sources/`, `build-logic/`, `scripts/`, `docs/`, como no Script Reader. Commit e push só quando o Tiago pedir.
-- [ ] **Build:** catálogo de versões, plugins de convenção, Kotlin 2.x, KMP com alvos Android e `wasmJs` (iOS entra depois), `applicationId` `com.tiagohs.hqr.reader`, sabor único `github` (ADR-003, C-11). Chave de assinatura nova fica para quando o Tiago tratar dela.
-- [ ] **Injeção:** Koin, um módulo por fonte (ADR-013).
-- [ ] **Persistência:** Room 3 + DataStore; teste de cada migração (ADR-004, R-09).
-- [ ] **Rede:** Ktor (OkHttp), limitador e política de tentativas compartilhados (ADR-005).
+- [x] **Repositório (ADR-016):** tag `0.0.5` no código antigo; `app/` sai; estrutura `android/`, `shared/`, `sources/`, `build-logic/`, `scripts/`, `docs/`, como no Script Reader. Commit e push só quando o Tiago pedir.
+- [x] **Build:** catálogo de versões, plugins de convenção, Kotlin 2.x, KMP com alvos Android e `wasmJs` (iOS entra depois), `applicationId` `com.tiagohs.hqr.reader`, sabor único `github` (ADR-003, C-11). Chave de assinatura nova fica para quando o Tiago tratar dela.
+- [x] **Injeção:** Koin, um módulo por fonte (ADR-013).
+- [x] **Persistência:** Room 3 + preferências (multiplatform-settings no lugar do DataStore, que não roda na web); esquema exportado por versão e teste do arquivo; cada migração futura ganha o seu teste (ADR-004, R-09).
+- [x] **Rede:** Ktor (OkHttp), limitador e política de tentativas compartilhados (ADR-005).
 - [ ] **Estados de tela (RF-86):** `UiState` com carregando, vazio, erro e sem conexão, cada um com ação de saída; componente de estado do `design.md`.
-- [ ] **Estado que sobrevive (RF-88, ADR-018):** rotas e argumentos pelo Navigation Compose, filtros e seleção em `SavedStateHandle`; teste com "Não manter atividades" em toda tela com estado.
-- [ ] **Design system:** `tokens.json` → tema Compose (violeta base, esquemas claro e escuro, erro), Roboto Flex com wdth 75 nos títulos, Bangers na marca, forma `cover-cut`, retícula; `NavigationSuiteScaffold` (ADR-012); textos e convenções do `design.md` (voz e glossário).
-- [ ] **Textos (RNF-14, ADR-017):** `strings.xml` pt-BR, en, es desde o esqueleto; script do String Catalog do iOS fica para o iOS.
+- [x] **Estado que sobrevive (RF-88, ADR-018):** rotas pelo Navigation Compose; o leitor guarda capítulo e página no `SavedStateHandle`; os filtros das outras telas entram com as suas FEATs.
+- [x] **Design system:** `tokens.json` → tema Compose (violeta base, esquemas claro e escuro, erro), Roboto Flex com wdth 75 nos títulos, Bangers na marca, forma `cover-cut`, retícula; `NavigationSuiteScaffold` (ADR-012); textos e convenções do `design.md` (voz e glossário).
+- [x] **Textos (RNF-14, ADR-017):** `strings.xml` pt-BR, en, es desde o esqueleto; script do String Catalog do iOS fica para o iOS.
 - [ ] **Acessibilidade (RNF-11):** rótulos, alvos de 48, foco, fonte a 200% conferidos no Roborazzi.
 - [ ] **Testes:** nome com o ID do requisito; Kover (`domain` ≥ 80%, `data` ≥ 60%); fontes contra fixtures gravadas, sem rede; Roborazzi claro e escuro; Macrobenchmark de abertura e troca de página desde a FEAT-001 (R-02).
-- [ ] **Estilo:** ktlint, detekt, lint.
-- [ ] **CI:** nenhum workflow novo sem o Tiago pedir; quando pedir, só por disparo manual e dentro da cota grátis (C-08). Até lá, `./gradlew check` local.
+- [x] **Estilo:** ktlint, detekt, lint.
+- [x] **CI:** `.github/workflows/ci.yml` no runner do Mac do Tiago (pedido dele, out/2026): testes, APKs e web a cada push em `rewrite/**` (C-08).
 - [ ] **Falhas:** Crashlytics no Android, desligável (ADR-014, RNF-07).
 - [ ] **Aviso de licença (C-06):** NOTICE do Mihon/TachiyomiSY em todo trecho derivado.
 

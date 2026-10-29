@@ -61,10 +61,13 @@ import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.presentation.color.CoverColor
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
 import com.tiagohs.hqr.ui.components.Cover
+import com.tiagohs.hqr.ui.components.ErrorState
 import com.tiagohs.hqr.ui.components.ImageRef
 import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.label
+import com.tiagohs.hqr.ui.components.message
+import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_continue
@@ -75,6 +78,7 @@ import com.tiagohs.hqr.ui.resources.action_read
 import com.tiagohs.hqr.ui.resources.action_read_again
 import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.date_short
+import com.tiagohs.hqr.ui.resources.error_title
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_chapter_label
 import com.tiagohs.hqr.ui.resources.manga_chapters
@@ -117,7 +121,19 @@ fun MangaScreen(
     HqrTheme(dark = dark, seed = seed) {
         val manga = state.manga
         if (manga == null) {
-            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { LoadingState() }
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                val error = state.error
+                if (error == null) {
+                    LoadingState()
+                } else {
+                    ErrorState(
+                        stringResource(Res.string.error_title),
+                        stringResource(error.message()),
+                        stringResource(Res.string.action_back),
+                        onBack,
+                    )
+                }
+            }
         } else {
             MangaContent(manga, state, dark, viewModel, onBack, onRead)
         }
@@ -201,7 +217,7 @@ private fun MangaContent(
                     items(state.chapters, key = { it.id }) { chapter ->
                         ChapterRow(
                             chapter = chapter,
-                            onClick = { onRead(manga.id, chapter.id, if (chapter.read) 0 else chapter.lastPage) },
+                            onClick = { onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME) },
                             onMarkRead = { viewModel.setRead(listOf(chapter.id), !chapter.read) },
                             onMarkPrevious = { viewModel.markPreviousAsRead(chapter) },
                         )
@@ -295,7 +311,7 @@ private fun Actions(
                     Triple(
                         stringResource(Res.string.action_continue),
                         stringResource(Res.string.manga_continue_chapter, action.chapter.number.chapterLabel(), action.page + 1),
-                        action.chapter to action.page,
+                        action.chapter to RESUME,
                     )
                 is ReadAction.ReadAgain -> Triple(stringResource(Res.string.action_read_again), null, action.chapter to 0)
                 ReadAction.Nothing -> Triple(stringResource(Res.string.action_read), null, null)

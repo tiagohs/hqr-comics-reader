@@ -241,12 +241,12 @@ class MangaDexSourceTest {
     fun RF90_keysAndMappings() =
         runTest {
             source.id shouldBe SourceId.MANGADEX
-            MangaDexSource.status("completed") shouldBe PublicationStatus.COMPLETED
-            MangaDexSource.status("hiatus") shouldBe PublicationStatus.HIATUS
-            MangaDexSource.status("cancelled") shouldBe PublicationStatus.CANCELLED
-            MangaDexSource.status(null) shouldBe PublicationStatus.UNKNOWN
-            MangaDexSource.kind("en") shouldBe ReadingKind.COMIC
-            MangaDexSource.kind(null) shouldBe ReadingKind.UNKNOWN
+            mangaDexStatus("completed") shouldBe PublicationStatus.COMPLETED
+            mangaDexStatus("hiatus") shouldBe PublicationStatus.HIATUS
+            mangaDexStatus("cancelled") shouldBe PublicationStatus.CANCELLED
+            mangaDexStatus(null) shouldBe PublicationStatus.UNKNOWN
+            mangaDexKind("en") shouldBe ReadingKind.COMIC
+            mangaDexKind(null) shouldBe ReadingKind.UNKNOWN
             source.latest(1)
             requests.last().url.parameters["order[latestUploadedChapter]"] shouldBe "desc"
             source.search(" naruto ", emptyList(), 1)

@@ -231,7 +231,7 @@ A web é um site estático (`web/` compilado) publicado à mão no GitHub Pages 
 | Telas | Roborazzi claro e escuro nos tamanhos de RNF-12; prévias obrigatórias |
 | Desempenho | Macrobenchmark de abertura e de troca de página; perfil de base (baseline profile) |
 | Estilo | ktlint, detekt, lint |
-| CI | GitHub Actions só manual (C-08); iOS no runner do Mac do Tiago |
+| CI | GitHub Actions no runner do Mac do Tiago (`[self-hosted, macOS]`, sem custo): a cada push em `rewrite/**` e à mão; APKs e web numa release rascunho, web publicada na `gh-pages` (C-08, C-12) |
 
 ## 9. Riscos
 

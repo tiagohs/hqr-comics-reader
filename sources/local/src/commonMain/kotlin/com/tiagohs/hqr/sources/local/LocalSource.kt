@@ -9,6 +9,8 @@ import com.tiagohs.hqr.domain.model.SourcePage
 import com.tiagohs.hqr.domain.source.CatalogSource
 import com.tiagohs.hqr.domain.source.ImageSource
 import com.tiagohs.hqr.domain.source.SourceException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * The user's own folder as a source (RF-13, RF-16). Each subfolder or archive in the root is a work; inside a work
@@ -113,13 +115,16 @@ class LocalSource(
     suspend fun load(ref: String): ByteArray {
         val target = ref.removePrefix(SCHEME)
         if (target.startsWith(COVER)) return cover(target.removePrefix(COVER))
-        val bang = target.indexOf('!')
+        // The archive ends at its extension followed by "!": names may contain "!" themselves.
+        val bang = ARCHIVE_ENTRY.find(target)?.let { it.range.last }
         val hash = target.lastIndexOf('#')
         return when {
-            bang > 0 -> {
-                val zip = ZipReader(tree, target.substring(0, bang))
+            bang != null -> {
+                val archive = target.substring(0, bang)
+                val zip = ZipReader(tree, archive)
+                val name = target.substring(bang + 1)
                 val entry =
-                    zip.entries().firstOrNull { it.name == target.substring(bang + 1) }
+                    entries(archive, zip).firstOrNull { it.name == name }
                         ?: throw SourceException("Página não encontrada", SourceException.Kind.NOT_FOUND)
                 zip.read(entry)
             }
@@ -128,6 +133,18 @@ class LocalSource(
             else -> tree.read(target, 0, tree.size(target).toInt())
         }
     }
+
+    private val entriesLock = Mutex()
+    private var lastEntries: Pair<String, List<ZipReader.Entry>>? = null
+
+    /** The central directory of the archive being read, kept between its pages. */
+    private suspend fun entries(
+        archive: String,
+        zip: ZipReader,
+    ): List<ZipReader.Entry> =
+        entriesLock.withLock {
+            lastEntries?.takeIf { it.first == archive }?.second ?: zip.entries().also { lastEntries = archive to it }
+        }
 
     private suspend fun cover(workPath: String): ByteArray {
         val first =
@@ -143,6 +160,7 @@ class LocalSource(
 
     companion object {
         const val SCHEME = "local:"
+        private val ARCHIVE_ENTRY = Regex("\\.(cbz|zip)!", RegexOption.IGNORE_CASE)
         private const val COVER = "cover:"
 
         fun coverUrl(workPath: String) = "$SCHEME$COVER$workPath"

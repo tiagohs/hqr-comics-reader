@@ -26,10 +26,14 @@ sealed interface Route {
         val id: Long,
     ) : Route
 
+    /** [page] is [RESUME] to continue where the database says; an explicit page only for "read again" and jumps. */
     @Serializable
     data class Reader(
         val mangaId: Long,
         val chapterId: Long,
-        val page: Int = -1,
+        val page: Int = RESUME,
     ) : Route
 }
+
+/** Reader page meaning "where the saved progress is" (RF-43, RF-88). */
+const val RESUME: Int = -1

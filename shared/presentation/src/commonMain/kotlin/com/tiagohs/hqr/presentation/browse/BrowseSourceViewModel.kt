@@ -45,11 +45,12 @@ class BrowseSourceViewModel(
         val isEmpty: Boolean get() = !loading && error == null && items.isEmpty()
     }
 
-    private val source = registry.require(sourceId)
+    // A source removed or not registered yet (servers, RF-17) is an error on screen, never a crash.
+    private val source = registry[sourceId]
     private val _state =
         MutableStateFlow(
             State(
-                sourceName = source.name,
+                sourceName = source?.name ?: sourceId.value,
                 canSearch = source is SearchSource,
                 filters = (source as? SearchSource)?.filters().orEmpty(),
             ),
@@ -131,9 +132,9 @@ class BrowseSourceViewModel(
         page: Int,
     ): MangaPage =
         when (state.listing) {
-            Listing.POPULAR -> (source as CatalogSource).popular(page)
-            Listing.LATEST -> (source as CatalogSource).latest(page)
-            Listing.SEARCH -> (source as SearchSource).search(state.query, state.filters, page)
+            Listing.POPULAR -> (registry.require(sourceId) as CatalogSource).popular(page)
+            Listing.LATEST -> (registry.require(sourceId) as CatalogSource).latest(page)
+            Listing.SEARCH -> (registry.require(sourceId) as SearchSource).search(state.query, state.filters, page)
         }
 
     /** Saves the work locally before opening it, so the work screen reads one id. */

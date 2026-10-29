@@ -9,6 +9,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":shared:domain"))
             api(libs.jb.lifecycle.viewmodel)
+            api(libs.jb.lifecycle.viewmodel.savedstate)
             api(libs.materialkolor.utilities)
             api(libs.kotlinx.datetime)
         }

@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,6 +74,7 @@ import com.tiagohs.hqr.ui.resources.action_more_text
 import com.tiagohs.hqr.ui.resources.action_read
 import com.tiagohs.hqr.ui.resources.action_read_again
 import com.tiagohs.hqr.ui.resources.action_retry
+import com.tiagohs.hqr.ui.resources.date_short
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_chapter_label
 import com.tiagohs.hqr.ui.resources.manga_chapters
@@ -89,10 +92,14 @@ import com.tiagohs.hqr.ui.resources.manga_refresh_failed
 import com.tiagohs.hqr.ui.resources.manga_removed_from_source
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.time.Instant
 
 /** SCR-OBR-001: the work, in the colors of its cover (RF-29 to RF-33, RF-98). */
 @Composable
@@ -167,7 +174,7 @@ private fun MangaContent(
                             onOpenSite = { manga.source.url?.let { uri.openUri(it) } },
                         )
                     }
-                    item { Synopsis(manga.source.description, manga.source.genres) }
+                    item { Synopsis(manga.source.description, manga.source.genres, manga.source.alternativeTitles) }
                     if (state.error != null) {
                         item {
                             InlineError(
@@ -239,13 +246,25 @@ private fun Header(manga: Manga) {
     Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         Box(Modifier.width(116.dp)) { Cover(source) }
         Column(Modifier.weight(1f).padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(source.title, style = MaterialTheme.typography.headlineMedium)
+            Text(source.title, style = MaterialTheme.typography.headlineMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
+            if (source.alternativeTitles.isNotEmpty()) {
+                // RF-29: alternative titles, one line; the full list is in the synopsis when expanded.
+                Text(
+                    source.alternativeTitles.take(2).joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             val people = (source.authors + source.artists).distinct()
             if (people.isNotEmpty()) {
                 Text(
                     people.joinToString(" · "),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             val status = source.status.label()?.let { stringResource(it) }
@@ -330,10 +349,27 @@ private fun Actions(
     }
 }
 
+private const val MAX_GENRES = 8
+
+@Composable
+private fun shortDate(epochMs: Long): String {
+    val date = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(TimeZone.currentSystemDefault()).date
+    return stringResource(
+        Res.string.date_short,
+        date.day.toString().padStart(2, '0'),
+        date.month.number
+            .toString()
+            .padStart(2, '0'),
+        date.year.toString(),
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Synopsis(
     text: String?,
     genres: List<String>,
+    alternativeTitles: List<String>,
 ) {
     if (text.isNullOrBlank() && genres.isEmpty()) return
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -346,13 +382,25 @@ private fun Synopsis(
                 maxLines = if (expanded) Int.MAX_VALUE else 3,
                 overflow = TextOverflow.Ellipsis,
             )
+            if (expanded && alternativeTitles.size > 2) {
+                Text(
+                    alternativeTitles.joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
             TextButton(onClick = { expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(stringResource(if (expanded) Res.string.action_less_text else Res.string.action_more_text))
             }
         }
         if (genres.isNotEmpty()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 4.dp)) {
-                genres.take(5).forEach {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(bottom = 4.dp),
+            ) {
+                genres.take(MAX_GENRES).forEach {
                     Text(
                         it,
                         style = MaterialTheme.typography.labelMedium,
@@ -407,6 +455,7 @@ private fun ChapterRow(
                 val meta =
                     listOfNotNull(
                         chapter.source.group,
+                        chapter.source.uploadedAtEpochMs?.let { shortDate(it) },
                         if (chapter.read) stringResource(Res.string.manga_read) else null,
                     ).joinToString(" · ")
                 if (meta.isNotEmpty()) {

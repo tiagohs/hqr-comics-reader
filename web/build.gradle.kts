@@ -21,6 +21,7 @@ kotlin {
             implementation(project(":shared:ui"))
             implementation(project(":shared:data"))
             implementation(project(":sources:local"))
+            implementation(project(":sources:mangadex"))
             implementation(libs.koin.core)
             implementation(libs.cmp.runtime)
             implementation(libs.cmp.ui)

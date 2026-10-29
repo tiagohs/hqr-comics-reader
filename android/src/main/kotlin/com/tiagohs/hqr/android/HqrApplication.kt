@@ -14,6 +14,7 @@ import com.tiagohs.hqr.sources.local.AndroidPdfPages
 import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.local.SafFileTree
+import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
 import io.ktor.client.HttpClient
@@ -44,7 +45,8 @@ class HqrApplication : Application() {
             single {
                 LocalSource(get(), AndroidPdfPages(contentResolver, get()) { get<AppPreferences>().localFolder.value })
             }
-            single<List<Source>>(BuiltInSources) { listOf(get<LocalSource>()) }
+            single { MangaDexSource(get(), contentLanguages = { get<AppPreferences>().contentLanguages.value }) }
+            single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
         }
 
     /** RF-10: HQR/<version> (<site>). */

@@ -38,6 +38,7 @@ kotlin {
             implementation(compose.uiTest)
             implementation(project(":shared:data"))
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(project(":sources:mangadex"))
         }
     }
 }
@@ -46,4 +47,9 @@ compose.resources {
     publicResClass = true
     packageOfResClass = "com.tiagohs.hqr.ui.resources"
     generateResClass = always
+}
+
+// -PliveCheck=true runs the screen flow against the real MangaDex too (screenshots only, never committed).
+tasks.withType<Test>().configureEach {
+    systemProperty("liveCheck", providers.gradleProperty("liveCheck").orNull ?: "false")
 }

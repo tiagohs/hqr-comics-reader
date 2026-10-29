@@ -94,6 +94,7 @@ dependencies {
     implementation(project(":shared:ui"))
     implementation(project(":shared:data"))
     implementation(project(":sources:local"))
+    implementation(project(":sources:mangadex"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.koin.android)

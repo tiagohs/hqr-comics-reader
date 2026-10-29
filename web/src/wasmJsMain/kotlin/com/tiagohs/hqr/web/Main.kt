@@ -15,6 +15,8 @@ import com.tiagohs.hqr.data.net.hqrHttpClient
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.LocalSource
+import com.tiagohs.hqr.sources.mangadex.MangaDexSource
+import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
 import com.tiagohs.hqr.ui.navigation.HqrApp
@@ -39,7 +41,8 @@ fun main() {
                 single<ImageCache> { MemoryImageCache() }
                 single<FileTree> { BrowserFileTree() }
                 single { LocalSource(get()) }
-                single<List<Source>>(BuiltInSources) { listOf(get<LocalSource>()) }
+                single { MangaDexSource(get(), contentLanguages = { get<AppPreferences>().contentLanguages.value }) }
+                single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
             },
             coreModule,
         )

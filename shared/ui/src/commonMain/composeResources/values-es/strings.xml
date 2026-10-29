@@ -123,4 +123,5 @@
     <string name="settings_theme_dark">Oscuro</string>
     <string name="settings_cover_color">Color de la portada</string>
     <string name="settings_cover_color_hint">La obra y el lector toman los colores de la portada</string>
+    <string name="date_short">%1$s/%2$s/%3$s</string>
 </resources>

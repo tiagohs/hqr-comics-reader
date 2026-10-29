@@ -26,17 +26,17 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import java.io.File
 
-/** Starts Koin with an in-memory database, the demo source and map settings, like the apps do. */
-fun startTestKoin(demo: DemoSource = DemoSource()): HqrDatabase {
+/** Starts Koin with an in-memory database, the given sources and map settings, like the apps do. */
+fun startTestKoin(sources: (HttpClient) -> List<Source> = { listOf(DemoSource()) }): HqrDatabase {
     val db = inMemoryDatabase()
     startKoin {
         modules(
             module {
                 single<HqrDatabase> { db }
                 single<Settings> { PropertiesSettings(java.util.Properties()) }
-                single<HttpClient> { hqrHttpClient("HQR-test") }
+                single<HttpClient> { hqrHttpClient("HQR/1.0.0 (https://github.com/tiagohs/hqr-comics-reader)") }
                 single<ImageCache> { MemoryImageCache() }
-                single<List<Source>>(BuiltInSources) { listOf(demo) }
+                single<List<Source>>(BuiltInSources) { sources(get()) }
             },
             coreModule,
         )

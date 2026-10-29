@@ -1,50 +1,107 @@
 package com.tiagohs.hqr.ui
 
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.printToLog
+import androidx.compose.ui.test.performTouchInput
+import com.tiagohs.hqr.data.db.HqrDatabase
+import com.tiagohs.hqr.domain.source.Source
+import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.ui.navigation.HqrApp
+import kotlinx.coroutines.runBlocking
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
-/** Integration through the real app: navigation, screens, ViewModels and the database, with a demo source. */
+/** Integration through the real app: navigation, screens, ViewModels and the database. */
 @OptIn(ExperimentalTestApi::class)
 class AppScreensTest {
     @AfterTest
     fun tearDown() = stopTestKoin()
 
-    @Test
-    fun FEAT001_exploreToWorkToReader() =
-        screenTest {
-            startTestKoin()
-            setContent { HqrApp(systemDark = true) }
-            waitUntil(timeoutMillis = 5_000) {
-                onAllNodesWithText("Sua biblioteca está vazia").fetchSemanticsNodes().isNotEmpty() ||
-                    onAllNodesWithText("Your library is empty").fetchSemanticsNodes().isNotEmpty()
-            }
-            screenshot("SCR-LIB-001-empty-dark")
-            onAllNodesWithText("Explorar").fetchSemanticsNodes().let {
-                if (it.isNotEmpty()) onAllNodesWithText("Explorar")[0].performClick() else onAllNodesWithText("Explore")[0].performClick()
-            }
-            runCatching {
-                waitUntil(
-                    timeoutMillis = 5_000,
-                ) { onAllNodesWithText("MangaDex").fetchSemanticsNodes().isNotEmpty() }
-            }.onFailure {
-                onRoot().printToLog("TREE")
-                screenshot("debug")
-            }
-            waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("MangaDex").fetchSemanticsNodes().isNotEmpty() }
-            screenshot("SCR-EXP-001-dark")
-            onNodeWithText("MangaDex").performClick()
-            waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("Kaiju Express").fetchSemanticsNodes().isNotEmpty() }
-            screenshot("SCR-EXP-002-dark")
-            onAllNodesWithText("Lâmina do Norte")[0].performClick()
-            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Capítulo 15")).fetchSemanticsNodes().isNotEmpty() }
-            screenshot("SCR-OBR-001-dark")
+    private fun ComposeUiTest.waitFor(
+        matcher: SemanticsMatcher,
+        timeout: Long = 5_000,
+    ) = waitUntil(timeoutMillis = timeout) { onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty() }
+
+    /** FEAT-001 flow: Explore → source → Popular → work → Read → turn a page → back. Returns the saved page. */
+    private fun ComposeUiTest.readFlow(
+        db: HqrDatabase,
+        prefix: String,
+        firstWork: () -> String,
+        timeout: Long,
+    ): Int {
+        setContent { HqrApp(systemDark = true) }
+        waitFor(hasText("Your library is empty"), timeout)
+        screenshot("$prefix-SCR-LIB-001-empty")
+        onAllNodes(hasText("Explore"))[0].performClick()
+        waitFor(hasText("MangaDex"), timeout)
+        screenshot("$prefix-SCR-EXP-001")
+        onAllNodes(hasText("MangaDex"))[0].performClick()
+        val title = firstWork()
+        waitFor(hasText(title), timeout)
+        Thread.sleep(if (prefix == "live") 3_000 else 0)
+        screenshot("$prefix-SCR-EXP-002")
+        onAllNodes(hasText(title))[0].performClick()
+        waitFor(hasText("Read"), timeout)
+        Thread.sleep(if (prefix == "live") 2_000 else 0)
+        screenshot("$prefix-SCR-OBR-001")
+        onAllNodes(hasText("Read"))[0].performClick()
+        waitFor(hasContentDescription("1 of ", substring = true), timeout)
+        Thread.sleep(if (prefix == "live") 4_000 else 300)
+        screenshot("$prefix-SCR-RDR-001")
+        if (prefix == "demo") {
+            // Right to left: the left edge moves forward (RF-38). Live works may open in webtoon mode (RF-37).
+            onRoot().performTouchInput { click(centerLeft.copy(x = 10f)) }
+            waitFor(hasContentDescription("2 of ", substring = true), timeout)
         }
+        onRoot().performTouchInput { click(center.copy(y = center.y * 0.9f)) }
+        waitFor(hasText(" of ", substring = true), timeout)
+        screenshot("$prefix-SCR-RDR-001-menu")
+        onAllNodes(hasContentDescription("Back"))[0].performClick()
+        // Demo: page 2 of the chapter, so "Continue"; live (webtoon, not scrolled): still "Read" (RF-31).
+        waitFor(if (prefix == "demo") hasText("Continue", substring = true) else hasText("Read"), timeout)
+        screenshot("$prefix-SCR-OBR-001-continue")
+        // Leaving the reader saves at once (RF-43); the write runs on Room's threads.
+        repeat(30) {
+            val page = runBlocking { db.progressDao().listForManga(1).maxOfOrNull { it.page } }
+            if (page == 1 || (prefix == "live" && page != null)) return page
+            Thread.sleep(100)
+        }
+        return runBlocking { db.progressDao().listForManga(1).maxOfOrNull { it.page } ?: -1 }
+    }
+
+    @Test
+    fun FEAT001_RF43_exploreToWorkToReaderSavesThePage() =
+        screenTest {
+            val db = startTestKoin()
+            assertEquals(1, readFlow(db, "demo", { "Kaiju Express" }, 5_000))
+        }
+
+    @Test
+    fun FEAT001_liveMangaDex() {
+        if (System.getProperty("liveCheck") != "true") return
+        screenTest {
+            val db = startTestKoin { http -> listOf<Source>(MangaDexSource(http)) }
+            val probe =
+                MangaDexSource(
+                    com.tiagohs.hqr.data.net
+                        .hqrHttpClient("HQR/1.0.0 (https://github.com/tiagohs/hqr-comics-reader)"),
+                )
+            val first =
+                runBlocking {
+                    probe
+                        .popular(1)
+                        .items
+                        .first()
+                        .title
+                }
+            readFlow(db, "live", { first }, 30_000)
+        }
+    }
 }

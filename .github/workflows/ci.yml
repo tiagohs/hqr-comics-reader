@@ -109,6 +109,8 @@ jobs:
             echo "::error title=Build::$MSG"
             exit 1
           }
+          # RNF-08: an APK without the screens' resources crashes on open.
+          python3 scripts/release/check_apk.py android/build/outputs/apk/*/android-universal-*.apk
 
       - name: Keep reports and screenshots on the Mac
         if: always()

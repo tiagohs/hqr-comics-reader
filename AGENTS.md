@@ -48,6 +48,7 @@ commit.
 ./gradlew check detekt          # testes JVM e Android, telas (Compose no JVM), Kover, ktlint, detekt, lint
 python3 scripts/strings/check_strings.py
 ./gradlew :android:assembleRelease :web:wasmJsBrowserDistribution
+python3 scripts/release/check_apk.py android/build/outputs/apk/release/android-universal-release.apk
 ```
 
 Nesta nuvem: `-Phqr.ios=false --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process

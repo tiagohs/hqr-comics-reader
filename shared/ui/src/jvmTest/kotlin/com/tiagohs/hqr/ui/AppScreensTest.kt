@@ -110,7 +110,7 @@ class AppScreensTest {
             onAllNodes(hasText("Read"))[0].performClick()
             waitFor(hasContentDescription("1 of 3"))
             onNode(hasScrollAction()).performScrollToIndex(2)
-            waitFor(hasText("THE END!"))
+            waitFor(hasText("You finished"))
             screenshot("demo-SCR-RDR-003-webtoon-end")
             repeat(30) {
                 if (runBlocking { db.progressDao().listForManga(1).any { it.read } }) return@screenTest

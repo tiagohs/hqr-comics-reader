@@ -22,6 +22,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -37,7 +40,7 @@ class MangaDexSourceTest {
         }
     private val requests = mutableListOf<HttpRequestData>()
     private val waits = mutableListOf<Duration>()
-    private var route: MockRequestHandleScope.(HttpRequestData) -> HttpResponseData? = { null }
+    private var route: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData? = { null }
 
     private fun MockRequestHandleScope.json(
         body: String,
@@ -226,6 +229,57 @@ class MangaDexSourceTest {
                 }.map { (it.body as TextContent).text }
                 .any { "\"success\":false" in it } shouldBe
                 true
+        }
+
+    @Test
+    fun RF09_cancelledImageDoesNotRenewTheServer() =
+        runTest {
+            source.pages(manga, chapter)
+            val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+            route = {
+                if (it.url.host == "node.example.net") {
+                    gate.await()
+                    null
+                } else {
+                    null
+                }
+            }
+            val job = launch { source.image("mangadex-page:ch1/p1.png", emptyMap()) }
+            testScheduler.advanceUntilIdle()
+            job.cancel()
+            job.join()
+            requests.count { it.url.encodedPath.startsWith("/at-home/") } shouldBe 1
+        }
+
+    @Test
+    fun RF09_parallelFailuresRenewTheServerOnce() =
+        runTest {
+            source.pages(manga, chapter)
+            // Every image fails on the first server and works on the renewed one.
+            route = {
+                val atHome = requests.count { r -> r.url.encodedPath.startsWith("/at-home/") }
+                if (it.url.host == "node.example.net" && atHome == 1) respond("", HttpStatusCode.Forbidden) else null
+            }
+            (1..5).map { n -> async { source.image("mangadex-page:ch1/p$n.png", emptyMap()) } }.awaitAll()
+            requests.count { it.url.encodedPath.startsWith("/at-home/") } shouldBe 2
+        }
+
+    @Test
+    fun RF04_atHomeNeverMoreThan40PerMinute() =
+        runTest {
+            repeat(41) { source.pages(manga, chapter.copy(key = "c$it")) }
+            // The 41st at-home request waited for the minute to pass on the fake clock.
+            waits.count { it > Duration.parse("30s") } shouldBe 1
+            requests.count { it.url.encodedPath.startsWith("/at-home/") } shouldBe 41
+        }
+
+    @Test
+    fun RF04_tooManyRequestsWithoutHeaderWaits() =
+        runTest {
+            var calls = 0
+            route = { if (it.url.encodedPath == "/manga" && calls++ == 0) json("{}", HttpStatusCode.TooManyRequests) else null }
+            source.popular(1)
+            waits shouldContain Duration.parse("10s")
         }
 
     @Test

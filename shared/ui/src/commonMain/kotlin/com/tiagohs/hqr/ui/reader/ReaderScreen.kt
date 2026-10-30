@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,13 +18,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -34,6 +38,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -49,11 +54,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.SubcomposeAsyncImage
@@ -105,6 +113,7 @@ import org.koin.core.parameter.parametersOf
 private const val MAX_PRELOAD = 6
 private const val MAX_SLIDER_TICKS = 30
 private const val MAX_ZOOM = 4f
+private const val SWIPE_PX = 120f
 
 /** SCR-RDR-001: zero chrome until a center tap; the bars use the cover color (RF-36 to RF-43, RF-98). */
 @Composable
@@ -226,7 +235,8 @@ private fun Pages(
             val pager = rememberPagerState(initialPage = state.page) { count }
             val scope = rememberCoroutineScope()
             LaunchedEffect(pager) {
-                snapshotFlow { pager.currentPage }.collect { index ->
+                // The settled page: half a swipe on the last page never opens the transition (RF-42).
+                snapshotFlow { pager.settledPage }.collect { index ->
                     if (index >= state.pageCount) viewModel.onReachedEnd() else viewModel.onPageChanged(index)
                 }
             }
@@ -250,7 +260,13 @@ private fun Pages(
             val preload = settings.preload.coerceIn(1, MAX_PRELOAD)
             val page: @Composable (Int) -> Unit = { index ->
                 if (index < state.pageCount) {
-                    ZoomablePage(onTap) { PageImage(state, index, state.pages[index].imageUrl, state.pages[index].headers, scale) }
+                    ZoomablePage(onTap) {
+                        // RF-39: a tall page fitted to the width (or at its size) scrolls down inside the page.
+                        val scroll = scale == ContentScale.FillWidth || scale == ContentScale.None
+                        Box(if (scroll) Modifier.fillMaxSize().verticalScroll(rememberScrollState()) else Modifier.fillMaxSize()) {
+                            PageImage(state, index, state.pages[index].imageUrl, state.pages[index].headers, scale)
+                        }
+                    }
                 } else {
                     // The extra page after the last one leads to the transition.
                     Box(Modifier.fillMaxSize())
@@ -314,7 +330,12 @@ private fun PageImage(
             model = ImageRef(manga.sourceId, url, headers + ("x-attempt" to attempt.toString())),
             contentDescription = null,
             contentScale = scale,
-            modifier = if (scale == ContentScale.FillWidth) Modifier.fillMaxWidth() else Modifier.fillMaxSize(),
+            modifier =
+                when (scale) {
+                    ContentScale.FillWidth -> Modifier.fillMaxWidth()
+                    ContentScale.None -> Modifier.wrapContentSize()
+                    else -> Modifier.fillMaxSize()
+                },
             loading = { Box(Modifier.fillMaxWidth().height(400.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } },
             error = {
                 // RF-51: only this page fails, with its own retry.
@@ -389,22 +410,36 @@ private fun ReaderMenu(
                     tint = colors.onSurface,
                 )
             }
+            var dragging by remember { mutableStateOf<Float?>(null) }
             Column(Modifier.weight(1f)) {
                 Text(
-                    stringResource(Res.string.reader_page_of, state.page + 1, state.pageCount),
+                    stringResource(
+                        Res.string.reader_page_of,
+                        ((dragging ?: state.page.toFloat()).let { kotlin.math.round(it).toInt() }) + 1,
+                        state.pageCount,
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = colors.onSurface,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                 )
-                Slider(
-                    value = state.page.toFloat(),
-                    onValueChange = { viewModel.onPageChanged(kotlin.math.round(it).toInt()) },
-                    valueRange = 0f..(state.pageCount - 1).coerceAtLeast(1).toFloat(),
-                    // Tick marks only while they stay readable; long chapters slide freely and snap to the page.
-                    steps = if (state.pageCount <= MAX_SLIDER_TICKS) (state.pageCount - 2).coerceAtLeast(0) else 0,
-                    modifier = if (rtl) Modifier.scale(scaleX = -1f, scaleY = 1f) else Modifier,
-                )
+                // RF-40: the bar shows the page while dragging and turns to it on release; right to left it runs from the
+                // right, with the arrow keys following.
+                val sliderLabel = stringResource(Res.string.reader_page_of, state.page + 1, state.pageCount)
+                CompositionLocalProvider(LocalLayoutDirection provides if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr) {
+                    Slider(
+                        value = dragging ?: state.page.toFloat(),
+                        onValueChange = { dragging = it },
+                        onValueChangeFinished = {
+                            dragging?.let { viewModel.onPageChanged(kotlin.math.round(it).toInt()) }
+                            dragging = null
+                        },
+                        valueRange = 0f..(state.pageCount - 1).coerceAtLeast(1).toFloat(),
+                        // Tick marks only while they stay readable; long chapters slide freely and snap to the page.
+                        steps = if (state.pageCount <= MAX_SLIDER_TICKS) (state.pageCount - 2).coerceAtLeast(0) else 0,
+                        modifier = Modifier.semantics { contentDescription = sliderLabel },
+                    )
+                }
             }
             IconButton(onClick = { if (rtl) viewModel.goToPrevious() else viewModel.goToNext() }, enabled = last != null) {
                 Icon(
@@ -431,11 +466,27 @@ private fun TransitionPage(
 ) {
     val transition = state.transition ?: return
     val colors = MaterialTheme.colorScheme
+    val rtl = state.settings.mode == ReaderMode.RIGHT_TO_LEFT
+    var drag by remember { mutableStateOf(0f) }
     Column(
         Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .statusBarsPadding()
+            // "Arraste para continuar": a swipe forward opens the next chapter, backward returns to the last page.
+            .pointerInput(rtl) {
+                detectHorizontalDragGestures(
+                    onDragStart = { drag = 0f },
+                    onHorizontalDrag = { _, amount -> drag += amount },
+                    onDragEnd = {
+                        val forward = if (rtl) drag > SWIPE_PX else drag < -SWIPE_PX
+                        val backward = if (rtl) drag < -SWIPE_PX else drag > SWIPE_PX
+                        when {
+                            forward && transition.next != null -> viewModel.goToNext()
+                            backward -> viewModel.dismissTransition()
+                        }
+                    },
+                )
+            }.statusBarsPadding()
             .navigationBarsPadding()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -447,10 +498,7 @@ private fun TransitionPage(
             style = MaterialTheme.typography.displayMedium,
             color = Color(0xFF16161A),
             modifier =
-                Modifier.background(Color(0xFFF6F1E7), BalloonShape).padding(horizontal = 28.dp, vertical = 10.dp).semantics {
-                    contentDescription =
-                        ""
-                },
+                Modifier.background(Color(0xFFF6F1E7), BalloonShape).padding(horizontal = 28.dp, vertical = 10.dp).clearAndSetSemantics {},
         )
         Text(stringResource(Res.string.reader_you_finished), style = MaterialTheme.typography.labelLarge, color = colors.onSurfaceVariant)
         Text(

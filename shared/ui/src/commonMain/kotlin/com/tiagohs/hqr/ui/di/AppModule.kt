@@ -36,6 +36,12 @@ import com.tiagohs.hqr.presentation.reader.TapZones
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.ui.color.ImageCoverPixels
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
@@ -82,6 +88,13 @@ class AppImageBytes(
     private val http: HttpClient,
     private val cache: ImageCache,
 ) : ImageBytes {
+    private val lock = Mutex()
+
+    // The pager and the prefetch ask for the same page at once: one download, every caller waits for it.
+    private val inFlight = HashMap<String, CompletableDeferred<ByteArray>>()
+
+    // The waits and the hand-over of failures to the other callers are the point of this function.
+    @Suppress("ReturnCount", "TooGenericExceptionCaught", "SwallowedException")
     override suspend fun load(
         sourceId: SourceId,
         url: String,
@@ -90,11 +103,38 @@ class AppImageBytes(
         val clean = headers.filterKeys { !it.startsWith("x-attempt") }
         if (url.startsWith(LocalSource.SCHEME)) return (registry.require(SourceId.LOCAL) as ImageSource).image(url, clean)
         cache.get(url)?.let { return it }
-        val source = registry[sourceId]
-        val bytes = if (source is ImageSource) source.image(url, clean) else http.bytes(url, clean)
-        cache.put(url, bytes)
-        return bytes
+        while (true) {
+            val (pending, owner) =
+                lock.withLock {
+                    inFlight[url]?.let { it to false } ?: CompletableDeferred<ByteArray>().also { inFlight[url] = it } to true
+                }
+            if (!owner) {
+                // The download we waited for was cancelled by its own caller: try again ourselves.
+                try {
+                    return pending.await()
+                } catch (e: OwnerCancelled) {
+                    continue
+                }
+            }
+            try {
+                val source = registry[sourceId]
+                val bytes = if (source is ImageSource) source.image(url, clean) else http.bytes(url, clean)
+                cache.put(url, bytes)
+                pending.complete(bytes)
+                return bytes
+            } catch (e: CancellationException) {
+                pending.completeExceptionally(OwnerCancelled())
+                throw e
+            } catch (e: Throwable) {
+                pending.completeExceptionally(e)
+                throw e
+            } finally {
+                withContext(NonCancellable) { lock.withLock { inFlight.remove(url) } }
+            }
+        }
     }
+
+    private class OwnerCancelled : RuntimeException()
 }
 
 /** Reader settings: global in the preferences, per work in the database (RF-37). */

@@ -15,6 +15,7 @@ import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.DeletedCategory
 import com.tiagohs.hqr.domain.repository.HistoryEntry
 import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.LibraryItem
@@ -164,9 +165,11 @@ class RoomChapterRepository(
                     )
                 if (old == null) this@RoomChapterRepository.chapters.insert(entity) else this@RoomChapterRepository.chapters.upsert(entity)
             }
-            // RF-92: what vanished from the source stays, with its progress and files, marked as removed.
+            // RF-92: what vanished from the source stays, with its progress and files, marked as removed. Only chapters in
+            // a language the source answered with count: changing the content languages is not a removal.
+            val languages = chapters.map { it.language }.toSet()
             existing.values
-                .filter { it.key !in incomingKeys && !it.removedAtSource }
+                .filter { it.key !in incomingKeys && !it.removedAtSource && it.language in languages }
                 .forEach { this@RoomChapterRepository.chapters.setRemoved(it.id, true) }
         }
         return list(mangaId)
@@ -271,7 +274,25 @@ class RoomCategoryRepository(
         }
 
     // RF-53: the works only lose this category; with none left they show under "Sem categoria".
-    override suspend fun delete(id: Long) = dao.delete(id)
+    override suspend fun delete(id: Long): DeletedCategory? =
+        db.withWriteTransaction {
+            val category = dao.list().firstOrNull { it.id == id } ?: return@withWriteTransaction null
+            val works =
+                dao
+                    .allAssignments()
+                    .filter { it.categoryId == id }
+                    .map { it.mangaId }
+                    .toSet()
+            dao.delete(id)
+            DeletedCategory(Category(category.id, category.name, category.sortOrder), works)
+        }
+
+    override suspend fun restore(deleted: DeletedCategory) =
+        db.withWriteTransaction {
+            val c = deleted.category
+            dao.insert(CategoryEntity(id = c.id, name = c.name, sortOrder = c.order))
+            deleted.mangaIds.forEach { dao.assign(MangaCategoryEntity(it, c.id)) }
+        }
 
     override suspend fun setCategories(
         mangaId: Long,
@@ -280,6 +301,9 @@ class RoomCategoryRepository(
         dao.clearForManga(mangaId)
         categoryIds.forEach { dao.assign(MangaCategoryEntity(mangaId, it)) }
     }
+
+    override fun observeFor(mangaId: Long): Flow<Set<Long>> =
+        dao.observeAssignments().map { links -> links.filter { it.mangaId == mangaId }.map { it.categoryId }.toSet() }
 }
 
 class RoomHistoryRepository(

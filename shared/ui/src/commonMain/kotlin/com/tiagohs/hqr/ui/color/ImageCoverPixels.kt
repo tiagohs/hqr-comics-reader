@@ -3,6 +3,8 @@ package com.tiagohs.hqr.ui.color
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.presentation.color.CoverPixels
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 
@@ -13,15 +15,17 @@ class ImageCoverPixels(
     @OptIn(ExperimentalResourceApi::class)
     override suspend fun pixels(manga: Manga): IntArray? {
         val url = manga.source.coverUrl ?: return null
-        val bitmap = images.load(manga.sourceId, url, emptyMap()).decodeToImageBitmap()
-        val all = IntArray(bitmap.width * bitmap.height)
-        bitmap.readPixels(all)
-        val step = maxOf(1, maxOf(bitmap.width, bitmap.height) / MAX_SIDE)
-        val out = ArrayList<Int>()
-        for (y in 0 until bitmap.height step step) {
-            for (x in 0 until bitmap.width step step) out += all[y * bitmap.width + x]
+        val bytes = images.load(manga.sourceId, url, emptyMap())
+        // Decoding and sampling stay off the main thread (the work screen is opening).
+        return withContext(Dispatchers.Default) {
+            val bitmap = bytes.decodeToImageBitmap()
+            val all = IntArray(bitmap.width * bitmap.height)
+            bitmap.readPixels(all)
+            val step = maxOf(1, maxOf(bitmap.width, bitmap.height) / MAX_SIDE)
+            val columns = (bitmap.width + step - 1) / step
+            val rows = (bitmap.height + step - 1) / step
+            IntArray(columns * rows) { i -> all[(i / columns) * step * bitmap.width + (i % columns) * step] }
         }
-        return out.toIntArray()
     }
 
     private companion object {

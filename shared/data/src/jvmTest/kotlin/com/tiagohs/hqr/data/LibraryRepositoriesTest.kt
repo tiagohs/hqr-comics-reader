@@ -188,4 +188,19 @@ class LibraryRepositoriesTest {
             mangas.upsert(work.copy(title = "Obra 2")).coverColor shouldBe 0x123456
             mangas.upsert(work.copy(coverUrl = "https://x/2.jpg")).coverColor shouldBe null
         }
+
+    @Test
+    fun RF92_languageChangeDoesNotMarkRemoved() =
+        runTest {
+            val id = mangas.upsert(SourceManga(SourceId.MANGADEX, "lang", "Obra")).id
+            chapters.sync(id, listOf(SourceChapter("pt1", 1.0, language = "pt-br"), SourceChapter("pt2", 2.0, language = "pt-br")))
+            val afterSwitch = chapters.sync(id, listOf(SourceChapter("en1", 1.0, language = "en")))
+            afterSwitch.none { it.removedAtSource } shouldBe true
+            val afterRemoval =
+                chapters.sync(
+                    id,
+                    listOf(SourceChapter("pt1", 1.0, language = "pt-br"), SourceChapter("en1", 1.0, language = "en")),
+                )
+            afterRemoval.single { it.source.key == "pt2" }.removedAtSource shouldBe true
+        }
 }

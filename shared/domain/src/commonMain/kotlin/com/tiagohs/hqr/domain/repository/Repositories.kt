@@ -99,14 +99,25 @@ interface CategoryRepository {
 
     suspend fun reorder(idsInOrder: List<Long>)
 
-    /** RF-53: works of a deleted category go to "Sem categoria". */
-    suspend fun delete(id: Long)
+    /** RF-53: works of a deleted category go to "Sem categoria"; returns what "Desfazer" needs. */
+    suspend fun delete(id: Long): DeletedCategory?
+
+    /** Puts back a deleted category, in its place and with its works. */
+    suspend fun restore(deleted: DeletedCategory)
 
     suspend fun setCategories(
         mangaId: Long,
         categoryIds: Set<Long>,
     )
+
+    /** The categories one work is in (RF-53). */
+    fun observeFor(mangaId: Long): Flow<Set<Long>>
 }
+
+data class DeletedCategory(
+    val category: Category,
+    val mangaIds: Set<Long>,
+)
 
 /** One reading in the history (RF-59). */
 data class HistoryEntry(

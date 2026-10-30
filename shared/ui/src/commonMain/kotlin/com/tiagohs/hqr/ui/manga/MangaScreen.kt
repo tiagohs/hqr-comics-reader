@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -555,9 +557,12 @@ private fun ChapterRow(
                         fontWeight = FontWeight.SemiBold,
                         modifier =
                             if (groupUrl != null) {
-                                Modifier.clickable(
-                                    onClickLabel = stringResource(Res.string.manga_open_group),
-                                ) { uriHandler.openUri(groupUrl) }
+                                // A real button, 48 dp tall to the finger, not a tap that also opens the chapter.
+                                Modifier
+                                    .minimumInteractiveComponentSize()
+                                    .clickable(role = Role.Button, onClickLabel = stringResource(Res.string.manga_open_group)) {
+                                        uriHandler.openUri(groupUrl)
+                                    }
                             } else {
                                 Modifier
                             },

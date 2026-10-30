@@ -24,8 +24,13 @@ import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
 import io.ktor.http.contentType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -49,6 +54,8 @@ class MangaDexSource(
     private val sleep: suspend (Duration) -> Unit = { delay(it) },
     // The report endpoint answers no CORS preflight, so the browser build turns it off.
     private val reportImages: Boolean = true,
+    // Where reports run without holding the page; null sends them in line (tests).
+    private val reportScope: CoroutineScope? = null,
 ) : CatalogSource,
     SearchSource,
     ImageSource {
@@ -65,10 +72,12 @@ class MangaDexSource(
     private class Server(
         val baseUrl: String,
         val hash: String,
+        val files: List<String>,
         val fetchedAt: Instant,
     )
 
     private val servers = HashMap<String, Server>()
+    private val inFlight = HashMap<String, CompletableDeferred<Server>>()
     private val serverLock = Mutex()
 
     override suspend fun popular(page: Int): MangaPage = list(page) { parameter("order[followedCount]", "desc") }
@@ -134,12 +143,13 @@ class MangaDexSource(
         chapter: SourceChapter,
     ): List<SourcePage> {
         if (chapter.externalUrl != null) {
-            throw SourceException("Capítulo hospedado fora do MangaDex: ${chapter.externalUrl}", SourceException.Kind.UNAVAILABLE)
+            throw SourceException("Chapter hosted outside MangaDex: ${chapter.externalUrl}", SourceException.Kind.UNAVAILABLE)
         }
-        val atHome = atHome(chapter.key)
-        return atHome.chapter.data.mapIndexed { i, file -> SourcePage(i, "$SCHEME${chapter.key}/$file") }
+        val server = server(chapter.key, failed = null, fresh = true)
+        return server.files.mapIndexed { i, file -> SourcePage(i, "$SCHEME${chapter.key}/$file") }
     }
 
+    @Suppress("SwallowedException") // The failure is answered with a new server, not lost.
     override suspend fun image(
         url: String,
         headers: Map<String, String>,
@@ -147,10 +157,17 @@ class MangaDexSource(
         if (!url.startsWith(SCHEME)) return networkCall { http.get(url).ensureOk().bodyAsBytes() }
         val chapterId = url.removePrefix(SCHEME).substringBefore('/')
         val file = url.substringAfterLast('/')
-        val first = server(chapterId, renew = false)
-        return runCatching { download(first, file) }.getOrElse {
-            // A 403 or any failure: ask for a new server once (RF-09).
-            download(server(chapterId, renew = true), file)
+        val first = server(chapterId, failed = null)
+        return try {
+            download(first, file)
+        } catch (e: CancellationException) {
+            // A page leaving the screen is not a server failure: no renewal, no at-home quota spent.
+            throw e
+        } catch (
+            @Suppress("TooGenericExceptionCaught") e: Exception,
+        ) {
+            // A 403 or any failure: a new server, once for all the pages that failed on this one (RF-09).
+            download(server(chapterId, failed = first), file)
         }
     }
 
@@ -161,49 +178,81 @@ class MangaDexSource(
         val imageUrl = "${server.baseUrl}/data/${server.hash}/$file"
         val start = clock.now()
         val result =
-            runCatching {
-                networkCall {
-                    val response = http.get(imageUrl)
-                    val bytes = response.ensureOk().bodyAsBytes()
-                    bytes to (response.headers["X-Cache"]?.startsWith("HIT") == true)
-                }
+            try {
+                Result.success(
+                    networkCall {
+                        val response = http.get(imageUrl)
+                        val bytes = response.ensureOk().bodyAsBytes()
+                        bytes to (response.headers["X-Cache"]?.startsWith("HIT") == true)
+                    },
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (
+                @Suppress("TooGenericExceptionCaught") e: Exception,
+            ) {
+                Result.failure(e)
             }
-        if (reportImages && !server.baseUrl.contains("mangadex.org")) {
+        if (reportImages && !Url(server.baseUrl).host.endsWith("mangadex.org")) {
             val (bytes, cached) = result.getOrNull() ?: (ByteArray(0) to false)
-            report(ReportDto(imageUrl, result.isSuccess, bytes.size, (clock.now() - start).inWholeMilliseconds, cached))
+            val report = ReportDto(imageUrl, result.isSuccess, bytes.size, (clock.now() - start).inWholeMilliseconds, cached)
+            // The report never delays nor breaks reading.
+            reportScope?.launch { report(report) } ?: report(report)
         }
         return result.getOrThrow().first
     }
 
-    /** The report never breaks reading. */
     private suspend fun report(report: ReportDto) {
-        runCatching {
+        try {
             http.post(REPORT) {
                 contentType(ContentType.Application.Json)
                 setBody(json.encodeToString(ReportDto.serializer(), report))
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (
+            @Suppress("TooGenericExceptionCaught", "SwallowedException") e: Exception,
+        ) {
+            // Reports are best effort.
         }
     }
 
+    /**
+     * The at-home server of a chapter. A cached one is reused for 12 minutes unless it is [failed]; one request at a
+     * time per chapter, and the wait for a 429 never holds the other chapters (RF-09, RF-04).
+     */
+    @Suppress("TooGenericExceptionCaught") // Any failure is handed to the pages waiting, then rethrown.
     private suspend fun server(
         chapterId: String,
-        renew: Boolean,
-    ): Server =
-        serverLock.withLock {
-            val known = servers[chapterId]
-            if (!renew && known != null && clock.now() - known.fetchedAt < SERVER_LIFETIME) return@withLock known
-            val fresh = atHomeUnlocked(chapterId)
-            Server(fresh.baseUrl, fresh.chapter.hash, clock.now()).also { servers[chapterId] = it }
+        failed: Server?,
+        fresh: Boolean = false,
+    ): Server {
+        val (pending, owner) =
+            serverLock.withLock {
+                val known = servers[chapterId]
+                val usable = known != null && known !== failed && clock.now() - known.fetchedAt < SERVER_LIFETIME
+                if (!fresh && usable) return known!!
+                // Another page already renewed the server that failed for this one.
+                if (failed != null && known != null && known !== failed) return known
+                inFlight[chapterId]?.let { it to false } ?: CompletableDeferred<Server>().also { inFlight[chapterId] = it } to true
+            }
+        if (owner) {
+            try {
+                atHomeLimiter.acquire()
+                val answer: AtHomeResponse = api("$API/at-home/server/$chapterId") {}
+                val server = Server(answer.baseUrl, answer.chapter.hash, answer.chapter.data, clock.now())
+                serverLock.withLock {
+                    servers[chapterId] = server
+                    inFlight.remove(chapterId)
+                }
+                pending.complete(server)
+            } catch (e: Throwable) {
+                serverLock.withLock { inFlight.remove(chapterId) }
+                pending.completeExceptionally(e)
+                throw e
+            }
         }
-
-    private suspend fun atHome(chapterId: String): AtHomeResponse =
-        serverLock.withLock {
-            atHomeUnlocked(chapterId).also { servers[chapterId] = Server(it.baseUrl, it.chapter.hash, clock.now()) }
-        }
-
-    private suspend fun atHomeUnlocked(chapterId: String): AtHomeResponse {
-        atHomeLimiter.acquire()
-        return api("$API/at-home/server/$chapterId") {}
+        return pending.await()
     }
 
     /** One API call: limiter, 429 with Retry-After (RF-04), status to source failure, JSON. */
@@ -219,7 +268,7 @@ class MangaDexSource(
                     apiLimiter.acquire()
                     response = http.get(url) { block() }
                     if (response.status != HttpStatusCode.TooManyRequests || attempt++ >= MAX_RATE_RETRIES) break
-                    val wait = response.headers["Retry-After"]?.toLongOrNull() ?: 1L
+                    val wait = response.headers["Retry-After"]?.toLongOrNull() ?: DEFAULT_RETRY_AFTER_S
                     sleep(wait.coerceIn(1, MAX_RETRY_AFTER_S).seconds)
                 }
                 response.ensureOk().bodyAsText()
@@ -241,6 +290,7 @@ class MangaDexSource(
         private const val AT_HOME_PERMITS = 40
         private const val MAX_RATE_RETRIES = 3
         private const val MAX_RETRY_AFTER_S = 60L
+        private const val DEFAULT_RETRY_AFTER_S = 10L
         private val SERVER_LIFETIME = 12.minutes
         private val INCLUDES = listOf("cover_art", "author", "artist")
     }

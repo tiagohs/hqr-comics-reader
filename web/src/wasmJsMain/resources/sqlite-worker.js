@@ -42,12 +42,10 @@ function step(statementId, bindings) {
   const st = stmts.get(statementId);
   st.reset(true);
   if (bindings) {
-    // Room binds 1-based; the array may come 0-based (index - 1) or 1-based with an empty slot 0. Accept both.
-    const offset = bindings.length === st.parameterCount + 1 && bindings[0] === undefined ? 0 : 1;
+    // androidx.sqlite 2.7 sends the bindings 0-based (bindX(index) stores at index - 1); SQLite counts from 1.
     for (let i = 0; i < bindings.length; i++) {
-      if (offset === 0 && i === 0) continue;
       const v = bindings[i];
-      st.bind(i + offset, v === undefined ? null : v);
+      st.bind(i + 1, v === undefined ? null : v);
     }
   }
   const rows = [];

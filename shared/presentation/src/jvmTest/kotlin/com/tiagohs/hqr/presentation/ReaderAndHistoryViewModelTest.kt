@@ -158,6 +158,13 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF05_missingChapterIsAnErrorNotEndlessLoading() =
+        runTest {
+            val (id, _) = work(1.0)
+            reader(id, 999, 0).loaded().error shouldBe ErrorKind.NOT_FOUND
+        }
+
+    @Test
     fun RF41_nextPagesAndTheNextChapterAreLoadedAhead() =
         runTest {
             val (id, chapters) = work(1.0, 2.0)
@@ -229,9 +236,5 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
             eventually { settings.perManga[id] == webtoon }
             vm.updateSettings(webtoon.copy(showPageNumber = false), onlyThisWork = false)
             eventually { !settings.global.showPageNumber }
-            vm.onPageFailed(3)
-            vm.state.value.failedPages shouldContainExactly setOf(3)
-            vm.onPageRetry(3)
-            vm.state.value.failedPages shouldBe emptySet()
         }
 }

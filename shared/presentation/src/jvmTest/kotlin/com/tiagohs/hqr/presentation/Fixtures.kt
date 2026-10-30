@@ -42,6 +42,7 @@ class FakeSource(
     override val name = "Fake"
     override val languages = listOf("pt-br")
     var fail: SourceException.Kind? = null
+    var detailsCover: String? = null
     var chapterList = listOf(SourceChapter("c1", 1.0), SourceChapter("c2", 2.0), SourceChapter("c3", 3.0))
     val requested = mutableListOf<String>()
 
@@ -66,7 +67,7 @@ class FakeSource(
 
     override suspend fun details(manga: SourceManga): SourceManga {
         fail?.let { throw SourceException("falhou", it) }
-        return manga.copy(description = "Sinopse de ${manga.title}", authors = listOf("Autora"))
+        return manga.copy(description = "Sinopse de ${manga.title}", authors = listOf("Autora"), coverUrl = detailsCover ?: manga.coverUrl)
     }
 
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> {

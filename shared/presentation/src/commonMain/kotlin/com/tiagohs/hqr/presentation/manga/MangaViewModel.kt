@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -93,16 +91,16 @@ class MangaViewModel(
 
     init {
         refresh(markOpened = true)
-        viewModelScope.launch { colorFromCover() }
     }
 
     /** RF-98, ADR-021: the seed is computed once per cover and saved with the work. */
     private suspend fun colorFromCover() {
-        val manga = mangas.observe(mangaId).filterNotNull().first { it.source.coverUrl != null || it.coverColor != null }
+        val manga = mangas.get(mangaId) ?: return
         val reader = coverPixels
-        if (manga.coverColor != null || reader == null) return
-        val pixels = runCatching { reader.pixels(manga) }.getOrNull() ?: return
-        mangas.setCoverColor(mangaId, CoverColor.seed(pixels))
+        if (manga.coverColor != null || manga.source.coverUrl == null || reader == null) return
+        val pixels = attempt { reader.pixels(manga) }.getOrNull() ?: return
+        // The cover may have changed while it was being read: never save the color of an old cover.
+        if (mangas.get(mangaId)?.source?.coverUrl == manga.source.coverUrl) mangas.setCoverColor(mangaId, CoverColor.seed(pixels))
     }
 
     /** RF-33: rereads details and chapters; on failure keeps what was there and warns. */
@@ -127,6 +125,8 @@ class MangaViewModel(
             }.onFailure { error.value = it.toErrorKind() }
             if (markOpened) previousOpen.value = mangas.markOpened(mangaId)
             refreshing.value = false
+            // After the refresh: a cover changed by it is the one that gives the color.
+            if (markOpened) colorFromCover()
         }
     }
 

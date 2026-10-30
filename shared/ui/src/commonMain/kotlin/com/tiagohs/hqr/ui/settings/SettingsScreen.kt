@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.data.settings.AppPreferences
@@ -103,8 +105,8 @@ fun SettingsScreen(prefs: AppPreferences = koinInject()) {
                 ListItem(
                     headlineContent = { Text(stringResource(Res.string.settings_cover_color)) },
                     supportingContent = { Text(stringResource(Res.string.settings_cover_color_hint)) },
-                    trailingContent = { Switch(checked = coverColor, onCheckedChange = prefs::setCoverColor) },
-                    modifier = Modifier.clickable { prefs.setCoverColor(!coverColor) },
+                    trailingContent = { Switch(checked = coverColor, onCheckedChange = null) },
+                    modifier = Modifier.toggleable(value = coverColor, role = Role.Switch, onValueChange = prefs::setCoverColor),
                 )
             }
             item { Section(Res.string.settings_sources) }
@@ -124,8 +126,8 @@ fun SettingsScreen(prefs: AppPreferences = koinInject()) {
                 ListItem(
                     headlineContent = { Text(stringResource(Res.string.settings_mangadex_suggestive)) },
                     supportingContent = { Text(stringResource(Res.string.settings_mangadex_suggestive_hint)) },
-                    trailingContent = { Switch(checked = suggestive, onCheckedChange = { toggleSuggestive() }) },
-                    modifier = Modifier.clickable { toggleSuggestive() },
+                    trailingContent = { Switch(checked = suggestive, onCheckedChange = null) },
+                    modifier = Modifier.toggleable(value = suggestive, role = Role.Switch, onValueChange = { toggleSuggestive() }),
                 )
             }
         }

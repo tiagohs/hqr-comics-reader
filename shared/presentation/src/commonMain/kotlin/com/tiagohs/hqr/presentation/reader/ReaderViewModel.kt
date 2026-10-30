@@ -87,7 +87,6 @@ class ReaderViewModel(
         val previous: Chapter? = null,
         val next: Chapter? = null,
         val transition: Transition? = null,
-        val failedPages: Set<Int> = emptySet(),
     ) {
         val pageCount: Int get() = pages.size
         val isEmptyChapter: Boolean get() = !loading && error == null && pages.isEmpty()
@@ -114,9 +113,13 @@ class ReaderViewModel(
         page: Int,
     ) {
         endDismissed = false
-        _state.update { it.copy(loading = true, error = null, transition = null, pages = emptyList(), failedPages = emptySet()) }
-        val manga = mangas.get(mangaId) ?: return
-        val chapter = chapters.get(id) ?: return
+        _state.update { it.copy(loading = true, error = null, transition = null, pages = emptyList()) }
+        val manga = mangas.get(mangaId)
+        val chapter = chapters.get(id)
+        if (manga == null || chapter == null) {
+            _state.update { it.copy(loading = false, error = ErrorKind.NOT_FOUND) }
+            return
+        }
         allChapters = chapters.list(mangaId)
         val settings = settingsStore.forManga(manga)
         attempt { nextPages.remove(chapter.id) ?: pageSource.pages(manga, chapter) }
@@ -215,7 +218,13 @@ class ReaderViewModel(
                 val ahead = s.pages.drop(page + 1).take(s.settings.preload)
                 for (p in ahead) {
                     if (!prefetched.add(p.imageUrl)) continue
-                    attempt { prefetcher?.prefetch(manga, p) }.onFailure { prefetched.remove(p.imageUrl) }
+                    var done = false
+                    try {
+                        done = attempt { prefetcher?.prefetch(manga, p) }.isSuccess
+                    } finally {
+                        // Cancelled (the reader moved) or failed: the page may be asked again later.
+                        if (!done) prefetched.remove(p.imageUrl)
+                    }
                 }
             }
     }
@@ -234,10 +243,6 @@ class ReaderViewModel(
         val id = _state.value.chapter?.id ?: chapterId
         viewModelScope.launch { open(id, _state.value.page) }
     }
-
-    fun onPageFailed(page: Int) = _state.update { it.copy(failedPages = it.failedPages + page) }
-
-    fun onPageRetry(page: Int) = _state.update { it.copy(failedPages = it.failedPages - page) }
 
     fun updateSettings(
         settings: ReaderSettings,

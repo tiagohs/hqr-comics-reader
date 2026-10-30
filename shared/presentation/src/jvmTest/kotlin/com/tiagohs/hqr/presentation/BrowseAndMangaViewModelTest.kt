@@ -108,6 +108,33 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF98_newCoverDuringOpeningKeepsTheNewColor() =
+        runTest {
+            val work =
+                source
+                    .popular(1)
+                    .items
+                    .first()
+                    .copy(coverUrl = "https://x/old.jpg")
+            val id = db.mangas.upsert(work).id
+            // The source answers the refresh with a new cover; the pixels read are those of the new one.
+            source.detailsCover = "https://x/new.jpg"
+            val seen = mutableListOf<String?>()
+            val green = IntArray(64 * 64) { 0xFF1B8A5A.toInt() }
+            val pixels =
+                CoverPixels { manga ->
+                    seen += manga.source.coverUrl
+                    green
+                }
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters, pixels))
+            vm.state
+                .first { it.manga?.coverColor != null }
+                .manga!!
+                .source.coverUrl shouldBe "https://x/new.jpg"
+            seen shouldContainExactly listOf("https://x/new.jpg")
+        }
+
+    @Test
     fun RF26_inLibraryKeysAreMarked() =
         runTest {
             val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))

@@ -1,0 +1,167 @@
+package com.tiagohs.hqr.domain.repository
+
+import com.tiagohs.hqr.domain.model.Category
+import com.tiagohs.hqr.domain.model.Chapter
+import com.tiagohs.hqr.domain.model.Manga
+import com.tiagohs.hqr.domain.model.SourceChapter
+import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.model.SourceManga
+import kotlinx.coroutines.flow.Flow
+
+/** Works saved on the device (library, seen works) keyed by (sourceId, key) (RF-90). */
+interface MangaRepository {
+    /** Saves or refreshes what the source said about the work and returns the local copy. */
+    suspend fun upsert(source: SourceManga): Manga
+
+    suspend fun get(id: Long): Manga?
+
+    suspend fun find(
+        sourceId: SourceId,
+        key: String,
+    ): Manga?
+
+    fun observe(id: Long): Flow<Manga?>
+
+    fun observeLibrary(): Flow<List<LibraryItem>>
+
+    /** Adding keeps the first date it was added; removing also drops its categories (RF-52, RF-53). */
+    suspend fun setInLibrary(
+        id: Long,
+        inLibrary: Boolean,
+    )
+
+    /** RF-52: takes the work out and returns what "Desfazer" needs; null if it was not in the library. */
+    suspend fun removeFromLibrary(id: Long): LibraryRemoval?
+
+    /** Undoes [removeFromLibrary]: same date added, same categories (those that still exist). */
+    suspend fun restoreToLibrary(removal: LibraryRemoval)
+
+    suspend fun setCoverColor(
+        id: Long,
+        color: Int?,
+    )
+
+    /** Records that the work screen opened now; returns the previous opening, or null the first time (RF-33). */
+    suspend fun markOpened(id: Long): Long?
+
+    /** Keys already in the library for one source: the "Na biblioteca" badge (RF-26). */
+    fun observeLibraryKeys(sourceId: SourceId): Flow<Set<String>>
+}
+
+/** What one removal from the library took away. */
+data class LibraryRemoval(
+    val mangaId: Long,
+    val addedAtEpochMs: Long?,
+    val categoryIds: Set<Long>,
+)
+
+/** One work in the library grid (RF-54) with its counters. */
+data class LibraryItem(
+    val manga: Manga,
+    val unread: Int,
+    val downloaded: Int,
+    val categoryIds: Set<Long>,
+    val lastReadAtEpochMs: Long?,
+    val latestChapterAtEpochMs: Long?,
+    val totalChapters: Int,
+)
+
+interface ChapterRepository {
+    /**
+     * Replaces the chapter list with what the source returned (RF-33): progress and downloads are kept; chapters
+     * that disappeared are kept and marked "Removido da fonte" (RF-92).
+     */
+    suspend fun sync(
+        mangaId: Long,
+        chapters: List<SourceChapter>,
+    ): List<Chapter>
+
+    fun observe(mangaId: Long): Flow<List<Chapter>>
+
+    suspend fun list(mangaId: Long): List<Chapter>
+
+    suspend fun get(id: Long): Chapter?
+
+    /** RF-43: the page is saved after each change; the last page marks the chapter as read. */
+    suspend fun saveProgress(
+        chapterId: Long,
+        page: Int,
+        pageCount: Int,
+    )
+
+    /** RF-32: one, several or all before a chapter. */
+    suspend fun setRead(
+        chapterIds: Collection<Long>,
+        read: Boolean,
+    )
+
+    suspend fun setDownloaded(
+        chapterId: Long,
+        downloaded: Boolean,
+    )
+}
+
+interface CategoryRepository {
+    fun observe(): Flow<List<Category>>
+
+    suspend fun create(name: String): Category
+
+    suspend fun rename(
+        id: Long,
+        name: String,
+    )
+
+    suspend fun reorder(idsInOrder: List<Long>)
+
+    /** RF-53: works of a deleted category go to "Sem categoria"; returns what "Desfazer" needs. */
+    suspend fun delete(id: Long): DeletedCategory?
+
+    /** Puts back a deleted category, in its place and with its works. */
+    suspend fun restore(deleted: DeletedCategory)
+
+    suspend fun setCategories(
+        mangaId: Long,
+        categoryIds: Set<Long>,
+    )
+
+    /** The categories one work is in (RF-53). */
+    fun observeFor(mangaId: Long): Flow<Set<Long>>
+}
+
+data class DeletedCategory(
+    val category: Category,
+    val mangaIds: Set<Long>,
+)
+
+/** One reading in the history (RF-59). */
+data class HistoryEntry(
+    val manga: Manga,
+    val chapter: Chapter,
+    val readAtEpochMs: Long,
+)
+
+interface HistoryRepository {
+    fun observe(): Flow<List<HistoryEntry>>
+
+    suspend fun record(
+        chapterId: Long,
+        atEpochMs: Long,
+    )
+
+    suspend fun remove(chapterId: Long)
+
+    suspend fun clear()
+
+    /** The last chapter read of each work, for "Continuar lendo" in the library. */
+    fun observeLatestPerManga(): Flow<List<HistoryEntry>>
+}
+
+/** Several writes that go in together or not at all (RF-69: a migration never leaves the work twice in the library). */
+interface Transactor {
+    suspend fun <T> write(block: suspend () -> T): T
+
+    /** No database to share (tests of a single repository): the writes just run. */
+    object None : Transactor {
+        override suspend fun <T> write(block: suspend () -> T): T = block()
+    }
+}

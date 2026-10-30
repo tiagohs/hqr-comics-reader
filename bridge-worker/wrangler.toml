@@ -1,0 +1,14 @@
+# HQR personal bridge. Publish with `npx wrangler deploy`; set the token with
+# `npx wrangler secret put TOKEN` (never write it in this file).
+name = "hqr-bridge"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+# No request logs: the bridge records no addresses (RNF-32).
+[observability]
+enabled = false
+
+[vars]
+HOSTS = "api.mangadex.org,uploads.mangadex.org,*.mangadex.network,api.mangadex.network,admin.hq-now.com,www.hq-now.com,*.hq-now.com,archive.org,api.namicomi.com,uploads.namicomi.com,yomumangas.com,api.yomumangas.com,b2.yomumangas.com,weebcentral.com,temp.compsci88.com,*.planeptune.us,xoxocomic.com,*.bp.blogspot.com"
+ORIGINS = "https://tiagohs.github.io,http://localhost:8080"

@@ -1,0 +1,47 @@
+# Tweaks to the default detekt configuration. Only what differs from the default goes here.
+complexity:
+  # A screen is one composable that follows the canvas top to bottom; splitting it only to count lines hides the order.
+  LongMethod:
+    ignoreAnnotated: ['Composable']
+  CyclomaticComplexMethod:
+    ignoreAnnotated: ['Composable']
+    ignoreSimpleWhenEntries: true
+  LongParameterList:
+    # Room queries take one argument per column; constructors receive their dependencies through Koin.
+    ignoreAnnotated: ['Composable', 'Query']
+    constructorThreshold: 12
+  TooManyFunctions:
+    # DAOs and ViewModels group one screen's or one table's operations.
+    thresholdInInterfaces: 20
+    thresholdInClasses: 16
+    # Previews sit next to what they show (rule of Tiago) and are not part of the file's API.
+    ignoreAnnotatedFunctions: ['Preview', 'ThemePreviews']
+naming:
+  FunctionNaming:
+    # Tests start with the ID they cover (e.g. RF04_readsTheSlug, FEAT001_...).
+    excludes: ['**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/androidHostTest/**', '**/test/**']
+    ignoreAnnotated: ['Composable']
+style:
+  ReturnCount:
+    max: 3
+    excludeGuardClauses: true
+  ThrowsCount:
+    # Binary parsers validate each field before reading it.
+    max: 5
+  UnusedPrivateMember:
+    # Android Studio previews are private and only called by the IDE.
+    ignoreAnnotated: ['Preview', 'ThemePreviews']
+  MaxLineLength:
+    # Same as ktlint (.editorconfig).
+    maxLineLength: 140
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    # Screens and design system read the canvas measurements as they are; generated tokens too.
+    excludes: ['**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/test/**', '**/storeScreenshots/**', '**/android/src/main/kotlin/**/ui/**', '**/shared/ui/src/**']
+  ForbiddenImport:
+    # Tests never read the real clock.
+    active: true
+    includes: ['**/commonTest/**', '**/jvmTest/**', '**/iosTest/**', '**/androidHostTest/**', '**/test/**']
+    imports:
+      - value: 'kotlin.time.Clock.System'
+        reason: 'Tests use a test clock on a fixed day.'

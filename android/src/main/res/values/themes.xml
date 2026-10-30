@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Only the window before Compose draws: the violet base background (design.md §2). -->
+    <style name="Theme.HQR" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <color name="background">#FCF8FF</color>
+    <color name="ink">#16161A</color>
+    <color name="paper">#F6F1E7</color>
+    <color name="violet">#5D52A9</color>
+</resources>

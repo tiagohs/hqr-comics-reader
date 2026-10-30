@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">HQR</string>
+    <string name="downloads_channel">Downloads</string>
+    <string name="downloads_running">Downloading chapters</string>
+    <string name="downloads_low_space_title">Downloads paused</string>
+    <string name="downloads_low_space_text">Low space: free up at least 200 MB and resume.</string>
+</resources>

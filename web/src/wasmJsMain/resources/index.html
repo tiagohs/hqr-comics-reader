@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- RNF-32: only this site's code runs; the bridge token in the browser storage is out of reach of other scripts.
+         Sources, the bridge and the user's servers are any https address (or a server on this computer). -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; img-src 'self' blob: data:; font-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <title>HQR</title>
+    <meta name="theme-color" content="#141318">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <style>
+        html, body { margin: 0; height: 100%; background: #141318; overflow: hidden; }
+        @media (prefers-color-scheme: light) { html, body { background: #fcf8ff; } }
+        #unsupported { display: none; font: 16px/1.5 system-ui, sans-serif; color: #e5e1e9; padding: 32px; max-width: 520px; }
+        #unsupported a { color: #c7bfff; }
+    </style>
+</head>
+<body>
+<div id="unsupported">
+    <h1>Este navegador não roda o HQR</h1>
+    <p>Use uma versão recente do Chrome, Edge, Firefox ou Safari 18.2 ou mais nova.</p>
+    <p>No Android, instale o app: <a href="https://github.com/tiagohs/hqr-comics-reader/releases/latest">baixar o APK</a>.</p>
+</div>
+<script src="files.js"></script>
+<script src="boot.js"></script>
+</body>
+</html>

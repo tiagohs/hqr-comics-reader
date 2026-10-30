@@ -34,6 +34,9 @@ interface MangaRepository {
         color: Int?,
     )
 
+    /** Records that the work screen opened now; returns the previous opening, or null the first time (RF-33). */
+    suspend fun markOpened(id: Long): Long?
+
     /** Keys already in the library for one source: the "Na biblioteca" badge (RF-26). */
     fun observeLibraryKeys(sourceId: SourceId): Flow<Set<String>>
 }

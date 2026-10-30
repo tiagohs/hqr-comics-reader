@@ -82,6 +82,7 @@ internal fun ChapterEntity.toDomain(
                 externalUrl = externalUrl,
                 pageCount = progress?.pageCount,
             ),
+        fetchedAtEpochMs = fetchedAt,
         read = progress?.read ?: false,
         lastPage = progress?.page ?: 0,
         pageCount = progress?.pageCount,

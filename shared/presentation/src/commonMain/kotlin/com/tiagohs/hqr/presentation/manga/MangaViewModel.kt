@@ -46,6 +46,7 @@ class MangaViewModel(
         val totalChapters: Int = 0,
         val group: String? = null,
         val groups: List<String> = emptyList(),
+        val newChapterIds: Set<Long> = emptySet(),
     )
 
     private val refreshing = MutableStateFlow(true)
@@ -54,14 +55,17 @@ class MangaViewModel(
     private val filter = MutableStateFlow(ChapterFilter.ALL)
     private val group = MutableStateFlow<String?>(null)
 
+    // The previous opening of this work; chapters seen after it are "new" until the next opening (RF-33).
+    private val previousOpen = MutableStateFlow<Long?>(null)
+
     val state: StateFlow<State> =
         combine(
             mangas.observe(mangaId),
             chapters.observe(mangaId),
-            combine(refreshing, error, ::Pair),
+            combine(refreshing, error, previousOpen, ::Triple),
             order,
             combine(filter, group, ::Pair),
-        ) { manga, list, (busy, err), ord, (fil, grp) ->
+        ) { manga, list, (busy, err, opened), ord, (fil, grp) ->
             val visible =
                 list
                     .filter {
@@ -83,11 +87,12 @@ class MangaViewModel(
                 totalChapters = list.map { it.number }.distinct().size,
                 group = grp,
                 groups = list.mapNotNull { it.source.group }.distinct().sorted(),
+                newChapterIds = if (opened == null) emptySet() else list.filter { it.fetchedAtEpochMs > opened }.map { it.id }.toSet(),
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, State())
 
     init {
-        refresh()
+        refresh(markOpened = true)
         viewModelScope.launch { colorFromCover() }
     }
 
@@ -101,7 +106,10 @@ class MangaViewModel(
     }
 
     /** RF-33: rereads details and chapters; on failure keeps what was there and warns. */
-    fun refresh() {
+    fun refresh() = refresh(markOpened = false)
+
+    /** The opening is recorded after the first refresh, so the chapters it brings are never "new" next time. */
+    private fun refresh(markOpened: Boolean) {
         viewModelScope.launch {
             refreshing.value = true
             error.value = null
@@ -117,6 +125,7 @@ class MangaViewModel(
                 mangas.upsert(details)
                 chapters.sync(mangaId, source.chapters(details))
             }.onFailure { error.value = it.toErrorKind() }
+            if (markOpened) previousOpen.value = mangas.markOpened(mangaId)
             refreshing.value = false
         }
     }

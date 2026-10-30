@@ -23,10 +23,12 @@ val fixedClock =
     }
 
 /** The app's repositories over an in-memory SQLite. */
-class TestDb {
+class TestDb(
+    clock: Clock = fixedClock,
+) {
     val db = inMemoryDatabase()
-    val mangas = RoomMangaRepository(db, fixedClock)
-    val chapters = RoomChapterRepository(db, fixedClock)
+    val mangas = RoomMangaRepository(db, clock)
+    val chapters = RoomChapterRepository(db, clock)
     val categories = RoomCategoryRepository(db)
     val history = RoomHistoryRepository(db, mangas, chapters)
 }

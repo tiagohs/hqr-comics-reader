@@ -137,4 +137,5 @@
     <string name="settings_adult_title">Are you 18 or older?</string>
     <string name="settings_adult_message">Suggestive works may show nudity-adjacent scenes and fan service.</string>
     <string name="settings_adult_confirm">I am 18 or older</string>
+    <string name="manga_new">NEW</string>
 </resources>

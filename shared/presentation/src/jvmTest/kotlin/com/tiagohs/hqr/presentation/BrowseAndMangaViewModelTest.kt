@@ -183,6 +183,29 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF33_chaptersFoundAfterTheLastOpeningAreNew() =
+        runTest {
+            var now = 1_000L
+            val ticking =
+                object : kotlin.time.Clock {
+                    override fun now() = kotlin.time.Instant.fromEpochMilliseconds(now++)
+                }
+            val tdb = TestDb(ticking)
+            val id = tdb.mangas.upsert(source.popular(1).items.first()).id
+            val first = track(MangaViewModel(id, registry, tdb.mangas, tdb.chapters))
+            first.state.first { it.chapters.size == 3 && !it.refreshing }.newChapterIds shouldBe emptySet()
+            source.chapterList = source.chapterList + SourceChapter("c4", 4.0)
+            val second = track(MangaViewModel(id, registry, tdb.mangas, tdb.chapters))
+            val state = second.state.first { it.chapters.size == 4 && !it.refreshing && it.newChapterIds.isNotEmpty() }
+            state.chapters.filter { it.id in state.newChapterIds }.map { it.number } shouldContainExactly listOf(4.0)
+            // Opened again: nothing is new any more.
+            track(MangaViewModel(id, registry, tdb.mangas, tdb.chapters))
+                .state
+                .first { it.chapters.size == 4 && !it.refreshing }
+                .newChapterIds shouldBe emptySet()
+        }
+
+    @Test
     fun RF33_refreshFailureKeepsWhatWasThere() =
         runTest {
             val id = db.mangas.upsert(source.popular(1).items.first()).id

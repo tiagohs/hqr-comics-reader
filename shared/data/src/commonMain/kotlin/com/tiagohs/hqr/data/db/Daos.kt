@@ -64,6 +64,12 @@ interface MangaDao {
         addedAt: Long?,
     )
 
+    @Query("UPDATE manga SET lastOpenedAt = :at WHERE id = :id")
+    suspend fun setOpened(
+        id: Long,
+        at: Long,
+    )
+
     @Query("UPDATE manga SET coverColor = :color WHERE id = :id")
     suspend fun setCoverColor(
         id: Long,

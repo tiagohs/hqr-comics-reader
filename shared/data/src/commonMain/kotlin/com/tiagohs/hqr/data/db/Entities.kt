@@ -42,6 +42,8 @@ data class MangaEntity(
     val addedAt: Long?,
     val coverColor: Int?,
     val updatedAt: Long,
+    // Version 2: when the work screen was last opened, for the "new" chapters (RF-33).
+    @ColumnInfo(defaultValue = "NULL") val lastOpenedAt: Long? = null,
 )
 
 @Entity(

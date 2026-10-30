@@ -98,6 +98,13 @@ class RoomMangaRepository(
         dao.setInLibrary(id, inLibrary, addedAt)
     }
 
+    override suspend fun markOpened(id: Long): Long? =
+        db.withWriteTransaction {
+            val previous = dao.get(id)?.lastOpenedAt
+            dao.setOpened(id, clock.now().toEpochMilliseconds())
+            previous
+        }
+
     override suspend fun setCoverColor(
         id: Long,
         color: Int?,

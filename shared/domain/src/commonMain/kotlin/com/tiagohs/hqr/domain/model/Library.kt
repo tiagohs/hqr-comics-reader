@@ -24,6 +24,8 @@ data class Chapter(
     val pageCount: Int?,
     val removedAtSource: Boolean = false,
     val downloaded: Boolean = false,
+    /** When HQR first saw the chapter at the source: "new" since the last opening of the work (RF-33). */
+    val fetchedAtEpochMs: Long = 0,
 ) {
     val number: Double get() = source.number
     val inProgress: Boolean get() = !read && lastPage > 0

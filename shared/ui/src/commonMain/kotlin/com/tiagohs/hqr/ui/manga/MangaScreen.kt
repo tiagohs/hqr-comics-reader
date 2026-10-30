@@ -91,6 +91,7 @@ import com.tiagohs.hqr.ui.resources.manga_in_library
 import com.tiagohs.hqr.ui.resources.manga_mark_previous
 import com.tiagohs.hqr.ui.resources.manga_mark_read
 import com.tiagohs.hqr.ui.resources.manga_mark_unread
+import com.tiagohs.hqr.ui.resources.manga_new
 import com.tiagohs.hqr.ui.resources.manga_no_chapters
 import com.tiagohs.hqr.ui.resources.manga_open_group
 import com.tiagohs.hqr.ui.resources.manga_open_site
@@ -233,6 +234,7 @@ private fun MangaContent(
                     items(state.chapters, key = { it.id }) { chapter ->
                         ChapterRow(
                             chapter = chapter,
+                            isNew = chapter.id in state.newChapterIds,
                             onClick = { onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME) },
                             onMarkRead = { viewModel.setRead(listOf(chapter.id), !chapter.read) },
                             onMarkPrevious = { viewModel.markPreviousAsRead(chapter) },
@@ -509,6 +511,7 @@ private fun Synopsis(
 @Composable
 private fun ChapterRow(
     chapter: Chapter,
+    isNew: Boolean,
     onClick: () -> Unit,
     onMarkRead: () -> Unit,
     onMarkPrevious: () -> Unit,
@@ -571,6 +574,18 @@ private fun ChapterRow(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                if (isNew) {
+                    // RF-33: seen at the source after the last opening of the work.
+                    Text(
+                        stringResource(Res.string.manga_new),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier =
+                            Modifier
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
+                                .padding(horizontal = 6.dp, vertical = 1.dp),
                     )
                 }
                 if (chapter.removedAtSource) {

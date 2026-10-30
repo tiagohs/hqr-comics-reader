@@ -137,4 +137,5 @@
     <string name="settings_adult_title">¿Tienes 18 años o más?</string>
     <string name="settings_adult_message">Las obras sugerentes pueden tener escenas de desnudez parcial y fan service.</string>
     <string name="settings_adult_confirm">Tengo 18 años o más</string>
+    <string name="manga_new">NUEVO</string>
 </resources>

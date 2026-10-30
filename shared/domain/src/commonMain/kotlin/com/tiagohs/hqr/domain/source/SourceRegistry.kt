@@ -4,6 +4,8 @@ import com.tiagohs.hqr.domain.model.SourceId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The sources this build carries (RF-02, ADR-003), plus the user's servers registered at runtime (RF-17).
@@ -12,7 +14,26 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class SourceRegistry(
     builtIn: List<Source>,
+    ready: Boolean = true,
 ) {
+    // The user's servers and switches come from the database at start: lookups wait for them (RF-88).
+    private val readyFlag = MutableStateFlow(ready)
+
+    fun markReady() {
+        readyFlag.value = true
+    }
+
+    /** Waits until the saved servers and switches are applied (at most [READY_WAIT_MS]). */
+    suspend fun awaitReady() {
+        withTimeoutOrNull(READY_WAIT_MS) { readyFlag.first { it } }
+    }
+
+    /** [require] after the start: a server's work opened right after the process returns finds its source. */
+    suspend fun awaitRequire(id: SourceId): Source {
+        awaitReady()
+        return require(id)
+    }
+
     private val sources = LinkedHashMap<SourceId, Source>().apply { builtIn.forEach { put(it.id, it) } }
     private var userOff: Set<SourceId> = emptySet()
     private var listOff: Set<SourceId> = emptySet()
@@ -74,6 +95,10 @@ class SourceRegistry(
     }
 
     enum class Status { ON, OFF_BY_USER, OFF_BY_LIST }
+
+    private companion object {
+        const val READY_WAIT_MS = 10_000L
+    }
 }
 
 /** RF-03: turns a source on or off for Explore and the searches, and remembers it. */

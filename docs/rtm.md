@@ -69,11 +69,11 @@
 | RF-59 | Must | UC-006 | library | SCR-HIS-001 | FEAT-010 | LibraryRepositoriesTest, ReaderAndHistoryViewModelTest |
 | RF-60 | Must | UC-006 | library | SCR-HIS-001 | FEAT-010 | LibraryRepositoriesTest, ReaderAndHistoryViewModelTest |
 | RF-61 | Could | UC-004, UC-006 | library | SCR-HIS-001 | FEAT-047 | — |
-| RF-62 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | — |
-| RF-63 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | — |
-| RF-64 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | — |
-| RF-65 | Must | UC-004, UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | — |
-| RF-66 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | — |
+| RF-62 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | DownloadManagerTest |
+| RF-63 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | DownloadManagerTest |
+| RF-64 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | DownloadManagerTest |
+| RF-65 | Must | UC-004, UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | DownloadManagerTest |
+| RF-66 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | DownloadManagerTest |
 | RF-67 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | — |
 | RF-68 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | — |
 | RF-69 | Should | UC-010 | migration | SCR-OBR-002 | FEAT-031 | — |

@@ -73,7 +73,8 @@ jobs:
           PY
           find . -path "*/build/reports/detekt/*.txt" -exec grep -h "\]$" {} + 2>/dev/null | head -20 | sed 's/^/::error title=detekt::/' || true
           # What Gradle says went wrong, as one annotation (the Actions log is not readable from outside).
-          MSG=$(grep -A6 "What went wrong" "$RESULTS/check.log" | grep -v "^--$" | head -40 | sed ':a;N;$!ba;s/\n/%0A/g')
+          # BSD sed on the Mac can't join lines: Python does.
+          MSG=$(grep -A6 "What went wrong" "$RESULTS/check.log" | grep -v "^--$" | head -40 | python3 -c 'import sys; print("%0A".join(l.rstrip() for l in sys.stdin))')
           [ -n "$MSG" ] && echo "::error title=Gradle::$MSG" || true
 
       - name: Signing
@@ -96,7 +97,7 @@ jobs:
           set -o pipefail
           ./gradlew :android:assembleDebug :android:assembleRelease :web:wasmJsBrowserDistribution $GRADLE_FLAGS \
             -Phqr.versionCode=$((100 + ${{ github.run_number }})) 2>&1 | tee "$RESULTS/build.log" || {
-            MSG=$(grep -A6 "What went wrong\|^e: " "$RESULTS/build.log" | head -40 | sed ':a;N;$!ba;s/\n/%0A/g')
+            MSG=$(grep -A6 "What went wrong\|^e: " "$RESULTS/build.log" | head -40 | python3 -c 'import sys; print("%0A".join(l.rstrip() for l in sys.stdin))')
             echo "::error title=Build::$MSG"
             exit 1
           }

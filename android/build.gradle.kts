@@ -96,6 +96,7 @@ dependencies {
     implementation(project(":sources:local"))
     implementation(project(":sources:mangadex"))
     implementation(project(":sources:hqnow"))
+    implementation(project(":sources:opds"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.koin.android)

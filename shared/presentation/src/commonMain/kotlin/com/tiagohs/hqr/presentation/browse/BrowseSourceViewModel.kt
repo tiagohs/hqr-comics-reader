@@ -192,9 +192,9 @@ class BrowseSourceViewModel(
         page: Int,
     ): MangaPage =
         when (state.listing) {
-            Listing.POPULAR -> (registry.require(sourceId) as CatalogSource).popular(page)
-            Listing.LATEST -> (registry.require(sourceId) as CatalogSource).latest(page)
-            Listing.SEARCH -> (registry.require(sourceId) as SearchSource).search(state.query, state.filters, page)
+            Listing.POPULAR -> (registry.awaitRequire(sourceId) as CatalogSource).popular(page)
+            Listing.LATEST -> (registry.awaitRequire(sourceId) as CatalogSource).latest(page)
+            Listing.SEARCH -> (registry.awaitRequire(sourceId) as SearchSource).search(state.query, state.filters, page)
         }
 
     /** RF-52: a long press puts the work in the library or takes it out; null means it went in. */

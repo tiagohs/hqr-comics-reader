@@ -46,6 +46,7 @@ import com.tiagohs.hqr.ui.resources.server_name
 import com.tiagohs.hqr.ui.resources.server_ok
 import com.tiagohs.hqr.ui.resources.server_password
 import com.tiagohs.hqr.ui.resources.server_problem_certificate
+import com.tiagohs.hqr.ui.resources.server_problem_cleartext
 import com.tiagohs.hqr.ui.resources.server_problem_credentials_in_address
 import com.tiagohs.hqr.ui.resources.server_problem_invalid_address
 import com.tiagohs.hqr.ui.resources.server_problem_not_opds
@@ -153,6 +154,7 @@ private fun ServerProblem.message(): StringResource =
     when (this) {
         ServerProblem.INVALID_ADDRESS -> Res.string.server_problem_invalid_address
         ServerProblem.CREDENTIALS_IN_ADDRESS -> Res.string.server_problem_credentials_in_address
+        ServerProblem.CLEARTEXT_OUTSIDE_HOME -> Res.string.server_problem_cleartext
         ServerProblem.UNREACHABLE -> Res.string.server_problem_unreachable
         ServerProblem.WRONG_LOGIN -> Res.string.server_problem_wrong_login
         ServerProblem.CERTIFICATE -> Res.string.server_problem_certificate

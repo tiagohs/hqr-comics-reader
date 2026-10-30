@@ -14,6 +14,7 @@ kotlin {
             implementation(libs.cmp.runtime)
             implementation(libs.cmp.foundation)
             implementation(libs.cmp.ui)
+            implementation(libs.cmp.ui.backhandler)
             implementation(libs.cmp.material3)
             implementation(libs.cmp.material3.nav.suite)
             implementation(libs.cmp.adaptive)

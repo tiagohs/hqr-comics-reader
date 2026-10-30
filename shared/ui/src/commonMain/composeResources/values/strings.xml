@@ -258,4 +258,7 @@
     <string name="catalog_empty_message">This folder of the server is empty.</string>
     <string name="catalog_more">Load more</string>
     <string name="server_url_hint">https://komga.home/opds/v1.2/catalog</string>
+    <string name="server_problem_cleartext">Outside your home network, use an https:// address: with http the password would travel unprotected.</string>
+    <string name="catalog_book">Book</string>
+    <string name="catalog_folder">Folder</string>
 </resources>

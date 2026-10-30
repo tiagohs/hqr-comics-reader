@@ -28,7 +28,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,8 +46,10 @@ import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_retry
+import com.tiagohs.hqr.ui.resources.catalog_book
 import com.tiagohs.hqr.ui.resources.catalog_empty
 import com.tiagohs.hqr.ui.resources.catalog_empty_message
+import com.tiagohs.hqr.ui.resources.catalog_folder
 import com.tiagohs.hqr.ui.resources.catalog_more
 import com.tiagohs.hqr.ui.resources.catalog_search
 import com.tiagohs.hqr.ui.resources.error_title
@@ -56,7 +60,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 /** SCR-SRV-002: the server's folders and books, its search, and a book opening its work (RF-18). */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ServerCatalogScreen(
     sourceId: String,
@@ -68,6 +72,8 @@ fun ServerCatalogScreen(
     var query by rememberSaveable { mutableStateOf(state.query) }
     // Back walks up the folders first; at the root it leaves the screen.
     val back = { if (!viewModel.up()) onBack() }
+    // The system back also walks up the folders before leaving.
+    BackHandler(enabled = state.canGoUp) { viewModel.up() }
     Scaffold(topBar = {
         TopAppBar(
             title = {
@@ -119,7 +125,11 @@ fun ServerCatalogScreen(
                                             )
                                         }
                                     } else {
-                                        Icon(if (entry.isBook) HqrIcons.Library else HqrIcons.Folder, contentDescription = null)
+                                        Icon(
+                                            if (entry.isBook) HqrIcons.Library else HqrIcons.Folder,
+                                            contentDescription =
+                                                stringResource(if (entry.isBook) Res.string.catalog_book else Res.string.catalog_folder),
+                                        )
                                     }
                                 },
                                 trailingContent = { if (!entry.isBook) Icon(HqrIcons.Expand, contentDescription = null) },

@@ -258,4 +258,7 @@
     <string name="catalog_empty_message">Esta carpeta del servidor está vacía.</string>
     <string name="catalog_more">Cargar más</string>
     <string name="server_url_hint">https://komga.casa/opds/v1.2/catalog</string>
+    <string name="server_problem_cleartext">Fuera de tu red de casa, usa una dirección https://: con http la contraseña viajaría sin protección.</string>
+    <string name="catalog_book">Libro</string>
+    <string name="catalog_folder">Carpeta</string>
 </resources>

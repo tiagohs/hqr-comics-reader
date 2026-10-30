@@ -12,6 +12,7 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(libs.ktor.client.mock)
+            implementation(libs.okio.fakefilesystem)
         }
     }
 }

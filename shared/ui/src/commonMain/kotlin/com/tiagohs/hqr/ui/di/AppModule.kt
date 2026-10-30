@@ -44,6 +44,8 @@ import com.tiagohs.hqr.presentation.sources.AddServerViewModel
 import com.tiagohs.hqr.presentation.sources.ServerCatalogViewModel
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
 import com.tiagohs.hqr.sources.local.LocalSource
+import com.tiagohs.hqr.sources.opds.BookStore
+import com.tiagohs.hqr.sources.opds.MemoryBookStore
 import com.tiagohs.hqr.sources.opds.OpdsServers
 import com.tiagohs.hqr.ui.color.ImageCoverPixels
 import io.ktor.client.HttpClient
@@ -75,18 +77,19 @@ val coreModule: Module =
         single<ChapterRepository> { RoomChapterRepository(get(), get()) }
         single<CategoryRepository> { RoomCategoryRepository(get()) }
         single<HistoryRepository> { RoomHistoryRepository(get(), get(), get()) }
-        single { SourceRegistry(get<List<Source>>(BuiltInSources)) }
+        // Not ready until HqrApp applied the saved servers and switches (RF-88).
+        single { SourceRegistry(get<List<Source>>(BuiltInSources), ready = false) }
         single { SourceConfig(get(), get(), get(), get(), get(AppVersion)) }
         single<SourceSwitches> { get<SourceConfig>() }
         viewModel { SourcesViewModel(get(), get(), get()) }
-        single<ServerManager> { OpdsServers(get(), get(), get(), get()) }
-        viewModel { (id: SourceId?) -> AddServerViewModel(get(), id) }
+        single<ServerManager> { OpdsServers(get(), get(), get(), get(), getOrNull<BookStore>() ?: MemoryBookStore()) }
+        viewModel { (id: SourceId?) -> AddServerViewModel(get(), id, get()) }
         viewModel { (id: SourceId) -> ServerCatalogViewModel(id, get(), get(), get()) }
         single<ImageBytes> { AppImageBytes(get(), get(), get()) }
         single<ReaderSettingsStore> { DbReaderSettingsStore(get(), get()) }
         single<ChapterPages> {
             val registry = get<SourceRegistry>()
-            ChapterPages { manga, chapter -> registry.require(manga.sourceId).pages(manga.source, chapter.source) }
+            ChapterPages { manga, chapter -> registry.awaitRequire(manga.sourceId).pages(manga.source, chapter.source) }
         }
         single<LibraryOptionsStore> { PrefsLibraryOptionsStore(get()) }
         viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
@@ -140,6 +143,7 @@ class AppImageBytes(
                 }
             }
             try {
+                registry.awaitReady()
                 val source = registry[sourceId]
                 val bytes = if (source is ImageSource) source.image(url, clean) else http.bytes(url, clean)
                 cache.put(url, bytes)

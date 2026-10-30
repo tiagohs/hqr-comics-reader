@@ -29,7 +29,11 @@ internal class XmlNode(
  * entities. No DTDs nor external entities are ever read (RNF-26).
  */
 internal object Xml {
+    /** Feeds bigger than this are refused (RNF-26). */
+    const val MAX_CHARS = 8_000_000
+
     fun parse(text: String): XmlNode {
+        require(text.length <= MAX_CHARS) { "XML grande demais" }
         val root = XmlNode("#document", emptyMap())
         val stack = ArrayDeque<XmlNode>().apply { addLast(root) }
         var i = 0
@@ -105,6 +109,7 @@ internal object Xml {
                     if (i < text.length && text[i] == '=') {
                         i++
                         while (i < text.length && text[i].isWhitespace()) i++
+                        require(i < text.length) { "atributo sem valor" }
                         val quote = text[i]
                         require(quote == '"' || quote == '\'') { "atributo sem aspas" }
                         val close = text.indexOf(quote, i + 1)
@@ -120,13 +125,22 @@ internal object Xml {
         throw IllegalArgumentException("tag aberta")
     }
 
+    private fun entityEnd(
+        raw: String,
+        from: Int,
+    ): Int {
+        val at = raw.substring(from, minOf(raw.length, from + MAX_ENTITY + 2)).indexOf(';')
+        return if (at < 0) -1 else from + at
+    }
+
     fun decode(raw: String): String {
         if ('&' !in raw) return raw
         val out = StringBuilder(raw.length)
         var i = 0
         while (i < raw.length) {
             val c = raw[i]
-            val semi = if (c == '&') raw.indexOf(';', i) else -1
+            // Only a short window is searched, so a long text full of "&" stays linear.
+            val semi = if (c == '&') entityEnd(raw, i) else -1
             if (semi < 0 || semi - i > MAX_ENTITY) {
                 out.append(c)
                 i++

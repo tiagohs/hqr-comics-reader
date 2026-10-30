@@ -42,6 +42,15 @@ class AppPreferences(
     private val _wifiOnlyDownloads = MutableStateFlow(settings.getBoolean(WIFI_ONLY, true))
     val wifiOnlyDownloads: StateFlow<Boolean> = _wifiOnlyDownloads.asStateFlow()
 
+    // RF-66: off by default.
+    private val _deleteAfterRead = MutableStateFlow(settings.getBoolean(DELETE_AFTER_READ, false))
+    val deleteAfterRead: StateFlow<Boolean> = _deleteAfterRead.asStateFlow()
+
+    fun setDeleteAfterRead(on: Boolean) {
+        settings.putBoolean(DELETE_AFTER_READ, on)
+        _deleteAfterRead.value = on
+    }
+
     private val _mangaDexSuggestive = MutableStateFlow(settings.getBoolean(MANGADEX_SUGGESTIVE, false))
 
     /** RF-08: "suggestive" on MangaDex only after the 18+ confirmation; off by default. */
@@ -114,6 +123,7 @@ class AppPreferences(
         const val LOCAL_FOLDER = "local_folder"
         const val ONBOARDED = "onboarded"
         const val LANGUAGES = "content_languages"
+        const val DELETE_AFTER_READ = "downloads.deleteAfterRead"
         const val WIFI_ONLY = "downloads_wifi_only"
         const val MANGADEX_SUGGESTIVE = "mangadex_mangaDexSuggestive"
     }

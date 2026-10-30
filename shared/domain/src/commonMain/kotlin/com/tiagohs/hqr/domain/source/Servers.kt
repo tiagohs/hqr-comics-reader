@@ -21,14 +21,28 @@ data class ServerInput(
 )
 
 /** RF-19 and RF-95: why a server can't be used, each with its own message. */
-enum class ServerProblem { INVALID_ADDRESS, CREDENTIALS_IN_ADDRESS, UNREACHABLE, WRONG_LOGIN, CERTIFICATE, NOT_OPDS }
+enum class ServerProblem {
+    INVALID_ADDRESS,
+    CREDENTIALS_IN_ADDRESS,
+    CLEARTEXT_OUTSIDE_HOME,
+    UNREACHABLE,
+    WRONG_LOGIN,
+    CERTIFICATE,
+    NOT_OPDS,
+}
 
 /** Add, test and remove the user's OPDS servers; each one becomes a source (RF-17 to RF-19). */
 interface ServerManager {
     fun observe(): Flow<List<Server>>
 
-    /** Null when the server answers as an OPDS catalog with these credentials. */
-    suspend fun test(input: ServerInput): ServerProblem?
+    /**
+     * Null when the server answers as an OPDS catalog with these credentials. Editing [id] with the password blank
+     * uses the saved one, but only for the same address origin (RF-95).
+     */
+    suspend fun test(
+        input: ServerInput,
+        id: SourceId? = null,
+    ): ServerProblem?
 
     /** Tests, then saves; a problem means nothing was saved. [id] edits an existing server. */
     suspend fun save(
@@ -48,6 +62,8 @@ data class CatalogPage(
     val entries: List<CatalogEntry>,
     val nextUrl: String? = null,
     val canSearch: Boolean = false,
+    /** The address of this page itself. */
+    val url: String? = null,
 )
 
 /** A folder to enter or a book to read. */

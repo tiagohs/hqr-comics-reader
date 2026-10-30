@@ -21,6 +21,8 @@ import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.local.SafFileTree
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
+import com.tiagohs.hqr.sources.opds.BookStore
+import com.tiagohs.hqr.sources.opds.DiskBookStore
 import com.tiagohs.hqr.ui.di.AppVersion
 import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
@@ -61,6 +63,8 @@ class HqrApplication : Application() {
             single { HqNowSource(get(), apiUrl = { get<SourceConfig>().baseUrl(SourceId.HQ_NOW) ?: HqNowSource.API }) }
             single<SourceListFetcher> { HttpSourceListFetcher(get()) }
             single<SecretStore> { KeystoreSecretStore(this@HqrApplication) }
+            // RF-18: book files from servers on disk, read by ranges (never whole in memory).
+            single<BookStore> { DiskBookStore(FileSystem.SYSTEM, cacheDir.toOkioPath() / "books") }
             single(AppVersion) { BuildConfig.VERSION_NAME }
             single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
         }

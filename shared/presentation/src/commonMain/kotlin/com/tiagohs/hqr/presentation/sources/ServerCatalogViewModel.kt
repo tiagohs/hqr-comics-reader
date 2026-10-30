@@ -54,6 +54,7 @@ class ServerCatalogViewModel(
     private val _state = MutableStateFlow(State(serverName = registry[sourceId]?.name.orEmpty(), query = saved[KEY_QUERY] ?: ""))
     val state: StateFlow<State> = _state.asStateFlow()
     private var job: Job? = null
+    private val morePages = HashSet<String>()
 
     init {
         load()
@@ -70,8 +71,11 @@ class ServerCatalogViewModel(
             return
         }
         val catalog = browser ?: return
+        // A book from a page brought by "Carregar mais" belongs to the feed's first page: the work starts there (RF-18).
+        val page = _state.value.page
+        val feedUrl = if (entry.url in morePages) page?.url ?: entry.url else entry.url
         viewModelScope.launch {
-            val work = catalog.work(entry.url, _state.value.page?.title ?: entry.title)
+            val work = catalog.work(feedUrl, page?.title ?: entry.title)
             onWork(mangas.upsert(work).id)
         }
     }
@@ -104,6 +108,7 @@ class ServerCatalogViewModel(
             viewModelScope.launch {
                 attempt { catalog.feed(next) }
                     .onSuccess { more ->
+                        morePages += next
                         _state.update { s ->
                             s.copy(
                                 page = s.page?.copy(entries = s.page.entries + more.entries, nextUrl = more.nextUrl),
@@ -116,12 +121,15 @@ class ServerCatalogViewModel(
 
     private fun load() {
         saved[KEY_PATH] = path.joinToString(SEPARATOR)
+        morePages.clear()
         job?.cancel()
         _state.update { it.copy(loading = true, error = null, canGoUp = path.isNotEmpty()) }
         job =
             viewModelScope.launch {
                 attempt {
+                    registry.awaitReady()
                     val catalog = browser ?: throw SourceException("Servidor removido", SourceException.Kind.UNAVAILABLE)
+                    _state.update { it.copy(serverName = catalog.name) }
                     val top = path.lastOrNull()
                     when {
                         top == null -> catalog.feed(null)

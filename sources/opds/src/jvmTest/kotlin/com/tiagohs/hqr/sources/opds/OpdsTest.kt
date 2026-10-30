@@ -21,6 +21,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import okio.Path.Companion.toPath
 import java.io.ByteArrayOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -65,7 +66,7 @@ class OpdsTest {
     private val registry = SourceRegistry(emptyList())
     private val servers = OpdsServers(db, secrets, registry, http)
     private val komga = Server(SourceId("opds-k"), "Komga", "${Komga.BASE}/opds/v1.2/catalog", "tiago")
-    private val source = OpdsSource(komga, http) { "certa" }
+    private val source = OpdsSource(komga, http, { "certa" })
 
     @AfterTest
     fun close() = db.close()
@@ -92,6 +93,8 @@ class OpdsTest {
             val chapters = source.chapters(work)
             chapters.map { it.title } shouldContainExactly listOf("Saga 01", "Saga 02", "Saga 03")
             chapters[0].pageCount shouldBe 3
+            // RF-90: the key is the entry id, which stays when the server rebuilds the file.
+            chapters.map { it.key } shouldContainExactly listOf("b1", "b2", "b3")
             source.details(work).authors shouldBe listOf("Brian K. Vaughan")
         }
 
@@ -192,7 +195,7 @@ class OpdsTest {
     @Test
     fun RF19_wrongLoginIsAuthOnTheSource() =
         runTest {
-            val wrong = OpdsSource(komga, http) { "errada" }
+            val wrong = OpdsSource(komga, http, { "errada" })
             shouldThrow<SourceException> { wrong.feed(null) }.kind shouldBe SourceException.Kind.AUTH
         }
 
@@ -210,6 +213,91 @@ class OpdsTest {
         OpdsFeed.resolve("https://h:8443/a/b/feed", "x.xml") shouldBe "https://h:8443/a/b/x.xml"
         OpdsFeed.resolve("https://h/a/b", "//cdn/x") shouldBe "https://cdn/x"
     }
+
+    @Test
+    fun RF95_loginStaysOnTheSameSchemeAndPort() =
+        runTest {
+            routes = { r ->
+                when {
+                    r.url.protocol.name == "https" && r.url.port == 443 ->
+                        Triple(HttpStatusCode.Found, "", mapOf(HttpHeaders.Location to "http://komga.local/opds/v1.2/catalog"))
+                    r.url.protocol.name == "http" ->
+                        Triple(
+                            HttpStatusCode.Found,
+                            "",
+                            mapOf(
+                                HttpHeaders.Location to "https://komga.local:8443/x",
+                            ),
+                        )
+                    else -> Triple(HttpStatusCode.OK, Komga.ROOT, emptyMap())
+                }
+            }
+            source.feed(null)
+            requests.map { it.headers[HttpHeaders.Authorization] != null } shouldContainExactly listOf(true, false, false)
+        }
+
+    @Test
+    fun RF95_plainHttpOnlyInsideTheHomeNetwork() =
+        runTest {
+            servers.test(ServerInput("K", "http://komga.example.com/opds")) shouldBe ServerProblem.CLEARTEXT_OUTSIDE_HOME
+            listOf("192.168.0.10", "10.0.0.2", "172.20.1.1", "komga.local", "nas", "localhost", "127.0.0.1").forEach {
+                OpdsServers.isHomeNetwork(it) shouldBe true
+            }
+            listOf("8.8.8.8", "172.32.0.1", "komga.example.com").forEach { OpdsServers.isHomeNetwork(it) shouldBe false }
+        }
+
+    @Test
+    fun RF95_editingToAnotherHostDoesNotReuseThePassword() =
+        runTest {
+            servers.save(ServerInput("Casa", komga.url, "tiago", "certa")) shouldBe null
+            val id =
+                servers
+                    .observe()
+                    .first()
+                    .single()
+                    .id
+            // Same address, blank password: the saved one is used.
+            servers.test(ServerInput("Casa", komga.url, "tiago", ""), id) shouldBe null
+            // Another host with a blank password: nothing is sent to it.
+            routes = { r -> if (r.url.host == "evil.example") Triple(HttpStatusCode.Unauthorized, "", emptyMap()) else null }
+            servers.save(ServerInput("Casa", "https://evil.example/opds", "tiago", ""), id) shouldBe ServerProblem.WRONG_LOGIN
+            requests.filter { it.url.host == "evil.example" }.all { it.headers[HttpHeaders.Authorization] == null } shouldBe true
+            secrets.map.values.single() shouldBe "certa"
+        }
+
+    @Test
+    fun RNF26_truncatedOrBrokenXmlIsNotOpdsNeverACrash() =
+        runTest {
+            (1 until Komga.ROOT.length step 7).forEach { cut ->
+                routes = { Triple(HttpStatusCode.OK, Komga.ROOT.take(cut), emptyMap()) }
+                runCatching { source.feed(null) }.exceptionOrNull()?.let { it::class shouldBe SourceException::class }
+            }
+            routes = { Triple(HttpStatusCode.OK, "<feed><a k=", emptyMap()) }
+            servers.test(ServerInput("K", komga.url, "tiago", "certa")) shouldBe ServerProblem.NOT_OPDS
+            // A DTD with entities is skipped, never expanded.
+            val node = Xml.parse("""<!DOCTYPE x [<!ENTITY a "aaaa">]><feed><title>&a;</title></feed>""")
+            node.local shouldBe "feed"
+        }
+
+    @Test
+    fun RNF26_fileOverTheLimitIsRefused() =
+        runTest {
+            val small = OpdsSource(komga, http, { "certa" }, MemoryBookStore(), maxFileBytes = 10)
+            val work = small.work("${Komga.BASE}/opds/v1.2/series/saga", "Saga")
+            val book = small.chapters(work)[2]
+            shouldThrow<SourceException> { small.pages(work, book) }.kind shouldBe SourceException.Kind.PARSE
+        }
+
+    @Test
+    fun RF18_bookFileOnDiskIsReadByRanges() =
+        runTest {
+            val fs = okio.fakefilesystem.FakeFileSystem()
+            val disk = OpdsSource(komga, http, { "certa" }, DiskBookStore(fs, "/cache/books".toPath()))
+            val work = disk.work("${Komga.BASE}/opds/v1.2/series/saga", "Saga")
+            val pages = disk.pages(work, disk.chapters(work)[2])
+            disk.image(pages[0].imageUrl, emptyMap()).decodeToString() shouldBe "img-1"
+            fs.list("/cache/books".toPath()).size shouldBe 1
+        }
 }
 
 /** A fake Komga: the feeds it answers and the login it wants ("tiago" / "certa"). */

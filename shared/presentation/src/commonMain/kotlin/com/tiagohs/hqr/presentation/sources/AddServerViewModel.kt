@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.presentation.sources
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tiagohs.hqr.domain.model.SourceId
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class AddServerViewModel(
     private val servers: ServerManager,
     private val editing: SourceId? = null,
+    private val saved: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
     data class State(
         val input: ServerInput = ServerInput("", ""),
@@ -37,11 +39,18 @@ class AddServerViewModel(
         ) : Result
     }
 
-    private val _state = MutableStateFlow(State(isEdit = editing != null))
+    // RF-88: what was typed comes back after the end of the process; the password never goes to the saved state.
+    private val _state =
+        MutableStateFlow(
+            State(
+                isEdit = editing != null,
+                input = ServerInput(saved[KEY_NAME] ?: "", saved[KEY_URL] ?: "", saved[KEY_USER] ?: ""),
+            ),
+        )
     val state: StateFlow<State> = _state.asStateFlow()
 
     init {
-        if (editing != null) {
+        if (editing != null && saved.get<String>(KEY_URL) == null) {
             viewModelScope.launch {
                 // The password is never shown again: blank keeps nothing, so the user types it to change it.
                 servers.observe().first().firstOrNull { it.id == editing }?.let { s ->
@@ -53,11 +62,14 @@ class AddServerViewModel(
 
     fun edit(input: ServerInput) {
         _state.update { it.copy(input = input, result = null) }
+        saved[KEY_NAME] = input.name
+        saved[KEY_URL] = input.url
+        saved[KEY_USER] = input.username
     }
 
     fun test() =
         run { input ->
-            _state.update { it.copy(result = servers.test(input).toResult()) }
+            _state.update { it.copy(result = servers.test(input, editing).toResult()) }
         }
 
     fun save() =
@@ -80,4 +92,10 @@ class AddServerViewModel(
     }
 
     private fun ServerProblem?.toResult(): Result = this?.let { Result.Problem(it) } ?: Result.Ok
+
+    private companion object {
+        const val KEY_NAME = "server.name"
+        const val KEY_URL = "server.url"
+        const val KEY_USER = "server.user"
+    }
 }

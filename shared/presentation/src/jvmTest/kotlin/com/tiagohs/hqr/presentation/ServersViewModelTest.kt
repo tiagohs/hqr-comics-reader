@@ -34,7 +34,15 @@ class ServersViewModelTest : MainDispatcherTest() {
 
         override fun observe() = list
 
-        override suspend fun test(input: ServerInput) = problem
+        var testedWith: SourceId? = null
+
+        override suspend fun test(
+            input: ServerInput,
+            id: SourceId?,
+        ): ServerProblem? {
+            testedWith = id
+            return problem
+        }
 
         override suspend fun save(
             input: ServerInput,
@@ -65,7 +73,9 @@ class ServersViewModelTest : MainDispatcherTest() {
                 null -> CatalogPage("Casa", listOf(CatalogEntry("Séries", "s", isBook = false)), canSearch = true)
                 "s" -> CatalogPage("Séries", listOf(CatalogEntry("Saga", "saga", isBook = false)), nextUrl = "s2")
                 "s2" -> CatalogPage("Séries", listOf(CatalogEntry("Akira", "akira", isBook = false)))
-                else -> CatalogPage("Saga", listOf(CatalogEntry("Saga 01", url, isBook = true)))
+                "saga" -> CatalogPage("Saga", listOf(CatalogEntry("Saga 01", "saga", isBook = true)), nextUrl = "saga?page=1", url = "saga")
+                "saga?page=1" -> CatalogPage("Saga", listOf(CatalogEntry("Saga 02", "saga?page=1", isBook = true)), url = url)
+                else -> CatalogPage("Outra", listOf(CatalogEntry("X", url, isBook = true)), url = url)
             }
         }
 
@@ -122,6 +132,21 @@ class ServersViewModelTest : MainDispatcherTest() {
             input.username shouldBe "tiago"
             input.password shouldBe ""
             vm.state.value.isEdit shouldBe true
+            // "Testar" while editing uses the saved password (the manager gets the id).
+            vm.test()
+            vm.state.first { it.result != null }
+            servers.testedWith shouldBe SourceId("opds-1")
+        }
+
+    @Test
+    fun RF88_formSurvivesTheProcessWithoutThePassword() =
+        runTest {
+            val saved = SavedStateHandle()
+            val vm = track(AddServerViewModel(FakeServers(), saved = saved))
+            vm.edit(ServerInput("Casa", "https://k/opds", "tiago", "segredo"))
+            saved.keys().any { saved.get<Any>(it) == "segredo" } shouldBe false
+            val again = track(AddServerViewModel(FakeServers(), saved = saved))
+            again.state.value.input shouldBe ServerInput("Casa", "https://k/opds", "tiago", "")
         }
 
     @Test
@@ -138,7 +163,7 @@ class ServersViewModelTest : MainDispatcherTest() {
         }
 
     @Test
-    fun RF18_RF88_foldersBackSearchLoadMoreAndBookOpensItsWork() =
+    fun RF18_RF88_foldersBackSearchLoadMoreAndBookOpensItsWholeSeries() =
         runTest {
             val catalog = FakeCatalog()
             val registry = SourceRegistry(listOf(catalog))

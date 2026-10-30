@@ -55,14 +55,24 @@ class SourceConfig(
 
     /** Applies what is saved, then asks for a fresh list when the last one is older than a day. */
     suspend fun start() {
-        registry.setUserDisabled(
+        applySaved()
+        refreshIfStale()
+    }
+
+    /** The switches and the last list, from the device only: quick, done before any screen reads a source. */
+    suspend fun applySaved() {
+        val off =
             dao
                 .list()
                 .filter { !it.enabled }
                 .map { SourceId(it.id) }
-                .toSet(),
-        )
+                .toSet()
+        registry.setUserDisabled(off)
         apply(settings.getStringOrNull(KEY_LIST) ?: EMBEDDED)
+    }
+
+    /** RF-105: once a day. */
+    suspend fun refreshIfStale() {
         val last = settings.getLongOrNull(KEY_FETCHED_AT) ?: 0L
         if (clock.now().toEpochMilliseconds() - last >= DAY_MS) refresh()
     }

@@ -16,31 +16,40 @@ import com.tiagohs.hqr.domain.source.SearchSource
 import com.tiagohs.hqr.domain.source.Server
 import com.tiagohs.hqr.domain.source.SourceException
 import com.tiagohs.hqr.domain.source.SourceFilter
-import com.tiagohs.hqr.sources.local.FileNode
 import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.ZipReader
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.encodeURLParameter
 import io.ktor.util.encodeBase64
+import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * One OPDS server as a source (RF-17, RF-18): its catalog is browsed feed by feed; the feed that holds books is a work
  * and each book a chapter. Pages come by OPDS-PSE when the server offers it, else from the CBZ downloaded once and
- * kept in memory. The login goes only to the server's own host, never through a redirect elsewhere (RF-95).
+ * kept in the [BookStore]. The login goes only to the server's own origin, never through a redirect elsewhere (RF-95).
  */
+@Suppress("TooManyFunctions") // The source contract plus the HTTP rules of RF-95 in one place.
 class OpdsSource(
     val server: Server,
     http: HttpClient,
     private val password: suspend () -> String?,
+    private val books: BookStore = MemoryBookStore(),
+    private val maxFileBytes: Long = MAX_FILE_BYTES,
 ) : CatalogBrowser,
     SearchSource,
     ImageSource {
@@ -48,11 +57,14 @@ class OpdsSource(
     override val name: String = server.name
     override val languages: List<String> = emptyList()
 
-    // Redirects are followed by hand, so the credential can be dropped when the host changes.
+    // Redirects are followed by hand, so the credential is dropped when the origin changes (RF-95).
     private val client = http.config { followRedirects = false }
-    private val host = Url(server.url).host
-    private val files = LinkedHashMap<String, ByteArray>()
-    private val filesLock = Mutex()
+    private val origin = origin(server.url)
+    private val lock = Mutex()
+    private val downloading = HashMap<String, Deferred<FileTree>>()
+
+    // The books of the works opened in this run, by entry id: pages find their stream or file here.
+    private val known = HashMap<String, OpdsEntry>()
 
     override suspend fun feed(url: String?): CatalogPage {
         val feedUrl = url ?: server.url
@@ -76,6 +88,7 @@ class OpdsSource(
                 },
             nextUrl = feed.next,
             canSearch = feed.search != null,
+            url = feedUrl,
         )
     }
 
@@ -116,23 +129,18 @@ class OpdsSource(
     }
 
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> {
-        val books = ArrayList<OpdsEntry>()
+        val found = ArrayList<OpdsEntry>()
         var next: String? = manga.key
         var pages = 0
         while (next != null && pages++ < MAX_FEED_PAGES) {
             val feed = load(next)
-            books += feed.entries.filter { it.isBook }
+            found += feed.entries.filter { it.isBook }
             next = feed.next
         }
-        return books.mapIndexed { i, book ->
-            val stream = book.stream
-            val key =
-                if (stream != null) {
-                    "$STREAM_KEY${stream.pageCount}|${stream.href}"
-                } else {
-                    "$FILE_KEY${book.acquisition!!.href}"
-                }
-            SourceChapter(key = key, number = (i + 1).toDouble(), title = book.title, pageCount = stream?.pageCount)
+        // The entry id is the key: it stays when the server rebuilds the file or its pages (RF-90).
+        lock.withLock { found.forEach { known[it.id] = it } }
+        return found.mapIndexed { i, book ->
+            SourceChapter(key = book.id, number = (i + 1).toDouble(), title = book.title, pageCount = book.stream?.pageCount)
         }
     }
 
@@ -140,21 +148,18 @@ class OpdsSource(
         manga: SourceManga,
         chapter: SourceChapter,
     ): List<SourcePage> {
-        if (chapter.key.startsWith(STREAM_KEY)) {
-            val count =
-                chapter.key
-                    .removePrefix(STREAM_KEY)
-                    .substringBefore('|')
-                    .toInt()
-            val template = chapter.key.substringAfter('|')
-            return (0 until count).map { i ->
-                SourcePage(i, template.replace("{pageNumber}", i.toString()).replace("{maxWidth}", MAX_WIDTH.toString()))
+        val book = lock.withLock { known[chapter.key] } ?: chapters(manga).let { lock.withLock { known[chapter.key] } }
+        book ?: throw SourceException("Livro fora do servidor", SourceException.Kind.NOT_FOUND)
+        val stream = book.stream
+        if (stream != null) {
+            return (0 until stream.pageCount!!).map { i ->
+                SourcePage(i, stream.href.replace("{pageNumber}", i.toString()).replace("{maxWidth}", MAX_WIDTH.toString()))
             }
         }
-        val href = chapter.key.removePrefix(FILE_KEY)
-        val names = zip(href).images().map { it.name }
-        if (names.isEmpty()) throw SourceException("Arquivo sem imagens (só CBZ pelo servidor)", SourceException.Kind.PARSE)
-        return names.mapIndexed { i, entry -> SourcePage(i, "$FILE_SCHEME$i|$href") }
+        val href = book.acquisition!!.href
+        val count = ZipReader(file(href), BookStore.PATH).images().size
+        if (count == 0) throw SourceException("Arquivo sem imagens (só CBZ pelo servidor)", SourceException.Kind.PARSE)
+        return (0 until count).map { i -> SourcePage(i, "$FILE_SCHEME$i|$href") }
     }
 
     override suspend fun image(
@@ -163,7 +168,7 @@ class OpdsSource(
     ): ByteArray {
         if (!url.startsWith(FILE_SCHEME)) return get(url).bodyAsBytes()
         val index = url.removePrefix(FILE_SCHEME).substringBefore('|').toInt()
-        val reader = zip(url.substringAfter('|'))
+        val reader = ZipReader(file(url.substringAfter('|')), BookStore.PATH)
         return reader.read(reader.images()[index])
     }
 
@@ -176,36 +181,97 @@ class OpdsSource(
         val link = root.search ?: return null
         if (link.href.contains("{searchTerms}")) return link.href
         // An OpenSearch description: its Atom template.
-        val description = Xml.parse(get(link.href).bodyAsText())
+        val description = parseOrNotOpds { Xml.parse(get(link.href).bodyAsText()) }
         val urls = description.all("Url")
         val atom = urls.firstOrNull { it.attr("type")?.contains("atom") == true } ?: urls.firstOrNull() ?: return null
-        return atom.attr("template")?.let { OpdsFeed.resolve(link.href, it) }
+        // Optional parameters ({startPage?}) are left empty.
+        return atom.attr("template")?.replace(OPTIONAL_PARAM, "")?.let { OpdsFeed.resolve(link.href, it) }
     }
 
-    private suspend fun zip(href: String): ZipReader {
-        val bytes =
-            filesLock.withLock {
-                files[href] ?: get(href).bodyAsBytes().also { downloaded ->
-                    files[href] = downloaded
-                    // Two files at most in memory: the chapter being read and the next.
-                    while (files.size > KEPT_FILES) files.remove(files.keys.first())
-                }
+    /** The book file, downloaded once even when several pages ask at the same time; other files never wait for it. */
+    private suspend fun file(href: String): FileTree {
+        books.open(href)?.let { return it }
+        val (pending, owner) =
+            lock.withLock {
+                downloading[href]?.let { it to false } ?: CompletableDeferred<FileTree>().also { downloading[href] = it }.let { it to true }
             }
-        return ZipReader(MemoryTree(bytes), MemoryTree.PATH)
+        if (owner) {
+            val deferred = pending as CompletableDeferred<FileTree>
+            try {
+                deferred.complete(download(href))
+            } catch (
+                @Suppress("TooGenericExceptionCaught") e: Throwable,
+            ) {
+                // Every waiting page gets the same failure.
+                deferred.completeExceptionally(e)
+                throw e
+            } finally {
+                withContext(NonCancellable) { lock.withLock { downloading.remove(href) } }
+            }
+        }
+        return pending.await()
+    }
+
+    private suspend fun download(href: String): FileTree = networkCall { certificateGuard { fetchFile(href) } }
+
+    // Redirects, size limit and the streamed copy: one loop, read top to bottom.
+    @Suppress("CyclomaticComplexMethod")
+    private suspend fun fetchFile(href: String): FileTree {
+        var current = href
+        var hops = 0
+        while (true) {
+            val target = current
+            val secret = credentialFor(target)
+            var redirect: String? = null
+            val tree =
+                client.prepareGet(target) { secret?.let { header(HttpHeaders.Authorization, it) } }.execute { response ->
+                    val location = response.headers[HttpHeaders.Location]
+                    if (response.status.value in REDIRECTS && location != null) {
+                        redirect = OpdsFeed.resolve(target, location)
+                        return@execute null
+                    }
+                    response.ensureOk()
+                    val declared = response.headers[HttpHeaders.ContentLength]?.toLongOrNull()
+                    if (declared != null && declared > maxFileBytes) throw tooBig()
+                    val channel = response.bodyAsChannel()
+                    books.save(href) { sink ->
+                        val buffer = ByteArray(CHUNK)
+                        var total = 0L
+                        while (true) {
+                            val n = channel.readAvailable(buffer, 0, buffer.size)
+                            if (n < 0) break
+                            total += n
+                            if (total > maxFileBytes) return@save false
+                            if (n > 0) sink(buffer, n)
+                        }
+                        true
+                    } ?: throw tooBig()
+                }
+            if (tree != null) return tree
+            if (redirect == null ||
+                hops++ >= MAX_REDIRECTS
+            ) {
+                throw SourceException("Redirecionamento sem fim", SourceException.Kind.SERVER)
+            }
+            current = redirect!!
+        }
+    }
+
+    private fun tooBig() = SourceException("Arquivo grande demais para ler pelo servidor", SourceException.Kind.PARSE)
+
+    /** The login only for the server's own origin: same scheme, host and port (RF-95). */
+    private suspend fun credentialFor(url: String): String? {
+        val user = server.username ?: return null
+        if (origin(url) != origin) return null
+        return password()?.takeIf { it.isNotEmpty() }?.let { basic(user, it) }
     }
 
     private suspend fun load(url: String): OpdsFeed {
         val text = get(url).bodyAsText()
-        return try {
-            OpdsFeed.parse(text, url)
-        } catch (e: IllegalArgumentException) {
-            throw SourceException("Não é um catálogo OPDS", SourceException.Kind.PARSE, e)
-        } catch (e: IllegalStateException) {
-            throw SourceException("Não é um catálogo OPDS", SourceException.Kind.PARSE, e)
-        }
+        return parseOrNotOpds { OpdsFeed.parse(text, url) }
     }
 
-    /** GET with the login for the server's host only; redirects followed by hand, up to five. */
+    /** GET with the login for the server's origin only; redirects followed by hand, up to five. */
     private suspend fun get(url: String): HttpResponse =
         networkCall {
             certificateGuard {
@@ -213,11 +279,10 @@ class OpdsSource(
                 var response: HttpResponse
                 var hops = 0
                 while (true) {
-                    val target = Url(current)
-                    val secret = if (target.host == host && server.username != null) password() else null
+                    val secret = credentialFor(current)
                     response =
                         client.get(current) {
-                            if (secret != null) header(HttpHeaders.Authorization, basic(server.username!!, secret))
+                            if (secret != null) header(HttpHeaders.Authorization, secret)
                         }
                     val location = response.headers[HttpHeaders.Location]
                     if (response.status.value !in REDIRECTS || location == null || hops++ >= MAX_REDIRECTS) break
@@ -227,35 +292,18 @@ class OpdsSource(
             }
         }
 
-    private class MemoryTree(
-        private val bytes: ByteArray,
-    ) : FileTree {
-        override suspend fun isReady() = true
-
-        override suspend fun children(path: String) = emptyList<FileNode>()
-
-        override suspend fun size(path: String) = bytes.size.toLong()
-
-        override suspend fun read(
-            path: String,
-            offset: Long,
-            length: Int,
-        ): ByteArray = bytes.copyOfRange(offset.toInt(), minOf(bytes.size, offset.toInt() + length))
-
-        companion object {
-            const val PATH = "book.cbz"
-        }
-    }
-
     companion object {
-        private const val STREAM_KEY = "pse:"
-        private const val FILE_KEY = "file:"
+        private const val CHUNK = 64 * 1024
+        const val MAX_FILE_BYTES = 400L * 1024 * 1024
+        private val OPTIONAL_PARAM = Regex("\\{[^}]*\\?\\}")
         const val FILE_SCHEME = "opds-file:"
         private const val MAX_WIDTH = 1600
         private const val MAX_FEED_PAGES = 50
-        private const val KEPT_FILES = 2
         private const val MAX_REDIRECTS = 5
         private val REDIRECTS = 300..399
+
+        /** scheme://host:port, the port always written. */
+        fun origin(url: String): String = Url(url).let { "${it.protocol.name}://${it.host}:${it.port}" }
 
         fun basic(
             user: String,
@@ -263,6 +311,18 @@ class OpdsSource(
         ): String = "Basic " + "$user:$password".encodeToByteArray().encodeBase64()
     }
 }
+
+/** Any failure to read the XML is "not OPDS", never a crash (RF-19, RNF-26). */
+internal inline fun <T> parseOrNotOpds(block: () -> T): T =
+    try {
+        block()
+    } catch (e: SourceException) {
+        throw e
+    } catch (
+        @Suppress("TooGenericExceptionCaught") e: RuntimeException,
+    ) {
+        throw SourceException("Não é um catálogo OPDS", SourceException.Kind.PARSE, e)
+    }
 
 /** TLS failures become their own kind, so the screen can say "certificado inválido" (RF-19). */
 internal suspend inline fun <T> certificateGuard(block: () -> T): T =

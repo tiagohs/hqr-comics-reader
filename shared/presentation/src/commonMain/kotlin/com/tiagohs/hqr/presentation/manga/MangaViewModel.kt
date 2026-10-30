@@ -129,7 +129,7 @@ class MangaViewModel(
                 return@launch
             }
             attempt {
-                val source = registry.require(manga.sourceId)
+                val source = registry.awaitRequire(manga.sourceId)
                 val details = source.details(manga.source)
                 mangas.upsert(details)
                 chapters.sync(mangaId, source.chapters(details))

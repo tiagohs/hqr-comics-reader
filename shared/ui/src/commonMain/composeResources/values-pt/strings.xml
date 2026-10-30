@@ -258,4 +258,7 @@
     <string name="catalog_empty_message">Esta pasta do servidor está vazia.</string>
     <string name="catalog_more">Carregar mais</string>
     <string name="server_url_hint">https://komga.casa/opds/v1.2/catalog</string>
+    <string name="server_problem_cleartext">Fora da sua rede de casa, use um endereço https://: com http a senha viajaria sem proteção.</string>
+    <string name="catalog_book">Livro</string>
+    <string name="catalog_folder">Pasta</string>
 </resources>

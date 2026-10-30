@@ -29,6 +29,7 @@ import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ServerManager
+import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.ui.components.hqrImageLoader
 import com.tiagohs.hqr.ui.explore.BrowseSourceScreen
 import com.tiagohs.hqr.ui.explore.ExploreScreen
@@ -74,10 +75,17 @@ fun HqrApp(systemDark: Boolean) {
     val sourceConfig = koinInject<SourceConfig>()
     // RF-03, RF-105: the switches and the remote source list, once per start.
     val servers = koinInject<ServerManager>()
+    val registry = koinInject<SourceRegistry>()
     LaunchedEffect(sourceConfig) {
-        sourceConfig.start()
-        // RF-17: the saved servers come back as sources.
-        servers.start()
+        // RF-17, RF-88: the saved servers and switches first, from the device; screens wait for them.
+        try {
+            servers.start()
+            sourceConfig.applySaved()
+        } finally {
+            registry.markReady()
+        }
+        // RF-105: the remote list may take a while; nothing waits for it.
+        sourceConfig.refreshIfStale()
     }
     val images = koinInject<ImageBytes>()
     setSingletonImageLoaderFactory { context -> hqrImageLoader(context, images) }

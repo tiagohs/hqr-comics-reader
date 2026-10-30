@@ -244,7 +244,40 @@ interface DownloadDao {
 
     @Query("SELECT COALESCE(MAX(queueOrder), 0) FROM download")
     suspend fun maxOrder(): Int
+
+    @Query(
+        """
+        SELECT d.chapterId, d.state, d.pagesDone, d.pagesTotal, d.error, d.queueOrder,
+          c.mangaId, c.number, c.title AS chapterTitle, m.title AS mangaTitle
+        FROM download d JOIN chapter c ON c.id = d.chapterId JOIN manga m ON m.id = c.mangaId
+        ORDER BY d.queueOrder
+        """,
+    )
+    fun observeRows(): Flow<List<DownloadRow>>
+
+    @Query("UPDATE download SET state = :state WHERE state IN (:from)")
+    suspend fun setStates(
+        from: List<String>,
+        state: String,
+    )
+
+    @Query("SELECT d.chapterId FROM download d JOIN progress p ON p.chapterId = d.chapterId WHERE d.state = 'DONE' AND p.read = 1")
+    fun observeReadDone(): Flow<List<Long>>
 }
+
+/** One row of the downloads screen, with the names it shows. */
+data class DownloadRow(
+    val chapterId: Long,
+    val state: String,
+    val pagesDone: Int,
+    val pagesTotal: Int,
+    val error: String?,
+    val queueOrder: Int,
+    val mangaId: Long,
+    val number: Double,
+    val chapterTitle: String?,
+    val mangaTitle: String,
+)
 
 @Dao
 interface SourceDao {

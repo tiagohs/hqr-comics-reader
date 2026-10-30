@@ -9,6 +9,7 @@ import com.tiagohs.hqr.domain.model.ReadAction
 import com.tiagohs.hqr.domain.model.ReadingRules
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.LibraryRemoval
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.color.CoverColor
@@ -143,11 +144,21 @@ class MangaViewModel(
         viewModelScope.launch { categories?.setCategories(mangaId, ids) }
     }
 
-    fun toggleLibrary() {
+    /** RF-52: puts the work in or takes it out; a removal hands [onRemoved] what "Desfazer" needs. */
+    fun toggleLibrary(onRemoved: (LibraryRemoval) -> Unit = {}) {
         viewModelScope.launch {
             val manga = mangas.get(mangaId) ?: return@launch
-            mangas.setInLibrary(mangaId, !manga.inLibrary)
+            if (manga.inLibrary) {
+                mangas.removeFromLibrary(mangaId)?.let(onRemoved)
+            } else {
+                mangas.setInLibrary(mangaId, true)
+            }
         }
+    }
+
+    /** "Desfazer": back in the library with the same date added and categories. */
+    fun undoRemove(removal: LibraryRemoval) {
+        viewModelScope.launch { mangas.restoreToLibrary(removal) }
     }
 
     fun setOrder(value: Order) {

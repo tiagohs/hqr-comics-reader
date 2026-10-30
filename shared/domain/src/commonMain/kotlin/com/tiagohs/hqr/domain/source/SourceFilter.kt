@@ -25,6 +25,13 @@ sealed interface SourceFilter {
         val multiple: Boolean = true,
     ) : SourceFilter
 
+    /** Free text, such as the year. */
+    @Serializable
+    data class Text(
+        override val key: String,
+        val value: String = "",
+    ) : SourceFilter
+
     /** Ordering of the results. */
     @Serializable
     data class Sort(
@@ -33,6 +40,16 @@ sealed interface SourceFilter {
         val selected: String? = null,
         val ascending: Boolean = false,
     ) : SourceFilter
+
+    /** True when the user changed nothing from the defaults the source gave. */
+    val isDefault: Boolean
+        get() =
+            when (this) {
+                is Tags -> included.isEmpty() && excluded.isEmpty()
+                is Choice -> selected.isEmpty()
+                is Text -> value.isBlank()
+                is Sort -> true
+            }
 
     @Serializable
     data class Option(

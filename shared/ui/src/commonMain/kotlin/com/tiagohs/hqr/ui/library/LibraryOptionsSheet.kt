@@ -208,7 +208,22 @@ private fun SortTab(
                 Modifier.selectable(
                     selected = options.sort == sort,
                     role = Role.RadioButton,
-                ) { onChange(options.copy(sort = sort)) },
+                ) {
+                    // RF-55: A to Z starts ascending; the other orders start with the most recent or the most.
+                    onChange(
+                        options.copy(
+                            sort = sort,
+                            ascending =
+                                if (sort ==
+                                    options.sort
+                                ) {
+                                    options.ascending
+                                } else {
+                                    sort == LibrarySort.TITLE
+                                },
+                        ),
+                    )
+                },
         )
     }
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -240,7 +255,7 @@ private fun DisplayTab(
                 selected = options.display == mode,
                 onClick = { onChange(options.copy(display = mode)) },
                 shape = SegmentedButtonDefaults.itemShape(i, modes.size),
-            ) { Text(stringResource(label), maxLines = 1) }
+            ) { Text(stringResource(label), maxLines = 2) }
         }
     }
     listOf(

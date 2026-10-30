@@ -62,11 +62,21 @@ class DemoSource(
 
     override suspend fun latest(page: Int) = popular(page)
 
+    var lastFilters: List<SourceFilter> = emptyList()
+
+    override suspend fun filters() =
+        com.tiagohs.hqr.sources.mangadex.MangaDexFilters.defaults(
+            listOf("Action", "Comedy", "Horror", "Romance").map { SourceFilter.Option(it.lowercase(), it) },
+        )
+
     override suspend fun search(
         query: String,
         filters: List<SourceFilter>,
         page: Int,
-    ) = popular(page)
+    ): MangaPage {
+        lastFilters = filters
+        return popular(page)
+    }
 
     override suspend fun details(manga: SourceManga) = manga(manga.key.removePrefix("m").toInt())
 

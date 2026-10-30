@@ -177,20 +177,18 @@ private fun MangaContent(
     // RF-52: taking out offers "Desfazer"; putting in asks for the categories when there are any (RF-53).
     val toggleLibrary: () -> Unit = {
         val removing = manga.inLibrary
-        viewModel.toggleLibrary()
-        if (removing) {
+        viewModel.toggleLibrary { removal ->
             scope.launch {
                 val result =
                     snackbar.showSnackbar(
                         getString(Res.string.library_removed),
                         getString(Res.string.action_undo),
-                        duration = SnackbarDuration.Short,
+                        duration = SnackbarDuration.Long,
                     )
-                if (result == SnackbarResult.ActionPerformed) viewModel.toggleLibrary()
+                if (result == SnackbarResult.ActionPerformed) viewModel.undoRemove(removal)
             }
-        } else if (categoryChoice.first.isNotEmpty()) {
-            picking = true
         }
+        if (!removing && categoryChoice.first.isNotEmpty()) picking = true
     }
     if (picking) {
         CategoryPicker(categoryChoice.first, categoryChoice.second, onDismiss = { picking = false }) {

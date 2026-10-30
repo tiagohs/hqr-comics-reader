@@ -4,16 +4,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -24,24 +29,49 @@ import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
+import com.tiagohs.hqr.ui.resources.explore_search_all
 import com.tiagohs.hqr.ui.resources.explore_sources
 import com.tiagohs.hqr.ui.resources.nav_explore
+import com.tiagohs.hqr.ui.resources.search_hint
 import com.tiagohs.hqr.ui.theme.BalloonShape
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
-/** SCR-EXP-001: the sources (the Feed and global search join with FEAT-012 and FEAT-026). */
+/** SCR-EXP-001: global search on top and the sources (the Feed joins with FEAT-026). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
     onOpenSource: (String) -> Unit,
+    onSearch: () -> Unit = {},
     registry: SourceRegistry = koinInject(),
 ) {
     Scaffold(topBar = {
-        TopAppBar(title = { Text(stringResource(Res.string.nav_explore), style = MaterialTheme.typography.headlineLarge) })
+        TopAppBar(
+            title = { Text(stringResource(Res.string.nav_explore), style = MaterialTheme.typography.headlineLarge) },
+            actions = { IconButton(onClick = onSearch) { Icon(HqrIcons.Search, stringResource(Res.string.explore_search_all)) } },
+        )
     }) { padding ->
         LazyColumn(Modifier.padding(padding).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            item {
+                // RF-23: the way into global search, shaped like the field it opens.
+                Surface(
+                    onClick = onSearch,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).heightIn(min = 56.dp),
+                ) {
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(HqrIcons.Search, contentDescription = null)
+                        Text(
+                            stringResource(Res.string.search_hint),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 12.dp),
+                        )
+                    }
+                }
+            }
             item {
                 Text(
                     stringResource(Res.string.explore_sources),

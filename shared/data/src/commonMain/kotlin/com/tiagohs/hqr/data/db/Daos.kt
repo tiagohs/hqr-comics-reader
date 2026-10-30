@@ -94,6 +94,9 @@ interface MangaDao {
     )
     fun observeLibraryRows(): Flow<List<LibraryRow>>
 
+    @Query("SELECT id FROM manga WHERE inLibrary = 1")
+    suspend fun libraryIds(): List<Long>
+
     @Query("SELECT `key` FROM manga WHERE inLibrary = 1 AND sourceId = :sourceId")
     fun observeLibraryKeys(sourceId: String): Flow<List<String>>
 

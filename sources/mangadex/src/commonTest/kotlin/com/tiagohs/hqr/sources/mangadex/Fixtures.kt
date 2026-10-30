@@ -2,6 +2,14 @@ package com.tiagohs.hqr.sources.mangadex
 
 /** Answers in the shape of the MangaDex API v5, trimmed, with fictional works. */
 internal object Fixtures {
+    const val TAGS = """
+    { "result": "ok", "response": "collection", "data": [
+      { "id": "t-romance", "type": "tag", "attributes": { "name": { "en": "Romance" }, "group": "genre" } },
+      { "id": "t-horror", "type": "tag", "attributes": { "name": { "en": "Horror" }, "group": "genre" } },
+      { "id": "t-action", "type": "tag", "attributes": { "name": { "en": "Action" }, "group": "genre" } }
+    ], "limit": 100, "offset": 0, "total": 3 }
+    """
+
     private const val MANGA_A1 = """
     {
       "id": "a1", "type": "manga",

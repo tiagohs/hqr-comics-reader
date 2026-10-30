@@ -39,7 +39,8 @@ interface CatalogSource : Source {
 
 /** A source that searches by text and filters (RF-22). */
 interface SearchSource : Source {
-    fun filters(): List<SourceFilter> = emptyList()
+    /** The filters this source offers, at their defaults; may ask the network once (MangaDex tags). */
+    suspend fun filters(): List<SourceFilter> = emptyList()
 
     suspend fun search(
         query: String,

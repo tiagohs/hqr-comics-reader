@@ -137,6 +137,8 @@ Dobrável: postura livro = duas páginas, nada sobre a dobra; postura mesa = pá
 | Erro de fonte | No grupo ou na tela da fonte: ícone, causa em uma frase, "Tentar de novo" e "Abrir no navegador" |
 | Sem conexão | Faixa discreta no topo "Sem conexão · mostrando o que está no aparelho"; ações de rede desligadas |
 | Fonte indisponível | Obra com selo "Fonte indisponível" e ação "Migrar" |
+| Filtrado | Há obras, mas filtros ou busca escondem todas: "Nenhuma obra com esses filtros" + "Limpar filtros" |
+| Removido | Snackbar longa com "Desfazer" (biblioteca, categoria, histórico); desfazer devolve data de entrada e categorias |
 
 ## 9. Acessibilidade (RNF-11, RNF-12)
 

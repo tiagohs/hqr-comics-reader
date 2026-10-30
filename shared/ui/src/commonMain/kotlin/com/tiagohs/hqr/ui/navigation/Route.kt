@@ -19,10 +19,15 @@ sealed interface Route {
     @Serializable
     data object Categories : Route
 
+    /** [query] opens the source already searching (from global search, RF-23). */
     @Serializable
     data class BrowseSource(
         val sourceId: String,
+        val query: String? = null,
     ) : Route
+
+    @Serializable
+    data object Search : Route
 
     @Serializable
     data class Manga(

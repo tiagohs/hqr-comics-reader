@@ -19,6 +19,7 @@ import com.tiagohs.hqr.domain.repository.DeletedCategory
 import com.tiagohs.hqr.domain.repository.HistoryEntry
 import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.LibraryItem
+import com.tiagohs.hqr.domain.repository.LibraryRemoval
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -30,6 +31,7 @@ class RoomMangaRepository(
     private val clock: Clock,
 ) : MangaRepository {
     private val dao = db.mangaDao()
+    private val categories = db.categoryDao()
 
     /** Find and write in one transaction: two screens saving the same work at once never collide on the key. */
     override suspend fun upsert(source: SourceManga): Manga = db.withWriteTransaction { upsertUnlocked(source) }
@@ -94,10 +96,31 @@ class RoomMangaRepository(
         id: Long,
         inLibrary: Boolean,
     ) {
+        if (!inLibrary) {
+            removeFromLibrary(id)
+            return
+        }
         val current = dao.get(id) ?: return
-        val addedAt = if (inLibrary) current.addedAt ?: clock.now().toEpochMilliseconds() else null
-        dao.setInLibrary(id, inLibrary, addedAt)
+        dao.setInLibrary(id, true, current.addedAt ?: clock.now().toEpochMilliseconds())
     }
+
+    override suspend fun removeFromLibrary(id: Long): LibraryRemoval? =
+        db.withWriteTransaction {
+            val current = dao.get(id)?.takeIf { it.inLibrary } ?: return@withWriteTransaction null
+            val categoryIds = categories.forManga(id).mapTo(HashSet()) { it.categoryId }
+            categories.clearForManga(id)
+            dao.setInLibrary(id, false, null)
+            LibraryRemoval(id, current.addedAt, categoryIds)
+        }
+
+    override suspend fun restoreToLibrary(removal: LibraryRemoval) =
+        db.withWriteTransaction {
+            val id = removal.mangaId
+            dao.get(id) ?: return@withWriteTransaction
+            dao.setInLibrary(id, true, removal.addedAtEpochMs ?: clock.now().toEpochMilliseconds())
+            val existing = categories.list().mapTo(HashSet()) { it.id }
+            removal.categoryIds.filter { it in existing }.forEach { categories.assign(MangaCategoryEntity(id, it)) }
+        }
 
     override suspend fun markOpened(id: Long): Long? =
         db.withWriteTransaction {
@@ -254,6 +277,7 @@ class RoomCategoryRepository(
     private val db: HqrDatabase,
 ) : CategoryRepository {
     private val dao = db.categoryDao()
+    private val mangaDao = db.mangaDao()
 
     override fun observe(): Flow<List<Category>> = dao.observe().map { list -> list.map { Category(it.id, it.name, it.sortOrder) } }
 
@@ -290,8 +314,21 @@ class RoomCategoryRepository(
     override suspend fun restore(deleted: DeletedCategory) =
         db.withWriteTransaction {
             val c = deleted.category
-            dao.insert(CategoryEntity(id = c.id, name = c.name, sortOrder = c.order))
-            deleted.mangaIds.forEach { dao.assign(MangaCategoryEntity(it, c.id)) }
+            val others = dao.list()
+            // A category made with the same name meanwhile keeps it; the restored one gets a number.
+            val taken = others.mapTo(HashSet()) { it.name.trim().lowercase() }
+            val name =
+                generateSequence(2) { it + 1 }
+                    .map { "${c.name} ($it)" }
+                    .let { sequenceOf(c.name) + it }
+                    .first { it.trim().lowercase() !in taken }
+            dao.insert(CategoryEntity(id = c.id, name = name, sortOrder = c.order))
+            // Back in its old place; the others keep their relative order and the numbers stay 1..n.
+            val ordered = others.sortedBy { it.sortOrder }.map { it.id }.toMutableList()
+            ordered.add((c.order - 1).coerceIn(0, ordered.size), c.id)
+            ordered.forEachIndexed { index, id -> dao.setOrder(id, index + 1) }
+            val existing = mangaDao.libraryIds().toSet()
+            deleted.mangaIds.filter { it in existing }.forEach { dao.assign(MangaCategoryEntity(it, c.id)) }
         }
 
     override suspend fun setCategories(

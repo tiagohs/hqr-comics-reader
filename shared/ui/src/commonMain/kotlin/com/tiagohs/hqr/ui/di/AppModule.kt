@@ -20,6 +20,7 @@ import com.tiagohs.hqr.domain.source.ImageSource
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
+import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
@@ -72,10 +73,11 @@ val coreModule: Module =
             ChapterPages { manga, chapter -> registry.require(manga.sourceId).pages(manga.source, chapter.source) }
         }
         single<LibraryOptionsStore> { PrefsLibraryOptionsStore(get()) }
-        viewModel { LibraryViewModel(get(), get(), get(), get()) }
-        viewModel { CategoriesViewModel(get()) }
+        viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
+        viewModel { CategoriesViewModel(get(), get()) }
         viewModel { HistoryViewModel(get(), get()) }
-        viewModel { (id: SourceId) -> BrowseSourceViewModel(id, get(), get()) }
+        viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query) }
+        viewModel { GlobalSearchViewModel(get(), get(), get()) }
         single<CoverPixels> { ImageCoverPixels(get()) }
         single<PagePrefetcher> {
             val images = get<ImageBytes>()

@@ -14,6 +14,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -21,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -33,18 +38,23 @@ import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_cancel
+import com.tiagohs.hqr.ui.resources.action_undo
 import com.tiagohs.hqr.ui.resources.chapter_short
 import com.tiagohs.hqr.ui.resources.history_clear
 import com.tiagohs.hqr.ui.resources.history_clear_confirm
 import com.tiagohs.hqr.ui.resources.history_empty_message
 import com.tiagohs.hqr.ui.resources.history_empty_title
 import com.tiagohs.hqr.ui.resources.history_remove
+import com.tiagohs.hqr.ui.resources.history_removed
 import com.tiagohs.hqr.ui.resources.history_today
 import com.tiagohs.hqr.ui.resources.history_yesterday
 import com.tiagohs.hqr.ui.resources.manga_page_of
 import com.tiagohs.hqr.ui.resources.nav_history
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
+import kotlinx.coroutines.launch
+import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -57,7 +67,10 @@ fun HistoryScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var confirm by remember { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(Res.string.nav_history), style = MaterialTheme.typography.headlineLarge) },
@@ -109,14 +122,27 @@ fun HistoryScreen(
                                         listOfNotNull(
                                             stringResource(Res.string.chapter_short, chapter.number.chapterLabel()),
                                             page,
+                                            // RF-59: the time of the reading.
+                                            timeOf(entry.readAtEpochMs),
                                         ).joinToString(" · "),
                                     )
                                 },
                                 leadingContent = { Box(Modifier.width(48.dp)) { Cover(entry.manga.source, shape = HqrShapes.coverSmall) } },
                                 trailingContent = {
                                     IconButton(
-                                        onClick = { viewModel.remove(entry) },
-                                    ) { Icon(HqrIcons.Close, stringResource(Res.string.history_remove)) }
+                                        onClick = {
+                                            viewModel.remove(entry)
+                                            scope.launch {
+                                                val result =
+                                                    snackbar.showSnackbar(
+                                                        getString(Res.string.history_removed),
+                                                        getString(Res.string.action_undo),
+                                                        duration = SnackbarDuration.Long,
+                                                    )
+                                                if (result == SnackbarResult.ActionPerformed) viewModel.undoRemove(entry)
+                                            }
+                                        },
+                                    ) { Icon(HqrIcons.Close, stringResource(Res.string.history_remove, entry.manga.title)) }
                                 },
                                 modifier =
                                     Modifier.clickable {
@@ -146,4 +172,13 @@ fun HistoryScreen(
             dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(Res.string.action_cancel)) } },
         )
     }
+}
+
+private fun timeOf(epochMs: Long): String {
+    val time =
+        kotlin.time.Instant
+            .fromEpochMilliseconds(epochMs)
+            .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())
+            .time
+    return "${time.hour.toString().padStart(2, '0')}:${time.minute.toString().padStart(2, '0')}"
 }

@@ -24,10 +24,17 @@ interface MangaRepository {
 
     fun observeLibrary(): Flow<List<LibraryItem>>
 
+    /** Adding keeps the first date it was added; removing also drops its categories (RF-52, RF-53). */
     suspend fun setInLibrary(
         id: Long,
         inLibrary: Boolean,
     )
+
+    /** RF-52: takes the work out and returns what "Desfazer" needs; null if it was not in the library. */
+    suspend fun removeFromLibrary(id: Long): LibraryRemoval?
+
+    /** Undoes [removeFromLibrary]: same date added, same categories (those that still exist). */
+    suspend fun restoreToLibrary(removal: LibraryRemoval)
 
     suspend fun setCoverColor(
         id: Long,
@@ -40,6 +47,13 @@ interface MangaRepository {
     /** Keys already in the library for one source: the "Na biblioteca" badge (RF-26). */
     fun observeLibraryKeys(sourceId: SourceId): Flow<Set<String>>
 }
+
+/** What one removal from the library took away. */
+data class LibraryRemoval(
+    val mangaId: Long,
+    val addedAtEpochMs: Long?,
+    val categoryIds: Set<Long>,
+)
 
 /** One work in the library grid (RF-54) with its counters. */
 data class LibraryItem(

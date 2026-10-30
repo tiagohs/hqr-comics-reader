@@ -57,6 +57,21 @@ def main() -> None:
         for req in re.findall(r"RF-\d+", found.group(0)) if found else []:
             feats.setdefault(req, []).append("Fundações")
 
+    # Tests are named after what they cover (RF38_…, RF22_RF23_…): the column lists the test classes.
+    tests = {}
+    root = DOCS.parent
+    for path in root.glob("**/src/*Test/**/*.kt"):
+        if "/build/" in str(path):
+            continue
+        text = path.read_text()
+        for name in re.findall(r"fun `?((?:RN?F\d+_)+)", text):
+            for num in re.findall(r"(RN?F)(\d+)_", name):
+                tests.setdefault(f"{num[0]}-{int(num[1]):02d}", set()).add(path.stem)
+
+    def tested(req: str, fallback: str) -> str:
+        found = sorted(tests.get(req, []))
+        return ", ".join(found) if found else fallback
+
     def ucs(req: str) -> str:
         return ", ".join(sorted(trace.get(req, []))) or "—"
 
@@ -76,7 +91,7 @@ def main() -> None:
         comp = ", ".join(dict.fromkeys(design.get(req, []))) or "—"
         scr = ", ".join(dict.fromkeys(screens.get(req, []))) or "—"
         feat = ", ".join(dict.fromkeys(feats.get(req, []))) or tail[2]
-        lines.append(f"| {req} | {prio} | {ucs(req)} | {comp} | {scr} | {feat} | {tail[3]} |")
+        lines.append(f"| {req} | {prio} | {ucs(req)} | {comp} | {scr} | {feat} | {tested(req, tail[3])} |")
     lines += ["", "## Requisitos não funcionais", "", "| ID | UC | ADR | Verificação | FEAT |", "| :-- | :-- | :-- | :-- | :-- |"]
     for req in re.findall(r"^\| (RNF-\d+) \|", srs, re.M):
         tail = downstream(req, 3)
@@ -87,6 +102,7 @@ def main() -> None:
     print("RF without use case:", missing or "none")
     no_screen = [r for r in re.findall(r"^\| (RF-\d+) \|", srs, re.M) if r not in screens]
     print("RF without screen:", no_screen or "none")
+    print("RF with tests:", sum(1 for r in re.findall(r"^\| (RF-\d+) \|", srs, re.M) if r in tests))
 
 
 if __name__ == "__main__":

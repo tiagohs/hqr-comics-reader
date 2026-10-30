@@ -16,6 +16,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -27,15 +28,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.tiagohs.hqr.domain.model.Category
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
-import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_cancel
@@ -58,6 +58,7 @@ import com.tiagohs.hqr.ui.resources.library_categories
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -67,13 +68,13 @@ import org.koin.compose.viewmodel.koinViewModel
 fun CategoriesScreen(
     onBack: () -> Unit,
     viewModel: CategoriesViewModel = koinViewModel(),
-    library: LibraryViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val libraryState by library.state.collectAsStateWithLifecycle()
-    val counts = libraryState.tabs.associate { it.id to it.count }
-    var editing by remember { mutableStateOf<Category?>(null) }
-    var creating by remember { mutableStateOf(false) }
+    val counts = state.counts
+    // RF-88: an open dialog survives rotation and the end of the process.
+    var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var creating by rememberSaveable { mutableStateOf(false) }
+    val editing = state.categories.firstOrNull { it.id == editingId }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     Scaffold(
@@ -115,18 +116,26 @@ fun CategoriesScreen(
             itemsIndexed(state.categories, key = { _, c -> c.id }) { index, category ->
                 ListItem(
                     headlineContent = { Text(category.name) },
-                    supportingContent = { Text(stringResource(Res.string.categories_works, counts[category.id] ?: 0)) },
+                    supportingContent = {
+                        Text(
+                            pluralStringResource(
+                                Res.plurals.categories_works,
+                                counts[category.id] ?: 0,
+                                counts[category.id] ?: 0,
+                            ),
+                        )
+                    },
                     trailingContent = {
                         Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
                             IconButton(onClick = { viewModel.move(category.id, -1) }, enabled = index > 0) {
-                                Icon(HqrIcons.ArrowUp, stringResource(Res.string.action_move_up))
+                                Icon(HqrIcons.ArrowUp, stringResource(Res.string.action_move_up, category.name))
                             }
                             IconButton(onClick = { viewModel.move(category.id, 1) }, enabled = index < state.categories.lastIndex) {
-                                Icon(HqrIcons.ArrowDown, stringResource(Res.string.action_move_down))
+                                Icon(HqrIcons.ArrowDown, stringResource(Res.string.action_move_down, category.name))
                             }
                             IconButton(
-                                onClick = { editing = category },
-                            ) { Icon(HqrIcons.EditNote, stringResource(Res.string.categories_rename)) }
+                                onClick = { editingId = category.id },
+                            ) { Icon(HqrIcons.EditNote, stringResource(Res.string.categories_rename) + " " + category.name) }
                             IconButton(onClick = {
                                 viewModel.delete(category.id) { deleted ->
                                     scope.launch {
@@ -134,11 +143,12 @@ fun CategoriesScreen(
                                             snackbar.showSnackbar(
                                                 getString(Res.string.categories_deleted, deleted.category.name, deleted.mangaIds.size),
                                                 getString(Res.string.action_undo),
+                                                duration = SnackbarDuration.Long,
                                             )
                                         if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete(deleted)
                                     }
                                 }
-                            }) { Icon(HqrIcons.Delete, stringResource(Res.string.categories_delete)) }
+                            }) { Icon(HqrIcons.Delete, stringResource(Res.string.categories_delete) + " " + category.name) }
                         }
                     },
                 )
@@ -162,9 +172,9 @@ fun CategoriesScreen(
         }
     }
     editing?.let { category ->
-        NameDialog(Res.string.categories_rename, category.name, { viewModel.problem(it, except = category.id) }, { editing = null }) {
+        NameDialog(Res.string.categories_rename, category.name, { viewModel.problem(it, except = category.id) }, { editingId = null }) {
             viewModel.rename(category.id, it)
-            editing = null
+            editingId = null
         }
     }
 }
@@ -177,7 +187,7 @@ private fun NameDialog(
     onDismiss: () -> Unit,
     onSave: (String) -> Unit,
 ) {
-    var name by remember { mutableStateOf(initial) }
+    var name by rememberSaveable { mutableStateOf(initial) }
     val issue = problem(name)
     AlertDialog(
         onDismissRequest = onDismiss,

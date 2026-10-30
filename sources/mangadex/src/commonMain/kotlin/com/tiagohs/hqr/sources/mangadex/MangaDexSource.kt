@@ -91,8 +91,29 @@ class MangaDexSource(
     ): MangaPage =
         list(page) {
             if (query.isNotBlank()) parameter("title", query.trim())
-            parameter("order[relevance]", "desc")
+            applyFilters(filters, hasQuery = query.isNotBlank())
         }
+
+    // RF-22: tags come from the API once per run; the other filters are fixed by the API.
+    private var tags: List<SourceFilter.Option>? = null
+    private val tagsLock = Mutex()
+
+    override suspend fun filters(): List<SourceFilter> {
+        val options =
+            tagsLock.withLock {
+                tags ?: api<ListResponse<TagDto>>("$API/manga/tag") {}
+                    .data
+                    .map {
+                        SourceFilter.Option(
+                            it.id,
+                            it.attributes.name["en"] ?: it.attributes.name.values
+                                .firstOrNull() ?: it.id,
+                        )
+                    }.sortedBy { it.label.lowercase() }
+                    .also { tags = it }
+            }
+        return MangaDexFilters.defaults(options)
+    }
 
     private suspend fun list(
         page: Int,

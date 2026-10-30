@@ -150,6 +150,48 @@ class LibraryRepositoriesTest {
         }
 
     @Test
+    fun RF52_undoRemovalKeepsDateAddedAndCategories() =
+        runTest {
+            val manga = mangas.upsert(naruto)
+            mangas.setInLibrary(manga.id, true)
+            val addedAt = mangas.get(manga.id)!!.addedAtEpochMs
+            val lendo = categories.create("Lendo")
+            val apagada = categories.create("Apagada")
+            categories.setCategories(manga.id, setOf(lendo.id, apagada.id))
+            val removal = mangas.removeFromLibrary(manga.id)!!
+            categories.observeFor(manga.id).first() shouldBe emptySet()
+            mangas.removeFromLibrary(manga.id) shouldBe null
+            categories.delete(apagada.id)
+            mangas.restoreToLibrary(removal)
+            val back = mangas.get(manga.id)!!
+            back.inLibrary shouldBe true
+            back.addedAtEpochMs shouldBe addedAt
+            // Only the categories that still exist come back.
+            categories.observeFor(manga.id).first() shouldBe setOf(lendo.id)
+        }
+
+    @Test
+    fun RF53_restoredCategoryKeepsItsPlaceAndAFreeName() =
+        runTest {
+            val a = categories.create("A")
+            val b = categories.create("B")
+            val c = categories.create("C")
+            val manga = mangas.upsert(naruto)
+            mangas.setInLibrary(manga.id, true)
+            categories.setCategories(manga.id, setOf(b.id))
+            val deleted = categories.delete(b.id)!!
+            categories.create("B")
+            categories.restore(deleted)
+            val list = categories.observe().first()
+            list.map { it.name } shouldContainExactly listOf("A", "B (2)", "C", "B")
+            list.map { it.order } shouldContainExactly listOf(1, 2, 3, 4)
+            list.first { it.id == b.id }.name shouldBe "B (2)"
+            categories.observeFor(manga.id).first() shouldBe setOf(b.id)
+            a.id shouldBe list[0].id
+            c.id shouldBe list[2].id
+        }
+
+    @Test
     fun RF59_RF60_historyRecordsRemovesAndClears() =
         runTest {
             val manga = mangas.upsert(naruto)

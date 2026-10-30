@@ -46,6 +46,14 @@ class FakeSource(
     var chapterList = listOf(SourceChapter("c1", 1.0), SourceChapter("c2", 2.0), SourceChapter("c3", 3.0))
     val requested = mutableListOf<String>()
 
+    /** While set, searches wait for it: a slow source. */
+    var searchGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+    var searchFindsNothing = false
+    var offeredFilters: List<SourceFilter> = emptyList()
+    var lastFilters: List<SourceFilter> = emptyList()
+
+    override suspend fun filters() = offeredFilters
+
     private fun page(
         prefix: String,
         page: Int,
@@ -63,7 +71,12 @@ class FakeSource(
         query: String,
         filters: List<SourceFilter>,
         page: Int,
-    ) = page("s:$query:", page)
+    ): MangaPage {
+        searchGate?.await()
+        lastFilters = filters
+        if (searchFindsNothing) return MangaPage(emptyList(), false).also { requested += "s:$query:$page" }
+        return page("s:$query:", page)
+    }
 
     override suspend fun details(manga: SourceManga): SourceManga {
         fail?.let { throw SourceException("falhou", it) }

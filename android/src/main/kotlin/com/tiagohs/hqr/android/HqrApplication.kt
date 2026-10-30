@@ -10,6 +10,7 @@ import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.source.Source
+import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import com.tiagohs.hqr.sources.local.AndroidPdfPages
 import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.LocalSource
@@ -50,7 +51,9 @@ class HqrApplication : Application() {
                     get<AppPreferences>().contentLanguages.value
                 }, contentRatings = { get<AppPreferences>().mangaDexRatings() })
             }
-            single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
+            // RF-12: HQ Now only on Android; the browser needs the bridge for its images (FEAT-051).
+            single { HqNowSource(get()) }
+            single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
         }
 
     /** RF-10: HQR/<version> (<site>). */

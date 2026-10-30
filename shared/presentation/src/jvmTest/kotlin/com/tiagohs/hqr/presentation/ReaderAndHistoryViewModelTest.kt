@@ -201,6 +201,31 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF60_removedReadingComesBackWithUndo() =
+        runTest {
+            val (id, chapters) = work(1.0)
+            reader(id, chapters[0].id, 0).loaded()
+            val history = track(HistoryViewModel(db.history, fixedClock, TimeZone.UTC))
+            val entry =
+                history.state
+                    .first { !it.loading && !it.isEmpty }
+                    .days
+                    .single()
+                    .entries
+                    .single()
+            history.remove(entry)
+            history.state.first { it.isEmpty }
+            history.undoRemove(entry)
+            history.state
+                .first { !it.isEmpty }
+                .days
+                .single()
+                .entries
+                .single()
+                .readAtEpochMs shouldBe entry.readAtEpochMs
+        }
+
+    @Test
     fun RF05_pagesFailureShowsTheErrorAndRetryRecovers() =
         runTest {
             val (id, chapters) = work(1.0)

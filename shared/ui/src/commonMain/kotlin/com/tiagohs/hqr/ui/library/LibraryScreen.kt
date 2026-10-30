@@ -72,6 +72,7 @@ import com.tiagohs.hqr.ui.resources.library_clear_filters
 import com.tiagohs.hqr.ui.resources.library_continue_reading
 import com.tiagohs.hqr.ui.resources.library_empty_message
 import com.tiagohs.hqr.ui.resources.library_empty_title
+import com.tiagohs.hqr.ui.resources.library_filter_downloaded
 import com.tiagohs.hqr.ui.resources.library_filtered_message
 import com.tiagohs.hqr.ui.resources.library_filtered_title
 import com.tiagohs.hqr.ui.resources.library_options
@@ -86,6 +87,7 @@ import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.onomatopoeia_empty
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -249,14 +251,13 @@ private fun LibraryItems(
         }
         items(items, key = { it.manga.id }) { item ->
             val unreadLabel =
-                if (item.unread >
-                    0
-                ) {
-                    stringResource(Res.string.library_unread, item.unread)
+                if (item.unread > 0) {
+                    pluralStringResource(Res.plurals.library_unread, item.unread, item.unread)
                 } else {
                     stringResource(Res.string.library_up_to_date)
                 }
-            val description = "${item.manga.title}, $unreadLabel"
+            val downloadedLabel = if (item.downloaded > 0) ", " + stringResource(Res.string.library_filter_downloaded).lowercase() else ""
+            val description = "${item.manga.title}, $unreadLabel$downloadedLabel"
             when (options.display) {
                 LibraryDisplay.LIST ->
                     Row(

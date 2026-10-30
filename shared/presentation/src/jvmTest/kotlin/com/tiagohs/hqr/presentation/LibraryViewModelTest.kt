@@ -45,14 +45,20 @@ class LibraryViewModelTest : MainDispatcherTest() {
                     .first { it.items.size == 2 }
                     .items
                     .first { it.manga.id == a }
-            val removed = vm.remove(item)
+            val removed = kotlinx.coroutines.CompletableDeferred<com.tiagohs.hqr.domain.repository.LibraryRemoval>()
+            val addedAt = db.mangas.get(a)!!.addedAtEpochMs
+            vm.remove(item) { removed.complete(it) }
             vm.state.first { it.items.size == 1 }
-            vm.undoRemove(removed)
+            // RF-53: a work out of the library leaves its categories.
+            db.categories.observeFor(a).first() shouldBe emptySet()
+            vm.undoRemove(removed.await())
             vm.state
                 .first { it.items.size == 2 }
                 .items
                 .first { it.manga.id == a }
                 .categoryIds shouldBe setOf(reading.id, done.id)
+            // "Desfazer" keeps the place under "Data em que entrou".
+            db.mangas.get(a)!!.addedAtEpochMs shouldBe addedAt
         }
 
     @Test
@@ -128,7 +134,7 @@ class LibraryViewModelTest : MainDispatcherTest() {
                     .first { it.items.isNotEmpty() }
                     .items
                     .first()
-            browse.toggleLibrary(first) shouldBe true
+            browse.toggleLibrary(first) shouldBe null
             browse.state.first { first.key in it.inLibrary }
             val id = db.mangas.find(first.sourceId, first.key)!!.id
             val a = db.categories.create("Lendo")
@@ -150,7 +156,13 @@ class LibraryViewModelTest : MainDispatcherTest() {
                 .first
                 .map { it.name } shouldContainExactly
                 listOf("Lendo", "Acompanhando")
-            browse.toggleLibrary(first) shouldBe false
+            val removal = browse.toggleLibrary(first)!!
+            removal.categoryIds shouldBe setOf(a.id, b.id)
+            db.categories.observeFor(id).first() shouldBe emptySet()
+            // "Desfazer" puts it back as it was, never toggles a second time.
+            browse.undoToggle(first, removal)
+            db.mangas.get(id)!!.inLibrary shouldBe true
+            db.categories.observeFor(id).first() shouldBe setOf(a.id, b.id)
         }
 
     @Test
@@ -165,6 +177,52 @@ class LibraryViewModelTest : MainDispatcherTest() {
             categories.state.first { s -> s.categories.map { it.name } == listOf("B", "A") }
             categories.rename(two[0].id, "Lendo")
             categories.state.first { s -> s.categories.map { it.name } == listOf("B", "Lendo") }
+        }
+
+    @Test
+    fun RF88_tabAndSearchSurviveTheProcess() =
+        runTest {
+            addWorks()
+            val cat = db.categories.create("Lendo")
+            val saved = androidx.lifecycle.SavedStateHandle()
+            val vm = track(LibraryViewModel(db.mangas, db.categories, db.history, saved = saved))
+            vm.state.first { it.items.size == 2 }
+            vm.selectTab(cat.id)
+            vm.search("p1-2")
+            vm.state.first { it.selectedTab == cat.id && it.query == "p1-2" }
+            val again = track(LibraryViewModel(db.mangas, db.categories, db.history, saved = saved))
+            again.state.first { !it.loading }.let {
+                it.selectedTab shouldBe cat.id
+                it.query shouldBe "p1-2"
+            }
+        }
+
+    @Test
+    fun RF55_filterOnADeletedCategoryIsDropped() =
+        runTest {
+            addWorks()
+            val cat = db.categories.create("Some")
+            val store = MemoryOptions()
+            val vm = track(LibraryViewModel(db.mangas, db.categories, db.history, store))
+            vm.setOptions(LibraryOptions(categories = setOf(cat.id)))
+            vm.state.first { it.isFilteredOut }
+            db.categories.delete(cat.id)
+            // Never an empty library hidden by a filter the user can no longer see.
+            vm.state
+                .first { it.items.size == 2 }
+                .options.categories shouldBe emptySet()
+        }
+
+    @Test
+    fun RF53_categoriesScreenCountsWorks() =
+        runTest {
+            val (a, b) = addWorks()
+            val cat = db.categories.create("Lendo")
+            db.categories.setCategories(a, setOf(cat.id))
+            val vm = track(CategoriesViewModel(db.categories, db.mangas))
+            vm.state.first { it.counts[cat.id] == 1 }
+            db.categories.setCategories(b, setOf(cat.id))
+            vm.state.first { it.counts[cat.id] == 2 }
         }
 
     @Test

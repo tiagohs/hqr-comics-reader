@@ -5,29 +5,34 @@ import androidx.lifecycle.viewModelScope
 import com.tiagohs.hqr.domain.model.Category
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.DeletedCategory
+import com.tiagohs.hqr.domain.repository.MangaRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** SCR-LIB-003: create, rename, order and delete categories (RF-53). */
 class CategoriesViewModel(
     private val categories: CategoryRepository,
+    mangas: MangaRepository? = null,
 ) : ViewModel() {
     data class State(
         val loading: Boolean = true,
         val categories: List<Category> = emptyList(),
+        /** Works in the library per category id. */
+        val counts: Map<Long, Int> = emptyMap(),
     )
 
     /** Why a name can't be used. */
     enum class NameProblem { EMPTY, TAKEN }
 
     val state: StateFlow<State> =
-        categories
-            .observe()
-            .map { State(false, it) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MS), State())
+        combine(categories.observe(), mangas?.observeLibrary() ?: flowOf(emptyList())) { list, items ->
+            val counts = list.associate { cat -> cat.id to items.count { cat.id in it.categoryIds } }
+            State(false, list, counts)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MS), State())
 
     /** Null when [name] can be used; [except] is the category being renamed. */
     fun problem(

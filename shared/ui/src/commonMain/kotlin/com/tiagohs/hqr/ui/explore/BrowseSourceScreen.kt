@@ -41,6 +41,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -69,10 +71,13 @@ import com.tiagohs.hqr.ui.resources.browse_no_results
 import com.tiagohs.hqr.ui.resources.browse_no_results_message
 import com.tiagohs.hqr.ui.resources.browse_popular
 import com.tiagohs.hqr.ui.resources.error_title
+import com.tiagohs.hqr.ui.resources.filter_active
+import com.tiagohs.hqr.ui.resources.filter_title
 import com.tiagohs.hqr.ui.resources.library_removed
 import com.tiagohs.hqr.ui.resources.local_no_folder
 import com.tiagohs.hqr.ui.resources.local_no_folder_message
 import com.tiagohs.hqr.ui.resources.manga_add_library
+import com.tiagohs.hqr.ui.resources.manga_remove_library
 import com.tiagohs.hqr.ui.settings.rememberFolderPicker
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
@@ -88,7 +93,9 @@ fun BrowseSourceScreen(
     sourceId: String,
     onBack: () -> Unit,
     onOpenManga: (Long) -> Unit,
-    viewModel: BrowseSourceViewModel = koinViewModel(key = "browse-$sourceId") { parametersOf(SourceId(sourceId)) },
+    initialQuery: String? = null,
+    viewModel: BrowseSourceViewModel =
+        koinViewModel(key = "browse-$sourceId-${initialQuery.orEmpty()}") { parametersOf(SourceId(sourceId), initialQuery) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -109,6 +116,18 @@ fun BrowseSourceScreen(
     val pickFolder = rememberFolderPicker { if (it != null) viewModel.retry() }
 
     val snackbar = remember { SnackbarHostState() }
+    var showFilters by rememberSaveable { mutableStateOf(false) }
+    if (showFilters) {
+        SourceFiltersSheet(
+            filters = state.filters,
+            defaults = viewModel.defaultFilters(),
+            onApply = {
+                showFilters = false
+                viewModel.search(query.trim(), it)
+            },
+            onDismiss = { showFilters = false },
+        )
+    }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
@@ -142,6 +161,29 @@ fun BrowseSourceScreen(
                         selected = state.listing == Listing.LATEST,
                         onClick = { viewModel.show(Listing.LATEST) },
                         label = { Text(stringResource(Res.string.browse_latest)) },
+                    )
+                }
+                // RF-22: the source's filters, with how many are on.
+                if (state.filters.isNotEmpty()) {
+                    val active = state.activeFilters
+                    val description =
+                        if (active > 0) stringResource(Res.string.filter_active, active) else stringResource(Res.string.filter_title)
+                    FilterChip(
+                        selected = active > 0,
+                        onClick = { showFilters = true },
+                        label = {
+                            Text(
+                                if (active >
+                                    0
+                                ) {
+                                    "${stringResource(Res.string.filter_title)} · $active"
+                                } else {
+                                    stringResource(Res.string.filter_title)
+                                },
+                            )
+                        },
+                        leadingIcon = { Icon(HqrIcons.Tune, contentDescription = null) },
+                        modifier = Modifier.semantics { contentDescription = description },
                     )
                 }
             }
@@ -178,17 +220,26 @@ fun BrowseSourceScreen(
                                     onClick = { scope.launch { onOpenManga(viewModel.open(manga)) } },
                                     onLongClick = {
                                         scope.launch {
-                                            val added = viewModel.toggleLibrary(manga)
+                                            val removal = viewModel.toggleLibrary(manga)
                                             val result =
                                                 snackbar.showSnackbar(
-                                                    getString(if (added) Res.string.browse_added else Res.string.library_removed),
+                                                    getString(if (removal == null) Res.string.browse_added else Res.string.library_removed),
                                                     getString(Res.string.action_undo),
-                                                    duration = SnackbarDuration.Short,
+                                                    duration = SnackbarDuration.Long,
                                                 )
-                                            if (result == SnackbarResult.ActionPerformed) viewModel.toggleLibrary(manga)
+                                            if (result == SnackbarResult.ActionPerformed) viewModel.undoToggle(manga, removal)
                                         }
                                     },
-                                    onLongClickLabel = stringResource(Res.string.manga_add_library),
+                                    onLongClickLabel =
+                                        stringResource(
+                                            if (manga.key in
+                                                state.inLibrary
+                                            ) {
+                                                Res.string.manga_remove_library
+                                            } else {
+                                                Res.string.manga_add_library
+                                            },
+                                        ),
                                 ),
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {

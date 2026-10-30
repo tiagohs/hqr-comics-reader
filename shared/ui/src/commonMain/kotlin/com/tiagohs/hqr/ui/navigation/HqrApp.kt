@@ -29,6 +29,7 @@ import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.ui.components.hqrImageLoader
 import com.tiagohs.hqr.ui.explore.BrowseSourceScreen
 import com.tiagohs.hqr.ui.explore.ExploreScreen
+import com.tiagohs.hqr.ui.explore.GlobalSearchScreen
 import com.tiagohs.hqr.ui.history.HistoryScreen
 import com.tiagohs.hqr.ui.library.CategoriesScreen
 import com.tiagohs.hqr.ui.library.LibraryScreen
@@ -121,14 +122,28 @@ private fun AppNavigation(dark: Boolean) {
                 )
             }
             composable<Route.Categories> { CategoriesScreen(onBack = { nav.popBackStack() }) }
-            composable<Route.Explore> { ExploreScreen(onOpenSource = { nav.navigate(Route.BrowseSource(it)) }) }
+            composable<Route.Explore> {
+                ExploreScreen(
+                    onOpenSource = { nav.navigate(Route.BrowseSource(it)) },
+                    onSearch = { nav.navigate(Route.Search) },
+                )
+            }
+            composable<Route.Search> {
+                GlobalSearchScreen(
+                    onBack = { nav.popBackStack() },
+                    onOpenManga = { nav.navigate(Route.Manga(it)) },
+                    onOpenSource = { id, query -> nav.navigate(Route.BrowseSource(id, query)) },
+                )
+            }
             composable<Route.History> {
                 HistoryScreen(onResume = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) })
             }
             composable<Route.Settings> { SettingsScreen() }
             composable<Route.BrowseSource> { back ->
+                val route = back.toRoute<Route.BrowseSource>()
                 BrowseSourceScreen(
-                    sourceId = back.toRoute<Route.BrowseSource>().sourceId,
+                    sourceId = route.sourceId,
+                    initialQuery = route.query,
                     onBack = { nav.popBackStack() },
                     onOpenManga = { nav.navigate(Route.Manga(it)) },
                 )

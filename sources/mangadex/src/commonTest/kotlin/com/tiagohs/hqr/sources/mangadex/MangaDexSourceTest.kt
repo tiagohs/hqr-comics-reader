@@ -6,6 +6,7 @@ import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.source.SourceException
+import com.tiagohs.hqr.domain.source.SourceFilter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
@@ -68,6 +69,7 @@ class MangaDexSourceTest {
                         requests += request
                         route(request) ?: when {
                             request.url.encodedPath == "/manga" -> json(Fixtures.MANGA_LIST)
+                            request.url.encodedPath == "/manga/tag" -> json(Fixtures.TAGS)
                             request.url.encodedPath.endsWith("/feed") -> json(Fixtures.FEED)
                             request.url.encodedPath.startsWith("/manga/") -> json(Fixtures.MANGA)
                             request.url.encodedPath.startsWith("/at-home/server/") -> json(Fixtures.AT_HOME)
@@ -332,5 +334,49 @@ class MangaDexSourceTest {
             requests.last().url.parameters["order[latestUploadedChapter]"] shouldBe "desc"
             source.search(" naruto ", emptyList(), 1)
             requests.last().url.parameters["title"] shouldBe "naruto"
+        }
+
+    @Test
+    fun RF22_filtersComeWithTagsFromTheApiOnce() =
+        runTest {
+            val filters = source.filters()
+            source.filters()
+            requests.count { it.url.encodedPath == "/manga/tag" } shouldBe 1
+            val tags = filters.filterIsInstance<SourceFilter.Tags>().single()
+            tags.options.map { it.label } shouldBe listOf("Action", "Horror", "Romance")
+            filters.map { it.key } shouldBe listOf("tags", "status", "demographic", "originalLanguage", "year", "order")
+        }
+
+    @Test
+    fun RF22_includedAndExcludedTagsStatusYearAndOrderGoToTheRequest() =
+        runTest {
+            val filters =
+                source.filters().map { f ->
+                    when (f) {
+                        is SourceFilter.Tags -> f.copy(included = setOf("t-romance"), excluded = setOf("t-horror"))
+                        is SourceFilter.Choice ->
+                            if (f.key == MangaDexFilters.STATUS) f.copy(selected = setOf("completed")) else f
+                        is SourceFilter.Text -> f.copy(value = " 2019 ")
+                        is SourceFilter.Sort -> f.copy(selected = "rating", ascending = true)
+                    }
+                }
+            source.search("", filters, 1)
+            val p = requests.last().url.parameters
+            p.getAll("includedTags[]") shouldBe listOf("t-romance")
+            p.getAll("excludedTags[]") shouldBe listOf("t-horror")
+            p.getAll("status[]") shouldBe listOf("completed")
+            p["year"] shouldBe "2019"
+            p["order[rating]"] shouldBe "asc"
+            p["title"] shouldBe null
+            p.getAll("contentRating[]") shouldBe listOf("safe")
+        }
+
+    @Test
+    fun RF22_relevanceWithoutATitleBecomesMostFollowed() =
+        runTest {
+            source.search("", source.filters(), 1)
+            requests.last().url.parameters["order[followedCount]"] shouldBe "desc"
+            source.search("frieren", source.filters(), 1)
+            requests.last().url.parameters["order[relevance]"] shouldBe "desc"
         }
 }

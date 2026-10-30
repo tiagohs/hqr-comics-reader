@@ -52,6 +52,11 @@ class HistoryViewModel(
         viewModelScope.launch { history.remove(entry.chapter.id) }
     }
 
+    /** "Desfazer": the reading comes back at the same time (RF-60). */
+    fun undoRemove(entry: HistoryEntry) {
+        viewModelScope.launch { history.record(entry.chapter.id, entry.readAtEpochMs) }
+    }
+
     fun clearAll() {
         viewModelScope.launch { history.clear() }
     }

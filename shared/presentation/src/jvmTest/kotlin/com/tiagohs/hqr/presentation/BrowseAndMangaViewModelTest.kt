@@ -52,6 +52,48 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF22_filtersComeFromTheSourceAndGoWithTheSearch() =
+        runTest {
+            val romance =
+                com.tiagohs.hqr.domain.source.SourceFilter
+                    .Option("r", "Romance")
+            val horror =
+                com.tiagohs.hqr.domain.source.SourceFilter
+                    .Option("h", "Horror")
+            source.offeredFilters =
+                listOf(
+                    com.tiagohs.hqr.domain.source.SourceFilter
+                        .Tags("tags", listOf(romance, horror)),
+                )
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))
+            val loaded = vm.state.first { it.filters.isNotEmpty() && !it.loading }
+            loaded.activeFilters shouldBe 0
+            val chosen =
+                loaded.filters.map {
+                    (it as com.tiagohs.hqr.domain.source.SourceFilter.Tags).copy(
+                        included = setOf("r"),
+                        excluded = setOf("h"),
+                    )
+                }
+            vm.applyFilters(chosen)
+            val searched = vm.state.first { it.listing == Listing.SEARCH && !it.loading }
+            searched.activeFilters shouldBe 1
+            source.lastFilters shouldBe chosen
+            vm.defaultFilters() shouldBe source.offeredFilters
+        }
+
+    @Test
+    fun RF23_openedFromGlobalSearchStartsOnThatSearch() =
+        runTest {
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas, initialQuery = "akira"))
+            vm.state.first { !it.loading }.let {
+                it.listing shouldBe Listing.SEARCH
+                it.items.first().key shouldBe "s:akira:1-1"
+            }
+            source.requested.none { it.startsWith("p") } shouldBe true
+        }
+
+    @Test
     fun RF05_failureStaysInTheSourceWithItsKind() =
         runTest {
             source.fail = SourceException.Kind.NETWORK

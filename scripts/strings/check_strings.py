@@ -3,7 +3,11 @@ import re, sys, pathlib
 
 repo = pathlib.Path(__file__).resolve().parents[2]
 root = repo / "shared/ui/src/commonMain/composeResources"
-keys = {d.name: set(re.findall(r'<string name="([^"]+)"', (d / "strings.xml").read_text())) for d in root.glob("values*") if (d / "strings.xml").exists()}
+keys = {
+    d.name: set(re.findall(r'<(?:string|plurals) name="([^"]+)"', (d / "strings.xml").read_text()))
+    for d in root.glob("values*")
+    if (d / "strings.xml").exists()
+}
 base = keys["values"]
 bad = {name: sorted(base ^ k) for name, k in keys.items() if k != base}
 if bad:

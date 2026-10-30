@@ -73,6 +73,15 @@ class LibraryRulesTest {
     }
 
     @Test
+    fun RF55_ongoingOrCompletedShowsBoth() {
+        assertEquals(
+            listOf("Akira", "Berserk", "Dandadan", "One Piece"),
+            titles(LibraryOptions(ongoing = TriState.ONLY, completed = TriState.ONLY)),
+        )
+        assertEquals(listOf("Berserk", "Dandadan", "One Piece"), titles(LibraryOptions(completed = TriState.EXCLUDE)))
+    }
+
+    @Test
     fun RF55_everySortOrder() {
         assertEquals(listOf("Akira", "Berserk", "Dandadan", "One Piece"), titles(LibraryOptions()))
         assertEquals(

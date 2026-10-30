@@ -70,8 +70,7 @@ object LibraryRules {
             .filter { matches(options.unread, it.unread > 0) }
             .filter { matches(options.downloaded, it.downloaded > 0) }
             .filter { matches(options.started, it.lastReadAtEpochMs != null) }
-            .filter { matches(options.ongoing, it.manga.source.status == PublicationStatus.ONGOING) }
-            .filter { matches(options.completed, it.manga.source.status == PublicationStatus.COMPLETED) }
+            .filter { statusMatches(options, it.manga.source.status) }
             .filter { item ->
                 options.categories.isEmpty() ||
                     item.categoryIds.any { it in options.categories } ||
@@ -79,6 +78,24 @@ object LibraryRules {
             }.filter { options.sources.isEmpty() || it.manga.sourceId.value in options.sources }
             .filter { q.isEmpty() || it.searchText().contains(q) }
             .sortedWith(comparator(options))
+    }
+
+    /** "Em lançamento" and "Concluído" are one group: either one shows its works (or), excluded ones are hidden. */
+    private fun statusMatches(
+        options: LibraryOptions,
+        status: PublicationStatus,
+    ): Boolean {
+        val wanted =
+            buildSet {
+                if (options.ongoing == TriState.ONLY) add(PublicationStatus.ONGOING)
+                if (options.completed == TriState.ONLY) add(PublicationStatus.COMPLETED)
+            }
+        val excluded =
+            buildSet {
+                if (options.ongoing == TriState.EXCLUDE) add(PublicationStatus.ONGOING)
+                if (options.completed == TriState.EXCLUDE) add(PublicationStatus.COMPLETED)
+            }
+        return (wanted.isEmpty() || status in wanted) && status !in excluded
     }
 
     private fun LibraryItem.searchText(): String =

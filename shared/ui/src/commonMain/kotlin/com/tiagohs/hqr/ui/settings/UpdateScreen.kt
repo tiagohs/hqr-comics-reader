@@ -1,6 +1,5 @@
 package com.tiagohs.hqr.ui.settings
 
-import com.tiagohs.hqr.domain.repository.UpdateProblem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,19 +28,20 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tiagohs.hqr.domain.repository.UpdateProblem
 import com.tiagohs.hqr.presentation.settings.UpdateViewModel
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.update_available
 import com.tiagohs.hqr.ui.resources.update_check_failed
 import com.tiagohs.hqr.ui.resources.update_checking
+import com.tiagohs.hqr.ui.resources.update_install
+import com.tiagohs.hqr.ui.resources.update_later
+import com.tiagohs.hqr.ui.resources.update_latest
 import com.tiagohs.hqr.ui.resources.update_problem_mismatch
 import com.tiagohs.hqr.ui.resources.update_problem_network
 import com.tiagohs.hqr.ui.resources.update_problem_no_checksum
 import com.tiagohs.hqr.ui.resources.update_problem_permission
-import com.tiagohs.hqr.ui.resources.update_install
-import com.tiagohs.hqr.ui.resources.update_later
-import com.tiagohs.hqr.ui.resources.update_latest
 import com.tiagohs.hqr.ui.resources.update_title
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import org.jetbrains.compose.resources.stringResource

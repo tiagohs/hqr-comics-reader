@@ -37,15 +37,13 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.Updates
-import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.di.CrashReports
+import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.action_ok
 import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.resources.settings_about
-import com.tiagohs.hqr.ui.resources.settings_crash_reports
-import com.tiagohs.hqr.ui.resources.settings_crash_reports_hint
 import com.tiagohs.hqr.ui.resources.settings_adult_confirm
 import com.tiagohs.hqr.ui.resources.settings_adult_message
 import com.tiagohs.hqr.ui.resources.settings_adult_title
@@ -57,7 +55,11 @@ import com.tiagohs.hqr.ui.resources.settings_cache_size
 import com.tiagohs.hqr.ui.resources.settings_content_languages
 import com.tiagohs.hqr.ui.resources.settings_cover_color
 import com.tiagohs.hqr.ui.resources.settings_cover_color_hint
+import com.tiagohs.hqr.ui.resources.settings_crash_reports
+import com.tiagohs.hqr.ui.resources.settings_crash_reports_hint
 import com.tiagohs.hqr.ui.resources.settings_downloads
+import com.tiagohs.hqr.ui.resources.settings_dynamic_color
+import com.tiagohs.hqr.ui.resources.settings_dynamic_color_hint
 import com.tiagohs.hqr.ui.resources.settings_language
 import com.tiagohs.hqr.ui.resources.settings_language_system
 import com.tiagohs.hqr.ui.resources.settings_local_folder
@@ -66,8 +68,6 @@ import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive
 import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive_hint
 import com.tiagohs.hqr.ui.resources.settings_no_folder
 import com.tiagohs.hqr.ui.resources.settings_other
-import com.tiagohs.hqr.ui.resources.settings_dynamic_color
-import com.tiagohs.hqr.ui.resources.settings_dynamic_color_hint
 import com.tiagohs.hqr.ui.resources.settings_pure_black
 import com.tiagohs.hqr.ui.resources.settings_pure_black_hint
 import com.tiagohs.hqr.ui.resources.settings_sources

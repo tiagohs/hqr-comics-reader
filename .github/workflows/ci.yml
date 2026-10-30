@@ -29,7 +29,8 @@ permissions:
 
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
-  GRADLE_FLAGS: --continue -Phqr.ios=false
+  # Three workers: with the 1.1 sources the wasm compilations ran the Mac out of memory in parallel.
+  GRADLE_FLAGS: --continue -Phqr.ios=false --max-workers=3
 
 jobs:
   build:

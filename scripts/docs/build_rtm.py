@@ -67,6 +67,11 @@ def main() -> None:
         for name in re.findall(r"fun `?((?:RN?F\d+_)+)", text):
             for num in re.findall(r"(RN?F)(\d+)_", name):
                 tests.setdefault(f"{num[0]}-{int(num[1]):02d}", set()).add(path.stem)
+    # The bridge's own tests (node:test, bridge-worker/test).
+    for path in root.glob("bridge-worker/test/*.test.js"):
+        for name in re.findall(r"test\(\s*['\"]((?:RN?F\d+_)+)", path.read_text()):
+            for num in re.findall(r"(RN?F)(\d+)_", name):
+                tests.setdefault(f"{num[0]}-{int(num[1]):02d}", set()).add("bridge-worker/" + path.name)
 
     def tested(req: str, fallback: str) -> str:
         found = sorted(tests.get(req, []))

@@ -101,6 +101,7 @@ fun SettingsScreen(
     val hasDownloads = getKoin().getOrNull<Downloads>() != null
     val hasUpdates = getKoin().getOrNull<Updates>() != null
     val crashReports = getKoin().getOrNull<CrashReports>()
+    val inBrowser = LocalRunsInBrowser.current
     val sendCrashes by prefs.crashReports.collectAsStateWithLifecycle()
     val pureBlack by prefs.pureBlack.collectAsStateWithLifecycle()
     val dynamicColor by prefs.dynamicColor.collectAsStateWithLifecycle()
@@ -237,7 +238,7 @@ fun SettingsScreen(
                         modifier = Modifier.clickable(onClick = onDownloads),
                     )
                 }
-            } else if (runsInBrowser) {
+            } else if (inBrowser) {
                 // RF-114: shown with the reason instead of disappearing.
                 item { Unavailable(Res.string.settings_downloads, Res.string.web_downloads_reason, HqrIcons.Download) }
             }
@@ -293,7 +294,7 @@ fun SettingsScreen(
                 }
             }
             // RNF-10: crash reports, only where the app sends them.
-            if (crashReports == null && runsInBrowser) {
+            if (crashReports == null && inBrowser) {
                 item { Unavailable(Res.string.settings_crash_reports, Res.string.web_crash_reason, HqrIcons.Info) }
             }
             if (crashReports != null) {

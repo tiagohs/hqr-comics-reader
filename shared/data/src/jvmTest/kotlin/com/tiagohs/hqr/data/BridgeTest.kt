@@ -26,13 +26,15 @@ import kotlin.test.Test
 class BridgeTest {
     private val seen = mutableListOf<HttpRequestData>()
     private var healthStatus = HttpStatusCode.OK
+    private var healthBody = """{"ok":true,"version":1}"""
+    private var sourceStatus = HttpStatusCode.OK
     private val engine =
         MockEngine { request ->
             seen += request
             if (request.url.encodedPath.endsWith("/health")) {
-                respond("""{"ok":true}""", healthStatus)
+                respond(healthBody, healthStatus)
             } else {
-                respond("ok", HttpStatusCode.OK)
+                respond("ok", sourceStatus)
             }
         }
     private val settings = MapSettings()
@@ -88,6 +90,18 @@ class BridgeTest {
             bridge.test("https://hqr.workers.dev", "errado") shouldBe BridgeCheck.TOKEN_REFUSED
             healthStatus = HttpStatusCode.BadGateway
             bridge.test("https://hqr.workers.dev", "certo") shouldBe BridgeCheck.UNREACHABLE
+            // A site that answers 200 without being a bridge is not saved as one.
+            healthBody = "<html>ok</html>"
+            healthStatus = HttpStatusCode.OK
+            bridge.test("https://example.com", "certo") shouldBe BridgeCheck.UNREACHABLE
+        }
+
+    @Test
+    fun RF108_aTokenRefusedLaterIsABridgeProblem() =
+        runTest {
+            bridge.save("https://hqr.tiago.workers.dev", "antigo")
+            sourceStatus = HttpStatusCode.Forbidden
+            shouldThrow<SourceException> { client.get("https://api.mangadex.org/manga") }.kind shouldBe SourceException.Kind.BRIDGE
         }
 
     @Test

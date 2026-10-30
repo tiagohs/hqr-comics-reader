@@ -10,6 +10,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
@@ -111,5 +112,32 @@ class WebScreensTest {
             }
             waitFor(hasText("Keyboard shortcuts"))
             screenshot("demo-SCR-WEB-003-shortcuts")
+            // Closing the list gives the keys back to the reader.
+            onAllNodes(hasText("OK"))[0].performClick()
+            onRoot().performKeyInput { pressKey(Key.Spacebar) }
+            waitUntil(timeoutMillis = 10_000) { runBlocking { db.progressDao().listForManga(1).any { it.page == 4 } } }
+        }
+
+    @Test
+    fun RF114_theBrowserShowsWhatOnlyThePhoneDoesWithTheReason() =
+        screenTest {
+            startTestKoin()
+            setAppContent {
+                androidx.compose.runtime.CompositionLocalProvider(com.tiagohs.hqr.ui.settings.LocalRunsInBrowser provides true) {
+                    HqrApp(systemDark = false)
+                }
+            }
+            waitFor(hasText("Settings"))
+            onAllNodes(hasText("Settings"))[0].performClick()
+            waitFor(
+                androidx.compose.ui.test
+                    .hasScrollAction(),
+            )
+            onAllNodes(
+                androidx.compose.ui.test
+                    .hasScrollAction(),
+            )[0]
+                .performScrollToNode(hasText("The web version sends no crash reports.", substring = true))
+            waitFor(hasText("Only in the phone app", substring = true))
         }
 }

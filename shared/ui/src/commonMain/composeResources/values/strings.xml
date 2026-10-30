@@ -380,11 +380,14 @@
     <string name="files_import">Import files</string>
     <string name="files_empty_title">No files imported yet</string>
     <string name="files_empty_message">Import CBZ, CB7 or PDF, or drop the files on this window. They stay in this browser.</string>
-    <string name="files_cbr_refused">CBR doesn't open in the browser; convert it to CBZ: %1$s</string>
+    <string name="files_cbr_refused">CBR and CB7 don't open in the browser yet; convert them to CBZ: %1$s</string>
     <string name="files_imported">Imported: %1$s</string>
     <string name="files_usage">Browser storage: %1$s used of %2$s</string>
     <string name="files_title">Files in this browser</string>
     <string name="web_only_phone">Only in the phone app</string>
     <string name="web_downloads_reason">Downloads for offline reading need the phone app for now.</string>
     <string name="web_crash_reason">The web version sends no crash reports.</string>
+    <string name="files_ignored">Not comics (only CBZ and PDF): %1$s</string>
+    <string name="files_failed">Couldn't save in the browser (is it out of space?): %1$s</string>
+    <string name="server_problem_mixed">The web app runs on https and the browser blocks http servers. Open the server through https (a reverse proxy or the Komga/Kavita https address).</string>
 </resources>

@@ -30,10 +30,15 @@ interface FileTree {
     ): ByteArray
 }
 
-/** What an import brought in and what it refused, with the file names (RF-110). */
+/**
+ * What an import did, by file name (RF-110): [refused] are formats the browser can't open (CBR, CB7), [ignored] are
+ * not comics, [failed] couldn't be saved (no space, storage blocked).
+ */
 data class ImportResult(
     val imported: List<String>,
     val refused: List<String>,
+    val ignored: List<String> = emptyList(),
+    val failed: List<String> = emptyList(),
 )
 
 /** Used and available bytes of the browser storage (RF-110). */

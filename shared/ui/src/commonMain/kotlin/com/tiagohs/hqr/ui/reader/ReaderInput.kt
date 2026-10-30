@@ -16,7 +16,7 @@ import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -67,12 +67,14 @@ private fun KeyEvent.toReaderKey(): ReaderKey? =
 fun Modifier.readerInput(
     mode: ReaderMode,
     menuVisible: Boolean,
+    /** True while a dialog or sheet is open: when it closes, the keys come back to the reader. */
+    overlayOpen: Boolean,
     onAction: (KeyAction) -> Unit,
     onMouseMoved: () -> Unit,
     onMouseIdle: () -> Unit,
 ): Modifier {
     val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    LaunchedEffect(overlayOpen, menuVisible) { if (!overlayOpen) runCatching { focus.requestFocus() } }
     // Each move restarts the wait.
     val moves = remember { kotlinx.coroutines.channels.Channel<Unit>(kotlinx.coroutines.channels.Channel.CONFLATED) }
     LaunchedEffect(Unit) {
@@ -86,12 +88,11 @@ fun Modifier.readerInput(
     return this
         .focusRequester(focus)
         .focusable()
-        .onPreviewKeyEvent { event ->
-            if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-            val action = event.toReaderKey()?.let { ReaderKeys.action(it, mode) } ?: return@onPreviewKeyEvent false
+        .onKeyEvent { event ->
+            if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
+            val action = event.toReaderKey()?.let { ReaderKeys.action(it, mode) } ?: return@onKeyEvent false
             // Escape with the controls open just closes them.
-            if (action == KeyAction.CLOSE && menuVisible) return@onPreviewKeyEvent false
-            onAction(action)
+            if (action == KeyAction.CLOSE && menuVisible) onMouseIdle() else onAction(action)
             true
         }.pointerInput(Unit) {
             awaitPointerEventScope {

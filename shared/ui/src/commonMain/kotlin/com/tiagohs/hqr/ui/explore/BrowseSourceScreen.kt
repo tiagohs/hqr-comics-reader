@@ -218,8 +218,16 @@ fun BrowseSourceScreen(
                         action = stringResource(Res.string.files_import),
                         onAction = {
                             scope.launch {
-                                imported.persist()
-                                importResult = imported.pick()
+                                // The picker first: the browser opens it only right after the click (RF-110).
+                                importResult =
+                                    runCatching { imported.pick() }.getOrElse {
+                                        ImportResult(
+                                            emptyList(),
+                                            emptyList(),
+                                            failed = listOf("?"),
+                                        )
+                                    }
+                                if (importResult?.imported?.isNotEmpty() == true) runCatching { imported.persist() }
                             }
                         },
                     )

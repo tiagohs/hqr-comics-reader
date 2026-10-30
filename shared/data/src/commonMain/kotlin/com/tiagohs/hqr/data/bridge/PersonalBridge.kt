@@ -11,6 +11,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.takeFrom
@@ -44,7 +45,8 @@ class PersonalBridge(
         return try {
             val response = http.get("$base/health") { header(TOKEN_HEADER, token.trim()) }
             when (response.status.value) {
-                OK -> BridgeCheck.OK
+                // Only the bridge answers {"ok":true}: any other site at that address is not one.
+                OK -> if (response.bodyAsText().contains("\"ok\":true")) BridgeCheck.OK else BridgeCheck.UNREACHABLE
                 FORBIDDEN, UNAUTHORIZED -> BridgeCheck.TOKEN_REFUSED
                 else -> BridgeCheck.UNREACHABLE
             }
@@ -90,7 +92,6 @@ class PersonalBridge(
         private const val KEY_TOKEN = "bridge.token"
         private const val OK = 200
         private const val UNAUTHORIZED = 401
-        private const val FORBIDDEN = 403
 
         /** Sources whose hosts send no CORS (RF-108); local files and the user's servers never need the bridge. */
         val ONLINE = setOf(SourceId.MANGADEX, SourceId.HQ_NOW)
@@ -110,6 +111,8 @@ class PersonalBridge(
         }
     }
 }
+
+private const val FORBIDDEN = 403
 
 /**
  * Sends every request for a source host through the bridge: `{bridge}/fetch?url=…` with the token; the User-Agent and
@@ -131,6 +134,13 @@ fun HttpClientConfig<*>.routeThroughBridge(bridge: PersonalBridge) {
                 request.url.takeFrom("$base/fetch")
                 request.url.parameters.clear()
                 request.url.parameters.append("url", target)
+            }
+            // The bridge refuses with 403 (token changed on it, or a host it doesn't allow): that is a bridge problem,
+            // not the source's.
+            onResponse { response ->
+                if (response.call.request.headers[PersonalBridge.TOKEN_HEADER] != null && response.status.value == FORBIDDEN) {
+                    throw SourceException("Token recusado pela ponte", SourceException.Kind.BRIDGE)
+                }
             }
         },
     )

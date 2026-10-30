@@ -85,7 +85,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | Superfície | Diferenças |
 | :-- | :-- |
 | Android tablet e dobrável | Lista-detalhe (Biblioteca + Obra, Ajustes + página); leitor com painel lateral |
-| Web | Mesmas telas do Android em largura expandida ou maior; SCR-WEB-001 a 004 só aqui; sem SCR-SET-004 (atualização) e sem a verificação do Cloudflare de SCR-STA-001; Fontes (SCR-SRC-001) mostra "Precisa da ponte" e "Só no app do celular"; Downloads avisa que roda só com a aba aberta |
+| Web | Mesmas telas do Android em largura expandida ou maior; SCR-WEB-001 a 004 só aqui; sem SCR-SET-004 (atualização) e sem a verificação do Cloudflare de SCR-STA-001; Fontes (SCR-SRC-001) mostra "Precisa da ponte" e "Só no app do celular"; Downloads e relatórios de falha aparecem em Ajustes com "Só no app do celular" e o motivo |
 | iPhone | Mesmos SCR com controles do iOS: `TabView`, listas agrupadas, folhas e menus do sistema |
 | iPad | `NavigationSplitView` com barra lateral (destinos), lista e detalhe; leitor em duas páginas em paisagem |
 

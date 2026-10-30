@@ -145,6 +145,7 @@ fun ReaderScreen(
                 .readerInput(
                     mode = state.settings.mode,
                     menuVisible = state.menuVisible,
+                    overlayOpen = shortcutsOpen || settingsOpen,
                     onAction = { action ->
                         when (action) {
                             KeyAction.FULLSCREEN -> toggleFullscreen()

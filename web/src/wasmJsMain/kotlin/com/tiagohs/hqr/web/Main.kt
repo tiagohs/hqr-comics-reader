@@ -18,6 +18,7 @@ import com.tiagohs.hqr.data.db.buildHqr
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.MemoryImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
+import com.tiagohs.hqr.data.net.httpClient
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.ImportedFiles
@@ -53,8 +54,8 @@ fun main() {
                 }
                 single<Settings> { StorageSettings() }
                 // RF-108, ADR-023: requests for the online sources go through the user's bridge; the bridge's own test
-                // goes straight to it.
-                single { PersonalBridge(get(), get(), hqrHttpClient(USER_AGENT)) }
+                // goes straight to it, with no retries ("Testar" answers at once).
+                single { PersonalBridge(get(), get(), httpClient()) }
                 single<Bridge> { get<PersonalBridge>() }
                 single<HttpClient> { hqrHttpClient(USER_AGENT) { routeThroughBridge(get()) } }
                 single<ImageCache> { MemoryImageCache() }

@@ -59,6 +59,8 @@ private data class Entry(
 private data class Imported(
     val imported: List<String> = emptyList(),
     val refused: List<String> = emptyList(),
+    val ignored: List<String> = emptyList(),
+    val failed: List<String> = emptyList(),
 )
 
 @Serializable
@@ -90,7 +92,7 @@ class BrowserFileTree :
     }
 
     private fun parse(text: String): ImportResult =
-        json.decodeFromString(Imported.serializer(), text).let { ImportResult(it.imported, it.refused) }
+        json.decodeFromString(Imported.serializer(), text).let { ImportResult(it.imported, it.refused, it.ignored, it.failed) }
 
     private suspend fun entries(): List<Entry> {
         if (!available) return emptyList()

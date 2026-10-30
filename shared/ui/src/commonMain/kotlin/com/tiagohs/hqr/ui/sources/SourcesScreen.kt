@@ -228,8 +228,9 @@ private fun BrowserFilesRow(files: ImportedFiles) {
         trailingContent = {
             TextButton(onClick = {
                 scope.launch {
-                    files.persist()
-                    result = files.pick()
+                    // The picker first: the browser opens it only right after the click (RF-110).
+                    result = runCatching { files.pick() }.getOrElse { ImportResult(emptyList(), emptyList(), failed = listOf("?")) }
+                    if (result?.imported?.isNotEmpty() == true) runCatching { files.persist() }
                 }
             }) { Text(stringResource(Res.string.files_import)) }
         },

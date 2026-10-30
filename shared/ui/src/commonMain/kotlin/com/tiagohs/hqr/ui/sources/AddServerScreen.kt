@@ -50,6 +50,7 @@ import com.tiagohs.hqr.ui.resources.server_problem_cleartext
 import com.tiagohs.hqr.ui.resources.server_problem_cors
 import com.tiagohs.hqr.ui.resources.server_problem_credentials_in_address
 import com.tiagohs.hqr.ui.resources.server_problem_invalid_address
+import com.tiagohs.hqr.ui.resources.server_problem_mixed
 import com.tiagohs.hqr.ui.resources.server_problem_not_opds
 import com.tiagohs.hqr.ui.resources.server_problem_unreachable
 import com.tiagohs.hqr.ui.resources.server_problem_wrong_login
@@ -129,13 +130,8 @@ fun AddServerScreen(
             )
             when (val result = state.result) {
                 is AddServerViewModel.Result.Problem -> {
-                    // RF-111: in the browser an unreachable server is most often one that blocks this address.
-                    val origin = browserOrigin()
-                    if (result.problem == ServerProblem.UNREACHABLE && origin != null) {
-                        InlineError(stringResource(Res.string.server_problem_cors, origin))
-                    } else {
-                        InlineError(stringResource(result.problem.message()))
-                    }
+                    val (text, args) = serverProblemText(result.problem, input.url, browserOrigin())
+                    InlineError(if (args.isEmpty()) stringResource(text) else stringResource(text, args.first()))
                 }
                 AddServerViewModel.Result.Ok ->
                     Text(
@@ -156,6 +152,23 @@ fun AddServerScreen(
                 if (state.busy) CircularProgressIndicator(Modifier.padding(start = 8.dp))
             }
         }
+    }
+}
+
+/**
+ * The message for a server problem. In the browser (RF-111) an unreachable server is most often one that doesn't
+ * allow this address (CORS), unless it is plain http, which an https page can't reach at all (mixed content).
+ */
+internal fun serverProblemText(
+    problem: ServerProblem,
+    url: String,
+    origin: String?,
+): Pair<StringResource, List<String>> {
+    val local = Regex("^http://(localhost|127\\.0\\.0\\.1)([:/]|$)").containsMatchIn(url.trim())
+    return when {
+        problem != ServerProblem.UNREACHABLE || origin == null -> problem.message() to emptyList()
+        url.trim().startsWith("http://") && origin.startsWith("https://") && !local -> Res.string.server_problem_mixed to emptyList()
+        else -> Res.string.server_problem_cors to listOf(origin)
     }
 }
 

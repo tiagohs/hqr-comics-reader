@@ -15,6 +15,24 @@ class NavigationTest {
     fun tearDown() = stopTestKoin()
 
     @Test
+    fun RF81_firstOpeningAsksTheLanguagesOnce() =
+        screenTest {
+            startTestKoin(onboarded = false)
+            setAppContent { HqrApp(systemDark = false) }
+            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Get started")).fetchSemanticsNodes().isNotEmpty() }
+            onAllNodes(hasText("Español"))[0].performClick()
+            screenshot("demo-SCR-ONB-001")
+            onAllNodes(hasText("Get started"))[0].performClick()
+            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Your library is empty")).fetchSemanticsNodes().isNotEmpty() }
+            val prefs =
+                org.koin.core.context.GlobalContext
+                    .get()
+                    .get<com.tiagohs.hqr.data.settings.AppPreferences>()
+            kotlin.test.assertTrue(prefs.contentLanguages.value.containsAll(setOf("es", "es-la")))
+            kotlin.test.assertTrue(prefs.onboarded.value)
+        }
+
+    @Test
     fun RF88_bottomBarGoesBackToTheLibrary() =
         screenTest {
             startTestKoin()

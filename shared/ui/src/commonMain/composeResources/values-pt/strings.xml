@@ -338,4 +338,12 @@
     <string name="update_check_failed">Não foi possível procurar atualização agora.</string>
     <string name="download_state_network">Esperando a rede</string>
     <string name="source_unavailable">Fonte indisponível: %1$s</string>
+    <string name="onboarding_title">Suas HQs, mangás e comics num lugar só</string>
+    <string name="onboarding_languages">Escolha os idiomas que você lê. As fontes vão mostrar só obras nesses idiomas.</string>
+    <string name="onboarding_languages_group">Idiomas de conteúdo</string>
+    <string name="onboarding_no_content">O HQR não hospeda nenhuma obra. O conteúdo vem de fontes de terceiros e dos seus próprios arquivos e servidores.</string>
+    <string name="onboarding_suggestive">Conteúdo sugestivo fica desligado. Para ligar, confirme que tem 18 anos ou mais nos ajustes de cada fonte.</string>
+    <string name="onboarding_start">Começar</string>
+    <string name="onboarding_later">Dá para mudar os idiomas depois, em Ajustes</string>
+    <string name="settings_content_languages">Idiomas das obras</string>
 </resources>

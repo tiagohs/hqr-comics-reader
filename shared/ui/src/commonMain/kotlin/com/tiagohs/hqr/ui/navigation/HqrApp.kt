@@ -58,6 +58,7 @@ import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.settings.AboutScreen
 import com.tiagohs.hqr.ui.settings.BackupScreen
 import com.tiagohs.hqr.ui.settings.LocalAppLocale
+import com.tiagohs.hqr.ui.settings.OnboardingScreen
 import com.tiagohs.hqr.ui.settings.SettingsScreen
 import com.tiagohs.hqr.ui.settings.UpdateNotice
 import com.tiagohs.hqr.ui.settings.UpdateScreen
@@ -124,14 +125,27 @@ fun HqrApp(systemDark: Boolean) {
     val online by connectivity.online.collectAsStateWithLifecycle()
     val language by prefs.appLanguage.collectAsStateWithLifecycle()
     val pureBlack by prefs.pureBlack.collectAsStateWithLifecycle()
+    val onboarded by prefs.onboarded.collectAsStateWithLifecycle()
     // RF-77: the chosen language for every screen; RF-76: pure black for every dark theme.
     CompositionLocalProvider(LocalAppLocale provides language, LocalPureBlack provides pureBlack) {
         key(language) {
             HqrTheme(dark = dark) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    Column(Modifier.fillMaxSize()) {
-                        if (!online) Box(Modifier.statusBarsPadding()) { OfflineBanner(stringResource(Res.string.error_offline_banner)) }
-                        Box(Modifier.weight(1f)) { AppNavigation(dark) }
+                    if (!onboarded) {
+                        // RF-81: once, before anything else.
+                        OnboardingScreen(prefs.contentLanguages.value) { languages ->
+                            prefs.setContentLanguages(languages)
+                            prefs.setOnboarded()
+                        }
+                    } else {
+                        Column(Modifier.fillMaxSize()) {
+                            if (!online) {
+                                Box(
+                                    Modifier.statusBarsPadding(),
+                                ) { OfflineBanner(stringResource(Res.string.error_offline_banner)) }
+                            }
+                            Box(Modifier.weight(1f)) { AppNavigation(dark) }
+                        }
                     }
                 }
             }

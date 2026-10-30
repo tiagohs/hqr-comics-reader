@@ -16,6 +16,7 @@ import com.tiagohs.hqr.data.download.DownloadManager
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.MemoryImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
+import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.SettingsSecretStore
 import com.tiagohs.hqr.data.sources.SourceListFetcher
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
@@ -43,13 +44,17 @@ import org.koin.dsl.module
 import java.io.File
 
 /** Starts Koin with an in-memory database, the given sources and map settings, like the apps do. */
-fun startTestKoin(sources: (HttpClient) -> List<Source> = { listOf(DemoSource()) }): HqrDatabase {
+fun startTestKoin(
+    onboarded: Boolean = true,
+    sources: (HttpClient) -> List<Source> = { listOf(DemoSource()) },
+): HqrDatabase {
     val db = inMemoryDatabase()
     startKoin {
         modules(
             module {
                 single<HqrDatabase> { db }
-                single<Settings> { PropertiesSettings(java.util.Properties()) }
+                // Past the first opening (SCR-ONB-001) unless the test is about it.
+                single<Settings> { PropertiesSettings(java.util.Properties()).apply { putBoolean(AppPreferences.ONBOARDED, onboarded) } }
                 single<HttpClient> { hqrHttpClient("HQR/1.0.0 (https://github.com/tiagohs/hqr-comics-reader)") }
                 single<ImageCache> { MemoryImageCache() }
                 single<List<Source>>(BuiltInSources) { sources(get()) }

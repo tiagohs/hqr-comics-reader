@@ -40,6 +40,7 @@ import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_cancel
+import com.tiagohs.hqr.ui.resources.action_ok
 import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.resources.settings_about
 import com.tiagohs.hqr.ui.resources.settings_adult_confirm
@@ -50,6 +51,7 @@ import com.tiagohs.hqr.ui.resources.settings_backup
 import com.tiagohs.hqr.ui.resources.settings_cache
 import com.tiagohs.hqr.ui.resources.settings_cache_clear
 import com.tiagohs.hqr.ui.resources.settings_cache_size
+import com.tiagohs.hqr.ui.resources.settings_content_languages
 import com.tiagohs.hqr.ui.resources.settings_cover_color
 import com.tiagohs.hqr.ui.resources.settings_cover_color_hint
 import com.tiagohs.hqr.ui.resources.settings_downloads
@@ -92,6 +94,16 @@ fun SettingsScreen(
     val pureBlack by prefs.pureBlack.collectAsStateWithLifecycle()
     val language by prefs.appLanguage.collectAsStateWithLifecycle()
     var choosingLanguage by remember { mutableStateOf(false) }
+    var choosingContent by remember { mutableStateOf(false) }
+    val contentLanguages by prefs.contentLanguages.collectAsStateWithLifecycle()
+    if (choosingContent) {
+        AlertDialog(
+            onDismissRequest = { choosingContent = false },
+            title = { Text(stringResource(Res.string.settings_content_languages)) },
+            text = { ContentLanguageChips(contentLanguages, prefs::setContentLanguages) },
+            confirmButton = { TextButton(onClick = { choosingContent = false }) { Text(stringResource(Res.string.action_ok)) } },
+        )
+    }
     // RF-80: the cache size, read again after clearing.
     var cacheBytes by remember { mutableStateOf<Long?>(null) }
     val scope = rememberCoroutineScope()
@@ -172,6 +184,17 @@ fun SettingsScreen(
                     supportingContent = { Text(languageName(language)) },
                     leadingContent = { Icon(HqrIcons.Globe, null) },
                     modifier = Modifier.clickable { choosingLanguage = true },
+                )
+            }
+            // RF-81: the languages of the works, chosen at the first opening.
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_content_languages)) },
+                    supportingContent = {
+                        Text(CONTENT_LANGUAGES.filter { l -> l.codes.any { it in contentLanguages } }.joinToString { it.label })
+                    },
+                    leadingContent = { Icon(HqrIcons.EditNote, null) },
+                    modifier = Modifier.clickable { choosingContent = true },
                 )
             }
             item { Section(Res.string.settings_sources) }

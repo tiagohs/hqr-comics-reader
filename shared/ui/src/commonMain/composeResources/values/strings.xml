@@ -338,4 +338,12 @@
     <string name="update_check_failed">Couldn't check for updates now.</string>
     <string name="download_state_network">Waiting for the network</string>
     <string name="source_unavailable">Source unavailable: %1$s</string>
+    <string name="onboarding_title">Your comics, manga and HQs in one place</string>
+    <string name="onboarding_languages">Pick the languages you read. Sources will show only works in those languages.</string>
+    <string name="onboarding_languages_group">Content languages</string>
+    <string name="onboarding_no_content">HQR hosts no works. The content comes from third-party sources and from your own files and servers.</string>
+    <string name="onboarding_suggestive">Suggestive content stays off. To turn it on, confirm you are 18 or older in each source's settings.</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_later">You can change the languages later, in Settings</string>
+    <string name="settings_content_languages">Content languages</string>
 </resources>

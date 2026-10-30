@@ -94,11 +94,36 @@ class PersonalBridge(
         private const val UNAUTHORIZED = 401
 
         /** Sources whose hosts send no CORS (RF-108); local files and the user's servers never need the bridge. */
-        val ONLINE = setOf(SourceId.MANGADEX, SourceId.HQ_NOW)
+        val ONLINE =
+            setOf(
+                SourceId.MANGADEX,
+                SourceId.HQ_NOW,
+                SourceId("archive"),
+                SourceId("yomu"),
+                SourceId("weebcentral"),
+                SourceId("xoxo"),
+            )
 
-        /** The hosts behind [ONLINE]; the same list as the bridge's default `HOSTS` (bridge-worker/). */
-        private val HOSTS = setOf("api.mangadex.org", "uploads.mangadex.org", "api.mangadex.network", "admin.hq-now.com", "www.hq-now.com")
-        private val HOST_SUFFIXES = listOf(".mangadex.network", ".hq-now.com")
+        /**
+         * The hosts behind [ONLINE]; the same list as the bridge's default `HOSTS` (bridge-worker/). MangaFlix and
+         * NamiComi answer the browser themselves (CORS): they never go through the bridge.
+         */
+        private val HOSTS =
+            setOf(
+                "api.mangadex.org",
+                "uploads.mangadex.org",
+                "api.mangadex.network",
+                "admin.hq-now.com",
+                "www.hq-now.com",
+                "archive.org",
+                "yomumangas.com",
+                "api.yomumangas.com",
+                "b2.yomumangas.com",
+                "weebcentral.com",
+                "temp.compsci88.com",
+                "xoxocomic.com",
+            )
+        private val HOST_SUFFIXES = listOf(".mangadex.network", ".hq-now.com", ".planeptune.us", ".bp.blogspot.com")
 
         fun isSourceHost(host: String): Boolean = host in HOSTS || HOST_SUFFIXES.any { host.endsWith(it) }
 

@@ -188,8 +188,11 @@ class BackupServiceTest {
             // A backup from when HQ Now's keys had no prefix (its version 1, the default of old files).
             val old =
                 gzip(
-                    """{"schemaVersion":1,"createdAtEpochMs":0,"app":"x","mangas":[{"sourceId":"hqnow","sourceName":"HQ Now",
-                    "key":"saga","title":"Saga","inLibrary":true,"chapters":[{"key":"c1","number":1.0,"read":true}]}]}""".encodeToByteArray(),
+                    (
+                        """{"schemaVersion":1,"createdAtEpochMs":0,"app":"x","mangas":[""" +
+                            """{"sourceId":"hqnow","sourceName":"HQ Now","key":"saga","title":"Saga","inLibrary":true,""" +
+                            """"chapters":[{"key":"c1","number":1.0,"read":true}]}]}"""
+                    ).encodeToByteArray(),
                 )
             val v2 =
                 object : com.tiagohs.hqr.domain.source.Source {

@@ -83,6 +83,13 @@ sealed interface Route {
         val sourceId: String,
     ) : Route
 
+    /** SCR-STA-001: the Cloudflare verification in the source's page (RF-106). */
+    @Serializable
+    @SerialName("challenge")
+    data class Challenge(
+        val url: String,
+    ) : Route
+
     /** SCR-OBR-002: migrating a work to another source (RF-69). */
     @Serializable
     @SerialName("migrate")

@@ -10,7 +10,7 @@
 | RF-02 | Must | UC-012 | ADR-003 | — | FEAT-024 | SourceRegistryTest |
 | RF-03 | Should | UC-001, UC-012 | settings | SCR-EXP-001, SCR-SRC-001 | FEAT-025 | GlobalSearchViewModelTest, SourceConfigTest, SourceRegistryTest, SourcesScreensTest, SourcesViewModelTest |
 | RF-04 | Must | UC-001, UC-007 | net, ADR-005 | — | FEAT-001 | HqNowSourceTest, MangaDexSourceTest, NetAndCacheTest |
-| RF-05 | Must | UC-001, UC-002 | browse | SCR-STA-001 | FEAT-012 | BrowseAndMangaViewModelTest, ContractsTest, GlobalSearchViewModelTest, HqNowSourceTest, MangaDexSourceTest, NetAndCacheTest, ReaderAndHistoryViewModelTest, SearchScreensTest |
+| RF-05 | Must | UC-001, UC-002 | browse | SCR-STA-001 | FEAT-012 | BrowseAndMangaViewModelTest, ContractsTest, GlobalSearchViewModelTest, HqNowSourceTest, MangaDexSourceTest, MangaFlixSourceTest, NetAndCacheTest, ReaderAndHistoryViewModelTest, SearchScreensTest |
 | RF-06 | Should | UC-012 | settings | SCR-SRC-002 | FEAT-025 | MangaDexSourceTest, NetAndCacheTest, SourcesScreensTest |
 | RF-07 | Must | UC-003 | sources/mangadex, ADR-008 | SCR-OBR-001 | FEAT-002 | NetAndCacheTest |
 | RF-08 | Must | UC-012 | sources/mangadex, ADR-008 | SCR-SRC-002 | FEAT-002 | MangaDexSourceTest, NetAndCacheTest, SourcesScreensTest |
@@ -103,14 +103,14 @@
 | RF-94 | Must | UC-007 | app, ADR-009 | SCR-DL-001 | FEAT-017 | — |
 | RF-95 | Must | UC-009 | sources/opds | SCR-SRV-001 | FEAT-015 | OpdsTest, SourcesScreensTest |
 | RF-96 | Could | UC-009 | sources/opds | SCR-SRV-001 | FEAT-045 | — |
-| RF-99 | Should | UC-001 | — | SCR-SRC-001 | FEAT-037 | — |
-| RF-100 | Should | UC-001 | — | SCR-SRC-001 | FEAT-038 | — |
-| RF-101 | Should | UC-001 | — | SCR-SRC-001 | FEAT-039 | — |
-| RF-102 | Should | UC-001 | — | SCR-SRC-001 | FEAT-039 | — |
-| RF-103 | Should | UC-001 | — | SCR-SRC-001 | FEAT-040 | — |
-| RF-104 | Should | UC-001 | — | SCR-SRC-001 | FEAT-041 | — |
+| RF-99 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-037 | InternetArchiveSourceTest |
+| RF-100 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-038 | NamiComiSourceTest |
+| RF-101 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-039 | MangaFlixSourceTest |
+| RF-102 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-039 | YomuSourceTest |
+| RF-103 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-040 | WeebCentralSourceTest |
+| RF-104 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-041 | XoxoSourceTest |
 | RF-105 | Must | UC-012 | sourceconfig, ADR-019 | SCR-SRC-001 | FEAT-024 | SourceConfigTest, SourceRegistryTest, SourcesViewModelTest |
-| RF-106 | Should | UC-001 | challenge, ADR-020 | SCR-STA-001 | FEAT-036 | — |
+| RF-106 | Should | UC-001 | challenge, ADR-020, ADR-024 | SCR-STA-001 | FEAT-036 | ChallengeCookiesTest, SourcesScreensTest, WeebCentralSourceTest |
 | RF-107 | Should | UC-014 | ui, web, ADR-004, ADR-022 | SCR-WEB-004 | FEAT-050 | — |
 | RF-108 | Should | UC-014 | bridge, ADR-023 | SCR-WEB-001 | FEAT-051 | BridgeTest, WebScreensTest, bridge-worker/index.test.js |
 | RF-109 | Should | UC-014 | bridge-worker/, ADR-023 | SCR-WEB-001 | FEAT-051 | BridgeTest, bridge-worker/index.test.js |

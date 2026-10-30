@@ -459,4 +459,8 @@
     <string name="migrate_confirm_message">"%1$s" takes the categories, the chapters read (by number) and the history. The old one leaves the library.</string>
     <string name="migrate_delete_downloads">Delete the old downloads</string>
     <string name="migrate_confirm">Migrate</string>
+    <string name="challenge_verify">Verify</string>
+    <string name="challenge_title">Verification</string>
+    <string name="challenge_hint">Complete the check on the source's page. HQR goes back on its own when it passes.</string>
+    <string name="challenge_unavailable">The verification opens only in the phone app. Open the source's site in your browser and try again.</string>
 </resources>

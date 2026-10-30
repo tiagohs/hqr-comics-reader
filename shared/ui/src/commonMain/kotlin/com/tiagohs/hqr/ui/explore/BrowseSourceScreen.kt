@@ -93,7 +93,10 @@ import com.tiagohs.hqr.ui.resources.browse_latest
 import com.tiagohs.hqr.ui.resources.browse_no_results
 import com.tiagohs.hqr.ui.resources.browse_no_results_message
 import com.tiagohs.hqr.ui.resources.browse_popular
+import com.tiagohs.hqr.ui.resources.challenge_hint
+import com.tiagohs.hqr.ui.resources.challenge_verify
 import com.tiagohs.hqr.ui.resources.error_bridge
+import com.tiagohs.hqr.ui.resources.error_challenge
 import com.tiagohs.hqr.ui.resources.error_title
 import com.tiagohs.hqr.ui.resources.feed_add
 import com.tiagohs.hqr.ui.resources.feed_add_latest
@@ -133,10 +136,16 @@ fun BrowseSourceScreen(
     onOpenManga: (Long) -> Unit,
     initialQuery: String? = null,
     onBridge: () -> Unit = {},
+    onChallenge: (url: String) -> Unit = {},
     viewModel: BrowseSourceViewModel =
         koinViewModel(key = "browse-$sourceId-${initialQuery.orEmpty()}") { parametersOf(SourceId(sourceId), initialQuery) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // RF-106: back from the verification, the source is asked again.
+    androidx.lifecycle.compose.LifecycleResumeEffect(state.error) {
+        if (state.error == ErrorKind.CHALLENGE) viewModel.retry()
+        onPauseOrDispose {}
+    }
     val scope = rememberCoroutineScope()
     var query by rememberSaveable { mutableStateOf(state.query) }
     val grid = rememberLazyGridState()
@@ -320,6 +329,16 @@ fun BrowseSourceScreen(
                         onAction = pickFolder,
                     )
                 // RF-108: in the browser, an online source without a bridge asks for one.
+                // RF-106: Cloudflare wants to check the user, in the source's page.
+                state.error == ErrorKind.CHALLENGE && state.webUrl != null ->
+                    ErrorState(
+                        title = stringResource(Res.string.error_challenge),
+                        message = stringResource(Res.string.challenge_hint),
+                        action = stringResource(Res.string.challenge_verify),
+                        onAction = { state.webUrl?.let(onChallenge) },
+                        secondary = stringResource(Res.string.action_retry),
+                        onSecondary = viewModel::retry,
+                    )
                 state.error == ErrorKind.BRIDGE ->
                     EmptyState(
                         title = stringResource(Res.string.bridge_needed),

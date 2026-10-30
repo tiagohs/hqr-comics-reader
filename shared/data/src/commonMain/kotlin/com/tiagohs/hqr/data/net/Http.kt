@@ -28,6 +28,10 @@ private const val GONE = 410
 private const val TOO_MANY = 429
 private const val SERVER_ERROR = 500
 private const val LAST_SERVER_ERROR = 599
+private const val CF_MITIGATED = "cf-mitigated"
+private const val CHALLENGE = "challenge"
+private const val CLOUDFLARE = "cloudflare"
+private val CHALLENGE_CODES = setOf(403, 503)
 
 /** The shared client: 3 retries only on GET, with growing waits, and timeouts (ADR-005). */
 fun hqrHttpClient(
@@ -55,6 +59,10 @@ fun hqrHttpClient(
 fun HttpResponse.ensureOk(): HttpResponse {
     val code = status.value
     if (status.isSuccess()) return this
+    // RF-106: Cloudflare marks the page of its challenge; the user passes it in a browser inside the app.
+    if (headers[CF_MITIGATED] == CHALLENGE || (code in CHALLENGE_CODES && headers[HttpHeaders.Server] == CLOUDFLARE)) {
+        throw SourceException("Verificação do Cloudflare", SourceException.Kind.CHALLENGE)
+    }
     throw when (code) {
         UNAUTHORIZED, FORBIDDEN -> SourceException("Acesso recusado ($code)", SourceException.Kind.AUTH)
         NOT_FOUND, GONE -> SourceException("Não encontrado ($code)", SourceException.Kind.NOT_FOUND)
@@ -84,4 +92,17 @@ suspend fun HttpClient.bytes(
 ): ByteArray =
     networkCall {
         get(url) { headers.forEach { (k, v) -> header(k, v) } }.ensureOk().bodyAsBytes()
+    }
+
+/** A source's JSON; a body that doesn't fit the expected shape is a PARSE failure, never a crash (RF-05). */
+fun <T> kotlinx.serialization.json.Json.parseSource(
+    deserializer: kotlinx.serialization.DeserializationStrategy<T>,
+    text: String,
+): T =
+    try {
+        decodeFromString(deserializer, text)
+    } catch (e: kotlinx.serialization.SerializationException) {
+        throw SourceException("Resposta inesperada da fonte", SourceException.Kind.PARSE, e)
+    } catch (e: IllegalArgumentException) {
+        throw SourceException("Resposta inesperada da fonte", SourceException.Kind.PARSE, e)
     }

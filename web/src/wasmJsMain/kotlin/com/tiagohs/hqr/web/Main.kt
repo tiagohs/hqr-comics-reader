@@ -35,6 +35,12 @@ import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.source.Bridge
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
+import com.tiagohs.hqr.sources.archive.InternetArchiveSource
+import com.tiagohs.hqr.sources.mangaflix.MangaFlixSource
+import com.tiagohs.hqr.sources.namicomi.NamiComiSource
+import com.tiagohs.hqr.sources.weebcentral.WeebCentralSource
+import com.tiagohs.hqr.sources.xoxo.XoxoSource
+import com.tiagohs.hqr.sources.yomu.YomuSource
 import kotlinx.browser.document
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -45,6 +51,7 @@ private const val USER_AGENT = "HQR/1.0.0 (https://github.com/tiagohs/hqr-comics
 private fun sqliteWorker(): Worker = js("""new Worker(new URL('sqlite-worker.js', document.baseURI), { type: 'module' })""")
 
 @OptIn(ExperimentalComposeUiApi::class)
+@Suppress("LongMethod") // One registration per line: the web app's whole wiring in one place.
 fun main() {
     startKoin {
         modules(
@@ -74,7 +81,34 @@ fun main() {
                     )
                 }
                 single { HqNowSource(get(), apiUrl = { get<SourceConfig>().baseUrl(SourceId.HQ_NOW) ?: HqNowSource.API }) }
-                single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
+                // RF-99 to RF-104: the sources added in 1.1.
+                single { InternetArchiveSource(get()) }
+                single {
+                    val prefs = get<AppPreferences>()
+                    NamiComiSource(
+                        get(),
+                        contentLanguages = { prefs.contentLanguages.value },
+                        // RF-08: "restricted" only with suggestive content on; "mature" never.
+                        contentRatings = { if (prefs.mangaDexSuggestive.value) setOf("safe", "restricted") else setOf("safe") },
+                    )
+                }
+                single { MangaFlixSource(get(), apiUrl = { get<SourceConfig>().baseUrl(MangaFlixSource.ID) ?: MangaFlixSource.API }) }
+                single { YomuSource(get(), apiUrl = { get<SourceConfig>().baseUrl(YomuSource.ID) ?: YomuSource.API }) }
+                single { WeebCentralSource(get()) }
+                single { XoxoSource(get()) }
+                single<List<Source>>(BuiltInSources) {
+                    listOf(
+                            get<MangaDexSource>(),
+                            get<HqNowSource>(),
+                            get<InternetArchiveSource>(),
+                            get<NamiComiSource>(),
+                            get<MangaFlixSource>(),
+                            get<YomuSource>(),
+                            get<WeebCentralSource>(),
+                            get<XoxoSource>(),
+                            get<LocalSource>(),
+                        )
+                }
                 single<SourceListFetcher> { HttpSourceListFetcher(get()) }
                 single<SecretStore> { SettingsSecretStore(get()) }
                 single<Connectivity> { BrowserConnectivity() }

@@ -1,5 +1,5 @@
 // HQR personal bridge: a Cloudflare Worker that forwards the web app's requests to the
-// online sources (MangaDex, HQ Now), which send no CORS headers. Each user publishes it on
+// online sources (MangaDex, HQ Now and the later ones), which send no CORS headers. Each user publishes it on
 // their own account (ADR-023, RF-108, RF-109, RNF-32). Nothing is stored, cached or logged.
 
 export const BRIDGE_VERSION = 1;
@@ -12,6 +12,16 @@ export const DEFAULT_HOSTS = [
   "admin.hq-now.com",
   "www.hq-now.com",
   "*.hq-now.com",
+  // Sources added later (RF-99, RF-102 to RF-104); MangaFlix and NamiComi send CORS headers and skip the bridge.
+  "archive.org",
+  "yomumangas.com",
+  "api.yomumangas.com",
+  "b2.yomumangas.com",
+  "weebcentral.com",
+  "temp.compsci88.com",
+  "*.planeptune.us",
+  "xoxocomic.com",
+  "*.bp.blogspot.com",
 ];
 
 export const DEFAULT_ORIGINS = ["https://tiagohs.github.io", "http://localhost:8080"];

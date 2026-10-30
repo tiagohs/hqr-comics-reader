@@ -66,6 +66,7 @@ import com.tiagohs.hqr.ui.settings.UpdateNotice
 import com.tiagohs.hqr.ui.settings.UpdateScreen
 import com.tiagohs.hqr.ui.sources.AddServerScreen
 import com.tiagohs.hqr.ui.sources.BridgeScreen
+import com.tiagohs.hqr.ui.sources.ChallengeScreen
 import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
 import com.tiagohs.hqr.ui.sources.SourceSettingsScreen
 import com.tiagohs.hqr.ui.sources.SourcesScreen
@@ -268,6 +269,14 @@ private fun AppNavigation(dark: Boolean) {
                     onBack = { nav.popBackStack() },
                     onOpenManga = { nav.navigate(Route.Manga(it)) },
                     onBridge = { nav.navigate(Route.Bridge) },
+                    onChallenge = { nav.navigate(Route.Challenge(it)) },
+                )
+            }
+            composable<Route.Challenge> { back ->
+                ChallengeScreen(
+                    url = back.toRoute<Route.Challenge>().url,
+                    onPassed = { nav.popBackStack() },
+                    onBack = { nav.popBackStack() },
                 )
             }
             composable<Route.Manga> { back ->

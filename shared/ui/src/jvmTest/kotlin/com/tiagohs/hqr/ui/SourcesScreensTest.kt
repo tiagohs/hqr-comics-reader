@@ -96,4 +96,48 @@ class SourcesScreensTest {
             onAllNodes(hasText("I am 18 or older"))[0].performClick()
             prefs.mangaDexSuggestive.value shouldBe true
         }
+
+    /** A source behind Cloudflare's check (RF-106). */
+    private class Guarded : com.tiagohs.hqr.domain.source.CatalogSource {
+        override val id = SourceId("guarded")
+        override val name = "Guarded"
+        override val languages = listOf("en")
+
+        override fun webUrl(query: String) = "https://guarded.example"
+
+        private fun fail(): Nothing =
+            throw com.tiagohs.hqr.domain.source
+                .SourceException("x", com.tiagohs.hqr.domain.source.SourceException.Kind.CHALLENGE)
+
+        override suspend fun popular(page: Int) = fail()
+
+        override suspend fun latest(page: Int) = fail()
+
+        override suspend fun details(manga: com.tiagohs.hqr.domain.model.SourceManga) = fail()
+
+        override suspend fun chapters(manga: com.tiagohs.hqr.domain.model.SourceManga) = fail()
+
+        override suspend fun pages(
+            manga: com.tiagohs.hqr.domain.model.SourceManga,
+            chapter: com.tiagohs.hqr.domain.model.SourceChapter,
+        ) = fail()
+    }
+
+    @Test
+    fun RF106_aSourceAskingForVerificationOffersItsPage() =
+        screenTest {
+            startTestKoin(sources = { listOf(Guarded()) })
+            setAppContent { HqrApp(systemDark = false) }
+            waitFor(hasText("Explore"))
+            onAllNodes(hasText("Explore"))[0].performClick()
+            waitFor(hasText("Guarded"))
+            onAllNodes(hasText("Guarded"))[0].performClick()
+            waitFor(hasText("The source asks for a verification"))
+            screenshot("demo-SCR-STA-001-challenge")
+            onAllNodes(hasText("Verify"))[0].performClick()
+            // On the desktop tests there is no browser inside the app: the screen says where it opens.
+            waitFor(hasText("The verification opens only in the phone app. Open the source's site in your browser and try again."))
+            onAllNodes(hasContentDescription("Back"))[0].performClick()
+            waitFor(hasText("The source asks for a verification"))
+        }
 }

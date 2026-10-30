@@ -213,6 +213,12 @@ class SourceConfig(
   "sources": [
     { "id": "mangadex", "enabled": true },
     { "id": "hqnow", "enabled": true, "baseUrl": "https://admin.hq-now.com/graphql" },
+    { "id": "archive", "enabled": true },
+    { "id": "namicomi", "enabled": true },
+    { "id": "mangaflix", "enabled": true, "baseUrl": "https://api.mangaflix.net/v1" },
+    { "id": "yomu", "enabled": true, "baseUrl": "https://api.yomumangas.com" },
+    { "id": "weebcentral", "enabled": true },
+    { "id": "xoxo", "enabled": true },
     { "id": "local", "enabled": true }
   ]
 }

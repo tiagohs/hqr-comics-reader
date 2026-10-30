@@ -5,7 +5,9 @@ import com.russhwolf.settings.Settings
 import com.russhwolf.settings.SharedPreferencesSettings
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.androidDatabase
+import com.tiagohs.hqr.data.download.DownloadExport
 import com.tiagohs.hqr.data.download.DownloadFiles
+import com.tiagohs.hqr.data.download.FreeSpace
 import com.tiagohs.hqr.data.net.DiskImageCache
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
@@ -79,6 +81,9 @@ class HqrApplication : Application() {
             // RF-62 to RF-66: chapter files in the app's own storage, run by WorkManager (ADR-009).
             single { DownloadFiles(FileSystem.SYSTEM, filesDir.toOkioPath() / "downloads") }
             single<DownloadScheduler> { WorkManagerDownloadScheduler(this@HqrApplication, get()) }
+            // RF-67 and RF-68: the copy in the chosen folder and the free space check.
+            single<DownloadExport> { SafDownloadExport(this@HqrApplication) }
+            single<FreeSpace> { AndroidFreeSpace(filesDir) }
             single<Connectivity> { AndroidConnectivity(this@HqrApplication) }
             // RF-82: the GitHub flavor updates itself (ADR-015).
             single<Updates> { AndroidUpdates(this@HqrApplication, ReleaseChecker(get(), get(), BuildConfig.VERSION_NAME), get()) }

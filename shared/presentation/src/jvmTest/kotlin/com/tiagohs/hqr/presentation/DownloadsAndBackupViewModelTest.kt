@@ -61,6 +61,16 @@ class DownloadsAndBackupViewModelTest : MainDispatcherTest() {
     private class FakeSettings : DownloadSettings {
         override val wifiOnly = MutableStateFlow(true)
         override val deleteAfterRead = MutableStateFlow(false)
+        override val saveAsCbz = MutableStateFlow(false)
+        override val folder = MutableStateFlow<String?>(null)
+
+        override fun setSaveAsCbz(on: Boolean) {
+            saveAsCbz.value = on
+        }
+
+        override fun setFolder(uri: String?) {
+            folder.value = uri
+        }
 
         override fun setWifiOnly(on: Boolean) {
             wifiOnly.value = on
@@ -99,6 +109,27 @@ class DownloadsAndBackupViewModelTest : MainDispatcherTest() {
             waitFor { downloads.calls.size == 5 }
             downloads.calls[2] shouldBe "remove [1, 2]"
             downloads.calls[4] shouldBe "rule"
+        }
+
+    @Test
+    fun RF67_RF68_cbzFolderAndLowSpaceReachTheScreen() =
+        runTest {
+            val downloads = FakeDownloads()
+            val settings = FakeSettings()
+            val vm = track(DownloadsViewModel(downloads, settings))
+            downloads.items.value =
+                listOf(
+                    DownloadItem(3, 8, "Obra 8", "3", DownloadState.PAUSED, 4, 10, DownloadItem.LOW_SPACE),
+                    item(4, 8, DownloadState.PAUSED),
+                )
+            vm.state.first { it.lowSpace && it.paused }
+            vm.setSaveAsCbz(true)
+            vm.setFolder("content://tree/hqr")
+            vm.state.first { it.saveAsCbz && it.folder == "content://tree/hqr" }
+            vm.setFolder(null)
+            vm.state.first { it.folder == null }
+            downloads.items.value = listOf(item(4, 8, DownloadState.PAUSED))
+            vm.state.first { !it.lowSpace }
         }
 
     @Test

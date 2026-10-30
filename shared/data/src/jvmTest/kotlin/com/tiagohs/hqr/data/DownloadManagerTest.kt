@@ -41,6 +41,10 @@ class DownloadManagerTest {
     private val asked = mutableListOf<String>()
     private var failOn: Int? = null
     private var onPage: suspend (Long, Int) -> Unit = { _, _ -> }
+    private var asCbz = false
+    private var folder: String? = null
+    private var free: Long? = null
+    private val exported = mutableMapOf<String, ByteArray>()
     private val manager =
         DownloadManager(
             db,
@@ -57,6 +61,15 @@ class DownloadManagerTest {
                 "p${page.index}".encodeToByteArray()
             },
             deleteAfterRead = { deleteAfterRead },
+            saveAsCbz = { asCbz },
+            folder = { folder },
+            export = { target, work, name, write ->
+                val buffer = okio.Buffer()
+                write(buffer)
+                exported["$target/$work/$name"] = buffer.readByteArray()
+                true
+            },
+            freeBytes = { free },
         )
 
     @AfterTest
@@ -78,9 +91,69 @@ class DownloadManagerTest {
             manager.observe().first().map { it.state } shouldBe listOf(DownloadState.DONE, DownloadState.DONE)
             val pages = manager.offlinePages(ids[0])!!
             pages.size shouldBe 3
-            files.read(files.pathOf(pages[1].imageUrl)!!).decodeToString() shouldBe "p1"
+            files.bytes(pages[1].imageUrl)!!.decodeToString() shouldBe "p1"
             manager.offlinePages(ids[2]) shouldBe null
             manager.usedBytes() shouldBe 12
+        }
+
+    @Test
+    fun RF67_aFinishedChapterBecomesACbzTheReaderStillOpens() =
+        runTest {
+            val ids = work()
+            asCbz = true
+            onPage = { _, _ -> }
+            manager.enqueue(ids.take(1))
+            manager.run { true }
+            fs.exists(files.dir(ids[0])) shouldBe false
+            fs.exists(files.cbz(ids[0])) shouldBe true
+            val pages = manager.offlinePages(ids[0])!!
+            pages.size shouldBe 3
+            files.bytes(pages[2].imageUrl)!!.decodeToString() shouldBe "p2"
+            // A real zip: any reader opens it, pages in order, with the image type in the name.
+            val names = mutableListOf<String>()
+            java.util.zip.ZipInputStream(fs.read(files.cbz(ids[0])) { readByteArray() }.inputStream()).use { zip ->
+                generateSequence { zip.nextEntry }.forEach {
+                    names += it.name
+                    zip.readBytes().decodeToString() shouldBe "p${names.size - 1}"
+                }
+            }
+            names shouldContainExactly listOf("0000.jpg", "0001.jpg", "0002.jpg")
+            manager.remove(listOf(ids[0]))
+            fs.exists(files.cbz(ids[0])) shouldBe false
+        }
+
+    @Test
+    fun RF67_aChosenFolderGetsACopyNamedByWorkAndChapter() =
+        runTest {
+            val ids = work()
+            folder = "content://tree/hqr"
+            manager.enqueue(ids.take(1))
+            manager.run { true }
+            val copy = exported.getValue("content://tree/hqr/Obra/001.cbz")
+            copy contentEquals fs.read(files.cbz(ids[0])) { readByteArray() } shouldBe true
+            // HQR keeps reading its own file.
+            manager.offlinePages(ids[0])!!.size shouldBe 3
+        }
+
+    @Test
+    fun RF68_lowSpacePausesTheQueueWithTheReason() =
+        runTest {
+            val ids = work()
+            manager.enqueue(ids.take(2))
+            // 150 MB left after the first page.
+            onPage = { _, index -> if (index == 0) free = 150L * 1024 * 1024 }
+            manager.run { true } shouldBe false
+            val items = manager.observe().first()
+            items.map { it.state } shouldBe listOf(DownloadState.PAUSED, DownloadState.PAUSED)
+            items.all { it.lowSpace } shouldBe true
+            items.first().pagesDone shouldBe 1
+            // Space freed: resuming continues from the saved page.
+            onPage = { _, _ -> }
+            free = 500L * 1024 * 1024
+            manager.resumeAll()
+            manager.run { true }
+            manager.observe().first().map { it.state } shouldBe listOf(DownloadState.DONE, DownloadState.DONE)
+            manager.observe().first().none { it.lowSpace } shouldBe true
         }
 
     @Test
@@ -177,7 +250,8 @@ class DownloadManagerTest {
             manager.enqueue(listOf(ids[0]))
             manager.run { true }
             manager.offlinePages(ids[0]) shouldNotBe null
-            files.pathOf("download:/etc/passwd") shouldBe null
+            files.locate("download:/etc/passwd") shouldBe null
+            files.bytes("download:/data/downloads/../../etc/passwd") shouldBe null
         }
 
     @Test

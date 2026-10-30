@@ -442,4 +442,11 @@
     <string name="source_settings_quality_hint">Data saver loads smaller, compressed pages: faster and lighter on mobile data.</string>
     <string name="source_settings_content">Content</string>
     <string name="source_settings_suggestive">Suggestive content</string>
+    <string name="downloads_cbz">Save as CBZ</string>
+    <string name="downloads_cbz_hint">Each finished chapter becomes one .cbz file.</string>
+    <string name="downloads_folder">Copy to a folder</string>
+    <string name="downloads_folder_none">Off: chapters stay only in the app. With a folder, each one is also saved there as .cbz, for other readers.</string>
+    <string name="downloads_folder_clear">Stop copying to the folder</string>
+    <string name="downloads_low_space">Low space: the queue was paused. Free up at least 200 MB and resume.</string>
+    <string name="download_state_low_space">Low space</string>
 </resources>

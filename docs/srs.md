@@ -241,7 +241,7 @@ Prioridade: Must (lançamento), Should (importante), Could (desejável).
 | RF-64 | Por padrão, o app deve baixar só em rede não tarifada (Wi-Fi; opção desligável). | Must | Dado só dados móveis, quando a fila tem capítulos, então ela fica em "Esperando Wi-Fi". |
 | RF-65 | O leitor deve usar o capítulo baixado em vez da rede, também sem internet. | Must | Dado um capítulo baixado e o modo avião, quando o usuário o abre, então todas as páginas aparecem. |
 | RF-66 | O app deve apagar baixados por capítulo, por obra, depois de lidos (opcional) ou todos, mostrando o espaço usado. | Must | Dado "apagar depois de lido" ligado, quando o capítulo é marcado como lido, então os arquivos dele somem. |
-| RF-67 | O app deve permitir salvar em pasta do app (padrão) ou em pasta escolhida, e salvar como CBZ (opcional). | Should | Dado "salvar como CBZ" ligado, quando um capítulo termina de baixar, então ele vira um `.cbz`. |
+| RF-67 | O app deve guardar os capítulos na pasta do app (padrão, lida só pelo HQR), salvar como CBZ (opcional) e, se o usuário escolher uma pasta, copiar para lá cada capítulo em `.cbz`, numa pasta por obra, para outros leitores. | Should | Dado "salvar como CBZ" ligado, quando um capítulo termina de baixar, então ele vira um `.cbz`. |
 | RF-68 | Se o espaço livre ficar abaixo de 200 MB, então o app deve pausar a fila e avisar. | Should | Dado uma fila em andamento, quando o espaço livre cai para 150 MB, então a fila pausa com "Pouco espaço". |
 
 #### 3.1.12 Juntar e migrar

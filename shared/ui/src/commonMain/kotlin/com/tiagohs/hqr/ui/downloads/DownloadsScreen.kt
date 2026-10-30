@@ -1,5 +1,7 @@
 package com.tiagohs.hqr.ui.downloads
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,11 +45,14 @@ import com.tiagohs.hqr.ui.resources.action_move_up
 import com.tiagohs.hqr.ui.resources.download_cancel
 import com.tiagohs.hqr.ui.resources.download_delete
 import com.tiagohs.hqr.ui.resources.download_state_error
+import com.tiagohs.hqr.ui.resources.download_state_low_space
 import com.tiagohs.hqr.ui.resources.download_state_network
 import com.tiagohs.hqr.ui.resources.download_state_paused
 import com.tiagohs.hqr.ui.resources.download_state_queued
 import com.tiagohs.hqr.ui.resources.download_state_running
 import com.tiagohs.hqr.ui.resources.download_state_wifi
+import com.tiagohs.hqr.ui.resources.downloads_cbz
+import com.tiagohs.hqr.ui.resources.downloads_cbz_hint
 import com.tiagohs.hqr.ui.resources.downloads_delete_after_read
 import com.tiagohs.hqr.ui.resources.downloads_delete_after_read_hint
 import com.tiagohs.hqr.ui.resources.downloads_delete_all
@@ -56,6 +61,10 @@ import com.tiagohs.hqr.ui.resources.downloads_delete_work
 import com.tiagohs.hqr.ui.resources.downloads_done
 import com.tiagohs.hqr.ui.resources.downloads_empty_message
 import com.tiagohs.hqr.ui.resources.downloads_empty_title
+import com.tiagohs.hqr.ui.resources.downloads_folder
+import com.tiagohs.hqr.ui.resources.downloads_folder_clear
+import com.tiagohs.hqr.ui.resources.downloads_folder_none
+import com.tiagohs.hqr.ui.resources.downloads_low_space
 import com.tiagohs.hqr.ui.resources.downloads_pause_all
 import com.tiagohs.hqr.ui.resources.downloads_queue
 import com.tiagohs.hqr.ui.resources.downloads_resume_all
@@ -101,6 +110,22 @@ fun DownloadsScreen(
             state.loading -> LoadingState(Modifier.padding(padding))
             else ->
                 LazyColumn(Modifier.padding(padding).fillMaxSize()) {
+                    // RF-68: why the queue stopped, and what to do.
+                    if (state.lowSpace) {
+                        item {
+                            Text(
+                                stringResource(Res.string.downloads_low_space),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        .background(MaterialTheme.colorScheme.errorContainer, MaterialTheme.shapes.medium)
+                                        .padding(16.dp),
+                            )
+                        }
+                    }
                     item { Options(state, viewModel) }
                     if (state.isEmpty) {
                         item {
@@ -193,7 +218,43 @@ private fun Options(
         trailingContent = { Switch(checked = state.deleteAfterRead, onCheckedChange = null) },
         modifier = Modifier.toggleable(value = state.deleteAfterRead, role = Role.Switch, onValueChange = viewModel::setDeleteAfterRead),
     )
+    // RF-67: one .cbz per chapter, and a copy in a folder of the user's.
+    ListItem(
+        headlineContent = { Text(stringResource(Res.string.downloads_cbz)) },
+        supportingContent = { Text(stringResource(Res.string.downloads_cbz_hint)) },
+        trailingContent = { Switch(checked = state.saveAsCbz || state.folder != null, onCheckedChange = null) },
+        modifier =
+            Modifier.toggleable(
+                value = state.saveAsCbz || state.folder != null,
+                // A folder copy is always a .cbz.
+                enabled = state.folder == null,
+                role = Role.Switch,
+                onValueChange = viewModel::setSaveAsCbz,
+            ),
+    )
+    val pick = rememberDownloadFolderPicker { uri -> uri?.let(viewModel::setFolder) }
+    ListItem(
+        headlineContent = { Text(stringResource(Res.string.downloads_folder)) },
+        supportingContent = { Text(state.folder?.let(::folderName) ?: stringResource(Res.string.downloads_folder_none)) },
+        leadingContent = { Icon(HqrIcons.Folder, null) },
+        trailingContent = {
+            if (state.folder != null) {
+                IconButton(onClick = { viewModel.setFolder(null) }) {
+                    Icon(HqrIcons.Close, stringResource(Res.string.downloads_folder_clear))
+                }
+            }
+        },
+        modifier = Modifier.clickable(onClick = pick),
+    )
 }
+
+/** The folder as people see it: "Download/HQR" for "content://…/tree/primary%3ADownload%2FHQR". */
+private fun folderName(uri: String): String =
+    uri
+        .substringAfterLast("/")
+        .substringAfter("%3A")
+        .replace("%2F", "/")
+        .replace("%20", " ")
 
 @Composable
 private fun QueueRow(
@@ -250,7 +311,8 @@ private fun stateText(
     when (item.state) {
         DownloadState.QUEUED -> stringResource(Res.string.download_state_queued)
         DownloadState.RUNNING -> stringResource(Res.string.download_state_running, item.pagesDone, item.pagesTotal)
-        DownloadState.PAUSED -> stringResource(Res.string.download_state_paused)
+        DownloadState.PAUSED ->
+            stringResource(if (item.lowSpace) Res.string.download_state_low_space else Res.string.download_state_paused)
         // Waiting for Wi-Fi under "só no Wi-Fi" (RF-64), or for any network after losing it.
         DownloadState.WAITING_WIFI -> stringResource(if (wifiOnly) Res.string.download_state_wifi else Res.string.download_state_network)
         DownloadState.ERROR -> stringResource(Res.string.download_state_error, item.error.orEmpty())

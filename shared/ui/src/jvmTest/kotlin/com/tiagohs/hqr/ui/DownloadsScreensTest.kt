@@ -11,7 +11,12 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.printToLog
+import com.tiagohs.hqr.data.download.FreeSpace
+import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.ui.navigation.HqrApp
+import io.kotest.matchers.shouldBe
+import org.koin.core.context.GlobalContext
+import org.koin.dsl.module
 import kotlin.test.AfterTest
 import kotlin.test.Test
 
@@ -69,6 +74,37 @@ class DownloadsScreensTest {
             // RF-66: the whole work's files go at once.
             onAllNodes(hasContentDescription("Delete the downloads of Kaiju Express"))[0].performClick()
             waitFor(hasText("Nothing downloaded"))
+        }
+
+    @Test
+    fun RF67_RF68_lowSpacePausesWithTheReasonAndCbzIsAnOption() =
+        screenTest {
+            // 100 MB free: the queue pauses before the first page.
+            startTestKoin(extra = module { single<FreeSpace> { FreeSpace { 100L * 1024 * 1024 } } })
+            val prefs = GlobalContext.get().get<AppPreferences>()
+            setAppContent { HqrApp(systemDark = false) }
+            waitFor(hasText("Explore"))
+            onAllNodes(hasText("Explore"))[0].performClick()
+            waitFor(hasText("MangaDex"))
+            onAllNodes(hasText("MangaDex"))[0].performClick()
+            waitFor(hasText("Kaiju Express"))
+            onAllNodes(hasText("Kaiju Express"))[0].performClick()
+            waitFor(hasText("Read"))
+            onAllNodes(hasContentDescription("Download"))[0].performClick()
+            waitFor(hasText("Next 5 unread"))
+            onAllNodes(hasText("Next 5 unread"))[0].performClick()
+            onAllNodes(hasContentDescription("Back"))[0].performClick()
+            waitFor(hasText("Popular"))
+            onAllNodes(hasContentDescription("Back"))[0].performClick()
+            waitFor(hasText("Manage sources and servers"))
+            onAllNodes(hasText("Library"))[0].performClick()
+            waitFor(hasContentDescription("Downloads"))
+            onAllNodes(hasContentDescription("Downloads"))[0].performClick()
+            waitFor(hasText("Low space: the queue was paused. Free up at least 200 MB and resume."), timeout = 30_000)
+            waitFor(hasText("Low space"))
+            screenshot("demo-SCR-DL-001-low-space")
+            onAllNodes(hasText("Save as CBZ"))[0].performClick()
+            prefs.downloadsAsCbz.value shouldBe true
         }
 
     @Test

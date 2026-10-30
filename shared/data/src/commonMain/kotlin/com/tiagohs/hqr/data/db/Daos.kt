@@ -264,6 +264,13 @@ interface DownloadDao {
         state: String,
     )
 
+    /** RF-68: the queue paused, with the reason shown on each chapter. */
+    @Query("UPDATE download SET state = 'PAUSED', error = :reason WHERE state IN (:from)")
+    suspend fun pauseForSpace(
+        from: List<String>,
+        reason: String,
+    )
+
     /** Of these chapters, the downloaded ones already read (RF-66). */
     @Query(
         """

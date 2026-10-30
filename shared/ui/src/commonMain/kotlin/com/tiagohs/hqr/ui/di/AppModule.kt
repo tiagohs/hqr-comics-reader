@@ -5,6 +5,7 @@ import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.MangaReaderSettingsEntity
 import com.tiagohs.hqr.data.download.DownloadFiles
 import com.tiagohs.hqr.data.download.DownloadManager
+import com.tiagohs.hqr.data.download.FreeSpace
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.bytes
 import com.tiagohs.hqr.data.repository.RoomCategoryRepository
@@ -160,8 +161,14 @@ val coreModule: Module =
             object : DownloadSettings {
                 override val wifiOnly = prefs.wifiOnlyDownloads
                 override val deleteAfterRead = prefs.deleteAfterRead
+                override val saveAsCbz = prefs.downloadsAsCbz
+                override val folder = prefs.downloadFolder
 
                 override fun setWifiOnly(on: Boolean) = prefs.setWifiOnlyDownloads(on)
+
+                override fun setSaveAsCbz(on: Boolean) = prefs.setDownloadsAsCbz(on)
+
+                override fun setFolder(uri: String?) = prefs.setDownloadFolder(uri)
 
                 override fun setDeleteAfterRead(on: Boolean) = prefs.setDeleteAfterRead(on)
             }
@@ -202,6 +209,10 @@ val downloadModule: Module =
                     if (source is ImageSource) source.image(page.imageUrl, page.headers) else http.bytes(page.imageUrl, page.headers)
                 },
                 deleteAfterRead = { settings.deleteAfterRead.value },
+                saveAsCbz = { settings.saveAsCbz.value },
+                folder = { settings.folder.value },
+                export = getOrNull(),
+                freeBytes = getOrNull<FreeSpace>()?.let { space -> { space.bytes() } } ?: { null },
             )
         }
         single<Downloads> { get<DownloadManager>() }
@@ -229,7 +240,7 @@ class AppImageBytes(
     ): ByteArray {
         val clean = headers.filterKeys { !it.startsWith("x-attempt") }
         // RF-65: pages of a downloaded chapter, from the device.
-        files?.pathOf(url)?.let { return files.read(it) }
+        files?.bytes(url)?.let { return it }
         if (url.startsWith(LocalSource.SCHEME)) return (registry.require(SourceId.LOCAL) as ImageSource).image(url, clean)
         cache.get(url)?.let { return it }
         while (true) {

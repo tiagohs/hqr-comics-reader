@@ -25,7 +25,13 @@ class DownloadsViewModel(
         val usedBytes: Long = 0,
         val wifiOnly: Boolean = true,
         val deleteAfterRead: Boolean = false,
+        val saveAsCbz: Boolean = false,
+        /** RF-67: the folder that gets a copy of each chapter; null when none. */
+        val folder: String? = null,
     ) {
+        /** RF-68: the queue was paused for lack of space. */
+        val lowSpace: Boolean get() = queue.any { it.lowSpace }
+
         val paused: Boolean get() = queue.isNotEmpty() && queue.all { it.state == DownloadState.PAUSED || it.state == DownloadState.ERROR }
         val isEmpty: Boolean get() = !loading && queue.isEmpty() && done.isEmpty()
     }
@@ -33,16 +39,21 @@ class DownloadsViewModel(
     private val used = MutableStateFlow(0L)
 
     val state: StateFlow<State> =
-        combine(downloads.observe(), used, settings.wifiOnly, settings.deleteAfterRead) { items, bytes, wifi, delete ->
-            State(
-                loading = false,
-                queue = items.filter { it.state != DownloadState.DONE },
-                done = items.filter { it.state == DownloadState.DONE },
-                usedBytes = bytes,
-                wifiOnly = wifi,
-                deleteAfterRead = delete,
-            )
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MS), State())
+        combine(
+            combine(downloads.observe(), used, settings.wifiOnly, settings.deleteAfterRead) { items, bytes, wifi, delete ->
+                State(
+                    loading = false,
+                    queue = items.filter { it.state != DownloadState.DONE },
+                    done = items.filter { it.state == DownloadState.DONE },
+                    usedBytes = bytes,
+                    wifiOnly = wifi,
+                    deleteAfterRead = delete,
+                )
+            },
+            settings.saveAsCbz,
+            settings.folder,
+        ) { state, cbz, folder -> state.copy(saveAsCbz = cbz, folder = folder) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MS), State())
 
     init {
         // The space follows what is downloaded.
@@ -81,6 +92,12 @@ class DownloadsViewModel(
     }
 
     fun setDeleteAfterRead(on: Boolean) = settings.setDeleteAfterRead(on)
+
+    /** RF-67. */
+    fun setSaveAsCbz(on: Boolean) = settings.setSaveAsCbz(on)
+
+    /** RF-67: null goes back to keeping the chapters only in the app. */
+    fun setFolder(uri: String?) = settings.setFolder(uri)
 
     private fun launch(block: suspend () -> Unit) {
         viewModelScope.launch { block() }

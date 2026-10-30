@@ -442,4 +442,11 @@
     <string name="source_settings_quality_hint">A econômica carrega páginas menores e comprimidas: mais rápido e gasta menos dados móveis.</string>
     <string name="source_settings_content">Conteúdo</string>
     <string name="source_settings_suggestive">Conteúdo sugestivo</string>
+    <string name="downloads_cbz">Salvar como CBZ</string>
+    <string name="downloads_cbz_hint">Cada capítulo baixado vira um arquivo .cbz.</string>
+    <string name="downloads_folder">Copiar para uma pasta</string>
+    <string name="downloads_folder_none">Desligado: os capítulos ficam só no app. Com uma pasta, cada um também é salvo lá em .cbz, para outros leitores.</string>
+    <string name="downloads_folder_clear">Parar de copiar para a pasta</string>
+    <string name="downloads_low_space">Pouco espaço: a fila foi pausada. Libere pelo menos 200 MB e retome.</string>
+    <string name="download_state_low_space">Pouco espaço</string>
 </resources>

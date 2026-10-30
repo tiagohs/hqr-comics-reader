@@ -442,4 +442,11 @@
     <string name="source_settings_quality_hint">El ahorro de datos carga páginas más pequeñas y comprimidas: más rápido y gasta menos datos móviles.</string>
     <string name="source_settings_content">Contenido</string>
     <string name="source_settings_suggestive">Contenido sugerente</string>
+    <string name="downloads_cbz">Guardar como CBZ</string>
+    <string name="downloads_cbz_hint">Cada capítulo descargado se convierte en un archivo .cbz.</string>
+    <string name="downloads_folder">Copiar a una carpeta</string>
+    <string name="downloads_folder_none">Desactivado: los capítulos quedan solo en la app. Con una carpeta, cada uno también se guarda allí en .cbz, para otros lectores.</string>
+    <string name="downloads_folder_clear">Dejar de copiar a la carpeta</string>
+    <string name="downloads_low_space">Poco espacio: la cola se pausó. Libera al menos 200 MB y reanuda.</string>
+    <string name="download_state_low_space">Poco espacio</string>
 </resources>

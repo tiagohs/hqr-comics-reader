@@ -13,7 +13,18 @@ data class DownloadItem(
     val pagesDone: Int,
     val pagesTotal: Int,
     val error: String? = null,
-)
+) {
+    /** RF-68: paused because the device ran short of space. */
+    val lowSpace: Boolean get() = state == DownloadState.PAUSED && error == LOW_SPACE
+
+    companion object {
+        /** The reason kept on the chapters the queue paused for lack of space (RF-68). */
+        const val LOW_SPACE = "LOW_SPACE"
+
+        /** RF-68: below this much free space, the queue pauses. */
+        const val MIN_FREE_BYTES = 200L * 1024 * 1024
+    }
+}
 
 enum class DownloadState { QUEUED, RUNNING, PAUSED, WAITING_WIFI, DONE, ERROR }
 
@@ -68,6 +79,16 @@ fun interface DownloadScheduler {
 interface DownloadSettings {
     val wifiOnly: StateFlow<Boolean>
     val deleteAfterRead: StateFlow<Boolean>
+
+    /** RF-67: each finished chapter becomes one `.cbz`. */
+    val saveAsCbz: StateFlow<Boolean>
+
+    /** RF-67: the folder that also gets a `.cbz` of each finished chapter; null keeps them only in the app. */
+    val folder: StateFlow<String?>
+
+    fun setSaveAsCbz(on: Boolean)
+
+    fun setFolder(uri: String?)
 
     fun setWifiOnly(on: Boolean)
 

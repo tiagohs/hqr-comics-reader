@@ -74,8 +74,8 @@
 | RF-64 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | DownloadManagerTest |
 | RF-65 | Must | UC-004, UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | DownloadManagerTest |
 | RF-66 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | DownloadManagerTest, DownloadsAndBackupViewModelTest, DownloadsScreensTest, ReaderAndHistoryViewModelTest |
-| RF-67 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | — |
-| RF-68 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | — |
+| RF-67 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | DownloadManagerTest, DownloadsAndBackupViewModelTest, DownloadsScreensTest |
+| RF-68 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | DownloadManagerTest, DownloadsAndBackupViewModelTest, DownloadsScreensTest |
 | RF-69 | Should | UC-010 | migration | SCR-OBR-002 | FEAT-031 | — |
 | RF-70 | Could | UC-010 | migration | SCR-OBR-002 | FEAT-042 | — |
 | RF-71 | Could | UC-010 | library, migration | SCR-OBR-002 | FEAT-042 | — |

@@ -12,6 +12,7 @@ import com.tiagohs.hqr.domain.source.SourceException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,10 +20,12 @@ import kotlinx.coroutines.withContext
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
+import okio.buffer
+import okio.use
 
 /**
- * The pages of downloaded chapters, one folder per chapter id, read only by HQR (RF-65). One operation at a time: the
- * queue writes while the screens list and read.
+ * The pages of downloaded chapters, one folder per chapter id — or one `.cbz` when the user asked for it (RF-67) — read
+ * only by HQR (RF-65). One operation at a time: the queue writes while the screens list and read.
  */
 class DownloadFiles(
     private val fs: FileSystem,
@@ -31,6 +34,9 @@ class DownloadFiles(
     private val lock = Mutex()
 
     fun dir(chapterId: Long): Path = root / chapterId.toString()
+
+    /** The chapter as a single file (RF-67). */
+    fun cbz(chapterId: Long): Path = root / "$chapterId.cbz"
 
     private fun page(
         chapterId: Long,
@@ -54,42 +60,85 @@ class DownloadFiles(
         fs.atomicMove(tmp, target)
     }
 
-    /** Paths of the pages, in order; empty when the chapter has none. */
-    suspend fun pages(chapterId: Long): List<Path> =
+    private fun folderPages(chapterId: Long): List<Path> =
+        if (!fs.exists(dir(chapterId))) {
+            emptyList()
+        } else {
+            fs.list(dir(chapterId)).filter { !it.name.endsWith(".tmp") }.sortedBy { it.name }
+        }
+
+    /** The addresses of the pages for the image loader, in order; empty when the chapter has none. */
+    suspend fun addresses(chapterId: Long): List<String> =
         lock.withLock {
-            if (!fs.exists(
-                    dir(chapterId),
-                )
-            ) {
-                emptyList()
+            val cbz = cbz(chapterId)
+            if (fs.exists(cbz)) {
+                Cbz.entries(fs, cbz).map { "$SCHEME$cbz$ENTRY${it.name}" }
             } else {
-                fs.list(dir(chapterId)).filter { !it.name.endsWith(".tmp") }.sortedBy { it.name }
+                folderPages(chapterId).map { SCHEME + it.toString() }
             }
         }
 
-    suspend fun read(path: Path): ByteArray = lock.withLock { fs.read(path) { readByteArray() } }
+    /** RF-67: the finished chapter becomes one `.cbz` (pages named with their image type) and the folder goes. */
+    suspend fun pack(chapterId: Long) =
+        lock.withLock {
+            val pages = folderPages(chapterId)
+            if (pages.isEmpty()) return@withLock
+            val target = cbz(chapterId)
+            val tmp = root / "$chapterId.cbz.tmp"
+            Cbz.write(
+                fs,
+                tmp,
+                pages.size,
+                read = { fs.read(pages[it]) { readByteArray() } },
+                name = { i, bytes -> i.toString().padStart(PAD, '0') + "." + imageExtension(bytes) },
+            )
+            fs.atomicMove(tmp, target)
+            fs.deleteRecursively(dir(chapterId))
+        }
 
-    suspend fun delete(chapterId: Long) = lock.withLock { fs.deleteRecursively(dir(chapterId)) }
+    /** RF-67: the chapter's `.cbz` written to [sink] (the copy in the chosen folder). */
+    suspend fun copyCbz(
+        chapterId: Long,
+        sink: okio.Sink,
+    ) = lock.withLock {
+        fs.source(cbz(chapterId)).use { source -> sink.buffer().use { it.writeAll(source) } }
+    }
+
+    /** The bytes behind an address, only under the downloads folder; null for any other address. */
+    suspend fun bytes(address: String): ByteArray? {
+        val (path, entry) = locate(address) ?: return null
+        return lock.withLock {
+            if (entry == null) {
+                fs.read(path) { readByteArray() }
+            } else {
+                Cbz.entries(fs, path).firstOrNull { it.name == entry }?.let { Cbz.read(fs, path, it) }
+            }
+        }
+    }
+
+    suspend fun delete(chapterId: Long) =
+        lock.withLock {
+            fs.deleteRecursively(dir(chapterId))
+            fs.delete(cbz(chapterId), mustExist = false)
+        }
 
     suspend fun usedBytes(): Long =
         lock.withLock {
             if (!fs.exists(root)) 0 else fs.listRecursively(root).sumOf { fs.metadataOrNull(it)?.size ?: 0L }
         }
 
-    /** The address a page of a downloaded chapter carries to the image loader. */
-    fun address(path: Path): String = SCHEME + path.toString()
-
-    /** The file behind an address, only under the downloads folder. */
-    fun pathOf(address: String): Path? =
-        address
-            .takeIf { it.startsWith(SCHEME) }
-            ?.removePrefix(SCHEME)
-            ?.toPath()
-            ?.normalized()
-            ?.takeIf { it.toString().startsWith(root.normalized().toString() + "/") }
+    /** The file behind an address (and the page inside it, for a `.cbz`), only under the downloads folder. */
+    fun locate(address: String): Pair<Path, String?>? {
+        if (!address.startsWith(SCHEME)) return null
+        val rest = address.removePrefix(SCHEME)
+        val entry = rest.substringAfter(ENTRY, "").ifEmpty { null }
+        val path = rest.substringBefore(ENTRY).toPath().normalized()
+        return (path to entry).takeIf { path.toString().startsWith(root.normalized().toString() + "/") }
+    }
 
     companion object {
         const val SCHEME = "download:"
+        private const val ENTRY = "!/"
         private const val PAD = 4
     }
 }
@@ -98,6 +147,7 @@ class DownloadFiles(
  * The queue of ADR-009: rows in `download`, run one chapter at a time by [run]; a paused or cancelled chapter keeps the
  * pages already saved and continues from them (RF-62 to RF-66).
  */
+@Suppress("TooManyFunctions") // The Downloads contract plus the run of the queue.
 class DownloadManager(
     db: HqrDatabase,
     private val files: DownloadFiles,
@@ -106,6 +156,13 @@ class DownloadManager(
     private val bytesOf: suspend (chapterId: Long, page: SourcePage) -> ByteArray,
     /** RF-66: the "apagar depois de lido" option. */
     private val deleteAfterRead: () -> Boolean = { false },
+    /** RF-67: keep each finished chapter as one `.cbz`. */
+    private val saveAsCbz: () -> Boolean = { false },
+    /** RF-67: the folder that also gets a `.cbz` of each finished chapter; null for none. */
+    private val folder: () -> String? = { null },
+    private val export: DownloadExport? = null,
+    /** RF-68: free bytes where the downloads are; null where the platform can't tell. */
+    private val freeBytes: () -> Long? = { null },
 ) : Downloads {
     private val dao = db.downloadDao()
 
@@ -185,7 +242,7 @@ class DownloadManager(
     /** The pages of a downloaded chapter as addresses for the image loader; null when it is not fully downloaded. */
     suspend fun offlinePages(chapterId: Long): List<SourcePage>? {
         if (dao.get(chapterId)?.state != DONE) return null
-        return files.pages(chapterId).mapIndexed { i, path -> SourcePage(i, files.address(path)) }.takeIf { it.isNotEmpty() }
+        return files.addresses(chapterId).mapIndexed { i, address -> SourcePage(i, address) }.takeIf { it.isNotEmpty() }
     }
 
     /**
@@ -201,14 +258,19 @@ class DownloadManager(
                 dao.setStates(listOf(QUEUED, RUNNING), WAITING)
                 return true
             }
-            if (download(next.chapterId) == Outcome.NO_NETWORK) {
-                dao.setStates(listOf(QUEUED), WAITING)
-                return true
+            when (download(next.chapterId)) {
+                Outcome.NO_NETWORK -> {
+                    dao.setStates(listOf(QUEUED), WAITING)
+                    return true
+                }
+                // RF-68: the queue stays paused until the user resumes it.
+                Outcome.LOW_SPACE -> return false
+                else -> Unit
             }
         }
     }
 
-    private enum class Outcome { DONE, STOPPED, FAILED, NO_NETWORK }
+    private enum class Outcome { DONE, STOPPED, FAILED, NO_NETWORK, LOW_SPACE }
 
     private suspend fun download(id: Long): Outcome =
         try {
@@ -239,6 +301,7 @@ class DownloadManager(
         var done = pages.count { files.has(id, it.index) }
         var running = dao.progress(id, done, pages.size) > 0
         for (page in pages.filter { !files.has(id, it.index) }) {
+            if (running && lowSpace(id)) return Outcome.LOW_SPACE
             val bytes = if (running) bytesOf(id, page) else break
             running = dao.get(id) != null
             if (running) {
@@ -247,10 +310,36 @@ class DownloadManager(
                 running = dao.progress(id, done, pages.size) > 0
             }
         }
-        if (running && dao.finish(id, files.dir(id).toString()) > 0) return Outcome.DONE
+        if (running && dao.finish(id, files.dir(id).toString()) > 0) {
+            keep(id)
+            return Outcome.DONE
+        }
         // Paused or removed meanwhile: the saved pages stay, unless the chapter left the list.
         if (dao.get(id) == null) files.delete(id)
         return Outcome.STOPPED
+    }
+
+    /** RF-68: short of space, the running chapter and the rest of the queue pause, with the reason. */
+    private suspend fun lowSpace(id: Long): Boolean {
+        val free = freeBytes() ?: return false
+        if (free >= DownloadItem.MIN_FREE_BYTES) return false
+        dao.stop(id, PAUSED, DownloadItem.LOW_SPACE)
+        dao.pauseForSpace(listOf(QUEUED, WAITING), DownloadItem.LOW_SPACE)
+        return true
+    }
+
+    /** RF-67: the finished chapter as one `.cbz`, and a copy in the chosen folder. */
+    private suspend fun keep(id: Long) {
+        val target = folder()
+        if (saveAsCbz() || target != null) files.pack(id)
+        val export = export
+        val row = dao.observeRows().first().firstOrNull { it.chapterId == id }
+        if (target == null || export == null || row == null) return
+        // "012 - Title": numbers padded so other readers sort the files in order.
+        val number = row.number.chapterLabel().padStart(NUMBER_PAD, '0')
+        val name = row.chapterTitle?.takeIf { it.isNotBlank() }?.let { "$number - $it" } ?: number
+        // A copy that fails (folder gone, permission revoked) never undoes the download: HQR reads its own file.
+        runCatching { export.save(target, safeName(row.mangaTitle), "${safeName(name)}.cbz") { sink -> files.copyCbz(id, sink) } }
     }
 
     companion object {
@@ -261,6 +350,34 @@ class DownloadManager(
         const val DONE = "DONE"
         const val ERROR = "ERROR"
         private const val FORMAT = "images"
+        private const val NUMBER_PAD = 3
         private val PENDING = setOf(QUEUED, RUNNING, WAITING)
     }
 }
+
+/** RF-67: where the copy of a finished chapter goes (Android: the folder picked with the system picker). */
+fun interface DownloadExport {
+    /** Writes [fileName] in a folder named [work] inside [folder]; false when it could not. */
+    suspend fun save(
+        folder: String,
+        work: String,
+        fileName: String,
+        write: suspend (okio.Sink) -> Unit,
+    ): Boolean
+}
+
+/** RF-68: the free space where the downloads are; null when unknown. */
+fun interface FreeSpace {
+    fun bytes(): Long?
+}
+
+/** A file or folder name any system accepts. */
+internal fun safeName(name: String): String =
+    name
+        .replace(Regex("[\\\\/:*?\"<>|\\u0000-\\u001F]"), "_")
+        .trim()
+        .trimEnd('.')
+        .take(MAX_NAME)
+        .ifEmpty { "_" }
+
+private const val MAX_NAME = 120

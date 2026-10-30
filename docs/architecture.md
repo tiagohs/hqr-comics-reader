@@ -275,7 +275,7 @@ Decisão: `ReaderViewModel` em `presentation` decide páginas, modo, zonas, pré
 Decisão: `sources/mangadex` monta `contentRating[]` pelo sabor (loja: `safe`), inclui grupo e créditos no modelo e envia o relatório at-home. A interface não decide isso. Requisitos: RF-07, RF-08, RF-09, C-04.
 
 ### ADR-009 Downloads: fila no núcleo, executor por plataforma
-Decisão: fila e estados em `download` (shared, persistidos no banco); Android executa com WorkManager como transferência iniciada pelo usuário (API 34+) ou serviço `dataSync`; iOS com `URLSession` em segundo plano e `BGProcessingTask`. Requisitos: RF-62 a RF-68, RNF-27, RNF-28, RF-94.
+Decisão: fila e estados em `download` (shared, persistidos no banco); Android executa com WorkManager como transferência iniciada pelo usuário (API 34+) ou serviço `dataSync`; iOS com `URLSession` em segundo plano e `BGProcessingTask`. O HQR lê sempre a cópia na pasta do app (uma pasta por capítulo ou um `.cbz` gravado sem compressão pelo próprio núcleo, sem biblioteca de zip); a pasta escolhida pelo usuário recebe uma cópia em `.cbz` pelo Storage Access Framework, porque ler pelo SAF a cada página seria lento e a permissão pode ser revogada. Abaixo de 200 MB livres a fila pausa com o motivo "Pouco espaço". Requisitos: RF-62 a RF-68, RNF-27, RNF-28, RF-94.
 
 ### ADR-010 Backup próprio em JSON compactado
 Contexto: igual no Android e no iOS, legível e versionado. Opções: Protobuf (menor, como o `.tachibk`); JSON com gzip. Decisão: JSON (kotlinx.serialization) em gzip, extensão `.hqrbackup`, campo `schemaVersion`; sem compatibilidade com `.tachibk` na 1.0. Requisitos: RF-72 a RF-75, RF-89.

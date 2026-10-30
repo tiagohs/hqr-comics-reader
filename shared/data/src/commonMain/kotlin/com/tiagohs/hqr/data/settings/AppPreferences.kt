@@ -77,6 +77,23 @@ class AppPreferences(
         _deleteAfterRead.value = on
     }
 
+    // RF-67: a chapter as one .cbz, and the folder that gets a copy; off and none by default.
+    private val _downloadsAsCbz = MutableStateFlow(settings.getBoolean(DOWNLOADS_CBZ, false))
+    val downloadsAsCbz: StateFlow<Boolean> = _downloadsAsCbz.asStateFlow()
+
+    fun setDownloadsAsCbz(on: Boolean) {
+        settings.putBoolean(DOWNLOADS_CBZ, on)
+        _downloadsAsCbz.value = on
+    }
+
+    private val _downloadFolder = MutableStateFlow(settings.getStringOrNull(DOWNLOAD_FOLDER))
+    val downloadFolder: StateFlow<String?> = _downloadFolder.asStateFlow()
+
+    fun setDownloadFolder(uri: String?) {
+        if (uri == null) settings.remove(DOWNLOAD_FOLDER) else settings.putString(DOWNLOAD_FOLDER, uri)
+        _downloadFolder.value = uri
+    }
+
     private val _mangaDexSuggestive = MutableStateFlow(settings.getBoolean(MANGADEX_SUGGESTIVE, false))
 
     /** RF-08: "suggestive" on MangaDex only after the 18+ confirmation; off by default. */
@@ -187,6 +204,8 @@ class AppPreferences(
         const val DELETE_AFTER_READ = "downloads.deleteAfterRead"
         const val WIFI_ONLY = "downloads_wifi_only"
         const val MANGADEX_SUGGESTIVE = "mangadex_mangaDexSuggestive"
+        const val DOWNLOADS_CBZ = "downloads_cbz"
+        const val DOWNLOAD_FOLDER = "downloads_folder"
         const val MANGADEX_LANGUAGES = "mangadex_languages"
         const val MANGADEX_DATA_SAVER = "mangadex_data_saver"
     }

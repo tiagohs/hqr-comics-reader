@@ -74,6 +74,7 @@ jobs:
                   print(f"::error title={m.group(2)}.{m.group(1)}::{m.group(3)[:400]} at {where}")
           PY
           find . -path "*/build/reports/detekt/*.txt" -exec grep -h "\]$" {} + 2>/dev/null | head -20 | sed 's/^/::error title=detekt::/' || true
+          find . -path "*/build/reports/ktlint/*.txt" -size +0 -exec cat {} + 2>/dev/null | head -20 | sed 's/^/::error title=ktlint::/' || true
           # What Gradle says went wrong, as one annotation (the Actions log is not readable from outside).
           # BSD sed on the Mac can't join lines: Python does.
           MSG=$(grep -A6 "What went wrong" "$RESULTS/check.log" | grep -v "^--$" | head -40 | python3 -c 'import sys; print("%0A".join(l.rstrip() for l in sys.stdin))')

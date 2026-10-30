@@ -14,12 +14,14 @@ import androidx.compose.ui.test.performTouchInput
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.source.Source
+import com.tiagohs.hqr.presentation.color.CoverColor
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.ui.navigation.HqrApp
 import kotlinx.coroutines.runBlocking
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /** Integration through the real app: navigation, screens, ViewModels and the database. */
 @OptIn(ExperimentalTestApi::class)
@@ -84,6 +86,9 @@ class AppScreensTest {
         screenTest {
             val db = startTestKoin()
             assertEquals(1, readFlow(db, "demo", { "Kaiju Express" }, 5_000))
+            // RF-98: the green cover gave the work its own color (decoded on the JVM like on the devices).
+            val color = runBlocking { db.mangaDao().get(1)?.coverColor }
+            assertTrue(color != null && color != CoverColor.VIOLET, "cover color: $color")
         }
 
     @Test

@@ -114,3 +114,8 @@ private const val ROLE_PRIMARY = 8
 private const val ROLE_ON_PRIMARY = 9
 private const val ROLE_PRIMARY_CONTAINER = 10
 private const val ROLE_ON_PRIMARY_CONTAINER = 11
+
+/** Pixels of a work's cover in ARGB, downscaled (~128 px); null when the cover can't be read (RF-98). */
+fun interface CoverPixels {
+    suspend fun pixels(manga: com.tiagohs.hqr.domain.model.Manga): IntArray?
+}

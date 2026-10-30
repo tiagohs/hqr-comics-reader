@@ -20,6 +20,7 @@ import com.tiagohs.hqr.domain.source.ImageSource
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
+import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
@@ -32,6 +33,7 @@ import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
 import com.tiagohs.hqr.presentation.reader.TapZones
 import com.tiagohs.hqr.sources.local.LocalSource
+import com.tiagohs.hqr.ui.color.ImageCoverPixels
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
@@ -62,7 +64,8 @@ val coreModule: Module =
         viewModel { LibraryViewModel(get(), get(), get()) }
         viewModel { HistoryViewModel(get(), get()) }
         viewModel { (id: SourceId) -> BrowseSourceViewModel(id, get(), get()) }
-        viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get()) }
+        single<CoverPixels> { ImageCoverPixels(get()) }
+        viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get(), get()) }
         viewModel { (mangaId: Long, chapterId: Long, page: Int) ->
             ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get())
         }

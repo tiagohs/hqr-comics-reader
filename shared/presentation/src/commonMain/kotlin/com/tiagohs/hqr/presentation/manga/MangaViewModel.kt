@@ -9,6 +9,8 @@ import com.tiagohs.hqr.domain.model.ReadingRules
 import com.tiagohs.hqr.domain.repository.ChapterRepository
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.source.SourceRegistry
+import com.tiagohs.hqr.presentation.color.CoverColor
+import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.common.ErrorKind
 import com.tiagohs.hqr.presentation.common.attempt
 import com.tiagohs.hqr.presentation.common.toErrorKind
@@ -16,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -25,6 +29,7 @@ class MangaViewModel(
     private val registry: SourceRegistry,
     private val mangas: MangaRepository,
     private val chapters: ChapterRepository,
+    private val coverPixels: CoverPixels? = null,
 ) : ViewModel() {
     enum class Order { NEWEST_FIRST, OLDEST_FIRST }
 
@@ -77,6 +82,16 @@ class MangaViewModel(
 
     init {
         refresh()
+        viewModelScope.launch { colorFromCover() }
+    }
+
+    /** RF-98, ADR-021: the seed is computed once per cover and saved with the work. */
+    private suspend fun colorFromCover() {
+        val manga = mangas.observe(mangaId).filterNotNull().first { it.source.coverUrl != null || it.coverColor != null }
+        val reader = coverPixels
+        if (manga.coverColor != null || reader == null) return
+        val pixels = runCatching { reader.pixels(manga) }.getOrNull() ?: return
+        mangas.setCoverColor(mangaId, CoverColor.seed(pixels))
     }
 
     /** RF-33: rereads details and chapters; on failure keeps what was there and warns. */

@@ -27,11 +27,13 @@ import com.tiagohs.hqr.ui.resources.error_parse
 import com.tiagohs.hqr.ui.resources.error_server
 import com.tiagohs.hqr.ui.resources.error_unavailable
 import com.tiagohs.hqr.ui.resources.error_unknown
+import com.tiagohs.hqr.ui.resources.source_local
 import com.tiagohs.hqr.ui.resources.status_cancelled
 import com.tiagohs.hqr.ui.resources.status_completed
 import com.tiagohs.hqr.ui.resources.status_hiatus
 import com.tiagohs.hqr.ui.resources.status_ongoing
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 /** Reading progress on a halftone track (design.md §4). [fraction] 0..1; in right-to-left it fills from the right. */
 @Composable
@@ -81,3 +83,10 @@ fun ErrorKind.message(): StringResource =
         ErrorKind.UNAVAILABLE -> Res.string.error_unavailable
         ErrorKind.UNKNOWN -> Res.string.error_unknown
     }
+
+/** The source's name in the app language: built-in names that are words (local files) are translated (RNF-14). */
+@Composable
+fun sourceDisplayName(
+    id: com.tiagohs.hqr.domain.model.SourceId,
+    name: String,
+): String = if (id == com.tiagohs.hqr.domain.model.SourceId.LOCAL) stringResource(Res.string.source_local) else name

@@ -23,7 +23,9 @@ class LocalSource(
 ) : CatalogSource,
     ImageSource {
     override val id: SourceId = SourceId.LOCAL
-    override val name: String = "Arquivos locais"
+
+    // Shown translated by the screens (sourceDisplayName).
+    override val name: String = "Local files"
     override val languages: List<String> = emptyList()
 
     override suspend fun popular(page: Int): MangaPage = pageOf(works().sortedWith(compareBy(NaturalOrder) { it.title }), false)

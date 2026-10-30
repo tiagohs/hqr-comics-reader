@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
+import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.explore_sources
 import com.tiagohs.hqr.ui.resources.nav_explore
@@ -51,7 +52,7 @@ fun ExploreScreen(
             }
             items(registry.all, key = { it.id.value }) { source ->
                 ListItem(
-                    headlineContent = { Text(source.name) },
+                    headlineContent = { Text(sourceDisplayName(source.id, source.name)) },
                     supportingContent = {
                         if (source.languages.isNotEmpty()) {
                             Text(

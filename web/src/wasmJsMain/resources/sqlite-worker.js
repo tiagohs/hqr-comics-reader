@@ -13,7 +13,9 @@ const ready = sqlite3InitModule().then(async (s) => {
   sqlite3 = s;
   try {
     pool = await s.installOpfsSAHPoolVfs({ name: 'hqr-pool' });
+    console.info('HQR: library stored in OPFS');
   } catch (e) {
+    console.warn('HQR: OPFS unavailable, the library lives in memory for this tab', e);
     // Without OPFS (private window, old browser) the data lives in memory for this tab only.
     pool = null;
   }
@@ -30,7 +32,10 @@ function prepare(databaseId, sql) {
   const st = dbs.get(databaseId).prepare(sql);
   const id = nextStmt++;
   stmts.set(id, st);
-  return { statementId: id, parameterCount: st.parameterCount, columnNames: st.getColumnNames() };
+  // getColumnNames() throws for statements without columns (PRAGMA x = y, INSERT…).
+  const columnNames = [];
+  for (let c = 0; c < st.columnCount; c++) columnNames.push(st.getColumnName(c));
+  return { statementId: id, parameterCount: st.parameterCount, columnNames };
 }
 
 function step(statementId, bindings) {
@@ -57,6 +62,10 @@ function step(statementId, bindings) {
     const row = [];
     for (let c = 0; c < count; c++) row.push(st.get(c));
     rows.push(row);
+  }
+  // Room reads column types even when no row came back: every column is then NULL (5).
+  if (first) {
+    for (let c = 0; c < st.columnCount; c++) columnTypes.push(5);
   }
   return { rows, columnTypes };
 }

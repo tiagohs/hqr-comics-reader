@@ -54,7 +54,9 @@ class MangaDexSourceTest {
         ),
     )
 
-    private val source =
+    private var report = true
+
+    private val source by lazy {
         MangaDexSource(
             http =
                 HttpClient(
@@ -76,7 +78,9 @@ class MangaDexSourceTest {
                 waits += it
                 now += it
             },
+            reportImages = report,
         )
+    }
 
     private val manga = SourceManga(SourceId.MANGADEX, "a1", "Obra")
     private val chapter = SourceChapter("ch1", 12.0)
@@ -172,6 +176,15 @@ class MangaDexSourceTest {
             body shouldContain "\"success\":true"
             body shouldContain "\"bytes\":3"
             body shouldContain "\"cached\":true"
+        }
+
+    @Test
+    fun RF09_browserBuildSendsNoReport() =
+        runTest {
+            report = false
+            source.pages(manga, chapter)
+            source.image("mangadex-page:ch1/p1.png", emptyMap())
+            requests.none { it.url.host == "api.mangadex.network" } shouldBe true
         }
 
     @Test

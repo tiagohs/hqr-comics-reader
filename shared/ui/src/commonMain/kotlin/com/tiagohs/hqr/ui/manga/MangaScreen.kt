@@ -67,6 +67,7 @@ import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.label
 import com.tiagohs.hqr.ui.components.message
+import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
@@ -88,6 +89,7 @@ import com.tiagohs.hqr.ui.resources.manga_in_library
 import com.tiagohs.hqr.ui.resources.manga_mark_previous
 import com.tiagohs.hqr.ui.resources.manga_mark_read
 import com.tiagohs.hqr.ui.resources.manga_mark_unread
+import com.tiagohs.hqr.ui.resources.manga_no_chapters
 import com.tiagohs.hqr.ui.resources.manga_open_site
 import com.tiagohs.hqr.ui.resources.manga_order
 import com.tiagohs.hqr.ui.resources.manga_page_of
@@ -214,6 +216,16 @@ private fun MangaContent(
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
+                    if (state.totalChapters == 0 && !state.refreshing && state.error == null) {
+                        item {
+                            Text(
+                                stringResource(Res.string.manga_no_chapters),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(16.dp),
+                            )
+                        }
+                    }
                     items(state.chapters, key = { it.id }) { chapter ->
                         ChapterRow(
                             chapter = chapter,
@@ -292,7 +304,10 @@ private fun Header(manga: Manga) {
 
 @Composable
 private fun sourceName(manga: Manga): String =
-    koinInject<com.tiagohs.hqr.domain.source.SourceRegistry>()[manga.sourceId]?.name ?: manga.sourceId.value
+    sourceDisplayName(
+        manga.sourceId,
+        koinInject<com.tiagohs.hqr.domain.source.SourceRegistry>()[manga.sourceId]?.name ?: manga.sourceId.value,
+    )
 
 @Composable
 private fun Actions(

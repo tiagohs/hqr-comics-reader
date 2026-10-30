@@ -5,6 +5,8 @@ import com.tiagohs.hqr.domain.source.SourceException
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel.Listing
+import com.tiagohs.hqr.presentation.color.CoverColor
+import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.common.ErrorKind
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
@@ -74,6 +76,34 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
             vm.state.first { !it.loading }.error shouldBe ErrorKind.UNAVAILABLE
             val manga = track(MangaViewModel(999, registry, db.mangas, db.chapters))
             manga.state.first { !it.refreshing && it.error != null }.error shouldBe ErrorKind.NOT_FOUND
+        }
+
+    @Test
+    fun RF98_workTakesItsColorFromTheCoverOnce() =
+        runTest {
+            val work =
+                source
+                    .popular(1)
+                    .items
+                    .first()
+                    .copy(coverUrl = "https://x/capa.jpg")
+            val id = db.mangas.upsert(work).id
+            var reads = 0
+            val yellow = IntArray(64 * 64) { 0xFFFCF543.toInt() }
+            val pixels =
+                CoverPixels {
+                    reads++
+                    yellow
+                }
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters, pixels))
+            val color =
+                vm.state
+                    .first { it.manga?.coverColor != null }
+                    .manga!!
+                    .coverColor
+            color shouldBe CoverColor.seed(yellow)
+            track(MangaViewModel(id, registry, db.mangas, db.chapters, pixels)).state.first { it.manga != null }
+            reads shouldBe 1
         }
 
     @Test

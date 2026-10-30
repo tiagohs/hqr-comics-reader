@@ -97,6 +97,8 @@ jobs:
           rsync -a --prune-empty-dirs --include '*/' --include 'reports/**' --include 'test-results/**' \
             --include 'screenshots/**' --exclude '*' . "$RESULTS/" 2>/dev/null || true
           echo "Reports: $RESULTS" >> "$GITHUB_STEP_SUMMARY"
+          # Disk on the Mac is short: only the last 5 runs stay.
+          ls -1dt "$HOME"/hqr-ci/*/ 2>/dev/null | tail -n +6 | xargs rm -rf
 
       - name: Draft release with the APKs and the web zip
         env:
@@ -124,6 +126,7 @@ jobs:
             gh release create "$TAG" --draft --target "${{ github.sha }}" --title "$TITLE" --notes "$NOTES"
           fi
           gh release upload "$TAG" dist/* --clobber
+          rm -rf dist
           echo "Draft release: $(gh release view "$TAG" --json url -q .url)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish the web app (gh-pages)

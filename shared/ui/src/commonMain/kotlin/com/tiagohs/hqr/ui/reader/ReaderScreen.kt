@@ -95,6 +95,7 @@ import org.koin.core.parameter.parametersOf
 
 /** Pages kept composed on each side of the visible one, so their images load ahead (RF-41). */
 private const val MAX_PRELOAD = 6
+private const val MAX_SLIDER_TICKS = 30
 
 /** SCR-RDR-001: zero chrome until a center tap; the bars use the cover color (RF-36 to RF-43, RF-98). */
 @Composable
@@ -365,9 +366,10 @@ private fun ReaderMenu(
                 )
                 Slider(
                     value = state.page.toFloat(),
-                    onValueChange = { viewModel.onPageChanged(it.toInt()) },
+                    onValueChange = { viewModel.onPageChanged(kotlin.math.round(it).toInt()) },
                     valueRange = 0f..(state.pageCount - 1).coerceAtLeast(1).toFloat(),
-                    steps = (state.pageCount - 2).coerceAtLeast(0),
+                    // Tick marks only while they stay readable; long chapters slide freely and snap to the page.
+                    steps = if (state.pageCount <= MAX_SLIDER_TICKS) (state.pageCount - 2).coerceAtLeast(0) else 0,
                     modifier = if (rtl) Modifier.scale(scaleX = -1f, scaleY = 1f) else Modifier,
                 )
             }

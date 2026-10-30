@@ -57,6 +57,8 @@ class RoomMangaRepository(
             kind = merged.kind.name,
             updatedAt = now,
         )
+        // RF-98: a new cover means a new color, computed again on the next opening.
+        if (merged.coverUrl != existing.coverUrl) dao.setCoverColor(existing.id, null)
         return requireNotNull(dao.get(existing.id)).toDomain()
     }
 

@@ -38,7 +38,7 @@ class DemoSource(
             "Noite Ciana",
             "Tinta e Osso",
         )
-    private val colors = listOf(0x2B3A4A, 0x16313A, 0xF2E6D0, 0x3A2F45, 0x2A2A2E, 0x13253F, 0x3B1F1F, 0x0F2E36, 0xE9E4DA)
+    private val colors = listOf(0x2B3A4A, 0x1B8A5A, 0xF2E6D0, 0x3A2F45, 0x2A2A2E, 0x13253F, 0x3B1F1F, 0x0F2E36, 0xE9E4DA)
 
     fun manga(i: Int) =
         SourceManga(

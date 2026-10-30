@@ -127,4 +127,6 @@
     <string name="chapter_short">Ch. %1$s</string>
     <string name="library_tab_all">All</string>
     <string name="library_tab_uncategorized">No category</string>
+    <string name="source_local">Local files</string>
+    <string name="manga_no_chapters">No chapters in your languages at this source. Change the content languages in Settings or open the work on the site.</string>
 </resources>

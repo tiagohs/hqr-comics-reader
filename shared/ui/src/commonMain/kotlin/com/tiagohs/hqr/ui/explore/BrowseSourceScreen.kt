@@ -51,6 +51,7 @@ import com.tiagohs.hqr.ui.components.ErrorState
 import com.tiagohs.hqr.ui.components.InLibraryBadge
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.message
+import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_choose_folder
@@ -101,7 +102,7 @@ fun BrowseSourceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(state.sourceName, style = MaterialTheme.typography.headlineMedium) },
+                title = { Text(sourceDisplayName(SourceId(sourceId), state.sourceName), style = MaterialTheme.typography.headlineMedium) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(HqrIcons.Back, stringResource(Res.string.action_back)) } },
             )
         },

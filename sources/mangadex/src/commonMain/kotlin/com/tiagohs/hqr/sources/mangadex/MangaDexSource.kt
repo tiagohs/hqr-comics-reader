@@ -47,6 +47,8 @@ class MangaDexSource(
     private val contentRatings: () -> Set<String> = { setOf("safe") },
     private val clock: Clock = Clock.System,
     private val sleep: suspend (Duration) -> Unit = { delay(it) },
+    // The report endpoint answers no CORS preflight, so the browser build turns it off.
+    private val reportImages: Boolean = true,
 ) : CatalogSource,
     SearchSource,
     ImageSource {
@@ -166,7 +168,7 @@ class MangaDexSource(
                     bytes to (response.headers["X-Cache"]?.startsWith("HIT") == true)
                 }
             }
-        if (!server.baseUrl.contains("mangadex.org")) {
+        if (reportImages && !server.baseUrl.contains("mangadex.org")) {
             val (bytes, cached) = result.getOrNull() ?: (ByteArray(0) to false)
             report(ReportDto(imageUrl, result.isSuccess, bytes.size, (clock.now() - start).inWholeMilliseconds, cached))
         }

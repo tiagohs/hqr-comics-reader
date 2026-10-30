@@ -178,4 +178,14 @@ class LibraryRepositoriesTest {
                 }
             ids.toSet().size shouldBe 1
         }
+
+    @Test
+    fun RF98_coverColorIsKeptUntilTheCoverChanges() =
+        runTest {
+            val work = SourceManga(SourceId.MANGADEX, "c", "Obra", coverUrl = "https://x/1.jpg")
+            val id = mangas.upsert(work).id
+            mangas.setCoverColor(id, 0x123456)
+            mangas.upsert(work.copy(title = "Obra 2")).coverColor shouldBe 0x123456
+            mangas.upsert(work.copy(coverUrl = "https://x/2.jpg")).coverColor shouldBe null
+        }
 }

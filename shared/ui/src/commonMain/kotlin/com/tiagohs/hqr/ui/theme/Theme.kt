@@ -66,6 +66,9 @@ fun hqrColorScheme(
 /** RF-76: the "preto puro" setting, given once by the app for every theme below it. */
 val LocalPureBlack = staticCompositionLocalOf { false }
 
+/** RF-76: the system's colors instead of the violet base, where the platform has them. */
+val LocalDynamicColor = staticCompositionLocalOf { false }
+
 /**
  * The app theme. [seed] is the violet base everywhere except the work screen, the reader and the work detail pane,
  * which pass the cover color (RF-98). The change animates in 300 ms; with reduced motion it switches at once.
@@ -77,8 +80,10 @@ fun HqrTheme(
     animate: Boolean = true,
     content: @Composable () -> Unit,
 ) {
+    // RF-76: the system's colors replace the violet base only; a cover color (RF-98) still wins on its screens.
+    val system = if (seed == CoverColor.VIOLET && LocalDynamicColor.current) dynamicColorScheme(dark) else null
+    val base = system ?: hqrColorScheme(seed, dark)
     // RF-76: "preto puro" turns the dark backgrounds to #000000.
-    val base = hqrColorScheme(seed, dark)
     val target = if (dark && LocalPureBlack.current) base.copy(background = Color.Black, surface = Color.Black) else base
     val scheme = if (animate) target.animated() else target
     MaterialTheme(colorScheme = scheme, typography = hqrTypography(), shapes = HqrShapes.material, content = content)

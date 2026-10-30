@@ -37,6 +37,7 @@ class DownloadManagerTest {
     private var scheduled = 0
     private val restarts = mutableListOf<Boolean>()
     private var deleteAfterRead = false
+    private val empty = mutableSetOf<Long>()
     private val asked = mutableListOf<String>()
     private var failOn: Int? = null
     private var onPage: suspend (Long, Int) -> Unit = { _, _ -> }
@@ -48,7 +49,7 @@ class DownloadManagerTest {
                 scheduled++
                 restarts += restart
             },
-            pagesOf = { id -> (0 until 3).map { SourcePage(it, "https://img/$id/$it") } },
+            pagesOf = { id -> if (id in empty) emptyList() else (0 until 3).map { SourcePage(it, "https://img/$id/$it") } },
             bytesOf = { id, page ->
                 onPage(id, page.index)
                 if (page.index == failOn) error("falhou")
@@ -254,5 +255,30 @@ class DownloadManagerTest {
             val item = manager.observe().first().single()
             item.state shouldBe DownloadState.QUEUED
             item.pagesDone shouldBe 1
+        }
+
+    @Test
+    fun RF63_moveWhileDownloadingKeepsTheWorkersProgress() =
+        runTest {
+            val ids = work()
+            manager.enqueue(ids.take(3))
+            onPage = { id, index -> if (id == ids[0] && index == 2) manager.move(ids[2], -1) }
+            manager.run { true }
+            val items = manager.observe().first()
+            items.map { it.chapterId } shouldContainExactly listOf(ids[0], ids[2], ids[1])
+            items.map { it.state }.distinct() shouldContainExactly listOf(DownloadState.DONE)
+            items.map { it.pagesDone }.distinct() shouldContainExactly listOf(3)
+        }
+
+    @Test
+    fun RF63_chapterWithoutPagesIsAnErrorNotADownload() =
+        runTest {
+            val ids = work()
+            empty += ids[0]
+            manager.enqueue(ids.take(1))
+            manager.run { true }
+            val item = manager.observe().first().single()
+            item.state shouldBe DownloadState.ERROR
+            manager.offlinePages(ids[0]) shouldBe null
         }
 }

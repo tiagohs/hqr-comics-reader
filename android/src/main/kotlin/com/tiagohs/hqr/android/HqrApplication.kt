@@ -30,6 +30,7 @@ import com.tiagohs.hqr.sources.opds.BookStore
 import com.tiagohs.hqr.sources.opds.DiskBookStore
 import com.tiagohs.hqr.ui.di.AppVersion
 import com.tiagohs.hqr.ui.di.BuiltInSources
+import com.tiagohs.hqr.ui.di.CrashReports
 import com.tiagohs.hqr.ui.di.coreModule
 import com.tiagohs.hqr.ui.di.downloadModule
 import io.ktor.client.HttpClient
@@ -78,6 +79,7 @@ class HqrApplication : Application() {
             // RF-82: the GitHub flavor updates itself (ADR-015).
             single<Updates> { AndroidUpdates(this@HqrApplication, ReleaseChecker(get(), get(), BuildConfig.VERSION_NAME), get()) }
             single(AppVersion) { BuildConfig.VERSION_NAME }
+            CrashReporting.reports?.let { reports -> single<CrashReports> { reports } }
             single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
         }
 

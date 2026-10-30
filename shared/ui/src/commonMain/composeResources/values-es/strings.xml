@@ -334,7 +334,6 @@
     <string name="update_available">Nueva versión %1$s</string>
     <string name="update_install">Actualizar</string>
     <string name="update_later">Después</string>
-    <string name="update_failed">No se pudo actualizar: %1$s</string>
     <string name="update_check_failed">No se pudo buscar actualizaciones ahora.</string>
     <string name="download_state_network">Esperando la red</string>
     <string name="source_unavailable">Fuente no disponible: %1$s</string>
@@ -346,4 +345,13 @@
     <string name="onboarding_start">Empezar</string>
     <string name="onboarding_later">Puedes cambiar los idiomas después, en Ajustes</string>
     <string name="settings_content_languages">Idiomas de las obras</string>
+    <string name="settings_dynamic_color">Colores del sistema</string>
+    <string name="settings_dynamic_color_hint">Usa los colores del fondo de pantalla fuera de las páginas de las obras</string>
+    <string name="update_problem_no_checksum">Esta versión no publicó su SHA-256, así que no se puede comprobar. Inténtalo más tarde.</string>
+    <string name="update_problem_permission">Permite que HQR instale apps y toca Actualizar otra vez.</string>
+    <string name="update_problem_mismatch">El archivo descargado no coincide con el publicado. No se instaló nada.</string>
+    <string name="update_problem_network">La descarga no terminó. Revisa la conexión e inténtalo de nuevo.</string>
+    <string name="settings_crash_reports">Enviar informes de fallos</string>
+    <string name="settings_crash_reports_hint">Solo el rastro del error, el modelo del dispositivo y un id de instalación; nunca lo que lees</string>
+    <string name="about_privacy_link">Política de privacidad completa</string>
 </resources>

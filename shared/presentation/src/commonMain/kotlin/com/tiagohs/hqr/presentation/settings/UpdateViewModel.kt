@@ -2,7 +2,9 @@ package com.tiagohs.hqr.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tiagohs.hqr.domain.repository.UpdateFailure
 import com.tiagohs.hqr.domain.repository.UpdateInfo
+import com.tiagohs.hqr.domain.repository.UpdateProblem
 import com.tiagohs.hqr.domain.repository.Updates
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +22,7 @@ class UpdateViewModel(
         val info: UpdateInfo? = null,
         val checkFailed: Boolean = false,
         val progress: Float? = null,
-        val installError: String? = null,
+        val installError: UpdateProblem? = null,
     )
 
     private val _state = MutableStateFlow(State())
@@ -44,7 +46,10 @@ class UpdateViewModel(
             updates
                 .install(info) { p -> _state.update { it.copy(progress = p) } }
                 .onSuccess { _state.update { it.copy(progress = null) } }
-                .onFailure { e -> _state.update { it.copy(progress = null, installError = e.message ?: "?") } }
+                .onFailure { e ->
+                    val problem = (e as? UpdateFailure)?.problem ?: UpdateProblem.NETWORK
+                    _state.update { it.copy(progress = null, installError = problem) }
+                }
         }
     }
 

@@ -29,8 +29,8 @@
 | RF-21 | Must | UC-002 | browse | SCR-EXP-002 | FEAT-001, FEAT-011 | BrowseAndMangaViewModelTest, MangaDexSourceTest |
 | RF-22 | Must | UC-001 | browse | SCR-EXP-002, SCR-EXP-003 | FEAT-011 | BrowseAndMangaViewModelTest, ContractsTest, MangaDexSourceTest, SearchScreensTest, SourceRegistryTest |
 | RF-23 | Must | UC-001 | browse | SCR-SRCH-001 | FEAT-012 | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, SearchScreensTest |
-| RF-24 | Should | UC-001, UC-002 | library, browse | SCR-EXP-002, SCR-EXP-003 | FEAT-026 | ModelsTest |
-| RF-25 | Should | UC-001, UC-002 | library, browse | SCR-EXP-001, SCR-EXP-004 | FEAT-026 | — |
+| RF-24 | Should | UC-001, UC-002 | library, browse | SCR-EXP-002, SCR-EXP-003 | FEAT-026 | BackupServiceTest, ModelsTest |
+| RF-25 | Should | UC-001, UC-002 | library, browse | SCR-EXP-001, SCR-EXP-004 | FEAT-026 | BackupServiceTest |
 | RF-26 | Should | UC-001, UC-002 | browse | SCR-SRCH-001 | FEAT-026 | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, ModelsTest |
 | RF-27 | Could | UC-001 | browse | SCR-SRCH-001 | FEAT-026 | — |
 | RF-28 | Must | UC-001 | browse | SCR-SRCH-001 | FEAT-012 | GlobalSearchViewModelTest, SearchScreensTest |
@@ -73,7 +73,7 @@
 | RF-63 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | DownloadManagerTest, DownloadsAndBackupViewModelTest |
 | RF-64 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-017 | DownloadManagerTest |
 | RF-65 | Must | UC-004, UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | DownloadManagerTest |
-| RF-66 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | DownloadManagerTest, DownloadsAndBackupViewModelTest, DownloadsScreensTest |
+| RF-66 | Must | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-018 | DownloadManagerTest, DownloadsAndBackupViewModelTest, DownloadsScreensTest, ReaderAndHistoryViewModelTest |
 | RF-67 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | — |
 | RF-68 | Should | UC-007 | download, ADR-009 | SCR-DL-001 | FEAT-029 | — |
 | RF-69 | Should | UC-010 | migration | SCR-OBR-002 | FEAT-031 | — |
@@ -83,14 +83,14 @@
 | RF-73 | Must | UC-003, UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | BackupServiceTest, ContractsTest, DownloadsAndBackupViewModelTest, DownloadsScreensTest |
 | RF-74 | Must | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | BackupServiceTest |
 | RF-75 | Could | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-046 | — |
-| RF-76 | Should | UC-012 | settings | SCR-SET-001 | FEAT-033 | NetAndCacheTest |
-| RF-77 | Must | UC-012 | settings, ADR-017 | SCR-SET-001 | FEAT-020 | — |
-| RF-78 | Must | UC-012 | app | SCR-SET-003 | FEAT-021 | — |
+| RF-76 | Should | UC-012 | settings | SCR-SET-001 | FEAT-033 | NetAndCacheTest, SettingsScreensTest |
+| RF-77 | Must | UC-012 | settings, ADR-017 | SCR-SET-001 | FEAT-020 | SettingsScreensTest |
+| RF-78 | Must | UC-012 | app | SCR-SET-003 | FEAT-021 | SettingsScreensTest |
 | RF-79 | Could | UC-012 | app | SCR-SET-003 | FEAT-049 | — |
-| RF-80 | Must | UC-012 | app | SCR-SET-001 | FEAT-020 | — |
-| RF-81 | Should | UC-012 | app | SCR-ONB-001 | FEAT-032 | — |
-| RF-82 | Must | UC-013 | updater, ADR-015 | SCR-SET-004 | FEAT-022 | — |
-| RF-84 | Must | UC-013 | ADR-015, ADR-016 | SCR-SET-004 | FEAT-022 | — |
+| RF-80 | Must | UC-012 | app | SCR-SET-001 | FEAT-020 | NetAndCacheTest |
+| RF-81 | Should | UC-012 | app | SCR-ONB-001 | FEAT-032 | NavigationTest |
+| RF-82 | Must | UC-013 | updater, ADR-015 | SCR-SET-004 | FEAT-022 | ApkDownloaderTest, ReleaseCheckerTest |
+| RF-84 | Must | UC-013 | ADR-015, ADR-016 | SCR-SET-004 | FEAT-022 | ReleaseCheckerTest |
 | RF-85 | Could | UC-008 | app | SCR-SRC-001 | FEAT-048 | ModelsTest |
 | RF-86 | Must | UC-001, UC-002 | browse | SCR-STA-001 | Fundações | — |
 | RF-87 | Must | UC-001 | browse | SCR-STA-001 | FEAT-023 | BrowseAndMangaViewModelTest |

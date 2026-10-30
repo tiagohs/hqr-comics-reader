@@ -6,4 +6,7 @@ import android.app.Application
 object CrashReporting {
     @Suppress("UnusedParameter") // Same signature as the Firebase variant.
     fun init(app: Application) = Unit
+
+    /** No switch in Settings: nothing is ever sent. */
+    val reports: com.tiagohs.hqr.ui.di.CrashReports? = null
 }

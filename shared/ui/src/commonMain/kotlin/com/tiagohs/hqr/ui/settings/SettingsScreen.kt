@@ -38,11 +38,14 @@ import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.ui.downloads.formatBytes
+import com.tiagohs.hqr.ui.di.CrashReports
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.action_ok
 import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.resources.settings_about
+import com.tiagohs.hqr.ui.resources.settings_crash_reports
+import com.tiagohs.hqr.ui.resources.settings_crash_reports_hint
 import com.tiagohs.hqr.ui.resources.settings_adult_confirm
 import com.tiagohs.hqr.ui.resources.settings_adult_message
 import com.tiagohs.hqr.ui.resources.settings_adult_title
@@ -63,6 +66,8 @@ import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive
 import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive_hint
 import com.tiagohs.hqr.ui.resources.settings_no_folder
 import com.tiagohs.hqr.ui.resources.settings_other
+import com.tiagohs.hqr.ui.resources.settings_dynamic_color
+import com.tiagohs.hqr.ui.resources.settings_dynamic_color_hint
 import com.tiagohs.hqr.ui.resources.settings_pure_black
 import com.tiagohs.hqr.ui.resources.settings_pure_black_hint
 import com.tiagohs.hqr.ui.resources.settings_sources
@@ -71,6 +76,7 @@ import com.tiagohs.hqr.ui.resources.settings_theme_light
 import com.tiagohs.hqr.ui.resources.settings_theme_system
 import com.tiagohs.hqr.ui.resources.settings_updates
 import com.tiagohs.hqr.ui.theme.HqrIcons
+import com.tiagohs.hqr.ui.theme.dynamicColorAvailable
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -91,7 +97,10 @@ fun SettingsScreen(
 ) {
     val hasDownloads = getKoin().getOrNull<Downloads>() != null
     val hasUpdates = getKoin().getOrNull<Updates>() != null
+    val crashReports = getKoin().getOrNull<CrashReports>()
+    val sendCrashes by prefs.crashReports.collectAsStateWithLifecycle()
     val pureBlack by prefs.pureBlack.collectAsStateWithLifecycle()
+    val dynamicColor by prefs.dynamicColor.collectAsStateWithLifecycle()
     val language by prefs.appLanguage.collectAsStateWithLifecycle()
     var choosingLanguage by remember { mutableStateOf(false) }
     var choosingContent by remember { mutableStateOf(false) }
@@ -176,6 +185,17 @@ fun SettingsScreen(
                     trailingContent = { Switch(checked = pureBlack, onCheckedChange = null) },
                     modifier = Modifier.toggleable(value = pureBlack, role = Role.Switch, onValueChange = prefs::setPureBlack),
                 )
+            }
+            // RF-76: the system's colors, only where the device has them (Android 12 or later).
+            if (dynamicColorAvailable) {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(Res.string.settings_dynamic_color)) },
+                        supportingContent = { Text(stringResource(Res.string.settings_dynamic_color_hint)) },
+                        trailingContent = { Switch(checked = dynamicColor, onCheckedChange = null) },
+                        modifier = Modifier.toggleable(value = dynamicColor, role = Role.Switch, onValueChange = prefs::setDynamicColor),
+                    )
+                }
             }
             // RF-77: the app's language, the device's by default.
             item {
@@ -263,6 +283,21 @@ fun SettingsScreen(
                         headlineContent = { Text(stringResource(Res.string.settings_updates)) },
                         leadingContent = { Icon(HqrIcons.Refresh, null) },
                         modifier = Modifier.clickable(onClick = onUpdates),
+                    )
+                }
+            }
+            // RNF-10: crash reports, only where the app sends them.
+            if (crashReports != null) {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(Res.string.settings_crash_reports)) },
+                        supportingContent = { Text(stringResource(Res.string.settings_crash_reports_hint)) },
+                        trailingContent = { Switch(checked = sendCrashes, onCheckedChange = null) },
+                        modifier =
+                            Modifier.toggleable(value = sendCrashes, role = Role.Switch) {
+                                prefs.setCrashReports(it)
+                                crashReports.setEnabled(it)
+                            },
                     )
                 }
             }

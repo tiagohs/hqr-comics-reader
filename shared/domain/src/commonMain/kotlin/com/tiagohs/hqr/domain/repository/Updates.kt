@@ -19,3 +19,23 @@ interface Updates {
         progress: (Float) -> Unit,
     ): Result<Unit>
 }
+
+/** Why an update could not be installed; each one has its own message in the three languages (RF-77). */
+enum class UpdateProblem {
+    /** The release has no `.sha256`: the file can't be checked, so it isn't installed. */
+    NO_CHECKSUM,
+
+    /** Android asks the user to allow installing apps from HQR first. */
+    NEEDS_PERMISSION,
+
+    /** The downloaded file is not the published one. */
+    CHECKSUM_MISMATCH,
+
+    /** The download didn't finish (network, server error). */
+    NETWORK,
+}
+
+class UpdateFailure(
+    val problem: UpdateProblem,
+    cause: Throwable? = null,
+) : Exception(problem.name, cause)

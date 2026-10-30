@@ -50,7 +50,7 @@ class ReleaseChecker(
         val release = json.decodeFromString(ReleaseDto.serializer(), text)
         val apk =
             release.assets
-                .firstOrNull { it.name.endsWith(".apk") }
+                .firstOrNull { it.name.endsWith(".apk") && it.url.startsWith("https://") }
                 ?.takeIf { !release.draft && !release.prerelease && newer(release.tagName, currentVersion) }
                 ?: return null
         val sha =

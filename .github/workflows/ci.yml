@@ -150,6 +150,8 @@ jobs:
           PAGES="$RUNNER_TEMP/pages"
           rm -rf "$PAGES" && mkdir -p "$PAGES"
           cp -R web/build/dist/wasmJs/productionExecutable/. "$PAGES/"
+          # RNF-29: the privacy policy the app links to stays published with the web app.
+          cp -R politicy "$PAGES/politicy"
           touch "$PAGES/.nojekyll"
           cd "$PAGES"
           git init -q -b gh-pages

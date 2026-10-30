@@ -129,11 +129,9 @@ class DownloadManager(
         var order = dao.maxOrder()
         chapterIds.forEach { id ->
             val current = dao.get(id)
-            if (current == null || current.state == ERROR) {
-                dao.upsert(
-                    current?.copy(state = QUEUED, error = null)
-                        ?: DownloadEntity(id, QUEUED, null, FORMAT, ++order, 0, 0, null),
-                )
+            when {
+                current == null -> dao.upsert(DownloadEntity(id, QUEUED, null, FORMAT, ++order, 0, 0, null))
+                current.state == ERROR -> dao.retry(id)
             }
         }
         scheduler.schedule(restart = false)
@@ -170,7 +168,7 @@ class DownloadManager(
         if (from < 0 || to !in queue.indices) return
         queue.add(to, queue.removeAt(from))
         val orders = queue.map { it.queueOrder }.sorted()
-        queue.forEachIndexed { i, row -> dao.upsert(row.copy(queueOrder = orders[i])) }
+        queue.forEachIndexed { i, row -> dao.reorder(row.chapterId, orders[i]) }
     }
 
     override suspend fun remove(chapterIds: Collection<Long>) {
@@ -236,7 +234,8 @@ class DownloadManager(
 
     /** The missing pages, one by one; a page that arrives after a pause is kept, after a removal it goes. */
     private suspend fun fetchPages(id: Long): Outcome {
-        val pages = pagesOf(id)
+        // A chapter without pages would be "downloaded" with nothing to read.
+        val pages = pagesOf(id).ifEmpty { throw SourceException("Capítulo sem páginas", SourceException.Kind.NOT_FOUND) }
         var done = pages.count { files.has(id, it.index) }
         var running = dao.progress(id, done, pages.size) > 0
         for (page in pages.filter { !files.has(id, it.index) }) {

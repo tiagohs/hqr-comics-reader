@@ -276,6 +276,17 @@ interface DownloadDao {
     // The worker and the screen change rows at the same time: every write by the worker only applies to the state it
     // expects, so a pause, a removal or a cancel made meanwhile is never undone (RF-63).
 
+    // The screen's writes change only their own column or state, never a whole row the worker may be updating.
+
+    @Query("UPDATE download SET queueOrder = :order WHERE chapterId = :id")
+    suspend fun reorder(
+        id: Long,
+        order: Int,
+    )
+
+    @Query("UPDATE download SET state = 'QUEUED', error = NULL WHERE chapterId = :id AND state = 'ERROR'")
+    suspend fun retry(id: Long)
+
     @Query("UPDATE download SET state = 'RUNNING', error = NULL WHERE chapterId = :id AND state IN ('QUEUED', 'RUNNING', 'WAITING_WIFI')")
     suspend fun start(id: Long): Int
 

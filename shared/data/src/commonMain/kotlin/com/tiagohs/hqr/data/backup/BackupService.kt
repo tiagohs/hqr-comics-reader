@@ -357,6 +357,7 @@ class BackupService(
                 AppPreferences.THEME to Type.INT,
                 AppPreferences.APP_LANGUAGE to Type.STRING,
                 AppPreferences.PURE_BLACK to Type.BOOLEAN,
+                AppPreferences.DYNAMIC_COLOR to Type.BOOLEAN,
                 AppPreferences.COVER_COLOR to Type.BOOLEAN,
                 AppPreferences.LANGUAGES to Type.STRING,
                 AppPreferences.WIFI_ONLY to Type.BOOLEAN,

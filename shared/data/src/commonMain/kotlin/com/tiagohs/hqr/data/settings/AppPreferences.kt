@@ -11,6 +11,7 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
  * User preferences (RF-76, RF-77, RF-81, RF-98). Stored with multiplatform-settings: SharedPreferences on Android,
  * localStorage in the browser (ADR-004 keeps DataStore's role; this store also runs on the web).
  */
+@Suppress("TooManyFunctions") // One getter and one setter per preference, nothing else.
 class AppPreferences(
     private val settings: Settings,
 ) {
@@ -27,6 +28,22 @@ class AppPreferences(
     fun setAppLanguage(tag: String?) {
         if (tag == null) settings.remove(APP_LANGUAGE) else settings.putString(APP_LANGUAGE, tag)
         _appLanguage.value = tag
+    }
+
+    private val _dynamicColor = MutableStateFlow(settings.getBoolean(DYNAMIC_COLOR, false))
+    val dynamicColor: StateFlow<Boolean> = _dynamicColor.asStateFlow()
+
+    fun setDynamicColor(on: Boolean) {
+        settings.putBoolean(DYNAMIC_COLOR, on)
+        _dynamicColor.value = on
+    }
+
+    private val _crashReports = MutableStateFlow(settings.getBoolean(CRASH_REPORTS, true))
+    val crashReports: StateFlow<Boolean> = _crashReports.asStateFlow()
+
+    fun setCrashReports(on: Boolean) {
+        settings.putBoolean(CRASH_REPORTS, on)
+        _crashReports.value = on
     }
 
     private val _coverColor = MutableStateFlow(settings.getBoolean(COVER_COLOR, true))
@@ -129,6 +146,10 @@ class AppPreferences(
         const val THEME = "theme"
         const val APP_LANGUAGE = "app_language"
         const val PURE_BLACK = "pure_black"
+        const val DYNAMIC_COLOR = "dynamic_color"
+
+        /** Read by the Android app before Koin starts (Crashlytics, RNF-10). */
+        const val CRASH_REPORTS = "crash_reports"
         const val COVER_COLOR = "cover_color"
         const val LOCAL_FOLDER = "local_folder"
         const val ONBOARDED = "onboarded"

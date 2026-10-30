@@ -334,7 +334,6 @@
     <string name="update_available">New version %1$s</string>
     <string name="update_install">Update</string>
     <string name="update_later">Later</string>
-    <string name="update_failed">Couldn't update: %1$s</string>
     <string name="update_check_failed">Couldn't check for updates now.</string>
     <string name="download_state_network">Waiting for the network</string>
     <string name="source_unavailable">Source unavailable: %1$s</string>
@@ -346,4 +345,13 @@
     <string name="onboarding_start">Get started</string>
     <string name="onboarding_later">You can change the languages later, in Settings</string>
     <string name="settings_content_languages">Content languages</string>
+    <string name="settings_dynamic_color">System colors</string>
+    <string name="settings_dynamic_color_hint">Use the wallpaper colors outside the work pages</string>
+    <string name="update_problem_no_checksum">This version didn't publish its SHA-256, so it can't be checked. Try again later.</string>
+    <string name="update_problem_permission">Allow HQR to install apps, then tap Update again.</string>
+    <string name="update_problem_mismatch">The downloaded file doesn't match the published one. Nothing was installed.</string>
+    <string name="update_problem_network">The download didn't finish. Check the connection and try again.</string>
+    <string name="settings_crash_reports">Send crash reports</string>
+    <string name="settings_crash_reports_hint">Only the error trace, the device model and an install id; never what you read</string>
+    <string name="about_privacy_link">Full privacy policy</string>
 </resources>

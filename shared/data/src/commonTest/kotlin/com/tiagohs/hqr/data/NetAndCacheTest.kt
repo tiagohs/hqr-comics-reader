@@ -118,6 +118,23 @@ class NetAndCacheTest {
         }
 
     @Test
+    fun RF80_clearingTheCacheKeepsTheDownloads() =
+        runTest {
+            val fs = FakeFileSystem()
+            val cache = DiskImageCache(fs, "/cache/images".toPath())
+            val downloads =
+                com.tiagohs.hqr.data.download
+                    .DownloadFiles(fs, "/files/downloads".toPath())
+            cache.put("https://img/1", ByteArray(300))
+            downloads.write(7, 0, ByteArray(50))
+            cache.size() shouldBe 300
+            cache.clear()
+            cache.size() shouldBe 0
+            downloads.has(7, 0) shouldBe true
+            downloads.usedBytes() shouldBe 50
+        }
+
+    @Test
     fun RF76_preferencesPersist() {
         val settings = MapSettings()
         AppPreferences(settings).apply {

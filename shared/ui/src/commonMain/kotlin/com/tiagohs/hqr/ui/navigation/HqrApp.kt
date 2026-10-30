@@ -67,6 +67,7 @@ import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
 import com.tiagohs.hqr.ui.sources.SourcesScreen
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
+import com.tiagohs.hqr.ui.theme.LocalDynamicColor
 import com.tiagohs.hqr.ui.theme.LocalPureBlack
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -126,8 +127,9 @@ fun HqrApp(systemDark: Boolean) {
     val language by prefs.appLanguage.collectAsStateWithLifecycle()
     val pureBlack by prefs.pureBlack.collectAsStateWithLifecycle()
     val onboarded by prefs.onboarded.collectAsStateWithLifecycle()
+    val dynamicColor by prefs.dynamicColor.collectAsStateWithLifecycle()
     // RF-77: the chosen language for every screen; RF-76: pure black for every dark theme.
-    CompositionLocalProvider(LocalAppLocale provides language, LocalPureBlack provides pureBlack) {
+    CompositionLocalProvider(LocalAppLocale provides language, LocalPureBlack provides pureBlack, LocalDynamicColor provides dynamicColor) {
         key(language) {
             HqrTheme(dark = dark) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

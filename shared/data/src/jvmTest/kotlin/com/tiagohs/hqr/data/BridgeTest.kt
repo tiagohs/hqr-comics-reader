@@ -26,15 +26,16 @@ import kotlin.test.Test
 class BridgeTest {
     private val seen = mutableListOf<HttpRequestData>()
     private var healthStatus = HttpStatusCode.OK
-    private var healthBody = """{"ok":true,"version":1}"""
+    private var healthBody = """{"ok":true,"version":2}"""
     private var sourceStatus = HttpStatusCode.OK
+    private var sourceBody = "ok"
     private val engine =
         MockEngine { request ->
             seen += request
             if (request.url.encodedPath.endsWith("/health")) {
                 respond(healthBody, healthStatus)
             } else {
-                respond("ok", sourceStatus)
+                respond(sourceBody, sourceStatus)
             }
         }
     private val settings = MapSettings()
@@ -94,6 +95,9 @@ class BridgeTest {
             healthBody = "<html>ok</html>"
             healthStatus = HttpStatusCode.OK
             bridge.test("https://example.com", "certo") shouldBe BridgeCheck.UNREACHABLE
+            // A bridge published before the sources of 1.1 works, but says it needs publishing again.
+            healthBody = """{"ok":true,"version":1}"""
+            bridge.test("https://hqr.workers.dev", "certo") shouldBe BridgeCheck.OUTDATED
         }
 
     @Test
@@ -102,6 +106,11 @@ class BridgeTest {
             bridge.save("https://hqr.tiago.workers.dev", "antigo")
             sourceStatus = HttpStatusCode.Forbidden
             shouldThrow<SourceException> { client.get("https://api.mangadex.org/manga") }.kind shouldBe SourceException.Kind.BRIDGE
+            // A bridge published before a source refuses its host: it asks to be published again.
+            sourceBody = """{"error":"host"}"""
+            val outdated = shouldThrow<SourceException> { client.get("https://weebcentral.com/search/data") }
+            outdated.kind shouldBe SourceException.Kind.BRIDGE
+            outdated.message shouldBe "Ponte desatualizada: publique de novo"
         }
 
     @Test

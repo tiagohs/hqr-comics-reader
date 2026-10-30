@@ -228,13 +228,16 @@ class BrowseSourceViewModel(
                             if (append) {
                                 it.copy(loadingMore = false, loadMoreError = e.toErrorKind())
                             } else {
-                                // A failed pull keeps the list on screen; the error shows only when there is nothing.
+                                // A failed pull keeps the list on screen; the error shows only when there is nothing,
+                                // or when the source wants a verification (RF-106), which needs its own screen.
+                                val kind = e.toErrorKind()
+                                val keep = it.refreshing && it.items.isNotEmpty() && kind != ErrorKind.CHALLENGE
                                 it.copy(
                                     loading = false,
                                     loadingMore = false,
                                     refreshing = false,
-                                    error = if (it.refreshing && it.items.isNotEmpty()) null else e.toErrorKind(),
-                                    loadMoreError = if (it.refreshing && it.items.isNotEmpty()) e.toErrorKind() else null,
+                                    error = if (keep) null else kind,
+                                    loadMoreError = if (keep) kind else null,
                                 )
                             }
                         }

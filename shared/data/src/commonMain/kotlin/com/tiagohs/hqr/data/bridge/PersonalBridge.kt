@@ -46,7 +46,7 @@ class PersonalBridge(
             val response = http.get("$base/health") { header(TOKEN_HEADER, token.trim()) }
             when (response.status.value) {
                 // Only the bridge answers {"ok":true}: any other site at that address is not one.
-                OK -> if (response.bodyAsText().contains("\"ok\":true")) BridgeCheck.OK else BridgeCheck.UNREACHABLE
+                OK -> health(response.bodyAsText())
                 FORBIDDEN, UNAUTHORIZED -> BridgeCheck.TOKEN_REFUSED
                 else -> BridgeCheck.UNREACHABLE
             }
@@ -57,6 +57,17 @@ class PersonalBridge(
         ) {
             BridgeCheck.UNREACHABLE
         }
+    }
+
+    private fun health(body: String): BridgeCheck {
+        if (!body.contains("\"ok\":true")) return BridgeCheck.UNREACHABLE
+        val version =
+            VERSION
+                .find(body)
+                ?.groupValues
+                ?.get(1)
+                ?.toIntOrNull() ?: 0
+        return if (version < VERSION_NEEDED) BridgeCheck.OUTDATED else BridgeCheck.OK
     }
 
     override suspend fun save(
@@ -93,11 +104,16 @@ class PersonalBridge(
         private const val OK = 200
         private const val UNAUTHORIZED = 401
 
+        /** The bridge version that has every source's hosts (bridge-worker/ BRIDGE_VERSION). */
+        const val VERSION_NEEDED = 2
+        private val VERSION = Regex("\"version\"\\s*:\\s*(\\d+)")
+
         /** Sources whose hosts send no CORS (RF-108); local files and the user's servers never need the bridge. */
         val ONLINE =
             setOf(
                 SourceId.MANGADEX,
                 SourceId.HQ_NOW,
+                SourceId("namicomi"),
                 SourceId("archive"),
                 SourceId("yomu"),
                 SourceId("weebcentral"),
@@ -105,8 +121,8 @@ class PersonalBridge(
             )
 
         /**
-         * The hosts behind [ONLINE]; the same list as the bridge's default `HOSTS` (bridge-worker/). MangaFlix and
-         * NamiComi answer the browser themselves (CORS): they never go through the bridge.
+         * The hosts behind [ONLINE]; the same list as the bridge's default `HOSTS` (bridge-worker/). MangaFlix and the
+         * Internet Archive's page images answer the browser themselves (CORS): they never go through the bridge.
          */
         private val HOSTS =
             setOf(
@@ -116,6 +132,8 @@ class PersonalBridge(
                 "admin.hq-now.com",
                 "www.hq-now.com",
                 "archive.org",
+                "api.namicomi.com",
+                "uploads.namicomi.com",
                 "yomumangas.com",
                 "api.yomumangas.com",
                 "b2.yomumangas.com",
@@ -164,7 +182,12 @@ fun HttpClientConfig<*>.routeThroughBridge(bridge: PersonalBridge) {
             // not the source's.
             onResponse { response ->
                 if (response.call.request.headers[PersonalBridge.TOKEN_HEADER] != null && response.status.value == FORBIDDEN) {
-                    throw SourceException("Token recusado pela ponte", SourceException.Kind.BRIDGE)
+                    // A bridge published before a source existed refuses its host: it needs publishing again.
+                    val outdated = response.bodyAsText().contains("\"error\":\"host\"")
+                    throw SourceException(
+                        if (outdated) "Ponte desatualizada: publique de novo" else "Token recusado pela ponte",
+                        SourceException.Kind.BRIDGE,
+                    )
                 }
             }
         },

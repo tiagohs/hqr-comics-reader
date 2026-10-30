@@ -2,7 +2,7 @@
 // online sources (MangaDex, HQ Now and the later ones), which send no CORS headers. Each user publishes it on
 // their own account (ADR-023, RF-108, RF-109, RNF-32). Nothing is stored, cached or logged.
 
-export const BRIDGE_VERSION = 1;
+export const BRIDGE_VERSION = 2;
 
 export const DEFAULT_HOSTS = [
   "api.mangadex.org",
@@ -12,8 +12,10 @@ export const DEFAULT_HOSTS = [
   "admin.hq-now.com",
   "www.hq-now.com",
   "*.hq-now.com",
-  // Sources added later (RF-99, RF-102 to RF-104); MangaFlix and NamiComi send CORS headers and skip the bridge.
+  // Sources added in version 2 (RF-99 to RF-104); MangaFlix sends CORS headers and skips the bridge.
   "archive.org",
+  "api.namicomi.com",
+  "uploads.namicomi.com",
   "yomumangas.com",
   "api.yomumangas.com",
   "b2.yomumangas.com",

@@ -13,6 +13,7 @@ import com.tiagohs.hqr.data.repository.RoomChapterRepository
 import com.tiagohs.hqr.data.repository.RoomHistoryRepository
 import com.tiagohs.hqr.data.repository.RoomMangaRepository
 import com.tiagohs.hqr.data.repository.RoomSearchRepository
+import com.tiagohs.hqr.data.repository.RoomTransactor
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.model.Chapter
@@ -165,7 +166,7 @@ val coreModule: Module =
             )
         }
         // RF-69: the downloads only where the app has them (Android).
-        factory { WorkMigration(get(), get(), get(), get(), getOrNull(), getOrNull()) }
+        factory { WorkMigration(get(), get(), get(), get(), getOrNull(), getOrNull(), RoomTransactor(get())) }
         viewModel { (id: Long) -> MigrationViewModel(id, get(), get(), get()) }
         single<DownloadSettings> {
             val prefs = get<AppPreferences>()

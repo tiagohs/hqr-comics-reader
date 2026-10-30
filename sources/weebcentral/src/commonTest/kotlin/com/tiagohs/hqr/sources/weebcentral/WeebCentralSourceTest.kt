@@ -88,6 +88,14 @@ class WeebCentralSourceTest {
         }
 
     @Test
+    fun RF103_chapterNumbersFromTheLabelAndAPlaceholderWithout() {
+        WeebCentralSource.chapterNumber("Vol. 2 Chapter 5") shouldBe 5.0
+        WeebCentralSource.chapterNumber("Episode 12.5") shouldBe 12.5
+        WeebCentralSource.chapterNumber("Season 2 - 7") shouldBe 7.0
+        WeebCentralSource.chapterNumber("Oneshot") shouldBe WeebCentralSource.NO_NUMBER
+    }
+
+    @Test
     fun RF106_theCloudflareChallengeIsItsOwnError() =
         runTest {
             challenge = true

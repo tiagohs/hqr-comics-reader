@@ -327,11 +327,20 @@ class DownloadManager(
     /** RF-67: packed before it is "downloaded", so the reader never gets addresses of a folder about to go. */
     private suspend fun finish(id: Long): Outcome {
         val packs = saveAsCbz() || folder() != null
-        if (packs && lowSpace(id, needed = files.folderBytes(id))) return Outcome.LOW_SPACE
-        if (packs) files.pack(id)
-        if (dao.finish(id, (if (packs) files.cbz(id) else files.dir(id)).toString()) == 0) return stopped(id)
-        export(id)
-        return Outcome.DONE
+        return when {
+            packs && lowSpace(id, needed = files.folderBytes(id)) -> Outcome.LOW_SPACE
+            // Paused or removed right before: the pages stay as they are, for the next run.
+            dao.get(id)?.state != RUNNING -> stopped(id)
+            else -> {
+                if (packs) files.pack(id)
+                if (dao.finish(id, (if (packs) files.cbz(id) else files.dir(id)).toString()) == 0) {
+                    stopped(id)
+                } else {
+                    export(id)
+                    Outcome.DONE
+                }
+            }
+        }
     }
 
     /** Paused or removed meanwhile: the saved pages stay, unless the chapter left the list. */

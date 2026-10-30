@@ -61,7 +61,9 @@ class YomuSourceTest {
             requests.single().url.parameters["q"] shouldBe "Solo Leveling"
             found.hasNextPage shouldBe true
             val manga = found.items.single()
-            manga.key shouldBe "123/solo-leveling"
+            // The id only: the slug goes in the address, where a change on the site can't make it another work.
+            manga.key shouldBe "123"
+            manga.url shouldBe "https://yomumangas.com/mangas/123/solo-leveling"
             manga.coverUrl shouldBe "https://b2.yomumangas.com/mangas/123/cover.webp"
             source.details(manga).authors shouldContainExactly listOf("Chugong")
             requests.last().url.encodedPath shouldBe "/mangas/123"

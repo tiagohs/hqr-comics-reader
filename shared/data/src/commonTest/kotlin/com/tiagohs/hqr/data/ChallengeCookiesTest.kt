@@ -1,7 +1,10 @@
 package com.tiagohs.hqr.data
 
 import com.tiagohs.hqr.data.net.ChallengeCookies
+import com.tiagohs.hqr.data.net.ensureOk
 import com.tiagohs.hqr.data.net.useChallengeCookies
+import com.tiagohs.hqr.domain.source.SourceException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -11,6 +14,8 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
@@ -42,5 +47,26 @@ class ChallengeCookiesTest {
             seen[0].headers[HttpHeaders.UserAgent] shouldBe "Mozilla/5.0 (Linux; Android 15) WebView"
             seen[1].headers[HttpHeaders.Cookie] shouldBe null
             seen[1].headers[HttpHeaders.UserAgent] shouldBe "HQR/1.0"
+        }
+
+    @Test
+    fun RF106_onlyTheMarkedChallengeIsAVerification() =
+        runTest {
+            val http =
+                HttpClient(
+                    MockEngine { request ->
+                        when (request.url.encodedPath) {
+                            "/challenge" -> respond("", HttpStatusCode.ServiceUnavailable, headersOf("cf-mitigated", "challenge"))
+                            "/waf" -> respond("Attention Required", HttpStatusCode.Forbidden, headersOf(HttpHeaders.Server, "cloudflare"))
+                            else -> respond("down", HttpStatusCode.ServiceUnavailable, headersOf(HttpHeaders.Server, "cloudflare"))
+                        }
+                    },
+                )
+
+            suspend fun kind(path: String) = shouldThrow<SourceException> { http.get("https://x.example$path").ensureOk() }.kind
+            kind("/challenge") shouldBe SourceException.Kind.CHALLENGE
+            // A WAF block and an origin that is down are what they are, not a verification the user can pass.
+            kind("/waf") shouldBe SourceException.Kind.AUTH
+            kind("/down") shouldBe SourceException.Kind.SERVER
         }
 }

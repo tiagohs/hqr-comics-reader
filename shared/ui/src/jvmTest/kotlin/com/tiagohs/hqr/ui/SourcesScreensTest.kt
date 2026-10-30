@@ -99,6 +99,8 @@ class SourcesScreensTest {
 
     /** A source behind Cloudflare's check (RF-106). */
     private class Guarded : com.tiagohs.hqr.domain.source.CatalogSource {
+        var calls = 0
+
         override val id = SourceId("guarded")
         override val name = "Guarded"
         override val languages = listOf("en")
@@ -109,7 +111,10 @@ class SourcesScreensTest {
             throw com.tiagohs.hqr.domain.source
                 .SourceException("x", com.tiagohs.hqr.domain.source.SourceException.Kind.CHALLENGE)
 
-        override suspend fun popular(page: Int) = fail()
+        override suspend fun popular(page: Int): com.tiagohs.hqr.domain.model.MangaPage {
+            calls++
+            fail()
+        }
 
         override suspend fun latest(page: Int) = fail()
 
@@ -126,7 +131,8 @@ class SourcesScreensTest {
     @Test
     fun RF106_aSourceAskingForVerificationOffersItsPage() =
         screenTest {
-            startTestKoin(sources = { listOf(Guarded()) })
+            val guarded = Guarded()
+            startTestKoin(sources = { listOf(guarded) })
             setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
@@ -139,5 +145,10 @@ class SourcesScreensTest {
             waitFor(hasText("The verification opens only in the phone app. Open the source's site in your browser and try again."))
             onAllNodes(hasContentDescription("Back"))[0].performClick()
             waitFor(hasText("The source asks for a verification"))
+            // Back from the verification the source is asked once more — and not again while the error stays.
+            waitUntil(timeoutMillis = 5_000) { guarded.calls == 2 }
+            Thread.sleep(500)
+            mainClock.advanceTimeBy(1_000)
+            guarded.calls shouldBe 2
         }
 }

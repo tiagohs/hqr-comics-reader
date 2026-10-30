@@ -21,6 +21,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.delay
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
@@ -47,7 +48,8 @@ class InternetArchiveSource(
     override val name: String = "Internet Archive"
     override val languages: List<String> = listOf("en")
 
-    override fun webUrl(query: String): String = if (query.isBlank()) "$SITE/details/comics" else "$SITE/search?query=$query"
+    override fun webUrl(query: String): String =
+        if (query.isBlank()) "$SITE/details/comics" else "$SITE/search?query=${query.encodeURLParameter()}"
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -70,7 +72,13 @@ class InternetArchiveSource(
         query: String = "",
     ): MangaPage {
         // Words only: no field, wildcard or operator of the search syntax gets through.
-        val terms = query.replace(UNSAFE, " ").replace(OPERATORS) { it.value.lowercase() }.trim()
+        val terms =
+            query
+                .replace(UNSAFE, " ")
+                .replace(OPERATORS) { it.value.lowercase() }
+                // A leading "-" would exclude the word instead of searching it.
+                .replace(LEADING_DASH, " ")
+                .trim()
         val q = if (terms.isEmpty()) PUBLIC_DOMAIN else "$PUBLIC_DOMAIN AND ($terms)"
         val answer =
             get("$SITE/advancedsearch.php", SearchDto.serializer()) {
@@ -165,6 +173,7 @@ class InternetArchiveSource(
         private val FIELDS = listOf("identifier", "title", "creator", "description", "subject", "publicdate", "year")
         private val UNSAFE = Regex("[^\\p{L}\\p{N} '-]")
         private val TAG = Regex("<[^>]+>")
+        private val LEADING_DASH = Regex("(^|\\s)-+")
         private val OPERATORS = Regex("\\b(AND|OR|NOT|TO)\\b")
 
         private fun String.stripTags() = replace(TAG, " ").replace(Regex("\\s+"), " ").trim()

@@ -141,9 +141,13 @@ fun BrowseSourceScreen(
         koinViewModel(key = "browse-$sourceId-${initialQuery.orEmpty()}") { parametersOf(SourceId(sourceId), initialQuery) },
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    // RF-106: back from the verification, the source is asked again.
-    androidx.lifecycle.compose.LifecycleResumeEffect(state.error) {
-        if (state.error == ErrorKind.CHALLENGE) viewModel.retry()
+    // RF-106: back from the verification, the source is asked again — once, only after the verification was opened.
+    var verifying by rememberSaveable { mutableStateOf(false) }
+    androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
+        if (verifying) {
+            verifying = false
+            viewModel.retry()
+        }
         onPauseOrDispose {}
     }
     val scope = rememberCoroutineScope()
@@ -335,7 +339,12 @@ fun BrowseSourceScreen(
                         title = stringResource(Res.string.error_challenge),
                         message = stringResource(Res.string.challenge_hint),
                         action = stringResource(Res.string.challenge_verify),
-                        onAction = { state.webUrl?.let(onChallenge) },
+                        onAction = {
+                            state.webUrl?.let {
+                                verifying = true
+                                onChallenge(it)
+                            }
+                        },
                         secondary = stringResource(Res.string.action_retry),
                         onSecondary = viewModel::retry,
                     )

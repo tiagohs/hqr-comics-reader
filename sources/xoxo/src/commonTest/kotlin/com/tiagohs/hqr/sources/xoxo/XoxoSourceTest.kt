@@ -89,6 +89,13 @@ class XoxoSourceTest {
             requests.last().url.encodedPath shouldBe "/comic/nightwing-2016/issue-143/all"
         }
 
+    @Test
+    fun RF104_annualsDoNotTakeTheIssueNumbers() {
+        XoxoSource.issueNumber("Nightwing (2016) Issue #143") shouldBe 143.0
+        XoxoSource.issueNumber("Nightwing (2016) Annual #1") shouldBe XoxoSource.NO_NUMBER
+        XoxoSource.issueNumber("Nightwing (2016) TPB") shouldBe XoxoSource.NO_NUMBER
+    }
+
     private companion object {
         const val POPULAR =
             """<div class="items"><div class="row"><div class="item"><figure class="clearfix">

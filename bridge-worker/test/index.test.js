@@ -48,7 +48,7 @@ const authed = (extra = {}) => ({ "X-HQR-Token": TOKEN, ...extra });
 test("RF108_healthWithValidTokenReturnsOkAndVersion", async () => {
   const response = await handleRequest(request(`${BRIDGE}/health`, { headers: authed() }), ENV);
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { ok: true, version: 1 });
+  assert.deepEqual(await response.json(), { ok: true, version: 2 });
 });
 
 test("RF108_healthWithWrongTokenIs403", async () => {

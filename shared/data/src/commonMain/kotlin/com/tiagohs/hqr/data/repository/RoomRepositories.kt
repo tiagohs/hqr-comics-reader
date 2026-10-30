@@ -379,3 +379,10 @@ class RoomHistoryRepository(
 
     override suspend fun clear() = dao.clear()
 }
+
+/** The database's write transaction, for use cases that span repositories. */
+class RoomTransactor(
+    private val db: HqrDatabase,
+) : com.tiagohs.hqr.domain.repository.Transactor {
+    override suspend fun <T> write(block: suspend () -> T): T = db.withWriteTransaction { block() }
+}

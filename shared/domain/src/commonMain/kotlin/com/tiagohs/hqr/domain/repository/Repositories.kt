@@ -155,3 +155,13 @@ interface HistoryRepository {
     /** The last chapter read of each work, for "Continuar lendo" in the library. */
     fun observeLatestPerManga(): Flow<List<HistoryEntry>>
 }
+
+/** Several writes that go in together or not at all (RF-69: a migration never leaves the work twice in the library). */
+interface Transactor {
+    suspend fun <T> write(block: suspend () -> T): T
+
+    /** No database to share (tests of a single repository): the writes just run. */
+    object None : Transactor {
+        override suspend fun <T> write(block: suspend () -> T): T = block()
+    }
+}

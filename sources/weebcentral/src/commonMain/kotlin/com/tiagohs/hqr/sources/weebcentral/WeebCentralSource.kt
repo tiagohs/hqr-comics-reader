@@ -23,6 +23,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.encodeURLParameter
 import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -42,7 +43,7 @@ class WeebCentralSource(
     override val name: String = "Weeb Central"
     override val languages: List<String> = listOf("en")
 
-    override fun webUrl(query: String): String = if (query.isBlank()) SITE else "$SITE/search?text=$query"
+    override fun webUrl(query: String): String = if (query.isBlank()) SITE else "$SITE/search?text=${query.encodeURLParameter()}"
 
     private val limiter = RateLimiter(1, 2.seconds, clock, sleep)
 
@@ -157,13 +158,13 @@ class WeebCentralSource(
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> =
         page("$SITE/series/${manga.key}/full-chapter-list")
             .select("div[x-data] > a[href*=/chapters/]")
-            .mapIndexedNotNull { i, link ->
+            .mapNotNull { link ->
                 val key =
                     link
                         .attr("abs:href")
                         .substringAfter("/chapters/")
                         .substringBefore('/')
-                        .ifEmpty { return@mapIndexedNotNull null }
+                        .ifEmpty { return@mapNotNull null }
                 val name =
                     link
                         .selectFirst("span.grow > span")
@@ -172,7 +173,7 @@ class WeebCentralSource(
                         .orEmpty()
                 SourceChapter(
                     key = key,
-                    number = NUMBER.find(name)?.value?.toDoubleOrNull() ?: -(i + 1).toDouble(),
+                    number = chapterNumber(name),
                     title = name.ifEmpty { null },
                     language = "en",
                     group = if (link.selectFirst("img[src*=official]") != null) OFFICIAL else null,
@@ -199,7 +200,24 @@ class WeebCentralSource(
         private const val PAGE = 32
         private const val OFFICIAL = "Official"
         private val SYMBOLS = Regex("[!#:(),-]")
-        private val NUMBER = Regex("\\d+(\\.\\d+)?")
+        private val LABELED = Regex("(?i)(?:chapter|ch\\.?|episode|ep\\.?)\\s*(\\d+(?:\\.\\d+)?)")
+        private val NUMBER = Regex("\\d+(?:\\.\\d+)?")
+
+        /** "Vol. 2 Chapter 5" is chapter 5; with no number at all, [NO_NUMBER] (never matched by a migration). */
+        fun chapterNumber(name: String): Double =
+            LABELED
+                .find(name)
+                ?.groupValues
+                ?.get(1)
+                ?.toDoubleOrNull()
+                ?: NUMBER
+                    .findAll(name)
+                    .lastOrNull()
+                    ?.value
+                    ?.toDoubleOrNull()
+                ?: NO_NUMBER
+
+        const val NO_NUMBER = -1.0
         private val SERIES = Regex("/series/([0-9A-Z]{26})")
 
         fun seriesId(url: String): String? = SERIES.find(url)?.groupValues?.get(1)

@@ -30,8 +30,6 @@ private const val SERVER_ERROR = 500
 private const val LAST_SERVER_ERROR = 599
 private const val CF_MITIGATED = "cf-mitigated"
 private const val CHALLENGE = "challenge"
-private const val CLOUDFLARE = "cloudflare"
-private val CHALLENGE_CODES = setOf(403, 503)
 
 /** The shared client: 3 retries only on GET, with growing waits, and timeouts (ADR-005). */
 fun hqrHttpClient(
@@ -48,7 +46,10 @@ fun hqrHttpClient(
         }
         install(HttpRequestRetry) {
             maxRetries = MAX_RETRIES
-            retryIf { request, response -> request.method == HttpMethod.Get && (response.status.value >= SERVER_ERROR) }
+            // A challenge answers the same until the user passes it: never repeated (RF-106).
+            retryIf { request, response ->
+                request.method == HttpMethod.Get && response.status.value >= SERVER_ERROR && response.headers[CF_MITIGATED] == null
+            }
             retryOnExceptionIf { request, cause -> request.method == HttpMethod.Get && cause !is CancellationException }
             exponentialDelay()
         }
@@ -60,7 +61,8 @@ fun HttpResponse.ensureOk(): HttpResponse {
     val code = status.value
     if (status.isSuccess()) return this
     // RF-106: Cloudflare marks the page of its challenge; the user passes it in a browser inside the app.
-    if (headers[CF_MITIGATED] == CHALLENGE || (code in CHALLENGE_CODES && headers[HttpHeaders.Server] == CLOUDFLARE)) {
+    // A plain WAF block (403 with no such mark) has no way out in the app: it stays "access refused".
+    if (headers[CF_MITIGATED] == CHALLENGE) {
         throw SourceException("Verificação do Cloudflare", SourceException.Kind.CHALLENGE)
     }
     throw when (code) {

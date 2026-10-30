@@ -128,4 +128,35 @@ class MigrationViewModelTest : MainDispatcherTest() {
             db.chapters.list(id).count { it.read } shouldBe 20
             removed.size shouldBe 0
         }
+
+    @Test
+    fun RF69_aWorkAlreadyInTheLibraryKeepsItsCategoriesAndPlaceholdersNeverMatch() =
+        runTest {
+            val id = oldWork()
+            // The new source has only chapters 1 to 10, plus one without a number (its placeholder, -1).
+            yomu.chapterList = (1..10).map { SourceChapter("y$it", it.toDouble()) } + SourceChapter("extra", -1.0)
+            val already = db.mangas.upsert(SourceManga(yomu.id, "s:Solo Leveling:1-1", "Já na biblioteca"))
+            db.mangas.setInLibrary(already.id, true)
+            val seinen = db.categories.create("Seinen")
+            db.categories.setCategories(already.id, setOf(seinen.id))
+            val result = migration.migrate(id, SourceManga(yomu.id, "s:Solo Leveling:1-1", "x"), deleteDownloads = false)
+            result.mangaId shouldBe already.id
+            result.readCarried shouldBe 10
+            result.readMissing shouldBe 10
+            db.chapters
+                .list(already.id)
+                .single { it.source.key == "extra" }
+                .read shouldBe false
+            // Seinen stays, Shonen comes.
+            db.categories
+                .observeFor(already.id)
+                .first()
+                .size shouldBe 2
+            // Chapter 20 has no match: its reading stays with the old work instead of vanishing.
+            db.history
+                .observe()
+                .first()
+                .single()
+                .manga.id shouldBe id
+        }
 }

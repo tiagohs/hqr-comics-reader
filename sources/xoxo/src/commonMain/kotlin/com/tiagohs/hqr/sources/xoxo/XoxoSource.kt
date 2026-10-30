@@ -40,7 +40,7 @@ class XoxoSource(
     override val name: String = "XOXO Comics"
     override val languages: List<String> = listOf("en")
 
-    override fun webUrl(query: String): String = if (query.isBlank()) SITE else "$SITE/search-comic?keyword=$query"
+    override fun webUrl(query: String): String = if (query.isBlank()) SITE else "$SITE/search-comic?keyword=${query.encodeURLParameter()}"
 
     private val limiter = RateLimiter(1, 1.seconds, clock, sleep)
 
@@ -152,8 +152,9 @@ class XoxoSource(
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> {
         val chapters = mutableListOf<SourceChapter>()
         var url: String? = "$SITE/comic/${manga.key}"
-        var pages = 0
-        while (url != null && pages++ < MAX_CHAPTER_PAGES) {
+        val seen = mutableSetOf<String>()
+        // A "next" that points back to a page already read ends the list.
+        while (url != null && seen.add(url) && seen.size <= MAX_CHAPTER_PAGES) {
             val doc = page(url)
             doc.select("div.list-chapter li.row:not(.heading)").forEach { row ->
                 val link = row.selectFirst("a") ?: return@forEach
@@ -163,12 +164,7 @@ class XoxoSource(
                 chapters +=
                     SourceChapter(
                         key = path,
-                        number =
-                            ISSUE
-                                .find(name)
-                                ?.groupValues
-                                ?.get(1)
-                                ?.toDoubleOrNull() ?: -(chapters.size + 1).toDouble(),
+                        number = issueNumber(name),
                         title = name,
                         language = "en",
                         uploadedAtEpochMs = usDate(row.selectFirst("div.col-xs-3")?.text()),
@@ -197,6 +193,21 @@ class XoxoSource(
         const val SITE = "https://xoxocomic.com"
         private const val MAX_CHAPTER_PAGES = 40
         private val ISSUE = Regex("#\\s*(\\d+(?:\\.\\d+)?)")
+        private val EXTRA = Regex("(?i)\\b(annual|special|tpb|one[- ]shot)\\b")
+
+        /** "Issue #143" is 143; an annual or special has its own count, so it gets [NO_NUMBER] (never matched). */
+        fun issueNumber(name: String): Double =
+            if (EXTRA.containsMatchIn(name)) {
+                NO_NUMBER
+            } else {
+                ISSUE
+                    .find(name)
+                    ?.groupValues
+                    ?.get(1)
+                    ?.toDoubleOrNull() ?: NO_NUMBER
+            }
+
+        const val NO_NUMBER = -1.0
         private val SLUG = Regex("/comic/([^/?#]+)")
         private val US_DATE = Regex("(\\d{1,2})/(\\d{1,2})/(\\d{4})")
 

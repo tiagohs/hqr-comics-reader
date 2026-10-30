@@ -32,7 +32,8 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * Yomu Mangás (RF-102): Brazilian manga from the site's JSON API, at most one request per second; the pages come from
- * the chapter's page on the site, where they are listed as "b2://" addresses. The work key is "id/slug".
+ * the chapter's page on the site, where they are listed as "b2://" addresses. The work key is the id; the slug only
+ * goes in the page address.
  */
 class YomuSource(
     private val http: HttpClient,
@@ -101,6 +102,10 @@ class YomuSource(
 
     private fun numericId(key: String) = key.substringBefore('/')
 
+    /** The work's page on the site ("/mangas/123/solo-leveling"), where its chapters are read. */
+    private fun workPath(manga: SourceManga) =
+        manga.url?.substringAfter(SITE)?.takeIf { it.startsWith("/mangas/") } ?: "/mangas/${manga.key}"
+
     override suspend fun details(manga: SourceManga): SourceManga =
         json.parseSource(WorkDto.serializer(), text("${apiUrl()}/mangas/${numericId(manga.key)}")).manga.toManga()
 
@@ -128,7 +133,7 @@ class YomuSource(
         manga: SourceManga,
         chapter: SourceChapter,
     ): List<SourcePage> {
-        val html = text("$SITE/mangas/${manga.key}/${chapter.key}")
+        val html = text("$SITE${workPath(manga)}/${chapter.key}")
         val images =
             PAGE
                 .findAll(html)
@@ -142,7 +147,8 @@ class YomuSource(
     private fun MangaDto.toManga() =
         SourceManga(
             sourceId = ID,
-            key = "$id/$slug",
+            // The id only: a slug the site changes would turn the work into another one.
+            key = id.toString(),
             title = title,
             coverUrl = b2Url(cover),
             url = "$SITE/mangas/$id/$slug",

@@ -10,5 +10,5 @@ workers_dev = true
 enabled = false
 
 [vars]
-HOSTS = "api.mangadex.org,uploads.mangadex.org,*.mangadex.network,api.mangadex.network,admin.hq-now.com,www.hq-now.com,*.hq-now.com,archive.org,yomumangas.com,api.yomumangas.com,b2.yomumangas.com,weebcentral.com,temp.compsci88.com,*.planeptune.us,xoxocomic.com,*.bp.blogspot.com"
+HOSTS = "api.mangadex.org,uploads.mangadex.org,*.mangadex.network,api.mangadex.network,admin.hq-now.com,www.hq-now.com,*.hq-now.com,archive.org,api.namicomi.com,uploads.namicomi.com,yomumangas.com,api.yomumangas.com,b2.yomumangas.com,weebcentral.com,temp.compsci88.com,*.planeptune.us,xoxocomic.com,*.bp.blogspot.com"
 ORIGINS = "https://tiagohs.github.io,http://localhost:8080"

@@ -463,4 +463,5 @@
     <string name="challenge_title">Verificación</string>
     <string name="challenge_hint">Haz la verificación en la página de la fuente. HQR vuelve solo cuando pase.</string>
     <string name="challenge_unavailable">La verificación solo se abre en la app del móvil. Abre el sitio de la fuente en el navegador y vuelve a intentarlo.</string>
+    <string name="bridge_outdated">El puente funciona, pero es de una versión antigua: publícalo de nuevo para llegar a las fuentes nuevas.</string>
 </resources>

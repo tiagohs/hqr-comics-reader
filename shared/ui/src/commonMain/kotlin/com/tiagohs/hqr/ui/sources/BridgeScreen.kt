@@ -44,6 +44,7 @@ import com.tiagohs.hqr.ui.resources.bridge_how
 import com.tiagohs.hqr.ui.resources.bridge_intro
 import com.tiagohs.hqr.ui.resources.bridge_invalid_address
 import com.tiagohs.hqr.ui.resources.bridge_ok
+import com.tiagohs.hqr.ui.resources.bridge_outdated
 import com.tiagohs.hqr.ui.resources.bridge_remove
 import com.tiagohs.hqr.ui.resources.bridge_test
 import com.tiagohs.hqr.ui.resources.bridge_title
@@ -105,6 +106,7 @@ fun BridgeScreen(
                         stringResource(
                             when (check) {
                                 BridgeCheck.OK -> Res.string.bridge_ok
+                                BridgeCheck.OUTDATED -> Res.string.bridge_outdated
                                 BridgeCheck.INVALID_ADDRESS -> Res.string.bridge_invalid_address
                                 BridgeCheck.TOKEN_REFUSED -> Res.string.bridge_token_refused
                                 BridgeCheck.UNREACHABLE -> Res.string.bridge_unreachable

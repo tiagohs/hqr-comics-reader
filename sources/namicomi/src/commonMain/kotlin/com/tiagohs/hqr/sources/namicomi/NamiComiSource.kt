@@ -180,9 +180,10 @@ class NamiComiSource(
     ): List<SourcePage> {
         val images =
             get("/images/chapter/${chapter.key}", Entity.serializer(ImagesDto.serializer())) { parameter("newQualities", "true") }.data
-        val files = images.high.ifEmpty { images.source }
+        // The "high" quality, else the original; each lives under its own name in the address.
+        val (quality, files) = if (images.high.isNotEmpty()) "high" to images.high else "source" to images.source
         return files.mapIndexed { i, file ->
-            SourcePage(i, "${images.baseUrl}/chapter/${chapter.key}/${images.hash}/high/${file.filename}")
+            SourcePage(i, "${images.baseUrl}/chapter/${chapter.key}/${images.hash}/$quality/${file.filename}")
         }
     }
 

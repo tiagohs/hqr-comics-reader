@@ -35,11 +35,14 @@ actual fun ChallengeBrowser(
         },
         onRelease = { it.destroy() },
     )
-    // The clearance arrives as a cookie of the source's host: then the app's requests can carry it.
+    // The clearance arrives as a cookie of the source's host: then the app's requests can carry it. One left from an
+    // earlier verification may be expired on the server, so only a new value counts.
     LaunchedEffect(url) {
+        val before = clearance(url)
         while (true) {
             delay(POLL_MS)
-            if (CookieManager.getInstance().getCookie(url)?.contains(ChallengeCookies.CLEARANCE) == true) {
+            val now = clearance(url)
+            if (now != null && now != before) {
                 CookieManager.getInstance().flush()
                 passed()
                 break
@@ -49,3 +52,11 @@ actual fun ChallengeBrowser(
 }
 
 private const val POLL_MS = 1_000L
+
+private fun clearance(url: String): String? =
+    CookieManager
+        .getInstance()
+        .getCookie(url)
+        ?.split(';')
+        ?.map { it.trim() }
+        ?.firstOrNull { it.startsWith(ChallengeCookies.CLEARANCE + "=") }

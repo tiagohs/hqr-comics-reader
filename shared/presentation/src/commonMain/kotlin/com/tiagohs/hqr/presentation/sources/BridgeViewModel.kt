@@ -35,7 +35,8 @@ class BridgeViewModel(
         _state.update { it.copy(testing = true, check = null) }
         viewModelScope.launch {
             val check = bridge.test(s.address, s.token)
-            if (check == BridgeCheck.OK) bridge.save(s.address, s.token)
+            // An outdated bridge still serves the older sources: it is kept, with the warning on screen.
+            if (check == BridgeCheck.OK || check == BridgeCheck.OUTDATED) bridge.save(s.address, s.token)
             _state.update { it.copy(testing = false, check = check, saved = bridge.address.value) }
         }
     }

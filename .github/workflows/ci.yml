@@ -57,7 +57,9 @@ jobs:
 
       - name: Tests, coverage, ktlint, detekt and lint
         id: tests
-        run: ./gradlew check detekt $GRADLE_FLAGS
+        run: |
+          set -o pipefail
+          ./gradlew check detekt $GRADLE_FLAGS 2>&1 | tee "$RESULTS/check.log"
 
       - name: Failed tests in the log
         if: failure() && steps.tests.outcome == 'failure'
@@ -69,7 +71,10 @@ jobs:
               for m in re.finditer(r'<testcase name="([^"]*)" classname="([^"]*)"[^>]*>\s*<failure message="([^"]*)', s):
                   print(f"::error title={m.group(2)}.{m.group(1)}::{m.group(3)[:500]}")
           PY
-          grep -h "\]$" build/reports/detekt/*.txt 2>/dev/null | head -50 || true
+          find . -path "*/build/reports/detekt/*.txt" -exec grep -h "\]$" {} + 2>/dev/null | head -20 | sed 's/^/::error title=detekt::/' || true
+          # What Gradle says went wrong, as one annotation (the Actions log is not readable from outside).
+          MSG=$(grep -A6 "What went wrong" "$RESULTS/check.log" | grep -v "^--$" | head -40 | sed ':a;N;$!ba;s/\n/%0A/g')
+          [ -n "$MSG" ] && echo "::error title=Gradle::$MSG" || true
 
       - name: Signing
         id: signing
@@ -88,8 +93,13 @@ jobs:
 
       - name: APKs and web app
         run: |
+          set -o pipefail
           ./gradlew :android:assembleDebug :android:assembleRelease :web:wasmJsBrowserDistribution $GRADLE_FLAGS \
-            -Phqr.versionCode=$((100 + ${{ github.run_number }}))
+            -Phqr.versionCode=$((100 + ${{ github.run_number }})) 2>&1 | tee "$RESULTS/build.log" || {
+            MSG=$(grep -A6 "What went wrong\|^e: " "$RESULTS/build.log" | head -40 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=Build::$MSG"
+            exit 1
+          }
 
       - name: Keep reports and screenshots on the Mac
         if: always()

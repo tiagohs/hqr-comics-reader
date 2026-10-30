@@ -21,6 +21,7 @@ private const val CONNECT_TIMEOUT_MS = 15_000L
 private const val REQUEST_TIMEOUT_MS = 60_000L
 private const val SOCKET_TIMEOUT_MS = 30_000L
 private const val MAX_RETRIES = 3
+private const val FIRST_RETRY_MS = 1_000L
 private const val UNAUTHORIZED = 401
 private const val FORBIDDEN = 403
 private const val NOT_FOUND = 404
@@ -44,17 +45,25 @@ fun hqrHttpClient(
             requestTimeoutMillis = REQUEST_TIMEOUT_MS
             socketTimeoutMillis = SOCKET_TIMEOUT_MS
         }
-        install(HttpRequestRetry) {
-            maxRetries = MAX_RETRIES
-            // A challenge answers the same until the user passes it: never repeated (RF-106).
-            retryIf { request, response ->
-                request.method == HttpMethod.Get && response.status.value >= SERVER_ERROR && response.headers[CF_MITIGATED] == null
-            }
-            retryOnExceptionIf { request, cause -> request.method == HttpMethod.Get && cause !is CancellationException }
-            exponentialDelay()
-        }
+        hqrRetries()
         defaultRequest { header(HttpHeaders.UserAgent, userAgent) }
     }
+
+/** 3 retries, only on GET, with growing waits (ADR-005); [delay] is the first wait, shorter in tests. */
+fun io.ktor.client.HttpClientConfig<*>.hqrRetries(delayMs: Long = FIRST_RETRY_MS) {
+    install(HttpRequestRetry) {
+        maxRetries = MAX_RETRIES
+        // A challenge answers the same until the user passes it: never repeated (RF-106).
+        retryIf { request, response ->
+            request.method == HttpMethod.Get && response.status.value >= SERVER_ERROR && response.headers[CF_MITIGATED] == null
+        }
+        // A source's own answer (a refused bridge, a challenge) is not a network blip: never repeated.
+        retryOnExceptionIf { request, cause ->
+            request.method == HttpMethod.Get && cause !is CancellationException && cause !is SourceException
+        }
+        exponentialDelay(base = 2.0, baseDelayMs = delayMs)
+    }
+}
 
 /** Turns transport problems and HTTP statuses into source failures (RF-05). */
 fun HttpResponse.ensureOk(): HttpResponse {

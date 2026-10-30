@@ -69,4 +69,31 @@ class ChallengeCookiesTest {
             kind("/waf") shouldBe SourceException.Kind.AUTH
             kind("/down") shouldBe SourceException.Kind.SERVER
         }
+
+    @Test
+    fun RF106_aRedirectToAnotherHostTakesNoCookies() =
+        runTest {
+            val seen = mutableListOf<HttpRequestData>()
+            val provider =
+                object : ChallengeCookies {
+                    override fun cookies(url: String) = if ("weebcentral.com" in url) "cf_clearance=abc" else null
+
+                    override val userAgent = "WebView"
+                }
+            val client =
+                HttpClient(
+                    MockEngine { request ->
+                        seen += request
+                        if (request.url.host == "weebcentral.com") {
+                            respond("", HttpStatusCode.Found, headersOf(HttpHeaders.Location, "https://elsewhere.example/x"))
+                        } else {
+                            respond("ok")
+                        }
+                    },
+                ) { useChallengeCookies(provider) }
+            client.get("https://weebcentral.com/old")
+            seen.map { it.url.host } shouldBe listOf("weebcentral.com", "elsewhere.example")
+            seen[0].headers[HttpHeaders.Cookie] shouldBe "cf_clearance=abc"
+            seen[1].headers[HttpHeaders.Cookie] shouldBe null
+        }
 }

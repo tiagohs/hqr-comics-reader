@@ -13,6 +13,7 @@ import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.model.SourcePage
+import com.tiagohs.hqr.domain.model.numberUnnumbered
 import com.tiagohs.hqr.domain.source.CatalogSource
 import com.tiagohs.hqr.domain.source.SearchSource
 import com.tiagohs.hqr.domain.source.SourceException
@@ -172,7 +173,7 @@ class XoxoSource(
             }
             url = doc.selectFirst("ul.pagination a[rel=next]")?.attr("abs:href")?.ifEmpty { null }
         }
-        return chapters
+        return chapters.numberUnnumbered()
     }
 
     override suspend fun pages(

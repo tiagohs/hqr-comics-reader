@@ -181,13 +181,19 @@ fun HttpClientConfig<*>.routeThroughBridge(bridge: PersonalBridge) {
             // The bridge refuses with 403 (token changed on it, or a host it doesn't allow): that is a bridge problem,
             // not the source's.
             onResponse { response ->
-                if (response.call.request.headers[PersonalBridge.TOKEN_HEADER] != null && response.status.value == FORBIDDEN) {
+                if (response.call.request.headers[PersonalBridge.TOKEN_HEADER] == null || response.status.value != FORBIDDEN) {
+                    return@onResponse
+                }
+                // Only the bridge's own refusals are a bridge problem; a 403 from the source itself passes on (AUTH or a
+                // Cloudflare challenge, read by ensureOk).
+                val body = response.bodyAsText()
+                when {
+                    body.contains("\"error\":\"token\"") -> throw SourceException("Token recusado pela ponte", SourceException.Kind.BRIDGE)
                     // A bridge published before a source existed refuses its host: it needs publishing again.
-                    val outdated = response.bodyAsText().contains("\"error\":\"host\"")
-                    throw SourceException(
-                        if (outdated) "Ponte desatualizada: publique de novo" else "Token recusado pela ponte",
-                        SourceException.Kind.BRIDGE,
-                    )
+                    body.contains("\"error\":\"host\"") ->
+                        throw SourceException("Ponte desatualizada: publique de novo", SourceException.Kind.BRIDGE)
+                    body.contains("\"error\":\"redirect\"") ->
+                        throw SourceException("A fonte mudou de endereço", SourceException.Kind.NOT_FOUND)
                 }
             }
         },

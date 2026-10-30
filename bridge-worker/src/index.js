@@ -253,7 +253,8 @@ export async function handleRequest(request, env = {}, fetchImpl = (...args) => 
   } catch {
     return jsonResponse(502, { error: "upstream" }, cors);
   }
-  if (upstream === null) return jsonResponse(403, { error: "host" }, cors);
+  // A redirect to a host outside the list: the source moved, the bridge is not out of date.
+  if (upstream === null) return jsonResponse(403, { error: "redirect" }, cors);
 
   const responseHeaders = buildResponseHeaders(upstream.headers);
   const passBody = request.method !== "HEAD" && upstream.status !== 204 && upstream.status !== 304;

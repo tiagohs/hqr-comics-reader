@@ -144,7 +144,7 @@ test("RF109_redirectToHostOutsideAllowlistIs403", async () => {
   nextResponse = () => new Response(null, { status: 302, headers: { Location: "https://evil.example.com/" } });
   const response = await handleRequest(request(fetchUrl("https://api.mangadex.org/x"), { headers: authed() }), ENV);
   assert.equal(response.status, 403);
-  assert.deepEqual(await response.json(), { error: "host" });
+  assert.deepEqual(await response.json(), { error: "redirect" });
   assert.equal(calls.length, 1);
 });
 

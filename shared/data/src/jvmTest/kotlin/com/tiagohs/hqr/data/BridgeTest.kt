@@ -4,6 +4,7 @@ import com.russhwolf.settings.MapSettings
 import com.tiagohs.hqr.data.bridge.PersonalBridge
 import com.tiagohs.hqr.data.bridge.routeThroughBridge
 import com.tiagohs.hqr.data.net.hqrHttpClient
+import com.tiagohs.hqr.data.net.hqrRetries
 import com.tiagohs.hqr.data.settings.SettingsSecretStore
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.source.BridgeCheck
@@ -40,7 +41,11 @@ class BridgeTest {
         }
     private val settings = MapSettings()
     private val bridge = PersonalBridge(settings, SettingsSecretStore(settings), HttpClient(engine))
-    private val client = HttpClient(engine) { routeThroughBridge(bridge) }
+    private val client =
+        HttpClient(engine) {
+            hqrRetries(delayMs = 1)
+            routeThroughBridge(bridge)
+        }
 
     @Test
     fun RF108_withoutABridgeNoRequestReachesTheSource() =
@@ -105,7 +110,10 @@ class BridgeTest {
         runTest {
             bridge.save("https://hqr.tiago.workers.dev", "antigo")
             sourceStatus = HttpStatusCode.Forbidden
+            sourceBody = """{"error":"token"}"""
             shouldThrow<SourceException> { client.get("https://api.mangadex.org/manga") }.kind shouldBe SourceException.Kind.BRIDGE
+            // The bridge's own refusal is final: asked once, never repeated.
+            seen.size shouldBe 1
             // A bridge published before a source refuses its host: it asks to be published again.
             sourceBody = """{"error":"host"}"""
             val outdated = shouldThrow<SourceException> { client.get("https://weebcentral.com/search/data") }
@@ -122,5 +130,18 @@ class BridgeTest {
             bridge.current() shouldBe null
             // The shared client keeps working for everything else.
             hqrHttpClient("HQR") { routeThroughBridge(bridge) }.close()
+        }
+
+    @Test
+    fun RF108_aRefusalFromTheSourceItselfIsNotABridgeProblem() =
+        runTest {
+            bridge.save("https://hqr.tiago.workers.dev", "certo")
+            sourceStatus = HttpStatusCode.Forbidden
+            sourceBody = "<html>Attention Required</html>"
+            val response = client.get("https://weebcentral.com/search/data")
+            // It reaches the source's own reading (ensureOk: access refused), not "token refused".
+            response.status shouldBe HttpStatusCode.Forbidden
+            sourceBody = """{"error":"redirect"}"""
+            shouldThrow<SourceException> { client.get("https://weebcentral.com/x") }.kind shouldBe SourceException.Kind.NOT_FOUND
         }
 }

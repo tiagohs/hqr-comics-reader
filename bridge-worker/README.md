@@ -26,7 +26,8 @@ Cloudflare e no app.
 4. **Settings › Variables and Secrets › Add**: tipo **Secret**, nome `TOKEN`, valor do passo 1. Salve e publique.
 5. Anote o endereço, por exemplo `https://hqr-bridge.<sua-conta>.workers.dev`.
 
-Ao atualizar o HQR, se o app disser que a ponte está desatualizada, repita o passo 3 com o `src/index.js` novo.
+Ao atualizar o HQR, se o app disser que a ponte está desatualizada, repita o passo 3 com o `src/index.js` novo. Se você
+criou a variável `HOSTS` no painel, apague-a (ou copie a lista nova do `wrangler.toml`): ela substitui a do código.
 
 Sem `HOSTS` e `ORIGINS` no painel, a ponte usa os valores padrão (os mesmos do `wrangler.toml`).
 

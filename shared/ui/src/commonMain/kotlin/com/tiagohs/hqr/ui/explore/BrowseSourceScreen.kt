@@ -146,7 +146,8 @@ fun BrowseSourceScreen(
     androidx.lifecycle.compose.LifecycleResumeEffect(Unit) {
         if (verifying) {
             verifying = false
-            viewModel.retry()
+            // After the process was killed the source is loading anew: no second request.
+            if (viewModel.state.value.error == ErrorKind.CHALLENGE) viewModel.retry()
         }
         onPauseOrDispose {}
     }

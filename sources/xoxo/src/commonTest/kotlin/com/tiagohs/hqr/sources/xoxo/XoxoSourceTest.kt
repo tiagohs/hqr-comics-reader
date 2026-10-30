@@ -5,6 +5,7 @@ package com.tiagohs.hqr.sources.xoxo
 
 import com.tiagohs.hqr.domain.model.PublicationStatus
 import com.tiagohs.hqr.domain.model.SourceManga
+import com.tiagohs.hqr.domain.model.numberUnnumbered
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -94,6 +95,15 @@ class XoxoSourceTest {
         XoxoSource.issueNumber("Nightwing (2016) Issue #143") shouldBe 143.0
         XoxoSource.issueNumber("Nightwing (2016) Annual #1") shouldBe XoxoSource.NO_NUMBER
         XoxoSource.issueNumber("Nightwing (2016) TPB") shouldBe XoxoSource.NO_NUMBER
+        // Each one without a number keeps its own place: the newest annual after the oldest.
+        listOf(
+            com.tiagohs.hqr.domain.model
+                .SourceChapter("annual-2", XoxoSource.NO_NUMBER),
+            com.tiagohs.hqr.domain.model
+                .SourceChapter("issue-2", 2.0),
+            com.tiagohs.hqr.domain.model
+                .SourceChapter("annual-1", XoxoSource.NO_NUMBER),
+        ).numberUnnumbered().map { it.number } shouldContainExactly listOf(-2.0, 2.0, -1.0)
     }
 
     private companion object {

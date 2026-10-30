@@ -1,6 +1,6 @@
 # Ponte do HQR (Cloudflare Worker)
 
-O MangaDex e o HQ Now não liberam CORS, e o MangaDex proíbe o cabeçalho `Via` e quebra imagens em hotlink; por isso o
+O MangaDex, o HQ Now e a maior parte das fontes da 1.1 não liberam CORS, e o MangaDex proíbe o cabeçalho `Via` e quebra imagens em hotlink; por isso o
 navegador não fala com eles direto. A ponte é um Worker que você publica na **sua** conta grátis do Cloudflare: o app
 web manda para ela os pedidos das fontes online (API e imagens) com um token, e ela os repassa. O projeto não hospeda
 nada (ADR-023, RF-108, RF-109, RNF-32).
@@ -21,10 +21,12 @@ Cloudflare e no app.
 ### Pelo painel (sem instalar nada)
 
 1. Crie uma conta grátis em https://dash.cloudflare.com.
-2. **Workers & Pages › Create › Create Worker**, nome `hqr-bridge`, **Deploy**.
+2. **Workers & Pages › Create application › Start with Hello World! › Get started**; nome `hqr-bridge`, **Deploy**.
 3. **Edit code**: apague o conteúdo, cole o de `src/index.js` e clique **Deploy**.
 4. **Settings › Variables and Secrets › Add**: tipo **Secret**, nome `TOKEN`, valor do passo 1. Salve e publique.
 5. Anote o endereço, por exemplo `https://hqr-bridge.<sua-conta>.workers.dev`.
+
+Ao atualizar o HQR, se o app disser que a ponte está desatualizada, repita o passo 3 com o `src/index.js` novo.
 
 Sem `HOSTS` e `ORIGINS` no painel, a ponte usa os valores padrão (os mesmos do `wrangler.toml`).
 

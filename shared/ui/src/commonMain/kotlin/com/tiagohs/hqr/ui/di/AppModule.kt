@@ -147,7 +147,7 @@ val coreModule: Module =
             }
         }
         viewModel { (mangaId: Long, chapterId: Long, page: Int) ->
-            ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get(), get())
+            ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get(), get(), getOrNull())
         }
     }
 
@@ -162,6 +162,7 @@ val downloadModule: Module =
             val mangas = get<MangaRepository>()
             val chapters = get<ChapterRepository>()
             val http = get<HttpClient>()
+            val settings = get<DownloadSettings>()
 
             suspend fun target(chapterId: Long): Pair<Manga, Chapter> {
                 val chapter = chapters.get(chapterId) ?: error("Capítulo apagado")
@@ -180,6 +181,7 @@ val downloadModule: Module =
                     val source = registry.awaitRequire(target(id).first.sourceId)
                     if (source is ImageSource) source.image(page.imageUrl, page.headers) else http.bytes(page.imageUrl, page.headers)
                 },
+                deleteAfterRead = { settings.deleteAfterRead.value },
             )
         }
         single<Downloads> { get<DownloadManager>() }

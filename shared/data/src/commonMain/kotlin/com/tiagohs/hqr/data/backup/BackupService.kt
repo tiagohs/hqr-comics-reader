@@ -4,18 +4,22 @@ import androidx.room3.withWriteTransaction
 import com.russhwolf.settings.Settings
 import com.tiagohs.hqr.data.db.CategoryEntity
 import com.tiagohs.hqr.data.db.ChapterEntity
+import com.tiagohs.hqr.data.db.FeedItemEntity
 import com.tiagohs.hqr.data.db.HistoryEntity
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.MangaCategoryEntity
 import com.tiagohs.hqr.data.db.MangaEntity
 import com.tiagohs.hqr.data.db.MangaReaderSettingsEntity
 import com.tiagohs.hqr.data.db.ProgressEntity
+import com.tiagohs.hqr.data.db.SavedSearchEntity
 import com.tiagohs.hqr.data.db.ServerEntity
+import com.tiagohs.hqr.data.db.SourceEntity
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.repository.Backups
 import com.tiagohs.hqr.domain.repository.RestoreFailure
 import com.tiagohs.hqr.domain.repository.RestoreProblem
 import com.tiagohs.hqr.domain.repository.RestoreSummary
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 
@@ -60,6 +64,7 @@ class BackupService(
         val categoryNames = categories.associate { it.id to it.name }
         val assignments = db.categoryDao().allAssignments().groupBy({ it.mangaId }, { it.categoryId })
         val names = knownSources()
+        val saved = db.searchDao().listSaved()
         val kept =
             mangas.filter { m ->
                 m.inLibrary || chapters[m.id].orEmpty().any { progress[it.id] != null || history[it.id] != null }
@@ -100,6 +105,11 @@ class BackupService(
                     )
                 },
             servers = db.serverDao().list().map { BackupServer(it.sourceId, it.kind, it.name, it.url, it.username) },
+            savedSearches = saved.map { BackupSavedSearch(it.sourceId, it.name, it.query, it.filters) },
+            feed =
+                db.searchDao().listFeed().map { f ->
+                    BackupFeedItem(f.sourceId, f.savedSearchId?.let { id -> saved.firstOrNull { it.id == id }?.name }, f.sortOrder)
+                },
             settings = SETTINGS.mapNotNull { (key, type) -> read(key, type)?.let { key to it } }.toMap(),
         )
     }
@@ -109,6 +119,13 @@ class BackupService(
             Result.success(restoreOrThrow(bytes))
         } catch (e: BackupException) {
             Result.failure(RestoreFailure(if (e.newerVersion) RestoreProblem.NEWER_VERSION else RestoreProblem.NOT_A_BACKUP))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (
+            @Suppress("TooGenericExceptionCaught") e: Exception,
+        ) {
+            // A file that reads as a backup but doesn't fit (a work without its source…): the transaction rolled back.
+            Result.failure(RestoreFailure(RestoreProblem.NOT_A_BACKUP, e))
         }
 
     override fun fileName(): String {
@@ -161,7 +178,9 @@ class BackupService(
         val savedServers = serverDao.list().map { it.sourceId }.toSet()
         val newServers = backup.servers.filter { it.sourceId !in savedServers }
         newServers.forEach { serverDao.upsert(ServerEntity(it.sourceId, it.kind, it.name, it.url, it.username, pinnedCertificate = null)) }
+        mergeSearches(backup)
         val known = knownSources().keys + backup.servers.map { it.sourceId }
+        rememberUnavailable(backup, known)
         return RestoreSummary(
             works = backup.mangas.size,
             chaptersRead = read,
@@ -174,6 +193,43 @@ class BackupService(
                     .distinct()
                     .sorted(),
         )
+    }
+
+    /** RF-24, RF-25: saved searches by source and name; feed rows that aren't there yet, after the current ones. */
+    private suspend fun mergeSearches(backup: Backup) {
+        val dao = db.searchDao()
+        val byName = dao.listSaved().associateBy { it.sourceId to it.name }.toMutableMap()
+        backup.savedSearches.forEach { b ->
+            if (b.sourceId to b.name !in byName) {
+                val id = dao.insertSaved(SavedSearchEntity(sourceId = b.sourceId, name = b.name, query = b.query, filters = b.filters))
+                byName[b.sourceId to b.name] = SavedSearchEntity(id, b.sourceId, b.name, b.query, b.filters)
+            }
+        }
+        val feed = dao.listFeed()
+        val present = feed.map { it.sourceId to it.savedSearchId }.toMutableSet()
+        var order = feed.maxOfOrNull { it.sortOrder } ?: 0
+        backup.feed.sortedBy { it.order }.forEach { b ->
+            val searchId = b.savedSearch?.let { byName[b.sourceId to it]?.id ?: return@forEach }
+            if (present.add(
+                    b.sourceId to searchId,
+                )
+            ) {
+                dao.insertFeed(FeedItemEntity(sourceId = b.sourceId, savedSearchId = searchId, sortOrder = ++order))
+            }
+        }
+    }
+
+    /** RF-73: works of a source this app doesn't have keep that source's name from the backup. */
+    private suspend fun rememberUnavailable(
+        backup: Backup,
+        known: Set<String>,
+    ) {
+        val dao = db.sourceDao()
+        val saved = dao.list().map { it.id }.toSet()
+        backup.mangas
+            .filter { it.sourceId !in known && it.sourceId !in saved }
+            .distinctBy { it.sourceId }
+            .forEach { dao.upsert(SourceEntity(it.sourceId, UNAVAILABLE_KIND, it.sourceName, "", 0, true, "{}")) }
     }
 
     private suspend fun upsertManga(
@@ -253,7 +309,7 @@ class BackupService(
             }
             if (b.read) read++
             b.readAtEpochMs?.let { at ->
-                val previous = historyDao.all().firstOrNull { it.chapterId == id }?.readAt ?: 0
+                val previous = historyDao.get(id)?.readAt ?: 0
                 if (at > previous) historyDao.upsert(HistoryEntity(id, at))
             }
         }
@@ -292,6 +348,7 @@ class BackupService(
     private companion object {
         const val EMPTY_LIST = "[]"
         const val UNKNOWN = "UNKNOWN"
+        const val UNAVAILABLE_KIND = "unavailable"
         const val LIBRARY_OPTIONS = "library_options"
 
         // The app settings that travel (RF-72); never the local folder, never anything secret.

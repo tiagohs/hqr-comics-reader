@@ -52,6 +52,10 @@ class DownloadsAndBackupViewModelTest : MainDispatcherTest() {
         }
 
         override suspend fun usedBytes() = items.value.count { it.state == DownloadState.DONE } * 1024L
+
+        override suspend fun networkRuleChanged() {
+            calls += "rule"
+        }
     }
 
     private class FakeSettings : DownloadSettings {
@@ -91,8 +95,10 @@ class DownloadsAndBackupViewModelTest : MainDispatcherTest() {
             vm.setDeleteAfterRead(true)
             vm.setWifiOnly(false)
             vm.state.first { it.deleteAfterRead && !it.wifiOnly }
-            downloads.calls.size shouldBe 4
+            // RF-64: the new rule reaches the queue.
+            waitFor { downloads.calls.size == 5 }
             downloads.calls[2] shouldBe "remove [1, 2]"
+            downloads.calls[4] shouldBe "rule"
         }
 
     @Test

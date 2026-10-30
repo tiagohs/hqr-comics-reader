@@ -8,6 +8,7 @@ import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadingRules
 import com.tiagohs.hqr.domain.model.SourcePage
 import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.presentation.common.ErrorKind
@@ -56,6 +57,7 @@ interface ReaderSettingsStore {
  * The reader engine (ADR-007): pages, current page, saving progress 500 ms after the last change (RF-43), the
  * chapter transition with gap warning (RF-42) and the next chapter loaded near the end (RF-41).
  */
+@Suppress("LongParameterList") // One port per concern (pages, progress, history, settings, cache, downloads), all from Koin.
 class ReaderViewModel(
     private val mangaId: Long,
     private val chapterId: Long,
@@ -68,6 +70,7 @@ class ReaderViewModel(
     private val clock: Clock,
     private val saved: SavedStateHandle = SavedStateHandle(),
     private val prefetcher: PagePrefetcher? = null,
+    private val downloads: Downloads? = null,
 ) : ViewModel() {
     data class Transition(
         val finished: Chapter,
@@ -231,12 +234,25 @@ class ReaderViewModel(
 
     fun goToNext() {
         val next = _state.value.next ?: return
-        viewModelScope.launch { open(next.id, 0) }
+        viewModelScope.launch {
+            leaveChapter()
+            open(next.id, 0)
+        }
     }
 
     fun goToPrevious() {
         val previous = _state.value.previous ?: return
-        viewModelScope.launch { open(previous.id, 0) }
+        viewModelScope.launch {
+            leaveChapter()
+            open(previous.id, 0)
+        }
+    }
+
+    /** RF-66: a chapter left after being read may lose its files, never while it is still on screen. */
+    private suspend fun leaveChapter() {
+        val chapter = _state.value.chapter ?: return
+        saveJob?.join()
+        downloads?.chaptersRead(listOf(chapter.id))
     }
 
     fun retry() {
@@ -275,7 +291,10 @@ class ReaderViewModel(
         val s = _state.value
         val chapter = s.chapter ?: return
         if (s.pageCount > 0) {
-            kotlinx.coroutines.GlobalScope.launch { chapters.saveProgress(chapter.id, s.page, s.pageCount) }
+            kotlinx.coroutines.GlobalScope.launch {
+                chapters.saveProgress(chapter.id, s.page, s.pageCount)
+                downloads?.chaptersRead(listOf(chapter.id))
+            }
         }
     }
 

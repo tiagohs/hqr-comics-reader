@@ -1,19 +1,25 @@
 package com.tiagohs.hqr.data.backup
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
 /**
  * The `.hqrbackup` content (ADR-010): JSON, gzip outside, the same on Android and iOS (RF-74). Works are identified
  * by source and key (RF-90), chapters by key; never a database id, never a password (RF-72).
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class Backup(
-    val schemaVersion: Int = SCHEMA_VERSION,
+    // Always written: a reader of a future version needs it even when it equals the default.
+    @EncodeDefault val schemaVersion: Int = SCHEMA_VERSION,
     val createdAtEpochMs: Long,
     val app: String,
     val categories: List<BackupCategory> = emptyList(),
     val mangas: List<BackupManga> = emptyList(),
     val servers: List<BackupServer> = emptyList(),
+    val savedSearches: List<BackupSavedSearch> = emptyList(),
+    val feed: List<BackupFeedItem> = emptyList(),
     val settings: Map<String, String> = emptyMap(),
 ) {
     companion object {
@@ -72,4 +78,21 @@ data class BackupServer(
     val name: String,
     val url: String,
     val username: String? = null,
+)
+
+/** RF-24: a saved search of a source, by name. */
+@Serializable
+data class BackupSavedSearch(
+    val sourceId: String,
+    val name: String,
+    val query: String,
+    val filters: String,
+)
+
+/** RF-25: one row of the feed: a source's latest, or one of its saved searches by name. */
+@Serializable
+data class BackupFeedItem(
+    val sourceId: String,
+    val savedSearch: String? = null,
+    val order: Int,
 )

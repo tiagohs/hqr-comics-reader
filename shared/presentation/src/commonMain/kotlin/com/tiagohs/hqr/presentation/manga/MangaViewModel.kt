@@ -198,7 +198,10 @@ class MangaViewModel(
         ids: Collection<Long>,
         read: Boolean,
     ) {
-        viewModelScope.launch { chapters.setRead(ids, read) }
+        viewModelScope.launch {
+            chapters.setRead(ids, read)
+            if (read) downloads?.chaptersRead(ids)
+        }
         clearSelection()
     }
 
@@ -259,6 +262,7 @@ class MangaViewModel(
         viewModelScope.launch {
             val ids = chapters.list(mangaId).filter { it.number < chapter.number }.map { it.id }
             chapters.setRead(ids, true)
+            downloads?.chaptersRead(ids)
         }
     }
 

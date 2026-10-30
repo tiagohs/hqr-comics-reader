@@ -6,6 +6,8 @@ import com.tiagohs.hqr.data.backup.BackupException
 import com.tiagohs.hqr.data.backup.BackupService
 import com.tiagohs.hqr.data.backup.gunzip
 import com.tiagohs.hqr.data.backup.gzip
+import com.tiagohs.hqr.data.db.FeedItemEntity
+import com.tiagohs.hqr.data.db.SavedSearchEntity
 import com.tiagohs.hqr.data.db.ServerEntity
 import com.tiagohs.hqr.data.db.inMemoryDatabase
 import com.tiagohs.hqr.data.repository.RoomCategoryRepository
@@ -20,6 +22,7 @@ import com.tiagohs.hqr.domain.model.SourceManga
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -40,7 +43,8 @@ class BackupServiceTest {
         val categories = RoomCategoryRepository(db)
         val history = RoomHistoryRepository(db, mangas, chapters)
         var known = mapOf("mangadex" to "MangaDex", "hqnow" to "HQ Now")
-        val backups = BackupService(db, settings, "HQR 1.0.0", { known })
+        var broken = false
+        val backups = BackupService(db, settings, "HQR 1.0.0", { if (broken) error("quebrou") else known })
     }
 
     @AfterTest
@@ -121,6 +125,50 @@ class BackupServiceTest {
             val summary = tablet.backups.restoreOrThrow(phone.backups.create())
             summary.unavailableSources shouldBe listOf("HQ Now")
             tablet.mangas.find(SourceId.HQ_NOW, "2219")!!.inLibrary shouldBe true
+            // The name stays on this device for the "Fonte indisponível" badge.
+            tablet.db
+                .sourceDao()
+                .list()
+                .single { it.id == "hqnow" }
+                .name shouldBe "HQ Now"
+        }
+
+    @Test
+    fun RF72_schemaVersionIsAlwaysWritten() =
+        runTest {
+            gunzip(phone.backups.create()).decodeToString() shouldContain "\"schemaVersion\":${Backup.SCHEMA_VERSION}"
+        }
+
+    @Test
+    fun RF72_RF24_RF25_savedSearchesAndFeedTravelByName() =
+        runTest {
+            val search = phone.db.searchDao()
+            val id = search.insertSaved(SavedSearchEntity(sourceId = "mangadex", name = "Romance", query = "amor", filters = "{}"))
+            search.insertFeed(FeedItemEntity(sourceId = "mangadex", savedSearchId = null, sortOrder = 1))
+            search.insertFeed(FeedItemEntity(sourceId = "mangadex", savedSearchId = id, sortOrder = 2))
+            val file = phone.backups.create()
+            tablet.backups.restoreOrThrow(file)
+            // Twice: nothing doubles.
+            tablet.backups.restoreOrThrow(file)
+            val saved = tablet.db.searchDao().listSaved()
+            saved.map { it.name } shouldContainExactly listOf("Romance")
+            tablet.db
+                .searchDao()
+                .listFeed()
+                .map { it.savedSearchId } shouldContainExactly listOf(null, saved.single().id)
+        }
+
+    @Test
+    fun RF89_failedRestoreChangesNothing() =
+        runTest {
+            val (id, chs) = phone.work(SourceId.MANGADEX, "akira")
+            phone.mangas.setInLibrary(id, true)
+            phone.chapters.setRead(chs.take(2), true)
+            val file = phone.backups.create()
+            tablet.broken = true
+            val failure = tablet.backups.restore(file).exceptionOrNull() as com.tiagohs.hqr.domain.repository.RestoreFailure
+            failure.problem shouldBe com.tiagohs.hqr.domain.repository.RestoreProblem.NOT_A_BACKUP
+            tablet.mangas.find(SourceId.MANGADEX, "akira") shouldBe null
         }
 
     @Test

@@ -43,6 +43,7 @@ import com.tiagohs.hqr.ui.resources.action_move_up
 import com.tiagohs.hqr.ui.resources.download_cancel
 import com.tiagohs.hqr.ui.resources.download_delete
 import com.tiagohs.hqr.ui.resources.download_state_error
+import com.tiagohs.hqr.ui.resources.download_state_network
 import com.tiagohs.hqr.ui.resources.download_state_paused
 import com.tiagohs.hqr.ui.resources.download_state_queued
 import com.tiagohs.hqr.ui.resources.download_state_running
@@ -113,7 +114,7 @@ fun DownloadsScreen(
                     }
                     if (state.queue.isNotEmpty()) item { Section(Res.string.downloads_queue) }
                     items(state.queue, key = { "q${it.chapterId}" }) { item ->
-                        QueueRow(item, first = item == state.queue.first(), last = item == state.queue.last(), viewModel)
+                        QueueRow(item, first = item == state.queue.first(), last = item == state.queue.last(), state.wifiOnly, viewModel)
                     }
                     if (state.done.isNotEmpty()) {
                         item {
@@ -199,6 +200,7 @@ private fun QueueRow(
     item: DownloadItem,
     first: Boolean,
     last: Boolean,
+    wifiOnly: Boolean,
     viewModel: DownloadsViewModel,
 ) {
     ListItem(
@@ -206,7 +208,7 @@ private fun QueueRow(
         supportingContent = {
             androidx.compose.foundation.layout.Column {
                 Text(
-                    stateText(item),
+                    stateText(item, wifiOnly),
                     color =
                         if (item.state ==
                             DownloadState.ERROR
@@ -241,12 +243,16 @@ private fun QueueRow(
 }
 
 @Composable
-private fun stateText(item: DownloadItem): String =
+private fun stateText(
+    item: DownloadItem,
+    wifiOnly: Boolean,
+): String =
     when (item.state) {
         DownloadState.QUEUED -> stringResource(Res.string.download_state_queued)
         DownloadState.RUNNING -> stringResource(Res.string.download_state_running, item.pagesDone, item.pagesTotal)
         DownloadState.PAUSED -> stringResource(Res.string.download_state_paused)
-        DownloadState.WAITING_WIFI -> stringResource(Res.string.download_state_wifi)
+        // Waiting for Wi-Fi under "só no Wi-Fi" (RF-64), or for any network after losing it.
+        DownloadState.WAITING_WIFI -> stringResource(if (wifiOnly) Res.string.download_state_wifi else Res.string.download_state_network)
         DownloadState.ERROR -> stringResource(Res.string.download_state_error, item.error.orEmpty())
         DownloadState.DONE -> ""
     }

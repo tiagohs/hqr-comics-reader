@@ -44,11 +44,24 @@ interface Downloads {
 
     /** RF-66: bytes of every downloaded chapter. */
     suspend fun usedBytes(): Long
+
+    /** RF-64: "só no Wi-Fi" changed; chapters waiting for the network try again under the new rule. */
+    suspend fun networkRuleChanged() {}
+
+    /** RF-63: on opening the app, a queue left with work starts again. */
+    suspend fun resumePending() {}
+
+    /**
+     * RF-66: these chapters may have just become read (marked by hand, or the reader left them at the end). With
+     * "apagar depois de lido" on, the files of the read ones go; a chapter downloaded again after being read stays.
+     */
+    suspend fun chaptersRead(chapterIds: Collection<Long>) {}
 }
 
 /** Starts the platform's executor for the queue (WorkManager on Android); a no-op where downloads don't run. */
 fun interface DownloadScheduler {
-    fun schedule()
+    /** [restart]: drop a run waiting for the old network rule and start one with the current rule (RF-64). */
+    fun schedule(restart: Boolean)
 }
 
 /** The two download options of SCR-DL-001: Wi-Fi only (RF-64) and delete after read (RF-66). */

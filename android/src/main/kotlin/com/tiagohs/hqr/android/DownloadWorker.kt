@@ -48,9 +48,10 @@ class DownloadWorker(
                         runCatching { setForeground(foreground(running.pagesDone, running.pagesTotal, running.mangaTitle)) }
                     }
                 }
-            manager.run { allowed() }
+            val waiting = manager.run { allowed() }
             progress.cancel()
-            Result.success()
+            // Chapters left waiting for the network: WorkManager tries again later, under the run's constraint (RF-63).
+            if (waiting) Result.retry() else Result.success()
         }
 
     private fun allowed(): Boolean {
@@ -98,13 +99,15 @@ class WorkManagerDownloadScheduler(
     private val context: Context,
     private val prefs: AppPreferences,
 ) : DownloadScheduler {
-    override fun schedule() {
+    override fun schedule(restart: Boolean) {
         val network = if (prefs.wifiOnlyDownloads.value) NetworkType.UNMETERED else NetworkType.CONNECTED
         val request =
             OneTimeWorkRequestBuilder<DownloadWorker>()
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(network).build())
                 .build()
-        // APPEND_OR_REPLACE: a queue change while it runs is picked up when the current run ends.
-        WorkManager.getInstance(context).enqueueUniqueWork(DownloadWorker.NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
+        // A queue change while it runs is picked up when the current run ends; a new network rule (RF-64) replaces the
+        // run waiting under the old one.
+        val policy = if (restart) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.APPEND_OR_REPLACE
+        WorkManager.getInstance(context).enqueueUniqueWork(DownloadWorker.NAME, policy, request)
     }
 }

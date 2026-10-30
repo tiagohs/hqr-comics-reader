@@ -70,6 +70,7 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
         chapterId: Long,
         startPage: Int = -1,
         saved: SavedStateHandle = SavedStateHandle(),
+        downloads: com.tiagohs.hqr.domain.repository.Downloads? = null,
     ) = track(
         ReaderViewModel(
             mangaId,
@@ -83,6 +84,7 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
             fixedClock,
             saved,
             prefetcher,
+            downloads,
         ),
     )
 
@@ -155,6 +157,46 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
             vm.onPageChanged(3)
             vm.onReachedEnd()
             (vm.state.value.transition != null) shouldBe true
+        }
+
+    @Test
+    fun RF66_leavingAChapterLetsDeleteAfterReadAct() =
+        runTest {
+            val (id, chapters) = work(1.0, 2.0)
+            val left = java.util.concurrent.CopyOnWriteArrayList<Long>()
+            val downloads =
+                object : com.tiagohs.hqr.domain.repository.Downloads {
+                    override fun observe() = kotlinx.coroutines.flow.flowOf(emptyList<com.tiagohs.hqr.domain.repository.DownloadItem>())
+
+                    override suspend fun enqueue(chapterIds: List<Long>) = Unit
+
+                    override suspend fun pauseAll() = Unit
+
+                    override suspend fun resumeAll() = Unit
+
+                    override suspend fun move(
+                        chapterId: Long,
+                        by: Int,
+                    ) = Unit
+
+                    override suspend fun remove(chapterIds: Collection<Long>) = Unit
+
+                    override suspend fun removeAll() = Unit
+
+                    override suspend fun usedBytes() = 0L
+
+                    override suspend fun chaptersRead(chapterIds: Collection<Long>) {
+                        // Only after the end of the chapter was saved: the files can't go before it is read.
+                        if (db.chapters.get(chapterIds.single())?.read == true) left += chapterIds
+                    }
+                }
+            val vm = reader(id, chapters[0].id, 0, downloads = downloads)
+            val loaded = vm.loaded()
+            left shouldBe emptyList()
+            vm.onPageChanged(loaded.pageCount - 1)
+            vm.onReachedEnd()
+            vm.goToNext()
+            eventually { left.toList() == listOf(chapters[0].id) }
         }
 
     @Test

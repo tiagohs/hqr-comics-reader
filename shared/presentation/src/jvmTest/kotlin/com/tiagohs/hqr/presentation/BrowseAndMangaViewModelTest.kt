@@ -12,6 +12,7 @@ import com.tiagohs.hqr.presentation.common.ErrorKind
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.first
@@ -153,6 +154,7 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
             val id = db.mangas.upsert(source.popular(1).items.first()).id
             val queued = mutableListOf<List<Long>>()
             val removed = mutableListOf<Long>()
+            val read = mutableListOf<List<Long>>()
             val downloads =
                 object : com.tiagohs.hqr.domain.repository.Downloads {
                     override fun observe() = kotlinx.coroutines.flow.flowOf(emptyList<com.tiagohs.hqr.domain.repository.DownloadItem>())
@@ -177,6 +179,10 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
                     override suspend fun removeAll() = Unit
 
                     override suspend fun usedBytes() = 0L
+
+                    override suspend fun chaptersRead(chapterIds: Collection<Long>) {
+                        read += chapterIds.toList()
+                    }
                 }
             val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters, downloads = downloads))
             val chapters =
@@ -201,6 +207,14 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
             queued[2] shouldContainExactly listOf(chapters[1].id, chapters[2].id)
             vm.removeDownloads(listOf(chapters[1].id))
             waitFor { removed.isNotEmpty() }
+            // RF-66: marking as read is the moment "apagar depois de lido" acts; unmarking never deletes.
+            vm.setRead(listOf(chapters[2].id), read = false)
+            vm.setRead(listOf(chapters[1].id), read = true)
+            waitFor { read.size == 1 }
+            read[0] shouldContainExactly listOf(chapters[1].id)
+            vm.markPreviousAsRead(chapters[2])
+            waitFor { read.size == 2 }
+            read[1] shouldContainExactlyInAnyOrder listOf(chapters[0].id, chapters[1].id)
         }
 
     @Test

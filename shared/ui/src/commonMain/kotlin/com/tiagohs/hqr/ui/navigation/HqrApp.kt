@@ -29,11 +29,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import coil3.compose.setSingletonImageLoaderFactory
-import com.tiagohs.hqr.data.download.DownloadManager
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.repository.Connectivity
+import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ServerManager
@@ -67,7 +67,6 @@ import com.tiagohs.hqr.ui.sources.SourcesScreen
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
 import com.tiagohs.hqr.ui.theme.LocalPureBlack
-import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
@@ -106,13 +105,10 @@ fun HqrApp(systemDark: Boolean) {
         // RF-105: the remote list may take a while; nothing waits for it.
         sourceConfig.refreshIfStale()
     }
-    val downloads = getKoin().getOrNull<DownloadManager>()
+    val downloads = getKoin().getOrNull<Downloads>()
     if (downloads != null) {
-        LaunchedEffect(downloads) {
-            // RF-66: with the option on, a chapter marked as read loses its files.
-            combine(prefs.deleteAfterRead, downloads.observeReadDone()) { on, read -> if (on) read else emptyList() }
-                .collect { read -> if (read.isNotEmpty()) downloads.remove(read) }
-        }
+        // RF-63: a queue left with work (app closed, phone restarted) starts again.
+        LaunchedEffect(downloads) { downloads.resumePending() }
     }
     val images = koinInject<ImageBytes>()
     setSingletonImageLoaderFactory { context -> hqrImageLoader(context, images) }

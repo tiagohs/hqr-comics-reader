@@ -50,6 +50,8 @@ class SourceConfig(
     private val json = Json { ignoreUnknownKeys = true }
     private var baseUrls: Map<SourceId, String> = emptyMap()
 
+    override suspend fun savedName(id: SourceId): String? = dao.list().firstOrNull { it.id == id.value }?.name
+
     /** RF-105: the address the list gives a source, if any. */
     fun baseUrl(id: SourceId): String? = baseUrls[id]
 

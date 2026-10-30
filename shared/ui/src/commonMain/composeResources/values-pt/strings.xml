@@ -336,4 +336,6 @@
     <string name="update_later">Depois</string>
     <string name="update_failed">Não foi possível atualizar: %1$s</string>
     <string name="update_check_failed">Não foi possível procurar atualização agora.</string>
+    <string name="download_state_network">Esperando a rede</string>
+    <string name="source_unavailable">Fonte indisponível: %1$s</string>
 </resources>

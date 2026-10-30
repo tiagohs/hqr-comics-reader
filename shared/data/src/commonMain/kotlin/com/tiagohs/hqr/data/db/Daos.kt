@@ -181,6 +181,9 @@ interface HistoryDao {
 
     @Query("SELECT * FROM history")
     suspend fun all(): List<HistoryEntity>
+
+    @Query("SELECT * FROM history WHERE chapterId = :chapterId")
+    suspend fun get(chapterId: Long): HistoryEntity?
 }
 
 @Dao
@@ -261,8 +264,40 @@ interface DownloadDao {
         state: String,
     )
 
-    @Query("SELECT d.chapterId FROM download d JOIN progress p ON p.chapterId = d.chapterId WHERE d.state = 'DONE' AND p.read = 1")
-    fun observeReadDone(): Flow<List<Long>>
+    /** Of these chapters, the downloaded ones already read (RF-66). */
+    @Query(
+        """
+        SELECT d.chapterId FROM download d JOIN progress p ON p.chapterId = d.chapterId
+        WHERE d.state = 'DONE' AND p.read = 1 AND d.chapterId IN (:chapterIds)
+        """,
+    )
+    suspend fun readDone(chapterIds: Collection<Long>): List<Long>
+
+    // The worker and the screen change rows at the same time: every write by the worker only applies to the state it
+    // expects, so a pause, a removal or a cancel made meanwhile is never undone (RF-63).
+
+    @Query("UPDATE download SET state = 'RUNNING', error = NULL WHERE chapterId = :id AND state IN ('QUEUED', 'RUNNING', 'WAITING_WIFI')")
+    suspend fun start(id: Long): Int
+
+    @Query("UPDATE download SET pagesDone = :done, pagesTotal = :total WHERE chapterId = :id AND state = 'RUNNING'")
+    suspend fun progress(
+        id: Long,
+        done: Int,
+        total: Int,
+    ): Int
+
+    @Query("UPDATE download SET state = 'DONE', path = :path, pagesDone = pagesTotal WHERE chapterId = :id AND state = 'RUNNING'")
+    suspend fun finish(
+        id: Long,
+        path: String,
+    ): Int
+
+    @Query("UPDATE download SET state = :state, error = :error WHERE chapterId = :id AND state = 'RUNNING'")
+    suspend fun stop(
+        id: Long,
+        state: String,
+        error: String?,
+    ): Int
 }
 
 /** One row of the downloads screen, with the names it shows. */
@@ -313,6 +348,9 @@ interface SearchDao {
 
     @Query("SELECT * FROM feed_item ORDER BY sortOrder")
     suspend fun listFeed(): List<FeedItemEntity>
+
+    @Query("SELECT * FROM saved_search")
+    suspend fun listSaved(): List<SavedSearchEntity>
 
     @Insert
     suspend fun insertFeed(item: FeedItemEntity): Long

@@ -64,6 +64,7 @@ import com.tiagohs.hqr.ui.components.HalftoneProgress
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.UnreadBalloon
 import com.tiagohs.hqr.ui.components.sourceDisplayName
+import com.tiagohs.hqr.ui.components.unavailableSourceName
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
@@ -88,6 +89,7 @@ import com.tiagohs.hqr.ui.resources.manga_continue_chapter
 import com.tiagohs.hqr.ui.resources.nav_explore
 import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.onomatopoeia_empty
+import com.tiagohs.hqr.ui.resources.source_unavailable
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
 import kotlinx.coroutines.flow.flowOf
@@ -348,6 +350,19 @@ private fun BoxScope.Badges(
 ) {
     if (options.unreadBadge) UnreadBalloon(item.unread)
     Column(Modifier.align(Alignment.TopStart).padding(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // RF-73: always shown, whatever the badge options: the work can't be refreshed or read online.
+        unavailableSourceName(item.manga.sourceId)?.let { name ->
+            Icon(
+                HqrIcons.Warning,
+                stringResource(Res.string.source_unavailable, name),
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier =
+                    Modifier
+                        .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(6.dp))
+                        .padding(3.dp)
+                        .size(14.dp),
+            )
+        }
         if (options.downloadedBadge && item.downloaded > 0) {
             Icon(
                 HqrIcons.Downloaded,

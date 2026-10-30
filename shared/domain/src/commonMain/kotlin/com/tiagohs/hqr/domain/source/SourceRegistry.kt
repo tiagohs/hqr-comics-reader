@@ -19,6 +19,9 @@ class SourceRegistry(
     // The user's servers and switches come from the database at start: lookups wait for them (RF-88).
     private val readyFlag = MutableStateFlow(ready)
 
+    /** True once the saved servers and switches are applied: before that, a missing source may still come. */
+    val isReady: StateFlow<Boolean> = readyFlag.asStateFlow()
+
     fun markReady() {
         readyFlag.value = true
     }
@@ -107,6 +110,9 @@ fun interface SourceSwitches {
         id: SourceId,
         enabled: Boolean,
     )
+
+    /** RF-73: the name kept for a source this app doesn't have (read from a restored backup). */
+    suspend fun savedName(id: SourceId): String? = null
 }
 
 /** Bytes of a page or cover, from the cache, the downloads or the source (ADR-006). */

@@ -74,7 +74,11 @@ class DownloadsViewModel(
     /** RF-66: all. */
     fun removeAll() = launch { downloads.removeAll() }
 
-    fun setWifiOnly(on: Boolean) = settings.setWifiOnly(on)
+    /** RF-64: chapters waiting for Wi-Fi try again under the new rule. */
+    fun setWifiOnly(on: Boolean) {
+        settings.setWifiOnly(on)
+        viewModelScope.launch { downloads.networkRuleChanged() }
+    }
 
     fun setDeleteAfterRead(on: Boolean) = settings.setDeleteAfterRead(on)
 

@@ -8,11 +8,14 @@ import com.tiagohs.hqr.domain.repository.DownloadItem
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.repository.DownloadState
 import com.tiagohs.hqr.domain.repository.Downloads
+import com.tiagohs.hqr.domain.source.SourceException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -101,6 +104,8 @@ class DownloadManager(
     private val scheduler: DownloadScheduler,
     private val pagesOf: suspend (chapterId: Long) -> List<SourcePage>,
     private val bytesOf: suspend (chapterId: Long, page: SourcePage) -> ByteArray,
+    /** RF-66: the "apagar depois de lido" option. */
+    private val deleteAfterRead: () -> Boolean = { false },
 ) : Downloads {
     private val dao = db.downloadDao()
 
@@ -120,9 +125,6 @@ class DownloadManager(
             }
         }
 
-    /** Chapters already marked read whose files can go (RF-66, when the option is on). */
-    fun observeReadDone(): Flow<List<Long>> = dao.observeReadDone()
-
     override suspend fun enqueue(chapterIds: List<Long>) {
         var order = dao.maxOrder()
         chapterIds.forEach { id ->
@@ -134,14 +136,28 @@ class DownloadManager(
                 )
             }
         }
-        scheduler.schedule()
+        scheduler.schedule(restart = false)
     }
 
     override suspend fun pauseAll() = dao.setStates(listOf(QUEUED, RUNNING, WAITING), PAUSED)
 
     override suspend fun resumeAll() {
         dao.setStates(listOf(PAUSED, ERROR), QUEUED)
-        scheduler.schedule()
+        scheduler.schedule(restart = false)
+    }
+
+    override suspend fun networkRuleChanged() {
+        dao.setStates(listOf(WAITING), QUEUED)
+        if (dao.list().any { it.state in PENDING }) scheduler.schedule(restart = true)
+    }
+
+    override suspend fun resumePending() {
+        if (dao.list().any { it.state in PENDING }) scheduler.schedule(restart = false)
+    }
+
+    override suspend fun chaptersRead(chapterIds: Collection<Long>) {
+        if (!deleteAfterRead() || chapterIds.isEmpty()) return
+        remove(dao.readDone(chapterIds))
     }
 
     override suspend fun move(
@@ -176,43 +192,66 @@ class DownloadManager(
 
     /**
      * Runs the queue until nothing is left to do. [allowed] answers whether the network can be used now (RF-64: false on
-     * a metered network with "só no Wi-Fi"); then the chapters wait.
+     * a metered network with "só no Wi-Fi"). Returns true when chapters were left waiting for the network, so the
+     * executor tries again later (RF-63).
      */
-    suspend fun run(allowed: () -> Boolean) {
+    suspend fun run(allowed: () -> Boolean): Boolean {
         // A chapter left RUNNING by a killed process continues (RF-63).
         while (true) {
-            val next = dao.list().firstOrNull { it.state == QUEUED || it.state == RUNNING || it.state == WAITING } ?: return
+            val next = dao.list().firstOrNull { it.state in PENDING } ?: return false
             if (!allowed()) {
                 dao.setStates(listOf(QUEUED, RUNNING), WAITING)
-                return
+                return true
             }
-            download(next)
+            if (download(next.chapterId) == Outcome.NO_NETWORK) {
+                dao.setStates(listOf(QUEUED), WAITING)
+                return true
+            }
         }
     }
 
-    private suspend fun download(row: DownloadEntity) {
-        val id = row.chapterId
+    private enum class Outcome { DONE, STOPPED, FAILED, NO_NETWORK }
+
+    private suspend fun download(id: Long): Outcome =
         try {
-            dao.upsert(row.copy(state = RUNNING, error = null))
-            val pages = pagesOf(id)
-            var done = pages.count { files.has(id, it.index) }
-            dao.upsert(row.copy(state = RUNNING, pagesDone = done, pagesTotal = pages.size, error = null))
-            for (page in pages) {
-                // Paused or removed meanwhile: stop here, the saved pages stay.
-                if (dao.get(id)?.state != RUNNING) return
-                if (files.has(id, page.index)) continue
-                files.write(id, page.index, bytesOf(id, page))
-                done++
-                dao.get(id)?.let { dao.upsert(it.copy(pagesDone = done)) }
-            }
-            dao.get(id)?.let { dao.upsert(it.copy(state = DONE, path = files.dir(id).toString(), pagesDone = pages.size)) }
+            if (dao.start(id) == 0) Outcome.STOPPED else fetchPages(id)
         } catch (e: CancellationException) {
+            // The executor was stopped (system, network rule): the chapter goes back to the queue for the next run.
+            withContext(NonCancellable) { dao.stop(id, QUEUED, null) }
             throw e
+        } catch (e: SourceException) {
+            if (e.kind == SourceException.Kind.NETWORK) {
+                dao.stop(id, WAITING, null)
+                Outcome.NO_NETWORK
+            } else {
+                dao.stop(id, ERROR, e.message ?: e.kind.name)
+                Outcome.FAILED
+            }
         } catch (
             @Suppress("TooGenericExceptionCaught") e: Exception,
         ) {
-            dao.get(id)?.let { dao.upsert(it.copy(state = ERROR, error = e.message ?: e::class.simpleName)) }
+            dao.stop(id, ERROR, e.message ?: e::class.simpleName)
+            Outcome.FAILED
         }
+
+    /** The missing pages, one by one; a page that arrives after a pause is kept, after a removal it goes. */
+    private suspend fun fetchPages(id: Long): Outcome {
+        val pages = pagesOf(id)
+        var done = pages.count { files.has(id, it.index) }
+        var running = dao.progress(id, done, pages.size) > 0
+        for (page in pages.filter { !files.has(id, it.index) }) {
+            val bytes = if (running) bytesOf(id, page) else break
+            running = dao.get(id) != null
+            if (running) {
+                files.write(id, page.index, bytes)
+                done++
+                running = dao.progress(id, done, pages.size) > 0
+            }
+        }
+        if (running && dao.finish(id, files.dir(id).toString()) > 0) return Outcome.DONE
+        // Paused or removed meanwhile: the saved pages stay, unless the chapter left the list.
+        if (dao.get(id) == null) files.delete(id)
+        return Outcome.STOPPED
     }
 
     companion object {
@@ -223,5 +262,6 @@ class DownloadManager(
         const val DONE = "DONE"
         const val ERROR = "ERROR"
         private const val FORMAT = "images"
+        private val PENDING = setOf(QUEUED, RUNNING, WAITING)
     }
 }

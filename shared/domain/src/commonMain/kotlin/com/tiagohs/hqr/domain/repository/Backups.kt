@@ -27,4 +27,5 @@ interface Backups {
 /** The [Result] failure of [Backups.restore]. */
 class RestoreFailure(
     val problem: RestoreProblem,
-) : Exception(problem.name)
+    cause: Throwable? = null,
+) : Exception(problem.name, cause)

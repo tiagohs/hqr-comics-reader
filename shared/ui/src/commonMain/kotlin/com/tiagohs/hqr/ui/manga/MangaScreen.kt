@@ -80,6 +80,7 @@ import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.label
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
+import com.tiagohs.hqr.ui.components.unavailableSourceName
 import com.tiagohs.hqr.ui.downloads.rememberNotificationPermission
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
@@ -123,6 +124,7 @@ import com.tiagohs.hqr.ui.resources.manga_refresh_failed
 import com.tiagohs.hqr.ui.resources.manga_removed_from_source
 import com.tiagohs.hqr.ui.resources.manga_select
 import com.tiagohs.hqr.ui.resources.manga_selected
+import com.tiagohs.hqr.ui.resources.source_unavailable
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
 import kotlinx.coroutines.launch
@@ -435,6 +437,13 @@ private fun Header(manga: Manga) {
             val status = source.status.label()?.let { stringResource(it) }
             val sourceLine = listOfNotNull(status, sourceName(manga), source.language?.uppercase()).joinToString(" · ")
             Text(sourceLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            unavailableSourceName(manga.sourceId)?.let { name ->
+                Text(
+                    stringResource(Res.string.source_unavailable, name),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }

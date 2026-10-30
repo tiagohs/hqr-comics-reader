@@ -11,9 +11,15 @@ import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.model.SourcePage
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.repository.DownloadState
+import com.tiagohs.hqr.domain.source.SourceException
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
@@ -29,6 +35,8 @@ class DownloadManagerTest {
     private val mangas = RoomMangaRepository(db, Clock.System)
     private val chapters = RoomChapterRepository(db, Clock.System)
     private var scheduled = 0
+    private val restarts = mutableListOf<Boolean>()
+    private var deleteAfterRead = false
     private val asked = mutableListOf<String>()
     private var failOn: Int? = null
     private var onPage: suspend (Long, Int) -> Unit = { _, _ -> }
@@ -36,7 +44,10 @@ class DownloadManagerTest {
         DownloadManager(
             db,
             files,
-            DownloadScheduler { scheduled++ },
+            DownloadScheduler { restart ->
+                scheduled++
+                restarts += restart
+            },
             pagesOf = { id -> (0 until 3).map { SourcePage(it, "https://img/$id/$it") } },
             bytesOf = { id, page ->
                 onPage(id, page.index)
@@ -44,6 +55,7 @@ class DownloadManagerTest {
                 asked += page.imageUrl
                 "p${page.index}".encodeToByteArray()
             },
+            deleteAfterRead = { deleteAfterRead },
         )
 
     @AfterTest
@@ -145,13 +157,102 @@ class DownloadManagerTest {
         }
 
     @Test
-    fun RF66_readChaptersAreFoundForDeleteAfterRead() =
+    fun RF66_deleteAfterReadOnlyWhenAChapterBecomesRead() =
+        runTest {
+            val ids = work()
+            manager.enqueue(ids.take(3))
+            manager.run { true }
+            chapters.setRead(listOf(ids[0]), read = true)
+            // Option off: nothing goes.
+            manager.chaptersRead(listOf(ids[0]))
+            manager.offlinePages(ids[0]) shouldNotBe null
+            deleteAfterRead = true
+            chapters.setRead(listOf(ids[1]), read = true)
+            manager.chaptersRead(listOf(ids[0], ids[1], ids[2]))
+            // The read ones go; the unread one stays.
+            manager.observe().first().map { it.chapterId } shouldContainExactly listOf(ids[2])
+            fs.exists(files.dir(ids[0])) shouldBe false
+            // A read chapter downloaded again stays until it is read again.
+            manager.enqueue(listOf(ids[0]))
+            manager.run { true }
+            manager.offlinePages(ids[0]) shouldNotBe null
+            files.pathOf("download:/etc/passwd") shouldBe null
+        }
+
+    @Test
+    fun RF63_networkLossWaitsAndAsksForAnotherRun() =
         runTest {
             val ids = work()
             manager.enqueue(ids.take(2))
+            onPage = { _, _ -> throw SourceException("sem rede", SourceException.Kind.NETWORK) }
+            manager.run { true } shouldBe true
+            manager.observe().first().map { it.state } shouldBe listOf(DownloadState.WAITING_WIFI, DownloadState.WAITING_WIFI)
+            onPage = { _, _ -> }
+            manager.run { true } shouldBe false
+            manager.observe().first().map { it.state } shouldBe listOf(DownloadState.DONE, DownloadState.DONE)
+        }
+
+    @Test
+    fun RF64_changingTheRuleRequeuesTheWaitingAndRestarts() =
+        runTest {
+            val ids = work()
+            manager.enqueue(ids.take(1))
+            manager.run { false } shouldBe true
+            restarts.clear()
+            manager.networkRuleChanged()
+            manager
+                .observe()
+                .first()
+                .single()
+                .state shouldBe DownloadState.QUEUED
+            restarts shouldContainExactly listOf(true)
+        }
+
+    @Test
+    fun RF63_openingTheAppStartsAQueueLeftWithWork() =
+        runTest {
+            manager.resumePending()
+            restarts shouldBe emptyList()
+            val ids = work()
+            manager.enqueue(ids.take(1))
+            manager.pauseAll()
+            restarts.clear()
+            manager.resumePending()
+            restarts shouldBe emptyList()
+            manager.resumeAll()
+            restarts.clear()
+            manager.resumePending()
+            restarts shouldContainExactly listOf(false)
+        }
+
+    @Test
+    fun RF63_removedWhileDownloadingLeavesNoFiles() =
+        runTest {
+            val ids = work()
+            manager.enqueue(ids.take(1))
+            onPage = { id, index -> if (index == 1) manager.remove(listOf(id)) }
             manager.run { true }
-            chapters.setRead(listOf(ids[0]), read = true)
-            manager.observeReadDone().first() shouldBe listOf(ids[0])
-            files.pathOf("download:/etc/passwd") shouldBe null
+            manager.observe().first() shouldBe emptyList()
+            fs.exists(files.dir(ids[0])) shouldBe false
+        }
+
+    @Test
+    fun RF63_stoppedRunPutsTheChapterBackInTheQueue() =
+        runTest {
+            val ids = work()
+            manager.enqueue(ids.take(1))
+            val started = CompletableDeferred<Unit>()
+            onPage = { _, index ->
+                if (index == 1) {
+                    started.complete(Unit)
+                    awaitCancellation()
+                }
+            }
+            val job = launch { manager.run { true } }
+            started.await()
+            job.cancelAndJoin()
+            val item = manager.observe().first().single()
+            item.state shouldBe DownloadState.QUEUED
+            item.pagesDone shouldBe 1
         }
 }

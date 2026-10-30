@@ -44,12 +44,14 @@ class SourcesScreensTest {
             waitFor(hasText("Online sources"))
             screenshot("demo-SCR-SRC-001")
             // RF-03: turned off, the source leaves Explore.
+            waitFor(hasText("MangaDex"))
             onAllNodes(hasText("MangaDex"))[0].performClick()
             onAllNodes(hasContentDescription("Back"))[0].performClick()
             waitFor(hasText("Manage sources and servers"))
             gone(hasText("MangaDex"))
             onAllNodes(hasText("Manage sources and servers"))[0].performClick()
             waitFor(hasText("Online sources"))
+            waitFor(hasText("MangaDex"))
             onAllNodes(hasText("MangaDex"))[0].performClick()
             // RF-17 and RF-95: the form refuses a login written in the address, before any request.
             onAllNodes(hasText("Add server"))[0].performScrollTo().performClick()

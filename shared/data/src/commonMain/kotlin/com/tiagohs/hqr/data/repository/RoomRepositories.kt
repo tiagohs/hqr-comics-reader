@@ -167,9 +167,9 @@ class RoomChapterRepository(
         db.withWriteTransaction {
             val existing = this@RoomChapterRepository.chapters.list(mangaId).associateBy { it.key }
             val incomingKeys = chapters.map { it.key }.toSet()
-            chapters.forEachIndexed { index, chapter ->
-                val old = existing[chapter.key]
-                val entity =
+            val rows =
+                chapters.mapIndexed { index, chapter ->
+                    val old = existing[chapter.key]
                     ChapterEntity(
                         id = old?.id ?: 0,
                         mangaId = mangaId,
@@ -186,8 +186,10 @@ class RoomChapterRepository(
                         externalUrl = chapter.externalUrl,
                         sourceOrder = index,
                     )
-                if (old == null) this@RoomChapterRepository.chapters.insert(entity) else this@RoomChapterRepository.chapters.upsert(entity)
-            }
+                }
+            // Many rows per statement: a work with thousands of chapters is one write, not thousands. In the browser
+            // every statement is a round trip to the SQLite worker (a row at a time took minutes).
+            rows.chunked(SYNC_BATCH).forEach { batch -> upsertChapters(batch) }
             // RF-92: what vanished from the source stays, with its progress and files, marked as removed. Only chapters in
             // a language the source answered with count: changing the content languages is not a removal.
             val languages = chapters.map { it.language }.toSet()
@@ -197,6 +199,38 @@ class RoomChapterRepository(
         }
         return list(mangaId)
     }
+
+    /** Inserts the new rows (id 0) and updates the known ones in place, so their progress and files stay. */
+    private suspend fun androidx.room3.TransactionScope<*>.upsertChapters(batch: List<ChapterEntity>) {
+        val values = batch.joinToString(",") { "(" + List(CHAPTER_COLUMNS.size) { "?" }.joinToString(",") + ")" }
+        val updates = CHAPTER_COLUMNS.drop(1).joinToString(",") { "$it = excluded.$it" }
+        val sql = "INSERT INTO chapter (${CHAPTER_COLUMNS.joinToString(",")}) VALUES $values ON CONFLICT(id) DO UPDATE SET $updates"
+        usePrepared(sql) { st ->
+            var i = 1
+            batch.forEach { c ->
+                if (c.id == 0L) st.bindNull(i++) else st.bindLong(i++, c.id)
+                st.bindLong(i++, c.mangaId)
+                st.bindText(i++, c.key)
+                st.bindDouble(i++, c.number)
+                st.bindTextOrNull(i++, c.title)
+                st.bindTextOrNull(i++, c.volume)
+                st.bindTextOrNull(i++, c.language)
+                st.bindTextOrNull(i++, c.group)
+                st.bindTextOrNull(i++, c.groupUrl)
+                c.uploadedAt?.let { st.bindLong(i++, it) } ?: st.bindNull(i++)
+                st.bindLong(i++, c.fetchedAt)
+                st.bindBoolean(i++, c.removedAtSource)
+                st.bindTextOrNull(i++, c.externalUrl)
+                st.bindLong(i++, c.sourceOrder.toLong())
+            }
+            st.step()
+        }
+    }
+
+    private fun androidx.sqlite.SQLiteStatement.bindTextOrNull(
+        index: Int,
+        value: String?,
+    ) = if (value == null) bindNull(index) else bindText(index, value)
 
     override fun observe(mangaId: Long): Flow<List<Chapter>> =
         combine(chapters.observe(mangaId), progress.observeForManga(mangaId), downloads.observe()) { list, prog, dl ->
@@ -386,3 +420,23 @@ class RoomTransactor(
 ) : com.tiagohs.hqr.domain.repository.Transactor {
     override suspend fun <T> write(block: suspend () -> T): T = db.withWriteTransaction { block() }
 }
+
+// RF-33: chapters written a batch at a time; 14 columns × 500 rows stays under SQLite's 32766 parameters.
+private const val SYNC_BATCH = 500
+private val CHAPTER_COLUMNS =
+    listOf(
+        "id",
+        "mangaId",
+        "`key`",
+        "number",
+        "title",
+        "volume",
+        "language",
+        "groupName",
+        "groupUrl",
+        "uploadedAt",
+        "fetchedAt",
+        "removedAtSource",
+        "externalUrl",
+        "sourceOrder",
+    )

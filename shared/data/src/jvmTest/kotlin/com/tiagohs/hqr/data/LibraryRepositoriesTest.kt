@@ -85,6 +85,28 @@ class LibraryRepositoriesTest {
         }
 
     @Test
+    fun RF33_aWorkWithThousandsOfChaptersSyncsInBatchesKeepingIdsAndProgress() =
+        runTest {
+            val manga = mangas.upsert(naruto)
+            // 3863 chapters, as a real MangaFlix work: more than seven batches.
+            val list = (1..3863).map { SourceChapter("c$it", it.toDouble(), title = "T$it", group = "G", uploadedAtEpochMs = it * 1000L) }
+            val first = chapters.sync(manga.id, list)
+            first.size shouldBe 3863
+            val one = first.first { it.number == 1.0 }
+            chapters.saveProgress(one.id, page = 3, pageCount = 10)
+            // Again, with a new title on chapter 1 and one more chapter: same ids, progress kept, the new one added.
+            val again = chapters.sync(manga.id, listOf(list[0].copy(title = "Novo")) + list.drop(1) + SourceChapter("c3864", 3864.0))
+            again.size shouldBe 3864
+            val kept = again.first { it.number == 1.0 }
+            kept.id shouldBe one.id
+            kept.source.title shouldBe "Novo"
+            kept.lastPage shouldBe 3
+            kept.source.group shouldBe "G"
+            kept.source.uploadedAtEpochMs shouldBe 1000L
+            again.first { it.number == 3864.0 }.source.title shouldBe null
+        }
+
+    @Test
     fun RF43_lastPageMarksTheChapterRead() =
         runTest {
             val manga = mangas.upsert(naruto)

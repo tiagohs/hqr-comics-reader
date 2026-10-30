@@ -137,6 +137,13 @@ class BrowseSourceViewModel(
             Listing.SEARCH -> (registry.require(sourceId) as SearchSource).search(state.query, state.filters, page)
         }
 
+    /** RF-52: a long press in the results puts the work in the library or takes it out; returns where it ended. */
+    suspend fun toggleLibrary(manga: SourceManga): Boolean {
+        val saved = mangas.upsert(manga)
+        mangas.setInLibrary(saved.id, !saved.inLibrary)
+        return !saved.inLibrary
+    }
+
     /** Saves the work locally before opening it, so the work screen reads one id. */
     suspend fun open(manga: SourceManga): Long = mangas.upsert(manga).id
 }

@@ -83,6 +83,8 @@ object HqrIcons {
     val NextChapter = stroke("nextChapter", "M18 5v14M5 5l9 7-9 7z")
     val Delete = stroke("delete", "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13")
     val Add = stroke("add", "M12 5v14M5 12h14")
+    val ArrowUp = stroke("arrowUp", "M12 19V5M6 11l6-6 6 6")
+    val ArrowDown = stroke("arrowDown", "M12 5v14M6 13l6 6 6-6")
     val EditNote = stroke("editNote", "M4 6h12M4 11h9M4 16h6M14.5 19.5l6-6-2-2-6 6-.5 2.5z")
     val Drag = stroke("drag", "M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01", width = 3f)
     val Panel = stroke("panel", "M4 4h16v16H4zM4 12h16M12 4v8")

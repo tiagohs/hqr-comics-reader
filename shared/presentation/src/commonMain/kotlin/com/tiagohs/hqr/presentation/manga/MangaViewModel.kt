@@ -2,10 +2,12 @@ package com.tiagohs.hqr.presentation.manga
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tiagohs.hqr.domain.model.Category
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadAction
 import com.tiagohs.hqr.domain.model.ReadingRules
+import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.source.SourceRegistry
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -28,6 +31,7 @@ class MangaViewModel(
     private val mangas: MangaRepository,
     private val chapters: ChapterRepository,
     private val coverPixels: CoverPixels? = null,
+    private val categories: CategoryRepository? = null,
 ) : ViewModel() {
     enum class Order { NEWEST_FIRST, OLDEST_FIRST }
 
@@ -46,6 +50,11 @@ class MangaViewModel(
         val groups: List<String> = emptyList(),
         val newChapterIds: Set<Long> = emptySet(),
     )
+
+    /** RF-53: every category and the ones this work is in. */
+    val categoryChoice: StateFlow<Pair<List<Category>, Set<Long>>> =
+        (categories?.let { combine(it.observe(), it.observeFor(mangaId), ::Pair) } ?: flowOf(emptyList<Category>() to emptySet()))
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MS), emptyList<Category>() to emptySet())
 
     private val refreshing = MutableStateFlow(true)
     private val error = MutableStateFlow<ErrorKind?>(null)
@@ -130,6 +139,10 @@ class MangaViewModel(
         }
     }
 
+    fun setCategories(ids: Set<Long>) {
+        viewModelScope.launch { categories?.setCategories(mangaId, ids) }
+    }
+
     fun toggleLibrary() {
         viewModelScope.launch {
             val manga = mangas.get(mangaId) ?: return@launch
@@ -164,5 +177,9 @@ class MangaViewModel(
             val ids = chapters.list(mangaId).filter { it.number < chapter.number }.map { it.id }
             chapters.setRead(ids, true)
         }
+    }
+
+    private companion object {
+        const val STOP_MS = 5_000L
     }
 }

@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import com.russhwolf.settings.PropertiesSettings
 import com.russhwolf.settings.Settings
@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
+import org.jetbrains.skia.Surface
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -50,8 +51,16 @@ fun stopTestKoin() = stopKoin()
 @OptIn(ExperimentalTestApi::class)
 fun ComposeUiTest.screenshot(name: String) {
     waitForIdle()
-    val bitmap = onRoot().captureToImage().asSkiaBitmap()
-    val data = Image.makeFromBitmap(bitmap).encodeToData(EncodedImageFormat.PNG) ?: return
+    // Dialogs and sheets are roots of their own: the picture is every root drawn in order, as on screen.
+    val roots = onAllNodes(isRoot()).fetchSemanticsNodes()
+    val images = roots.indices.map { onAllNodes(isRoot())[it].captureToImage().asSkiaBitmap() }
+    val first = images.first()
+    val surface = Surface.makeRasterN32Premul(first.width, first.height)
+    roots.forEachIndexed { i, root ->
+        val bounds = root.boundsInRoot
+        surface.canvas.drawImage(Image.makeFromBitmap(images[i]), bounds.left, bounds.top)
+    }
+    val data = surface.makeImageSnapshot().encodeToData(EncodedImageFormat.PNG) ?: return
     val dir = File(System.getProperty("user.dir"), "build/screenshots").apply { mkdirs() }
     File(dir, "$name.png").writeBytes(data.bytes)
 }

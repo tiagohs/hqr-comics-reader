@@ -17,6 +17,9 @@ sealed interface Route {
     data object Settings : Route
 
     @Serializable
+    data object Categories : Route
+
+    @Serializable
     data class BrowseSource(
         val sourceId: String,
     ) : Route

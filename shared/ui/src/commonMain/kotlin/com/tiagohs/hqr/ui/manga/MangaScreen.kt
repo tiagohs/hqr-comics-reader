@@ -29,6 +29,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -39,6 +43,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -80,13 +85,16 @@ import com.tiagohs.hqr.ui.resources.action_more_text
 import com.tiagohs.hqr.ui.resources.action_read
 import com.tiagohs.hqr.ui.resources.action_read_again
 import com.tiagohs.hqr.ui.resources.action_retry
+import com.tiagohs.hqr.ui.resources.action_undo
 import com.tiagohs.hqr.ui.resources.date_short
 import com.tiagohs.hqr.ui.resources.error_title
+import com.tiagohs.hqr.ui.resources.library_removed
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_chapter_label
 import com.tiagohs.hqr.ui.resources.manga_chapters
 import com.tiagohs.hqr.ui.resources.manga_continue_chapter
 import com.tiagohs.hqr.ui.resources.manga_details
+import com.tiagohs.hqr.ui.resources.manga_edit_categories
 import com.tiagohs.hqr.ui.resources.manga_filter_all
 import com.tiagohs.hqr.ui.resources.manga_filter_unread
 import com.tiagohs.hqr.ui.resources.manga_in_library
@@ -104,9 +112,11 @@ import com.tiagohs.hqr.ui.resources.manga_refresh_failed
 import com.tiagohs.hqr.ui.resources.manga_removed_from_source
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
+import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -160,8 +170,37 @@ private fun MangaContent(
 ) {
     val uri = LocalUriHandler.current
     val isLocal = manga.sourceId == SourceId.LOCAL
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val categoryChoice by viewModel.categoryChoice.collectAsStateWithLifecycle()
+    var picking by remember { mutableStateOf(false) }
+    // RF-52: taking out offers "Desfazer"; putting in asks for the categories when there are any (RF-53).
+    val toggleLibrary: () -> Unit = {
+        val removing = manga.inLibrary
+        viewModel.toggleLibrary()
+        if (removing) {
+            scope.launch {
+                val result =
+                    snackbar.showSnackbar(
+                        getString(Res.string.library_removed),
+                        getString(Res.string.action_undo),
+                        duration = SnackbarDuration.Short,
+                    )
+                if (result == SnackbarResult.ActionPerformed) viewModel.toggleLibrary()
+            }
+        } else if (categoryChoice.first.isNotEmpty()) {
+            picking = true
+        }
+    }
+    if (picking) {
+        CategoryPicker(categoryChoice.first, categoryChoice.second, onDismiss = { picking = false }) {
+            viewModel.setCategories(it)
+            picking = false
+        }
+    }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = {},
@@ -178,6 +217,9 @@ private fun MangaContent(
                             },
                         )
                     }) { Icon(HqrIcons.Sort, stringResource(Res.string.manga_order)) }
+                    if (manga.inLibrary && categoryChoice.first.isNotEmpty()) {
+                        IconButton(onClick = { picking = true }) { Icon(HqrIcons.Folder, stringResource(Res.string.manga_edit_categories)) }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
             )
@@ -194,7 +236,7 @@ private fun MangaContent(
                             action = state.action,
                             isLocal = isLocal,
                             onRead = { chapter, page -> onRead(manga.id, chapter.id, page) },
-                            onToggleLibrary = viewModel::toggleLibrary,
+                            onToggleLibrary = toggleLibrary,
                             onOpenSite = { manga.source.url?.let { uri.openUri(it) } },
                         )
                     }

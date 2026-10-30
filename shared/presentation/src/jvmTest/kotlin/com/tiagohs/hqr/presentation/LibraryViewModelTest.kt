@@ -112,6 +112,48 @@ class LibraryViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF52_RF53_longPressAddsAndTheWorkGoesInSeveralCategories() =
+        runTest {
+            val browse =
+                track(
+                    com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel(
+                        source.id,
+                        com.tiagohs.hqr.domain.source
+                            .SourceRegistry(listOf(source)),
+                        db.mangas,
+                    ),
+                )
+            val first =
+                browse.state
+                    .first { it.items.isNotEmpty() }
+                    .items
+                    .first()
+            browse.toggleLibrary(first) shouldBe true
+            browse.state.first { first.key in it.inLibrary }
+            val id = db.mangas.find(first.sourceId, first.key)!!.id
+            val a = db.categories.create("Lendo")
+            val b = db.categories.create("Acompanhando")
+            val work =
+                track(
+                    com.tiagohs.hqr.presentation.manga.MangaViewModel(
+                        id,
+                        com.tiagohs.hqr.domain.source
+                            .SourceRegistry(listOf(source)),
+                        db.mangas,
+                        db.chapters,
+                        categories = db.categories,
+                    ),
+                )
+            work.setCategories(setOf(a.id, b.id))
+            work.categoryChoice
+                .first { it.second == setOf(a.id, b.id) }
+                .first
+                .map { it.name } shouldContainExactly
+                listOf("Lendo", "Acompanhando")
+            browse.toggleLibrary(first) shouldBe false
+        }
+
+    @Test
     fun RF53_renameAndReorder() =
         runTest {
             val categories = track(CategoriesViewModel(db.categories))

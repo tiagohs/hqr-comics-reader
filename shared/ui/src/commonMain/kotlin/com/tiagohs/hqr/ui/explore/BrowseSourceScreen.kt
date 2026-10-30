@@ -1,6 +1,6 @@
 package com.tiagohs.hqr.ui.explore
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -57,17 +61,22 @@ import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_choose_folder
 import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.action_search
+import com.tiagohs.hqr.ui.resources.action_undo
+import com.tiagohs.hqr.ui.resources.browse_added
 import com.tiagohs.hqr.ui.resources.browse_in_library
 import com.tiagohs.hqr.ui.resources.browse_latest
 import com.tiagohs.hqr.ui.resources.browse_no_results
 import com.tiagohs.hqr.ui.resources.browse_no_results_message
 import com.tiagohs.hqr.ui.resources.browse_popular
 import com.tiagohs.hqr.ui.resources.error_title
+import com.tiagohs.hqr.ui.resources.library_removed
 import com.tiagohs.hqr.ui.resources.local_no_folder
 import com.tiagohs.hqr.ui.resources.local_no_folder_message
+import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.settings.rememberFolderPicker
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -99,7 +108,9 @@ fun BrowseSourceScreen(
     val isLocal = sourceId == SourceId.LOCAL.value
     val pickFolder = rememberFolderPicker { if (it != null) viewModel.retry() }
 
+    val snackbar = remember { SnackbarHostState() }
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = { Text(sourceDisplayName(SourceId(sourceId), state.sourceName), style = MaterialTheme.typography.headlineMedium) },
@@ -162,7 +173,23 @@ fun BrowseSourceScreen(
                     ) {
                         items(state.items, key = { it.key }) { manga ->
                             Column(
-                                Modifier.clickable { scope.launch { onOpenManga(viewModel.open(manga)) } },
+                                // RF-52: a long press puts the work in the library or takes it out, with "Desfazer".
+                                Modifier.combinedClickable(
+                                    onClick = { scope.launch { onOpenManga(viewModel.open(manga)) } },
+                                    onLongClick = {
+                                        scope.launch {
+                                            val added = viewModel.toggleLibrary(manga)
+                                            val result =
+                                                snackbar.showSnackbar(
+                                                    getString(if (added) Res.string.browse_added else Res.string.library_removed),
+                                                    getString(Res.string.action_undo),
+                                                    duration = SnackbarDuration.Short,
+                                                )
+                                            if (result == SnackbarResult.ActionPerformed) viewModel.toggleLibrary(manga)
+                                        }
+                                    },
+                                    onLongClickLabel = stringResource(Res.string.manga_add_library),
+                                ),
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 Cover(manga) {

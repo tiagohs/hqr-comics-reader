@@ -16,6 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -29,6 +30,7 @@ import com.tiagohs.hqr.ui.components.hqrImageLoader
 import com.tiagohs.hqr.ui.explore.BrowseSourceScreen
 import com.tiagohs.hqr.ui.explore.ExploreScreen
 import com.tiagohs.hqr.ui.history.HistoryScreen
+import com.tiagohs.hqr.ui.library.CategoriesScreen
 import com.tiagohs.hqr.ui.library.LibraryScreen
 import com.tiagohs.hqr.ui.manga.MangaScreen
 import com.tiagohs.hqr.ui.reader.ReaderScreen
@@ -100,13 +102,7 @@ private fun AppNavigation(dark: Boolean) {
                 val selected = destination?.hierarchy?.any { it.hasRoute(top.route::class) } == true
                 item(
                     selected = selected,
-                    onClick = {
-                        nav.navigate(top.route) {
-                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
+                    onClick = { nav.navigateTopLevel(top.route) },
                     icon = { Icon(top.icon, contentDescription = null) },
                     label = { Text(stringResource(top.label)) },
                 )
@@ -118,9 +114,13 @@ private fun AppNavigation(dark: Boolean) {
                 LibraryScreen(
                     onOpenManga = { nav.navigate(Route.Manga(it)) },
                     onContinue = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) },
-                    onExplore = { nav.navigate(Route.Explore) },
+                    // The same as the bottom bar: Explore as a tab, never stacked over the Library (the Library tab must
+                    // bring the Library back).
+                    onExplore = { nav.navigateTopLevel(Route.Explore) },
+                    onCategories = { nav.navigate(Route.Categories) },
                 )
             }
+            composable<Route.Categories> { CategoriesScreen(onBack = { nav.popBackStack() }) }
             composable<Route.Explore> { ExploreScreen(onOpenSource = { nav.navigate(Route.BrowseSource(it)) }) }
             composable<Route.History> {
                 HistoryScreen(onResume = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) })
@@ -148,3 +148,11 @@ private fun AppNavigation(dark: Boolean) {
         }
     }
 }
+
+/** Top-level destinations swap like tabs, each keeping its own back stack (ADR-012). */
+private fun NavHostController.navigateTopLevel(route: Route) =
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
+    }

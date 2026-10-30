@@ -22,6 +22,9 @@ import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
+import com.tiagohs.hqr.presentation.library.CategoriesViewModel
+import com.tiagohs.hqr.presentation.library.LibraryOptions
+import com.tiagohs.hqr.presentation.library.LibraryOptionsStore
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
 import com.tiagohs.hqr.presentation.reader.ChapterPages
@@ -68,7 +71,9 @@ val coreModule: Module =
             val registry = get<SourceRegistry>()
             ChapterPages { manga, chapter -> registry.require(manga.sourceId).pages(manga.source, chapter.source) }
         }
-        viewModel { LibraryViewModel(get(), get(), get()) }
+        single<LibraryOptionsStore> { PrefsLibraryOptionsStore(get()) }
+        viewModel { LibraryViewModel(get(), get(), get(), get()) }
+        viewModel { CategoriesViewModel(get()) }
         viewModel { HistoryViewModel(get(), get()) }
         viewModel { (id: SourceId) -> BrowseSourceViewModel(id, get(), get()) }
         single<CoverPixels> { ImageCoverPixels(get()) }
@@ -76,7 +81,7 @@ val coreModule: Module =
             val images = get<ImageBytes>()
             PagePrefetcher { manga, page -> images.load(manga.sourceId, page.imageUrl, page.headers) }
         }
-        viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get(), get()) }
+        viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get(), get(), get()) }
         viewModel { (mangaId: Long, chapterId: Long, page: Int) ->
             ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get(), get())
         }
@@ -135,6 +140,22 @@ class AppImageBytes(
     }
 
     private class OwnerCancelled : RuntimeException()
+}
+
+/** Library filters, order and display, kept with the preferences (RF-54, RF-55). */
+class PrefsLibraryOptionsStore(
+    private val prefs: AppPreferences,
+) : LibraryOptionsStore {
+    private val json = Json { ignoreUnknownKeys = true }
+
+    override fun load(): LibraryOptions =
+        prefs.getString(KEY)?.let { runCatching { json.decodeFromString(LibraryOptions.serializer(), it) }.getOrNull() } ?: LibraryOptions()
+
+    override fun save(options: LibraryOptions) = prefs.putString(KEY, json.encodeToString(LibraryOptions.serializer(), options))
+
+    private companion object {
+        const val KEY = "library_options"
+    }
 }
 
 /** Reader settings: global in the preferences, per work in the database (RF-37). */

@@ -30,6 +30,9 @@ commit.
 - `shared/domain` não conhece rede, banco nem plataforma; o que muda por plataforma entra por interface
   (architecture §3). Fontes novas implementam `CatalogSource`/`SearchSource`/`ImageSource` em `sources/<nome>`.
 - Telas compartilhadas (Compose Multiplatform) em `shared/ui`: o mesmo código no Android, tablet e web.
+- Release (RF-84): `python3 scripts/release/prepare_release.py` monta o rascunho `v<versão>` com o APK do CI (assinado
+  com a chave do app) primeiro e o `.sha256` depois; notas em `scripts/release/notes/`. Publicar (`--publish`) só
+  com o OK do Tiago.
 
 ## Módulos
 

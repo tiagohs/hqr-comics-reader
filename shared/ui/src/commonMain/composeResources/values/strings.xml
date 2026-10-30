@@ -408,7 +408,7 @@
     <string name="feed_add">Add to feed</string>
     <string name="feed_add_latest">Add latest to feed</string>
     <string name="feed_added">Added to the feed</string>
-    <string name="feed_full">The feed already has 5 items (or this one)</string>
+    <string name="feed_full">The feed is full (5 items) or already has this</string>
     <string name="feed_tab">Feed</string>
     <string name="sources_tab">Sources</string>
     <string name="feed_empty_title">Your feed is empty</string>
@@ -419,4 +419,17 @@
     <string name="feed_failed">Couldn't load: %1$s</string>
     <string name="search_recent">Recent searches</string>
     <string name="search_recent_remove">Remove %1$s</string>
+    <string name="library_picked">%1$d selected</string>
+    <string name="library_select_all">Select all</string>
+    <string name="library_move">Change category</string>
+    <string name="library_mark_read">Mark as read</string>
+    <string name="library_download_unread">Download unread</string>
+    <string name="library_remove_picked">Remove from library</string>
+    <string name="library_removed_many">%1$d works removed</string>
+    <string name="library_clear_selection">Clear selection</string>
+    <string name="library_updating">Updating %1$d of %2$d: %3$s</string>
+    <string name="library_new_one">1 new chapter</string>
+    <string name="library_new_many">%1$d new chapters</string>
+    <string name="library_new_none">No new chapters</string>
+    <string name="library_update_failed">%1$d works couldn't be updated</string>
 </resources>

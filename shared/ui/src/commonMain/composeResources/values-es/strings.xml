@@ -408,7 +408,7 @@
     <string name="feed_add">Añadir al feed</string>
     <string name="feed_add_latest">Añadir lo reciente al feed</string>
     <string name="feed_added">Añadido al feed</string>
-    <string name="feed_full">El feed ya tiene 5 elementos (o este)</string>
+    <string name="feed_full">El feed ya está lleno (5 elementos) o ya tiene este</string>
     <string name="feed_tab">Feed</string>
     <string name="sources_tab">Fuentes</string>
     <string name="feed_empty_title">Tu feed está vacío</string>
@@ -419,4 +419,17 @@
     <string name="feed_failed">No cargó: %1$s</string>
     <string name="search_recent">Búsquedas recientes</string>
     <string name="search_recent_remove">Quitar %1$s</string>
+    <string name="library_picked">%1$d seleccionadas</string>
+    <string name="library_select_all">Seleccionar todas</string>
+    <string name="library_move">Cambiar categoría</string>
+    <string name="library_mark_read">Marcar como leídas</string>
+    <string name="library_download_unread">Descargar no leídos</string>
+    <string name="library_remove_picked">Quitar de la biblioteca</string>
+    <string name="library_removed_many">%1$d obras quitadas</string>
+    <string name="library_clear_selection">Limpiar selección</string>
+    <string name="library_updating">Actualizando %1$d de %2$d: %3$s</string>
+    <string name="library_new_one">1 capítulo nuevo</string>
+    <string name="library_new_many">%1$d capítulos nuevos</string>
+    <string name="library_new_none">Ningún capítulo nuevo</string>
+    <string name="library_update_failed">%1$d obras no se actualizaron</string>
 </resources>

@@ -39,6 +39,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -468,7 +469,7 @@ private fun SavedSearchesRow(
                         Icon(
                             HqrIcons.More,
                             stringResource(Res.string.saved_options, search.name),
-                            Modifier.size(18.dp).clickable { open = true },
+                            Modifier.minimumInteractiveComponentSize().clickable { open = true }.size(18.dp),
                         )
                     },
                 )

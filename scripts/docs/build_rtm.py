@@ -60,7 +60,7 @@ def main() -> None:
     # Tests are named after what they cover (RF38_…, RF22_RF23_…): the column lists the test classes.
     tests = {}
     root = DOCS.parent
-    for path in root.glob("**/src/*Test/**/*.kt"):
+    for path in list(root.glob("**/src/*Test/**/*.kt")) + list(root.glob("**/src/test/**/*.kt")):
         if "/build/" in str(path):
             continue
         text = path.read_text()

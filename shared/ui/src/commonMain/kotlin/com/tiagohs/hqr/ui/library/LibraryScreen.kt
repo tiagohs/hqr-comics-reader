@@ -1,7 +1,7 @@
 package com.tiagohs.hqr.ui.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,37 +18,55 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.domain.repository.DownloadState
@@ -68,24 +87,41 @@ import com.tiagohs.hqr.ui.components.unavailableSourceName
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
+import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.action_continue
 import com.tiagohs.hqr.ui.resources.action_more
+import com.tiagohs.hqr.ui.resources.action_ok
+import com.tiagohs.hqr.ui.resources.action_undo
 import com.tiagohs.hqr.ui.resources.downloads_title
 import com.tiagohs.hqr.ui.resources.library_categories
 import com.tiagohs.hqr.ui.resources.library_clear_filters
+import com.tiagohs.hqr.ui.resources.library_clear_selection
 import com.tiagohs.hqr.ui.resources.library_continue_reading
+import com.tiagohs.hqr.ui.resources.library_download_unread
 import com.tiagohs.hqr.ui.resources.library_empty_message
 import com.tiagohs.hqr.ui.resources.library_empty_title
 import com.tiagohs.hqr.ui.resources.library_filter_downloaded
 import com.tiagohs.hqr.ui.resources.library_filtered_message
 import com.tiagohs.hqr.ui.resources.library_filtered_title
+import com.tiagohs.hqr.ui.resources.library_mark_read
+import com.tiagohs.hqr.ui.resources.library_move
+import com.tiagohs.hqr.ui.resources.library_new_many
+import com.tiagohs.hqr.ui.resources.library_new_none
+import com.tiagohs.hqr.ui.resources.library_new_one
 import com.tiagohs.hqr.ui.resources.library_options
+import com.tiagohs.hqr.ui.resources.library_picked
+import com.tiagohs.hqr.ui.resources.library_remove_picked
+import com.tiagohs.hqr.ui.resources.library_removed_many
 import com.tiagohs.hqr.ui.resources.library_search_hint
+import com.tiagohs.hqr.ui.resources.library_select_all
 import com.tiagohs.hqr.ui.resources.library_tab_all
 import com.tiagohs.hqr.ui.resources.library_tab_uncategorized
 import com.tiagohs.hqr.ui.resources.library_unread
 import com.tiagohs.hqr.ui.resources.library_up_to_date
+import com.tiagohs.hqr.ui.resources.library_update_failed
+import com.tiagohs.hqr.ui.resources.library_updating
 import com.tiagohs.hqr.ui.resources.manga_continue_chapter
+import com.tiagohs.hqr.ui.resources.manga_select
 import com.tiagohs.hqr.ui.resources.nav_explore
 import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.onomatopoeia_empty
@@ -93,6 +129,7 @@ import com.tiagohs.hqr.ui.resources.source_unavailable
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
@@ -119,9 +156,70 @@ fun LibraryScreen(
     var searching by rememberSaveable { mutableStateOf(false) }
     var optionsOpen by rememberSaveable { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
+    val picked by viewModel.picked.collectAsStateWithLifecycle()
+    val update by viewModel.update.collectAsStateWithLifecycle()
+    val updated by viewModel.updated.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var moving by remember { mutableStateOf(false) }
+    // RF-58: leaving the app stops the update; what arrived stays.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.stopUpdate() }
+    updated?.let { result ->
+        val text =
+            when (result.newChapters) {
+                0 -> stringResource(Res.string.library_new_none)
+                1 -> stringResource(Res.string.library_new_one)
+                else -> stringResource(Res.string.library_new_many, result.newChapters)
+            } + if (result.failed > 0) " · " + stringResource(Res.string.library_update_failed, result.failed) else ""
+        LaunchedEffect(result) {
+            viewModel.updateShown()
+            snackbar.showSnackbar(text)
+        }
+    }
+    if (moving) {
+        MoveDialog(state.categories, onDismiss = { moving = false }) {
+            moving = false
+            viewModel.moveSelected(it)
+        }
+    }
+    val removedText = stringResource(Res.string.library_removed_many, picked.size)
+    val undoText = stringResource(Res.string.action_undo)
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
-            if (searching) {
+            if (picked.isNotEmpty()) {
+                // RF-57: what can be done with the picked works.
+                TopAppBar(
+                    title = { Text(stringResource(Res.string.library_picked, picked.size)) },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = viewModel::clearSelection,
+                        ) { Icon(HqrIcons.Close, stringResource(Res.string.library_clear_selection)) }
+                    },
+                    actions = {
+                        IconButton(onClick = viewModel::selectAll) { Icon(HqrIcons.Library, stringResource(Res.string.library_select_all)) }
+                        if (state.categories.isNotEmpty()) {
+                            IconButton(onClick = { moving = true }) { Icon(HqrIcons.Folder, stringResource(Res.string.library_move)) }
+                        }
+                        IconButton(
+                            onClick = viewModel::markSelectedRead,
+                        ) { Icon(HqrIcons.Check, stringResource(Res.string.library_mark_read)) }
+                        if (downloads != null) {
+                            IconButton(onClick = viewModel::downloadSelectedUnread) {
+                                Icon(HqrIcons.Download, stringResource(Res.string.library_download_unread))
+                            }
+                        }
+                        IconButton(onClick = {
+                            viewModel.removeSelected { removals ->
+                                scope.launch {
+                                    val result = snackbar.showSnackbar(removedText, undoText, duration = SnackbarDuration.Long)
+                                    if (result == SnackbarResult.ActionPerformed) viewModel.undoRemoveAll(removals)
+                                }
+                            }
+                        }) { Icon(HqrIcons.Delete, stringResource(Res.string.library_remove_picked)) }
+                    },
+                )
+            } else if (searching) {
                 TopAppBar(
                     title = {
                         // RF-56: title, author and genre.
@@ -195,44 +293,76 @@ fun LibraryScreen(
                     modifier = Modifier.padding(padding),
                 )
             else ->
-                Column(Modifier.padding(padding).fillMaxSize()) {
-                    if (state.tabs.size > 1) {
-                        PrimaryScrollableTabRow(
-                            selectedTabIndex = state.tabs.indexOfFirst { it.id == state.selectedTab }.coerceAtLeast(0),
-                            edgePadding = 8.dp,
-                        ) {
-                            state.tabs.forEach { tab ->
-                                Tab(
-                                    selected = tab.id == state.selectedTab,
-                                    onClick = { viewModel.selectTab(tab.id) },
-                                    text = {
-                                        val name =
-                                            when (tab.id) {
-                                                LibraryViewModel.ALL -> stringResource(Res.string.library_tab_all)
-                                                LibraryViewModel.UNCATEGORIZED -> stringResource(Res.string.library_tab_uncategorized)
-                                                else -> tab.name
-                                            }
-                                        Text("$name ${tab.count}")
+                PullToRefreshBox(
+                    isRefreshing = update != null,
+                    onRefresh = viewModel::updateLibrary,
+                    modifier = Modifier.padding(padding).fillMaxSize(),
+                ) {
+                    Column(Modifier.fillMaxSize()) {
+                        // RF-58: where the update is, work by work.
+                        update?.let { progress ->
+                            Text(
+                                stringResource(
+                                    Res.string.library_updating,
+                                    (progress.done + 1).coerceAtMost(progress.total),
+                                    progress.total,
+                                    progress.current.orEmpty(),
+                                ),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier =
+                                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).semantics {
+                                        liveRegion =
+                                            LiveRegionMode.Polite
                                     },
-                                )
+                            )
+                            LinearProgressIndicator(
+                                progress = { if (progress.total == 0) 0f else progress.done.toFloat() / progress.total },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        if (state.tabs.size > 1) {
+                            PrimaryScrollableTabRow(
+                                selectedTabIndex = state.tabs.indexOfFirst { it.id == state.selectedTab }.coerceAtLeast(0),
+                                edgePadding = 8.dp,
+                            ) {
+                                state.tabs.forEach { tab ->
+                                    Tab(
+                                        selected = tab.id == state.selectedTab,
+                                        onClick = { viewModel.selectTab(tab.id) },
+                                        text = {
+                                            val name =
+                                                when (tab.id) {
+                                                    LibraryViewModel.ALL -> stringResource(Res.string.library_tab_all)
+                                                    LibraryViewModel.UNCATEGORIZED -> stringResource(Res.string.library_tab_uncategorized)
+                                                    else -> tab.name
+                                                }
+                                            Text("$name ${tab.count}")
+                                        },
+                                    )
+                                }
                             }
                         }
-                    }
-                    if (state.isFilteredOut) {
-                        EmptyState(
-                            title = stringResource(Res.string.library_filtered_title),
-                            message = stringResource(Res.string.library_filtered_message),
-                            action = if (state.options.hasFilters) stringResource(Res.string.library_clear_filters) else null,
-                            onAction = { viewModel.setOptions(state.options.withoutFilters()) },
-                        )
-                    } else {
-                        LibraryItems(
-                            state.items,
-                            state.options,
-                            if (state.query.isBlank()) state.continueReading else null,
-                            onOpenManga,
-                            onContinue,
-                        )
+                        if (state.isFilteredOut) {
+                            EmptyState(
+                                title = stringResource(Res.string.library_filtered_title),
+                                message = stringResource(Res.string.library_filtered_message),
+                                action = if (state.options.hasFilters) stringResource(Res.string.library_clear_filters) else null,
+                                onAction = { viewModel.setOptions(state.options.withoutFilters()) },
+                            )
+                        } else {
+                            LibraryItems(
+                                state.items,
+                                state.options,
+                                if (state.query.isBlank() && picked.isEmpty()) state.continueReading else null,
+                                onOpenManga,
+                                onContinue,
+                                picked,
+                                viewModel::toggleSelected,
+                            )
+                        }
                     }
                 }
         }
@@ -250,7 +380,27 @@ private fun LibraryItems(
     continueReading: HistoryEntry?,
     onOpenManga: (Long) -> Unit,
     onContinue: (Long, Long, Int) -> Unit,
+    picked: Set<Long>,
+    onToggle: (Long) -> Unit,
 ) {
+    val selectLabel = stringResource(Res.string.manga_select)
+
+    // RF-57: a long press picks a work; while some are picked, a tap picks or unpicks.
+    @Composable
+    fun Modifier.pickable(id: Long): Modifier =
+        combinedClickable(
+            onClick = { if (picked.isNotEmpty()) onToggle(id) else onOpenManga(id) },
+            onLongClick = { onToggle(id) },
+            onLongClickLabel = selectLabel,
+        ).then(
+            if (id in picked) {
+                Modifier
+                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
+                    .padding(4.dp)
+            } else {
+                Modifier
+            },
+        )
     // RF-54: the number of columns follows the width; the list is one per row.
     val columns =
         when (options.display) {
@@ -282,8 +432,11 @@ private fun LibraryItems(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable { onOpenManga(item.manga.id) }
-                            .semantics(mergeDescendants = true) { contentDescription = description },
+                            .pickable(item.manga.id)
+                            .semantics(mergeDescendants = true) {
+                                contentDescription = description
+                                selected = item.manga.id in picked
+                            },
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -305,8 +458,11 @@ private fun LibraryItems(
                 LibraryDisplay.COMPACT_GRID ->
                     Box(
                         Modifier
-                            .clickable { onOpenManga(item.manga.id) }
-                            .semantics(mergeDescendants = true) { contentDescription = description },
+                            .pickable(item.manga.id)
+                            .semantics(mergeDescendants = true) {
+                                contentDescription = description
+                                selected = item.manga.id in picked
+                            },
                     ) {
                         Cover(item.manga.source) {
                             Badges(item, options)
@@ -329,8 +485,11 @@ private fun LibraryItems(
                 LibraryDisplay.COMFORTABLE_GRID ->
                     Column(
                         Modifier
-                            .clickable { onOpenManga(item.manga.id) }
-                            .semantics(mergeDescendants = true) { contentDescription = description },
+                            .pickable(item.manga.id)
+                            .semantics(mergeDescendants = true) {
+                                contentDescription = description
+                                selected = item.manga.id in picked
+                            },
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Cover(item.manga.source) { Badges(item, options) }
@@ -430,4 +589,40 @@ private fun ContinueCard(
         }
         Button(onClick = { onContinue(entry.manga.id, chapter.id, RESUME) }) { Text(stringResource(Res.string.action_continue)) }
     }
+}
+
+/** RF-57: the categories the picked works go to (all of them replace what each had). */
+@Composable
+private fun MoveDialog(
+    categories: List<com.tiagohs.hqr.domain.model.Category>,
+    onDismiss: () -> Unit,
+    onConfirm: (Set<Long>) -> Unit,
+) {
+    var chosen by remember { mutableStateOf(emptySet<Long>()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.library_move)) },
+        text = {
+            Column {
+                categories.forEach { category ->
+                    val on = category.id in chosen
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .toggleable(
+                                value = on,
+                                role = Role.Checkbox,
+                            ) { chosen = if (it) chosen + category.id else chosen - category.id },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = on, onCheckedChange = null)
+                        Text(category.name, Modifier.padding(start = 12.dp))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onConfirm(chosen) }) { Text(stringResource(Res.string.action_ok)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+    )
 }

@@ -95,6 +95,10 @@ fun Modifier.readerInput(
         .focusRequester(focus)
         .focusable()
         .onKeyEvent { event ->
+            // RF-47: the volume key's release is taken too, or the system still beeps or shows the volume.
+            if (event.type == KeyEventType.KeyUp) {
+                return@onKeyEvent volumeKeys && (event.key == Key.VolumeUp || event.key == Key.VolumeDown)
+            }
             if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
             val action = event.toReaderKey()?.let { ReaderKeys.action(it, mode, volumeKeys) } ?: return@onKeyEvent false
             // Escape with the controls open just closes them.

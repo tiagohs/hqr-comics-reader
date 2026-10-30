@@ -16,6 +16,7 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
+import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.Backups
 import com.tiagohs.hqr.domain.repository.CategoryRepository
@@ -41,6 +42,7 @@ import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
 import com.tiagohs.hqr.presentation.library.LibraryOptions
 import com.tiagohs.hqr.presentation.library.LibraryOptionsStore
+import com.tiagohs.hqr.presentation.library.LibraryUpdater
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
 import com.tiagohs.hqr.presentation.reader.ChapterPages
@@ -119,7 +121,18 @@ val coreModule: Module =
             }
         }
         single<LibraryOptionsStore> { PrefsLibraryOptionsStore(get()) }
-        viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
+        viewModel {
+            LibraryViewModel(
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                chapters = get(),
+                downloads = getOrNull(),
+                updater = LibraryUpdater(get(), get(), get()),
+            )
+        }
         viewModel { CategoriesViewModel(get(), get()) }
         viewModel { HistoryViewModel(get(), get()) }
         viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query, get(), get()) }
@@ -283,8 +296,15 @@ class DbReaderSettingsStore(
         }
 
     override suspend fun forManga(manga: Manga): ReaderSettings {
-        val base = global() ?: ReaderSettings(mode = ReaderSettings.suggestedMode(manga.source.kind))
-        val own = db.readerSettingsDao().get(manga.id) ?: return if (global() == null) base else base.copy(mode = base.mode)
+        // RF-37: the first read follows the kind of work (a Japanese manga right to left); the global mode is for works
+        // of an unknown kind. A work's own choice always wins.
+        val saved = global() ?: ReaderSettings()
+        val suggested =
+            manga.source.kind
+                .takeIf { it != ReadingKind.UNKNOWN }
+                ?.let(ReaderSettings::suggestedMode)
+        val base = saved.copy(mode = suggested ?: saved.mode)
+        val own = db.readerSettingsDao().get(manga.id) ?: return base
         return base.copy(
             mode = own.mode?.let { runCatching { ReaderMode.valueOf(it) }.getOrNull() } ?: ReaderSettings.suggestedMode(manga.source.kind),
             scale = own.scale?.let { runCatching { PageScale.valueOf(it) }.getOrNull() } ?: base.scale,
@@ -308,6 +328,19 @@ class DbReaderSettingsStore(
                 background = settings.background.name,
                 doublePage = settings.doublePage,
                 cropBorders = settings.cropBorders,
+            ),
+        )
+        // The reader's own options (not the work's) go to everyone, so "Só esta obra" never loses them.
+        val current = global() ?: ReaderSettings()
+        saveGlobal(
+            current.copy(
+                keepScreenOn = settings.keepScreenOn,
+                showPageNumber = settings.showPageNumber,
+                volumeKeys = settings.volumeKeys,
+                splitWide = settings.splitWide,
+                invertPages = settings.invertPages,
+                invertZones = settings.invertZones,
+                preload = settings.preload,
             ),
         )
     }

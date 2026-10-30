@@ -40,7 +40,7 @@ flowchart TB
 | Destino | Por quê |
 | :-- | :-- |
 | Biblioteca | Abre o app aqui: "Continuar" e as séries acompanhadas (UC-005, UC-006) |
-| Explorar | Feed, fontes e a busca global num lugar; o Feed é a primeira aba porque mostra o que saiu (UC-001, UC-002) |
+| Explorar | Feed, fontes e a busca global num lugar; o Feed é a primeira aba porque mostra o que saiu e abre quando tem itens; vazio, abre em Fontes (UC-001, UC-002) |
 | Histórico | Retomar qualquer leitura (UC-006) |
 | Ajustes | Downloads, fontes, servidores, backup, leitor, aparência, Sobre (UC-007, UC-009, UC-011, UC-012) |
 

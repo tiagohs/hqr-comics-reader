@@ -27,12 +27,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tiagohs.hqr.domain.repository.SearchRepository
 import com.tiagohs.hqr.domain.source.Bridge
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
@@ -48,6 +50,8 @@ import com.tiagohs.hqr.ui.resources.search_hint
 import com.tiagohs.hqr.ui.resources.sources_tab
 import com.tiagohs.hqr.ui.theme.BalloonShape
 import com.tiagohs.hqr.ui.theme.HqrIcons
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
 import org.koin.compose.koinInject
@@ -63,8 +67,18 @@ fun ExploreScreen(
     onOpenManga: (Long) -> Unit = {},
     registry: SourceRegistry = koinInject(),
 ) {
-    // RF-25: the sources and the feed; the sources first, as they lead everywhere else.
-    var tab by rememberSaveable { mutableStateOf(0) }
+    // RF-25: the feed is the first tab and opens when it has something; empty, the sources open.
+    val searches = getKoin().getOrNull<SearchRepository>()
+    val feedSize by remember(searches) { searches?.observeFeed()?.map { it.size } ?: flowOf(0) }.collectAsStateWithLifecycle(-1)
+    var chosen by rememberSaveable { mutableStateOf(-1) }
+    val tab =
+        if (chosen >= 0) {
+            chosen
+        } else if (feedSize > 0) {
+            FEED
+        } else {
+            SOURCES
+        }
     // RF-03: only the sources that are on.
     val active by registry.active.collectAsStateWithLifecycle()
     // RF-108: in the browser, online sources stay listed and say they need the bridge.
@@ -79,10 +93,10 @@ fun ExploreScreen(
     }) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             PrimaryTabRow(selectedTabIndex = tab) {
-                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(Res.string.sources_tab)) })
-                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(Res.string.feed_tab)) })
+                Tab(selected = tab == FEED, onClick = { chosen = FEED }, text = { Text(stringResource(Res.string.feed_tab)) })
+                Tab(selected = tab == SOURCES, onClick = { chosen = SOURCES }, text = { Text(stringResource(Res.string.sources_tab)) })
             }
-            if (tab == 1) {
+            if (tab == FEED) {
                 FeedTab(onOpenManga = onOpenManga)
             } else {
                 SourcesList(active, bridge, bridgeAddress, onSearch, onOpenSource, onBridge, onManageSources)
@@ -186,3 +200,6 @@ fun SourceMonogram(
         }
     }
 }
+
+private const val FEED = 0
+private const val SOURCES = 1

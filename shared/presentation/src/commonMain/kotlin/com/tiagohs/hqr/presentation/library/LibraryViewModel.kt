@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tiagohs.hqr.domain.model.Category
 import com.tiagohs.hqr.domain.repository.CategoryRepository
+import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.HistoryEntry
 import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.LibraryItem
@@ -14,17 +16,128 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** The library tab (SCR-LIB-001): categories as tabs, the grid and "Continuar lendo". */
+@Suppress("TooManyFunctions") // The library screen: tabs, options, search, selection actions and the update.
 class LibraryViewModel(
     private val mangas: MangaRepository,
     private val categories: CategoryRepository,
     history: HistoryRepository,
     private val optionsStore: LibraryOptionsStore? = null,
     private val saved: SavedStateHandle = SavedStateHandle(),
+    private val chapters: ChapterRepository? = null,
+    private val downloads: Downloads? = null,
+    private val updater: LibraryUpdater? = null,
 ) : ViewModel() {
+    // RF-57: works picked with a long press.
+    private val _picked = MutableStateFlow<Set<Long>>(emptySet())
+    val picked: StateFlow<Set<Long>> = _picked
+
+    fun toggleSelected(mangaId: Long) {
+        _picked.value = _picked.value.let { if (mangaId in it) it - mangaId else it + mangaId }
+    }
+
+    /** Every work shown in the current tab. */
+    fun selectAll() {
+        _picked.value = state.value.items.mapTo(HashSet()) { it.manga.id }
+    }
+
+    fun clearSelection() {
+        _picked.value = emptySet()
+    }
+
+    /** RF-57: the selected works go to exactly these categories ("Mover para Concluídas"). */
+    fun moveSelected(categoryIds: Set<Long>) {
+        val ids = _picked.value
+        viewModelScope.launch { ids.forEach { categories.setCategories(it, categoryIds) } }
+        clearSelection()
+    }
+
+    /** RF-57: every chapter of the selected works becomes read. */
+    fun markSelectedRead() {
+        val repo = chapters ?: return
+        val ids = _picked.value
+        viewModelScope.launch {
+            ids.forEach { id ->
+                val all = repo.list(id).map { it.id }
+                repo.setRead(all, true)
+                downloads?.chaptersRead(all)
+            }
+        }
+        clearSelection()
+    }
+
+    /** RF-57, RF-62: the unread chapters of the selected works enter the download queue, in reading order. */
+    fun downloadSelectedUnread() {
+        val repo = chapters ?: return
+        val queue = downloads ?: return
+        val ids = _picked.value
+        viewModelScope.launch {
+            ids.forEach { id ->
+                val unread =
+                    repo
+                        .list(id)
+                        .filter { !it.read && !it.downloaded && it.source.externalUrl == null }
+                        .sortedBy { it.number }
+                        .distinctBy { it.number }
+                queue.enqueue(unread.map { it.id })
+            }
+        }
+        clearSelection()
+    }
+
+    /** RF-57, RF-52: out of the library together; [onRemoved] gets everything "Desfazer" needs. */
+    fun removeSelected(onRemoved: (List<LibraryRemoval>) -> Unit) {
+        val ids = _picked.value
+        viewModelScope.launch { onRemoved(ids.mapNotNull { mangas.removeFromLibrary(it) }) }
+        clearSelection()
+    }
+
+    fun undoRemoveAll(removals: List<LibraryRemoval>) {
+        viewModelScope.launch { removals.forEach { mangas.restoreToLibrary(it) } }
+    }
+
+    // RF-58: pulling updates the online works; leaving the app stops it and keeps what arrived.
+    private val _update = MutableStateFlow<UpdateProgress?>(null)
+    val update: StateFlow<UpdateProgress?> = _update
+    private var updateJob: kotlinx.coroutines.Job? = null
+
+    /** The last finished update, for "N capítulos novos"; cleared when shown. */
+    private val _updated = MutableStateFlow<UpdateProgress?>(null)
+    val updated: StateFlow<UpdateProgress?> = _updated
+
+    val canUpdate: Boolean get() = updater != null
+
+    fun updateLibrary() {
+        val run = updater ?: return
+        if (updateJob?.isActive == true) return
+        updateJob =
+            viewModelScope.launch {
+                val works =
+                    state.value.items
+                        .map { it.manga }
+                        .ifEmpty { mangas.observeLibrary().first().map { it.manga } }
+                try {
+                    val result = run.run(works) { _update.value = it }
+                    _updated.value = result
+                } finally {
+                    _update.value = null
+                }
+            }
+    }
+
+    /** The app went to the background (RF-58). */
+    fun stopUpdate() {
+        updateJob?.cancel()
+    }
+
+    fun updateShown() {
+        _updated.value = null
+    }
+
     data class State(
         val loading: Boolean = true,
         val tabs: List<Tab> = emptyList(),

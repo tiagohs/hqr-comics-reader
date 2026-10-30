@@ -47,6 +47,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -93,6 +94,7 @@ import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.chapter_short
 import com.tiagohs.hqr.ui.resources.error_title
+import com.tiagohs.hqr.ui.resources.manga_external
 import com.tiagohs.hqr.ui.resources.reader_back_to_work
 import com.tiagohs.hqr.ui.resources.reader_chapter_unavailable
 import com.tiagohs.hqr.ui.resources.reader_end
@@ -168,7 +170,8 @@ fun ReaderScreen(
                             KeyAction.FULLSCREEN -> toggleFullscreen()
                             KeyAction.SHORTCUTS -> shortcutsOpen = true
                             KeyAction.CLOSE -> onBack()
-                            else -> commands.trySend(action)
+                            // Keys pressed on the transition or while a chapter loads are not kept for later.
+                            else -> if (state.transition == null && !state.loading && state.pages.isNotEmpty()) commands.trySend(action)
                         }
                     },
                     onMouseMoved = viewModel::showMenu,
@@ -177,6 +180,22 @@ fun ReaderScreen(
         ) {
             when {
                 state.loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                // RF-11: a chapter only on the publisher's site (reached by "Continuar" or the next chapter) opens there.
+                state.error != null && state.chapter?.source?.externalUrl != null -> {
+                    val uriHandler = LocalUriHandler.current
+                    ReaderMessage(
+                        stringResource(Res.string.reader_chapter_unavailable),
+                        stringResource(Res.string.manga_external),
+                        stringResource(Res.string.action_open_browser),
+                        {
+                            state.chapter
+                                ?.source
+                                ?.externalUrl
+                                ?.let(uriHandler::openUri)
+                        },
+                        onBack,
+                    )
+                }
                 state.error != null ->
                     ReaderMessage(
                         stringResource(Res.string.error_title),
@@ -292,104 +311,113 @@ private fun PagedPages(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val landscape = maxWidth > maxHeight
         val sideways = settings.mode != ReaderMode.VERTICAL
+        val double = settings.doublePage && landscape && sideways
+        val split = settings.splitWide && !landscape && sideways
         val views =
-            remember(state.pageCount, state.wide, settings.doublePage, settings.splitWide, landscape, sideways) {
-                ReaderLayout.views(
-                    count = state.pageCount,
-                    wide = state.wide,
-                    double = settings.doublePage && landscape && sideways,
-                    split = settings.splitWide && !landscape && sideways,
-                )
+            remember(state.pageCount, state.wide, double, split) {
+                ReaderLayout.views(count = state.pageCount, wide = state.wide, double = double, split = split)
             }
-        // One extra screen after the last leads to the transition.
-        val pager = rememberPagerState(initialPage = ReaderLayout.viewOf(views, state.page)) { views.size + 1 }
-        val scope = rememberCoroutineScope()
-        LaunchedEffect(pager, views) {
-            // The settled screen: half a swipe on the last page never opens the transition (RF-42).
-            snapshotFlow { pager.settledPage }.collect { index ->
-                if (index >= views.size) viewModel.onReachedEnd() else viewModel.onPageChanged(views[index].pages.first())
+        // Turning the phone changes the layout: a new pager starts on the same page, never at an old screen number.
+        key(double, split) {
+            // One extra screen after the last leads to the transition.
+            val pager = rememberPagerState(initialPage = ReaderLayout.viewOf(views, state.page)) { views.size + 1 }
+            val scope = rememberCoroutineScope()
+            val latestViews by rememberUpdatedState(views)
+            LaunchedEffect(pager) {
+                // The settled screen: half a swipe on the last page never opens the transition (RF-42). A wide page
+                // found later changes the screens without moving the pager; the effect below re-anchors it first.
+                snapshotFlow { pager.settledPage }.collect { index ->
+                    val current = latestViews
+                    if (index >= current.size) viewModel.onReachedEnd() else viewModel.onPageChanged(current[index].pages.first())
+                }
             }
-        }
-        LaunchedEffect(state.page, views) {
-            val target = ReaderLayout.viewOf(views, state.page)
-            // A spread or the second half already shows the page: only another page moves the pager.
-            if (state.page !in views.getOrNull(pager.currentPage)?.pages.orEmpty() && state.page < state.pageCount) {
-                pager.scrollToPage(target)
+            LaunchedEffect(state.page, views) {
+                val target = ReaderLayout.viewOf(views, state.page)
+                // A spread or the second half already shows the page: only another page moves the pager.
+                if (state.page !in views.getOrNull(pager.currentPage)?.pages.orEmpty() && state.page < state.pageCount) {
+                    pager.scrollToPage(target)
+                }
             }
-        }
-        LaunchedEffect(pager, views) {
-            // RF-47, RF-112: keys and buttons move by screen, so a spread turns as one.
-            for (command in commands) {
-                val to =
-                    when (command) {
-                        KeyAction.NEXT -> pager.currentPage + 1
-                        KeyAction.PREVIOUS -> pager.currentPage - 1
-                        KeyAction.FIRST -> 0
-                        KeyAction.LAST -> views.size - 1
-                        else -> continue
-                    }
-                pager.animateScrollToPage(to.coerceIn(0, views.size))
-            }
-        }
-        val prev = {
-            scope.launch { pager.animateScrollToPage((pager.currentPage - 1).coerceAtLeast(0)) }
-            Unit
-        }
-        val next = {
-            scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
-            Unit
-        }
-        val onTap: (Float, Float) -> Unit = { x, y -> tap(x, y, prev, next) }
-        val scale = settings.scale.toContentScale()
-        val preload = settings.preload.coerceIn(1, MAX_PRELOAD)
-        val firstOnLeft = ReaderLayout.firstOnLeft(settings.mode, settings.invertPages)
-        val screen: @Composable (Int) -> Unit = { index ->
-            when (val view = views.getOrNull(index)) {
-                null -> Box(Modifier.fillMaxSize())
-                is PageView.Single ->
-                    ZoomablePage(onTap) {
-                        // RF-39: a tall page fitted to the width (or at its size) scrolls down inside the page.
-                        val scroll = scale == ContentScale.FillWidth || scale == ContentScale.None
-                        Box(if (scroll) Modifier.fillMaxSize().verticalScroll(rememberScrollState()) else Modifier.fillMaxSize()) {
-                            PageImage(state, view.index, scale, viewModel)
+            LaunchedEffect(pager) {
+                // RF-47, RF-112: keys and buttons move by screen, so a spread turns as one.
+                for (command in commands) {
+                    val views = latestViews
+                    val to =
+                        when (command) {
+                            KeyAction.NEXT -> pager.currentPage + 1
+                            KeyAction.PREVIOUS -> pager.currentPage - 1
+                            KeyAction.FIRST -> 0
+                            KeyAction.LAST -> views.size - 1
+                            else -> continue
                         }
-                    }
-                is PageView.Spread ->
-                    ZoomablePage(onTap) {
-                        val (left, right) = if (firstOnLeft) view.first to view.second else view.second to view.first
-                        Row(Modifier.fillMaxSize()) {
-                            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterEnd) {
-                                PageImage(state, left, ContentScale.Fit, viewModel, Alignment.CenterEnd)
-                            }
-                            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
-                                PageImage(state, right, ContentScale.Fit, viewModel, Alignment.CenterStart)
+                    pager.animateScrollToPage(to.coerceIn(0, views.size))
+                }
+            }
+            val prev = {
+                scope.launch { pager.animateScrollToPage((pager.currentPage - 1).coerceAtLeast(0)) }
+                Unit
+            }
+            val next = {
+                scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
+                Unit
+            }
+            val onTap: (Float, Float) -> Unit = { x, y -> tap(x, y, prev, next) }
+            val scale = settings.scale.toContentScale()
+            val preload = settings.preload.coerceIn(1, MAX_PRELOAD)
+            val firstOnLeft = ReaderLayout.firstOnLeft(settings.mode, settings.invertPages)
+            val screen: @Composable (Int) -> Unit = { index ->
+                when (val view = views.getOrNull(index)) {
+                    null -> Box(Modifier.fillMaxSize())
+                    is PageView.Single ->
+                        ZoomablePage(onTap) {
+                            // RF-39: a tall page fitted to the width (or at its size) scrolls down inside the page.
+                            val scroll = scale == ContentScale.FillWidth || scale == ContentScale.None
+                            Box(if (scroll) Modifier.fillMaxSize().verticalScroll(rememberScrollState()) else Modifier.fillMaxSize()) {
+                                PageImage(state, view.index, scale, viewModel)
                             }
                         }
-                    }
-                is PageView.Half ->
-                    ZoomablePage(onTap) {
-                        // The wide page at twice the screen's width, moved so only the half being read shows.
-                        val showLeft = (view.part == 0) == firstOnLeft
-                        Box(Modifier.fillMaxSize().clipToBounds()) {
-                            Box(
-                                Modifier
-                                    .fillMaxHeight()
-                                    .layout { measurable, constraints ->
-                                        val full = constraints.maxWidth * 2
-                                        val placeable = measurable.measure(constraints.copy(minWidth = full, maxWidth = full))
-                                        layout(constraints.maxWidth, placeable.height) {
-                                            placeable.place(if (showLeft) 0 else -constraints.maxWidth, 0)
-                                        }
-                                    },
-                            ) { PageImage(state, view.index, ContentScale.Fit, viewModel) }
+                    is PageView.Spread ->
+                        ZoomablePage(onTap) {
+                            val (left, right) = if (firstOnLeft) view.first to view.second else view.second to view.first
+                            Row(Modifier.fillMaxSize()) {
+                                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterEnd) {
+                                    PageImage(state, left, ContentScale.Fit, viewModel, Alignment.CenterEnd)
+                                }
+                                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
+                                    PageImage(state, right, ContentScale.Fit, viewModel, Alignment.CenterStart)
+                                }
+                            }
                         }
-                    }
+                    is PageView.Half ->
+                        ZoomablePage(onTap) {
+                            // The wide page at twice the screen's width, moved so only the half being read shows.
+                            val showLeft = (view.part == 0) == firstOnLeft
+                            Box(Modifier.fillMaxSize().clipToBounds()) {
+                                Box(
+                                    Modifier
+                                        .fillMaxHeight()
+                                        .layout { measurable, constraints ->
+                                            val full = constraints.maxWidth * 2
+                                            val placeable = measurable.measure(constraints.copy(minWidth = full, maxWidth = full))
+                                            layout(constraints.maxWidth, placeable.height) {
+                                                placeable.place(if (showLeft) 0 else -constraints.maxWidth, 0)
+                                            }
+                                        },
+                                ) { PageImage(state, view.index, ContentScale.Fit, viewModel) }
+                            }
+                        }
+                }
             }
-        }
-        if (settings.mode == ReaderMode.VERTICAL) {
-            VerticalPager(pager, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = preload) { screen(it) }
-        } else {
-            HorizontalPager(pager, modifier = Modifier.fillMaxSize(), reverseLayout = rtl, beyondViewportPageCount = preload) { screen(it) }
+            if (settings.mode == ReaderMode.VERTICAL) {
+                VerticalPager(pager, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = preload) { screen(it) }
+            } else {
+                HorizontalPager(
+                    pager,
+                    modifier = Modifier.fillMaxSize(),
+                    reverseLayout = rtl,
+                    beyondViewportPageCount = preload,
+                ) { screen(it) }
+            }
         }
     }
 }

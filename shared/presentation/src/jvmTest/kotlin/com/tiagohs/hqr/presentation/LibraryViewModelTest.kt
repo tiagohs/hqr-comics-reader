@@ -8,6 +8,7 @@ import com.tiagohs.hqr.presentation.library.TriState
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
@@ -242,5 +243,83 @@ class LibraryViewModelTest : MainDispatcherTest() {
                 .manga.title shouldBe "Obra p1-2"
             track(LibraryViewModel(db.mangas, db.categories, db.history, store)).state.first { !it.loading }.options shouldBe
                 LibraryOptions()
+        }
+
+    @Test
+    fun RF57_pickedWorksMoveMarkReadAndLeaveWithUndo() =
+        runTest {
+            val (a, b) = addWorks()
+            val done = db.categories.create("Concluídas")
+            listOf(a, b).forEach { id -> db.chapters.sync(id, source.chapterList) }
+            val vm = track(LibraryViewModel(db.mangas, db.categories, db.history, chapters = db.chapters))
+            vm.state.first { it.items.size == 2 }
+            vm.toggleSelected(a)
+            vm.selectAll()
+            vm.picked.value shouldBe setOf(a, b)
+            vm.moveSelected(setOf(done.id))
+            vm.picked.value shouldBe emptySet()
+            vm.state.first { s -> s.items.all { it.categoryIds == setOf(done.id) } }
+            vm.toggleSelected(b)
+            vm.markSelectedRead()
+            waitFor { db.chapters.list(b).all { it.read } }
+            db.chapters.list(a).none { it.read } shouldBe true
+            vm.selectAll()
+            val removed = kotlinx.coroutines.CompletableDeferred<List<com.tiagohs.hqr.domain.repository.LibraryRemoval>>()
+            vm.removeSelected { removed.complete(it) }
+            vm.state.first { it.isEmpty }
+            vm.undoRemoveAll(removed.await())
+            vm.state.first { s -> s.items.size == 2 && s.items.all { it.categoryIds == setOf(done.id) } }
+        }
+
+    @Test
+    fun RF58_updateBringsNewChaptersOneWorkAfterAnotherAndCountsThem() =
+        runTest {
+            val (a, b) = addWorks()
+            listOf(a, b).forEach { id -> db.chapters.sync(id, source.chapterList) }
+            source.chapterList = source.chapterList +
+                com.tiagohs.hqr.domain.model
+                    .SourceChapter("c4", 4.0)
+            val updater =
+                com.tiagohs.hqr.presentation.library.LibraryUpdater(
+                    com.tiagohs.hqr.domain.source
+                        .SourceRegistry(listOf(source)),
+                    db.mangas,
+                    db.chapters,
+                )
+            val vm = track(LibraryViewModel(db.mangas, db.categories, db.history, chapters = db.chapters, updater = updater))
+            vm.state.first { it.items.size == 2 }
+            val seen = mutableListOf<Int>()
+            val watch = backgroundScope.launch { vm.update.collect { p -> p?.let { seen += it.done } } }
+            vm.updateLibrary()
+            val result = vm.updated.first { it != null }!!
+            result.newChapters shouldBe 2
+            result.failed shouldBe 0
+            db.chapters.list(a).size shouldBe 4
+            (seen.isNotEmpty()) shouldBe true
+            watch.cancel()
+            vm.updateShown()
+            vm.updated.value shouldBe null
+        }
+
+    @Test
+    fun RF58_aFailingSourceIsCountedAndStoppingKeepsWhatArrived() =
+        runTest {
+            addWorks()
+            source.fail = com.tiagohs.hqr.domain.source.SourceException.Kind.SERVER
+            val updater =
+                com.tiagohs.hqr.presentation.library.LibraryUpdater(
+                    com.tiagohs.hqr.domain.source
+                        .SourceRegistry(listOf(source)),
+                    db.mangas,
+                    db.chapters,
+                )
+            val works =
+                db.mangas
+                    .observeLibrary()
+                    .first()
+                    .map { it.manga }
+            val result = updater.run(works) {}
+            result.failed shouldBe 2
+            result.newChapters shouldBe 0
         }
 }

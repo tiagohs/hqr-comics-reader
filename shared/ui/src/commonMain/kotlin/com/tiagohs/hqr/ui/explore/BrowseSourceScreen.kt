@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -339,70 +340,81 @@ fun BrowseSourceScreen(
                 state.isEmpty ->
                     EmptyState(stringResource(Res.string.browse_no_results), stringResource(Res.string.browse_no_results_message))
                 else ->
-                    LazyVerticalGrid(
-                        state = grid,
-                        columns = GridCells.Adaptive(108.dp),
-                        contentPadding = PaddingValues(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        items(state.items, key = { it.key }) { manga ->
-                            Column(
-                                // RF-52: a long press puts the work in the library or takes it out, with "Desfazer".
-                                Modifier.combinedClickable(
-                                    onClick = { scope.launch { onOpenManga(viewModel.open(manga)) } },
-                                    onLongClick = {
-                                        scope.launch {
-                                            val removal = viewModel.toggleLibrary(manga)
-                                            val result =
-                                                snackbar.showSnackbar(
-                                                    getString(if (removal == null) Res.string.browse_added else Res.string.library_removed),
-                                                    getString(Res.string.action_undo),
-                                                    duration = SnackbarDuration.Long,
-                                                )
-                                            if (result == SnackbarResult.ActionPerformed) viewModel.undoToggle(manga, removal)
-                                        }
-                                    },
-                                    onLongClickLabel =
-                                        stringResource(
-                                            if (manga.key in
-                                                state.inLibrary
-                                            ) {
-                                                Res.string.manga_remove_library
-                                            } else {
-                                                Res.string.manga_add_library
-                                            },
-                                        ),
-                                ),
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                Cover(manga) {
-                                    if (manga.key in state.inLibrary) InLibraryBadge(stringResource(Res.string.browse_in_library))
+                    // RF-15: pulling reads the source again (a local folder shows new and removed files).
+                    PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = viewModel::refresh) {
+                        LazyVerticalGrid(
+                            state = grid,
+                            columns = GridCells.Adaptive(108.dp),
+                            contentPadding = PaddingValues(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            items(state.items, key = { it.key }) { manga ->
+                                Column(
+                                    // RF-52: a long press puts the work in the library or takes it out, with "Desfazer".
+                                    Modifier.combinedClickable(
+                                        onClick = { scope.launch { onOpenManga(viewModel.open(manga)) } },
+                                        onLongClick = {
+                                            scope.launch {
+                                                val removal = viewModel.toggleLibrary(manga)
+                                                val result =
+                                                    snackbar.showSnackbar(
+                                                        getString(
+                                                            if (removal ==
+                                                                null
+                                                            ) {
+                                                                Res.string.browse_added
+                                                            } else {
+                                                                Res.string.library_removed
+                                                            },
+                                                        ),
+                                                        getString(Res.string.action_undo),
+                                                        duration = SnackbarDuration.Long,
+                                                    )
+                                                if (result == SnackbarResult.ActionPerformed) viewModel.undoToggle(manga, removal)
+                                            }
+                                        },
+                                        onLongClickLabel =
+                                            stringResource(
+                                                if (manga.key in
+                                                    state.inLibrary
+                                                ) {
+                                                    Res.string.manga_remove_library
+                                                } else {
+                                                    Res.string.manga_add_library
+                                                },
+                                            ),
+                                    ),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    Cover(manga) {
+                                        if (manga.key in state.inLibrary) InLibraryBadge(stringResource(Res.string.browse_in_library))
+                                    }
+                                    Text(
+                                        manga.title,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
                                 }
-                                Text(
-                                    manga.title,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
                             }
-                        }
-                        // RF-21: a failed next page keeps the list and asks to try again at the end.
-                        state.loadMoreError?.let { kind ->
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                InlineError(
-                                    message = stringResource(kind.message()),
-                                    action = stringResource(Res.string.action_retry),
-                                    onAction = viewModel::loadMore,
-                                )
+                            // RF-21: a failed next page keeps the list and asks to try again at the end.
+                            state.loadMoreError?.let { kind ->
+                                item(span = { GridItemSpan(maxLineSpan) }) {
+                                    InlineError(
+                                        message = stringResource(kind.message()),
+                                        action = stringResource(Res.string.action_retry),
+                                        onAction = viewModel::loadMore,
+                                    )
+                                }
                             }
-                        }
-                        if (state.loadingMore) {
-                            item(span = { GridItemSpan(maxLineSpan) }) {
-                                Box(
-                                    Modifier.fillMaxWidth().padding(16.dp),
-                                    contentAlignment = Alignment.Center,
-                                ) { CircularProgressIndicator() }
+                            if (state.loadingMore) {
+                                item(span = { GridItemSpan(maxLineSpan) }) {
+                                    Box(
+                                        Modifier.fillMaxWidth().padding(16.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) { CircularProgressIndicator() }
+                                }
                             }
                         }
                     }

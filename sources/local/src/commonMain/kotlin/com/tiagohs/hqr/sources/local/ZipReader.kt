@@ -59,7 +59,7 @@ class ZipReader(
     /** Image entries in reading order, macOS metadata skipped. */
     suspend fun images(): List<Entry> =
         entries()
-            .filter { LocalFormat.isImage(it.name) && !it.name.startsWith("__MACOSX/") && !it.name.substringAfterLast('/').startsWith(".") }
+            .filter { isPage(it.name) }
             .sortedWith(compareBy(NaturalOrder) { it.name })
 
     suspend fun read(entry: Entry): ByteArray {

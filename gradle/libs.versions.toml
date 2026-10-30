@@ -23,6 +23,9 @@ materialkolor = "5.0.1"
 telephoto = "0.19.0"
 ksoup = "0.2.6"
 okio = "3.18.2"
+junrar = "8.1.2"
+commonsCompress = "1.28.0"
+xz = "1.10"
 activity-compose = "1.13.0"
 work = "2.11.0"
 documentfile = "1.1.0"
@@ -46,6 +49,9 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version = "0.8.0" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+junrar = { module = "com.github.junrar:junrar", version.ref = "junrar" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
+xz = { module = "org.tukaani:xz", version.ref = "xz" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 ksoup = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }

@@ -49,6 +49,8 @@ class BrowseSourceViewModel(
         val inLibrary: Set<String> = emptySet(),
         val loading: Boolean = true,
         val loadingMore: Boolean = false,
+        /** RF-15: pulled to refresh; the list stays on screen until the new one arrives. */
+        val refreshing: Boolean = false,
         val hasNextPage: Boolean = false,
         val error: ErrorKind? = null,
         /** A failure while loading the next page: the list stays, the footer offers "Tentar de novo" (RF-21). */
@@ -167,6 +169,14 @@ class BrowseSourceViewModel(
         fetch(page + 1, append = true)
     }
 
+    /** RF-15: pull to refresh — the source is read again (a local folder: new and removed files show up). */
+    fun refresh() {
+        if (_state.value.loading || _state.value.refreshing) return
+        page = 0
+        _state.update { it.copy(refreshing = true, loadMoreError = null) }
+        fetch(1, append = false)
+    }
+
     private fun reload() {
         page = 0
         _state.update { it.copy(items = emptyList(), loading = true, error = null, loadMoreError = null, hasNextPage = false) }
@@ -208,6 +218,7 @@ class BrowseSourceViewModel(
                                 hasNextPage = result.hasNextPage,
                                 loading = false,
                                 loadingMore = false,
+                                refreshing = false,
                                 error = null,
                                 loadMoreError = null,
                             )
@@ -217,7 +228,7 @@ class BrowseSourceViewModel(
                             if (append) {
                                 it.copy(loadingMore = false, loadMoreError = e.toErrorKind())
                             } else {
-                                it.copy(loading = false, loadingMore = false, error = e.toErrorKind())
+                                it.copy(loading = false, loadingMore = false, refreshing = false, error = e.toErrorKind())
                             }
                         }
                     }

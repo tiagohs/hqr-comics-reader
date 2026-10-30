@@ -17,9 +17,12 @@ import kotlinx.coroutines.sync.withLock
  * folder, each archive or subfolder of images is a chapter, and loose images make a single chapter. The work key is
  * the path relative to the chosen folder (RF-90). Nothing is ever written.
  */
+@Suppress("TooManyFunctions") // The catalog and image contracts plus one reader per format.
 class LocalSource(
     private val tree: FileTree,
     private val pdf: PdfPages? = null,
+    /** CBR and CB7, where the platform opens them (Android). */
+    private val archives: ArchiveUnpacker? = null,
 ) : CatalogSource,
     ImageSource {
     override val id: SourceId = SourceId.LOCAL
@@ -62,7 +65,44 @@ class LocalSource(
             kind = ReadingKind.COMIC,
         )
 
-    override suspend fun details(manga: SourceManga): SourceManga = manga.copy(coverUrl = coverUrl(manga.key))
+    /** RF-14: authors and synopsis from the first chapter's ComicInfo.xml, when it has one. */
+    override suspend fun details(manga: SourceManga): SourceManga {
+        val first = if (LocalFormat.of(manga.key) != null) manga.key else firstChapterPath(manga.key)
+        val info = first?.let { comicInfo(it) }
+        return manga.copy(
+            coverUrl = coverUrl(manga.key),
+            authors = info?.writers.orEmpty().ifEmpty { manga.authors },
+            artists = info?.artists.orEmpty().ifEmpty { manga.artists },
+            description = info?.summary ?: manga.description,
+        )
+    }
+
+    private suspend fun firstChapterPath(workPath: String): String? =
+        tree
+            .children(workPath)
+            .filterNot { it.name.startsWith(".") }
+            .filter { it.isDirectory || LocalFormat.of(it.name) != null }
+            .minWithOrNull(compareBy(NaturalOrder) { it.name })
+            ?.path
+
+    /**
+     * RF-14: the ComicInfo.xml of a CBZ or a folder of images; null without one, or when it can't be read. CBR and CB7
+     * would have to be unpacked whole just to list them, so their numbers and titles come from the file name.
+     */
+    suspend fun comicInfo(path: String): ComicInfo? =
+        runCatching {
+            when (LocalFormat.of(path)) {
+                LocalFormat.CBZ -> {
+                    val zip = ZipReader(tree, path)
+                    zip.entries().firstOrNull { it.name.lowercase().substringAfterLast('/') == ComicInfo.FILE_NAME }?.let { zip.read(it) }
+                }
+                null ->
+                    tree.children(path).firstOrNull { !it.isDirectory && it.name.lowercase() == ComicInfo.FILE_NAME }?.let {
+                        tree.read(it.path, 0, minOf(tree.size(it.path), MAX_INFO_BYTES).toInt())
+                    }
+                else -> null
+            }?.decodeToString()?.let(ComicInfo::parse)
+        }.getOrNull()
 
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> {
         val key = manga.key
@@ -75,7 +115,11 @@ class LocalSource(
         val loose = children.any { !it.isDirectory && LocalFormat.isImage(it.name) }
         val chapters =
             parts.mapIndexed { index, node ->
-                chapter(node.path, numberFrom(node.name) ?: (index + 1).toDouble(), node.name.substringBeforeLast('.'))
+                // RF-14: the ComicInfo's number and "Série #N" first, then the file or folder name.
+                val info = comicInfo(node.path)
+                val number = info?.number?.toDoubleOrNull() ?: numberFrom(node.name) ?: (index + 1).toDouble()
+                val title = info?.label ?: if (node.isDirectory) node.name else node.name.substringBeforeLast('.')
+                chapter(node.path, number, title)
             }
         return if (loose) listOf(chapter(key, 1.0, manga.title)) + chapters.map { it.copy(number = it.number + 1) } else chapters
     }
@@ -99,7 +143,14 @@ class LocalSource(
                 val reader = pdf ?: throw SourceException("PDF não abre aqui", SourceException.Kind.UNAVAILABLE)
                 (0 until reader.pageCount(path)).map { "$SCHEME$path#$it" }
             }
-            LocalFormat.CBR, LocalFormat.CB7 -> throw SourceException("Formato ainda não suportado", SourceException.Kind.UNAVAILABLE)
+            LocalFormat.CBR, LocalFormat.CB7 -> {
+                val unpacker = archives ?: throw SourceException("CBR e CB7 só abrem no app do celular", SourceException.Kind.UNAVAILABLE)
+                unpacker
+                    .names(path)
+                    .filter(::isPage)
+                    .sortedWith(NaturalOrder)
+                    .map { "$SCHEME$path!$it" }
+            }
             null ->
                 tree
                     .children(path)
@@ -121,6 +172,10 @@ class LocalSource(
         val bang = ARCHIVE_ENTRY.find(target)?.let { it.range.last }
         val hash = target.lastIndexOf('#')
         return when {
+            bang != null && LocalFormat.of(target.substring(0, bang)) != LocalFormat.CBZ -> {
+                val unpacker = archives ?: throw SourceException("CBR e CB7 só abrem no app do celular", SourceException.Kind.UNAVAILABLE)
+                unpacker.read(target.substring(0, bang), target.substring(bang + 1))
+            }
             bang != null -> {
                 val archive = target.substring(0, bang)
                 val zip = ZipReader(tree, archive)
@@ -156,13 +211,18 @@ class LocalSource(
                 chapters(SourceManga(id, workPath, workPath)).firstOrNull()?.key
                     ?: throw SourceException("Sem capa", SourceException.Kind.NOT_FOUND)
             }
+        val format = LocalFormat.of(first)
+        if (archives != null && (format == LocalFormat.CBR || format == LocalFormat.CB7)) {
+            return archives.cover(first) ?: throw SourceException("Sem capa", SourceException.Kind.NOT_FOUND)
+        }
         val ref = pageRefs(first).firstOrNull() ?: throw SourceException("Sem capa", SourceException.Kind.NOT_FOUND)
         return load(ref)
     }
 
     companion object {
         const val SCHEME = "local:"
-        private val ARCHIVE_ENTRY = Regex("\\.(cbz|zip)!", RegexOption.IGNORE_CASE)
+        private val ARCHIVE_ENTRY = Regex("\\.(cbz|zip|cbr|rar|cb7|7z)!", RegexOption.IGNORE_CASE)
+        private const val MAX_INFO_BYTES = 1L shl 20
         private const val COVER = "cover:"
 
         fun coverUrl(workPath: String) = "$SCHEME$COVER$workPath"

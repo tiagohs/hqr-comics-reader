@@ -10,3 +10,9 @@
 # Ktor / OkHttp
 -dontwarn org.slf4j.**
 -dontwarn io.ktor.**
+# CBR and CB7 (ADR-011): the optional codecs and JDK-only classes Commons Compress and junrar reference but HQR never uses.
+-dontwarn com.github.luben.zstd.**
+-dontwarn org.brotli.dec.**
+-dontwarn org.objectweb.asm.**
+-dontwarn org.osgi.**
+-dontwarn org.slf4j.**

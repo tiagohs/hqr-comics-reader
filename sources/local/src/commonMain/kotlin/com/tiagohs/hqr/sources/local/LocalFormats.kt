@@ -22,6 +22,10 @@ enum class LocalFormat(
     }
 }
 
+/** An image of the comic inside an archive: macOS metadata and hidden files skipped. */
+fun isPage(name: String): Boolean =
+    LocalFormat.isImage(name) && !name.startsWith("__MACOSX/") && !name.substringAfterLast('/').startsWith(".")
+
 /** Natural order: "page 2" before "page 10" (pages and files are named by people, not padded). */
 object NaturalOrder : Comparator<String> {
     private val chunk = Regex("\\d+|\\D+")

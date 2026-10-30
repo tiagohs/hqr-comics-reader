@@ -16,6 +16,7 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 
@@ -39,6 +40,25 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
             last.hasNextPage shouldBe false
             vm.loadMore()
             source.requested shouldContainExactly listOf("p1", "p2", "p3")
+        }
+
+    @Test
+    fun RF15_pullToRefreshReadsTheSourceAgainWithoutEmptyingTheList() =
+        runTest {
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))
+            awaitIdle(vm)
+            vm.loadMore()
+            vm.state.first { it.items.size == 4 && !it.loadingMore }
+            // Never emptied on the way: no "loading" screen replaces the list.
+            val seen = mutableListOf<Int>()
+            val watch = backgroundScope.launch { vm.state.collect { seen += it.items.size } }
+            vm.refresh()
+            val after = vm.state.first { !it.refreshing }
+            after.items.size shouldBe 2
+            after.hasNextPage shouldBe true
+            source.requested shouldContainExactly listOf("p1", "p2", "p1")
+            watch.cancel()
+            seen.none { it == 0 } shouldBe true
         }
 
     @Test

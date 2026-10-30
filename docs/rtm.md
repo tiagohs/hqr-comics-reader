@@ -18,9 +18,9 @@
 | RF-10 | Must | UC-012 | sources/mangadex | SCR-SRC-002 | FEAT-001 | — |
 | RF-11 | Should | UC-003 | sources/mangadex | SCR-OBR-001 | FEAT-034 | MangaScreensTest |
 | RF-12 | Must | UC-001, UC-002 | sources/hqnow | SCR-OBR-001 | FEAT-013 | HqNowSourceTest |
-| RF-13 | Must | UC-008 | sources/local, ADR-011 | SCR-SRC-001 | FEAT-014, FEAT-030 | LocalSourceTest |
-| RF-14 | Should | UC-008 | sources/local, ADR-011 | SCR-SRC-001 | FEAT-030 | — |
-| RF-15 | Should | UC-008 | sources/local | SCR-SRC-001 | FEAT-030 | — |
+| RF-13 | Must | UC-008 | sources/local, ADR-011 | SCR-SRC-001 | FEAT-014, FEAT-030 | ArchivesAndComicInfoTest, LocalSourceTest |
+| RF-14 | Should | UC-008 | sources/local, ADR-011 | SCR-SRC-001 | FEAT-030 | ArchivesAndComicInfoTest |
+| RF-15 | Should | UC-008 | sources/local | SCR-SRC-001 | FEAT-030 | ArchivesAndComicInfoTest, BrowseAndMangaViewModelTest |
 | RF-16 | Must | UC-008 | sources/local | SCR-SRC-001 | FEAT-014 | LocalSourceTest |
 | RF-17 | Must | UC-009 | sources/opds | SCR-SRC-001, SCR-SRV-001 | FEAT-015 | ContractsTest, OpdsTest, ServersViewModelTest, SourcesScreensTest |
 | RF-18 | Must | UC-009 | sources/opds | SCR-SRV-001, SCR-SRV-002 | FEAT-016 | ContractsTest, OpdsTest, ServersViewModelTest |

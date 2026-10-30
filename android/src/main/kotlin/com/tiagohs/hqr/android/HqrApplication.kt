@@ -25,6 +25,7 @@ import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import com.tiagohs.hqr.sources.local.AndroidPdfPages
 import com.tiagohs.hqr.sources.local.FileTree
+import com.tiagohs.hqr.sources.local.JvmArchiveUnpacker
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.local.SafFileTree
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
@@ -61,7 +62,12 @@ class HqrApplication : Application() {
             single { SafFileTree(contentResolver) { get<AppPreferences>().localFolder.value } }
             single<FileTree> { get<SafFileTree>() }
             single {
-                LocalSource(get(), AndroidPdfPages(contentResolver, get()) { get<AppPreferences>().localFolder.value })
+                LocalSource(
+                    get(),
+                    AndroidPdfPages(contentResolver, get()) { get<AppPreferences>().localFolder.value },
+                    // RF-13: CBR and CB7 unpacked to the app's cache (ADR-011).
+                    archives = JvmArchiveUnpacker(get(), java.io.File(cacheDir, "archives")),
+                )
             }
             single {
                 val prefs = get<AppPreferences>()

@@ -49,7 +49,12 @@ class MangaFlixSource(
 
     override fun webUrl(query: String): String = SITE
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            // A null where a default exists (a poster, a list) is the default, not a failure.
+            coerceInputValues = true
+        }
     private val limiter = RateLimiter(1, 1.seconds, clock, sleep)
 
     private suspend fun <T> get(
@@ -77,7 +82,7 @@ class MangaFlixSource(
                 .firstOrNull { it.key == MOST_READ }
                 ?.items
                 .orEmpty()
-                .map { it.toManga() },
+                .mapNotNull { it.toManga() },
             false,
         )
     }
@@ -85,7 +90,7 @@ class MangaFlixSource(
     override suspend fun latest(page: Int): MangaPage {
         if (page > 1) return MangaPage(emptyList(), false)
         val items = get("/latest-releases", Envelope.serializer(kotlinx.serialization.builtins.ListSerializer(MangaDto.serializer())), LANG)
-        return MangaPage(items.data.map { it.toManga() }, false)
+        return MangaPage(items.data.mapNotNull { it.toManga() }, false)
     }
 
     override suspend fun search(
@@ -95,12 +100,12 @@ class MangaFlixSource(
     ): MangaPage {
         if (page > 1 || query.isBlank()) return MangaPage(emptyList(), false)
         val found = get("/search/mangas", Envelope.serializer(WorksDto.serializer()), "query" to query.trim(), LANG)
-        return MangaPage(found.data.works.map { it.toManga() }, false)
+        return MangaPage(found.data.works.mapNotNull { it.toManga() }, false)
     }
 
     private suspend fun work(manga: SourceManga) = get("/mangas/${manga.key}", Envelope.serializer(MangaDto.serializer())).data
 
-    override suspend fun details(manga: SourceManga): SourceManga = work(manga).toManga()
+    override suspend fun details(manga: SourceManga): SourceManga = work(manga).toManga() ?: manga
 
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> =
         work(manga).chapters.mapNotNull { c ->
@@ -125,11 +130,11 @@ class MangaFlixSource(
             .sortedBy { it.order }
             .mapIndexed { i, image -> SourcePage(i, image.url, mapOf(REFERER to "$SITE/")) }
 
-    private fun MangaDto.toManga() =
+    private fun MangaDto.toManga(): SourceManga? =
         SourceManga(
             sourceId = ID,
             key = id,
-            title = name,
+            title = name?.takeIf { it.isNotBlank() } ?: return null,
             coverUrl = poster?.url,
             url = "$SITE/br/manga/$id",
             description = description?.takeIf { it.isNotBlank() },
@@ -178,7 +183,8 @@ internal class PosterDto(
 @Serializable
 internal class MangaDto(
     @SerialName("_id") val id: String,
-    val name: String,
+    // A work without a name shows up in the real listings (a "samurai" shelf of /browse): it is left out, not a failure.
+    val name: String? = null,
     val description: String? = null,
     val poster: PosterDto? = null,
     val genres: List<JsonElement> = emptyList(),

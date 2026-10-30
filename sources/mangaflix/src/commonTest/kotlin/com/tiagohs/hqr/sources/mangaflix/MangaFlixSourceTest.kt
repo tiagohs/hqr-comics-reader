@@ -57,6 +57,7 @@ class MangaFlixSourceTest {
     @Test
     fun RF101_popularLatestAndSearchAtOneRequestPerSecond() =
         runTest {
+            // The real /browse has a work without a name on another shelf: the list still reads.
             source.popular(1).items.map { it.title } shouldContainExactly listOf("Martial Peak")
             source.popular(2).items shouldBe emptyList()
             val latest = source.latest(1).items.single()
@@ -97,7 +98,7 @@ class MangaFlixSourceTest {
 
     private companion object {
         const val BROWSE =
-            """{"data":[{"key":"most-read","items":[{"_id":"6513a5c4d0e2acdd1e1ab741","name":"Martial Peak","description":"A jornada para o pico marcial é solitária...","poster":{"default_url":"https://static.mangaflix.net/data/mangas/6513a5c4d0e2acdd1e1ab741/posters/30c946e2-ab3e-4ca7-84b8-968c834311c4.jpg"},"genres":[{"_id":"6511e95bae08773cd411c21c","name":"Ação","lang":"pt-br","adult":false}]}]},{"key":"trending","items":[]}],"status":200}"""
+            """{"data":[{"key":"most-read","items":[{"_id":"6513a5c4d0e2acdd1e1ab741","name":"Martial Peak","description":"A jornada para o pico marcial é solitária...","poster":{"default_url":"https://static.mangaflix.net/data/mangas/6513a5c4d0e2acdd1e1ab741/posters/30c946e2-ab3e-4ca7-84b8-968c834311c4.jpg"},"genres":[{"_id":"6511e95bae08773cd411c21c","name":"Ação","lang":"pt-br","adult":false}]}]},{"key":"trending","items":[]},{"key":"samurai","title":"Samurai","items":[{"_id":"x1","poster":null,"genres":[],"is_adult":false}]}],"status":200}"""
         const val LATEST =
             """{"data":[{"_id":"6a8b52fdf14610a8af7898f7","name":"Surviving in an RPG Maker Horror Game","description":"No instante em que inicia...","poster":{"default_url":"https://static.mangaflix.net/up/ac8e4871-d0c6-495e-bfe9-956e9767f044/optimized.jpg"},"is_adult":false,"chapters":[{"_id":"6ae431bb7c41ebb6e5b95d85","number":"15","created_at":"2026-10-30T05:57:15.540Z"}]}],"metadata":{"total":100},"status":200}"""
         const val SEARCH =

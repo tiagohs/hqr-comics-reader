@@ -345,7 +345,33 @@ interface SourceDao {
 
     @Query("DELETE FROM source WHERE id = :id")
     suspend fun delete(id: String)
+
+    // RF-91: the keys of a source's works and chapters, rewritten when its key format changes.
+
+    @Query("SELECT id, `key` FROM manga WHERE sourceId = :sourceId")
+    suspend fun mangaKeys(sourceId: String): List<KeyRow>
+
+    @Query("UPDATE manga SET `key` = :key WHERE id = :id")
+    suspend fun setMangaKey(
+        id: Long,
+        key: String,
+    )
+
+    @Query("SELECT c.id, c.`key` FROM chapter c JOIN manga m ON m.id = c.mangaId WHERE m.sourceId = :sourceId")
+    suspend fun chapterKeys(sourceId: String): List<KeyRow>
+
+    @Query("UPDATE chapter SET `key` = :key WHERE id = :id")
+    suspend fun setChapterKey(
+        id: Long,
+        key: String,
+    )
 }
+
+/** A saved key and its row (RF-91). */
+data class KeyRow(
+    val id: Long,
+    val key: String,
+)
 
 @Dao
 interface SearchDao {

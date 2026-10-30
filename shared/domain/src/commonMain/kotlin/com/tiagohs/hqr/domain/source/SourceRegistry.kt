@@ -13,7 +13,8 @@ import kotlinx.coroutines.withTimeoutOrNull
  * turned off is unavailable everywhere (RF-105).
  */
 class SourceRegistry(
-    builtIn: List<Source>,
+    /** The sources that come with the app (the user's servers are added later). */
+    val builtIn: List<Source>,
     ready: Boolean = true,
 ) {
     // The user's servers and switches come from the database at start: lookups wait for them (RF-88).

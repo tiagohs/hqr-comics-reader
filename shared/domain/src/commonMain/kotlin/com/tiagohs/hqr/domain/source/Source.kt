@@ -20,6 +20,18 @@ interface Source {
     /** Version of the key format; when it grows, saved keys are migrated (RF-91). */
     val schemaVersion: Int get() = 1
 
+    /** RF-91: a work key saved under [fromVersion], in today's format; null leaves it as it is. */
+    fun migrateMangaKey(
+        key: String,
+        fromVersion: Int,
+    ): String? = key
+
+    /** RF-91: the same for a chapter key. */
+    fun migrateChapterKey(
+        key: String,
+        fromVersion: Int,
+    ): String? = key
+
     /** The source's web page for "Abrir no navegador" in its errors (RF-05); [query] opens its search. Null: none. */
     fun webUrl(query: String = ""): String? = null
 

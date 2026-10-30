@@ -12,6 +12,7 @@ import com.tiagohs.hqr.domain.model.SourcePage
 import com.tiagohs.hqr.domain.source.CatalogSource
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import java.io.File
 import kotlin.test.AfterTest
@@ -21,7 +22,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
 class SourceConfigTest {
-    private class Stub(
+    private open class Stub(
         override val id: SourceId,
     ) : CatalogSource {
         override val name = id.value
@@ -118,5 +119,61 @@ class SourceConfigTest {
             registry.active.value.map { it.id } shouldBe listOf(SourceId.MANGADEX, SourceId.LOCAL)
             config().setEnabled(SourceId.HQ_NOW, true)
             registry.status(SourceId.HQ_NOW) shouldBe SourceRegistry.Status.ON
+        }
+
+    /** HQ Now's keys went from "Slug" to "id:slug" (RF-91). */
+    private class HqNowV2 : Stub(SourceId.HQ_NOW) {
+        override val schemaVersion = 2
+
+        override fun migrateMangaKey(
+            key: String,
+            fromVersion: Int,
+        ) = if (fromVersion < 2) "id:${key.lowercase()}" else key
+
+        override fun migrateChapterKey(
+            key: String,
+            fromVersion: Int,
+        ) = if (fromVersion < 2) "ch:$key" else key
+    }
+
+    @Test
+    fun RF91_keysMigrateOnceWhenTheSourceSchemaGrows() =
+        runTest {
+            config().applySaved()
+            val mangas =
+                com.tiagohs.hqr.data.repository
+                    .RoomMangaRepository(db, clock)
+            val chapters =
+                com.tiagohs.hqr.data.repository
+                    .RoomChapterRepository(db, clock)
+            val saga = mangas.upsert(SourceManga(SourceId.HQ_NOW, "saga", "Saga"))
+            chapters.sync(saga.id, listOf(SourceChapter("c1", 1.0)))
+            // A key that would clash with one already saved stays as it was.
+            mangas.upsert(SourceManga(SourceId.HQ_NOW, "x", "X"))
+            mangas.upsert(SourceManga(SourceId.HQ_NOW, "X", "X maiúsculo"))
+            val other = mangas.upsert(SourceManga(SourceId.MANGADEX, "saga", "Saga MD"))
+            val updated = SourceRegistry(listOf(Stub(SourceId.MANGADEX), HqNowV2(), Stub(SourceId.LOCAL)))
+            repeat(2) { SourceConfig(db, settings, updated, fetcher, "1.0.0", clock).applySaved() }
+            mangas.get(saga.id)!!.source.key shouldBe "id:saga"
+            chapters
+                .observe(saga.id)
+                .first()
+                .single()
+                .source.key shouldBe "ch:c1"
+            // "x" and "X" both become "id:x": one moves, the other keeps its old key instead of failing the start.
+            val keys =
+                db
+                    .sourceDao()
+                    .mangaKeys(SourceId.HQ_NOW.value)
+                    .map { it.key }
+                    .toSet()
+            keys.size shouldBe 3
+            (keys - setOf("id:saga", "id:x")).single() shouldBe (if ("x" in keys) "x" else "X")
+            mangas.get(other.id)!!.source.key shouldBe "saga"
+            db
+                .sourceDao()
+                .list()
+                .single { it.id == SourceId.HQ_NOW.value }
+                .schemaVersion shouldBe 2
         }
 }

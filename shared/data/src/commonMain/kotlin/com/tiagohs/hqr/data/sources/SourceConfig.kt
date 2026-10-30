@@ -4,6 +4,7 @@ import com.russhwolf.settings.Settings
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.SourceEntity
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.domain.source.SourceSwitches
 import io.ktor.client.request.get
@@ -63,6 +64,7 @@ class SourceConfig(
 
     /** The switches and the last list, from the device only: quick, done before any screen reads a source. */
     suspend fun applySaved() {
+        migrateKeys()
         val off =
             dao
                 .list()
@@ -94,6 +96,60 @@ class SourceConfig(
         if (!apply(text)) return
         settings.putString(KEY_LIST, text)
         settings.putLong(KEY_FETCHED_AT, clock.now().toEpochMilliseconds())
+    }
+
+    /**
+     * RF-91: a source whose key format grew since the keys were saved gets them rewritten, works and chapters, before any
+     * screen reads them. A key the source can't migrate, or that would clash with one already there, stays as it was.
+     */
+    private suspend fun migrateKeys() {
+        val saved = dao.list().associateBy { it.id }
+        // The servers' keys are addresses on the user's own server: only the app's sources change format.
+        registry.builtIn.forEach { source ->
+            val row = saved[source.id.value]
+            val from = row?.schemaVersion ?: source.schemaVersion
+            if (from < source.schemaVersion) rewriteKeys(source, from)
+            when {
+                row == null ->
+                    dao.upsert(
+                        SourceEntity(
+                            source.id.value,
+                            KIND_BUILT_IN,
+                            source.name,
+                            source.languages.joinToString(","),
+                            source.schemaVersion,
+                            true,
+                            "{}",
+                        ),
+                    )
+                row.schemaVersion < source.schemaVersion -> dao.upsert(row.copy(schemaVersion = source.schemaVersion))
+                else -> Unit
+            }
+        }
+    }
+
+    private suspend fun rewriteKeys(
+        source: Source,
+        from: Int,
+    ) {
+        dao.mangaKeys(source.id.value).forEach { (id, key) ->
+            source.migrateMangaKey(key, from)?.takeIf { it != key }?.let { new -> rewrite { dao.setMangaKey(id, new) } }
+        }
+        dao.chapterKeys(source.id.value).forEach { (id, key) ->
+            source.migrateChapterKey(key, from)?.takeIf { it != key }?.let { new -> rewrite { dao.setChapterKey(id, new) } }
+        }
+    }
+
+    // A clash with a key already saved (unique index) leaves this one as it was.
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
+    private suspend fun rewrite(update: suspend () -> Unit) {
+        try {
+            update()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Unit
+        }
     }
 
     /** RF-03: the switch of one source. */

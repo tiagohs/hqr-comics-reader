@@ -44,12 +44,15 @@ class MangaViewModel(
         val order: Order = Order.NEWEST_FIRST,
         val filter: ChapterFilter = ChapterFilter.ALL,
         val totalChapters: Int = 0,
+        val group: String? = null,
+        val groups: List<String> = emptyList(),
     )
 
     private val refreshing = MutableStateFlow(true)
     private val error = MutableStateFlow<ErrorKind?>(null)
     private val order = MutableStateFlow(Order.NEWEST_FIRST)
     private val filter = MutableStateFlow(ChapterFilter.ALL)
+    private val group = MutableStateFlow<String?>(null)
 
     val state: StateFlow<State> =
         combine(
@@ -57,8 +60,8 @@ class MangaViewModel(
             chapters.observe(mangaId),
             combine(refreshing, error, ::Pair),
             order,
-            filter,
-        ) { manga, list, (busy, err), ord, fil ->
+            combine(filter, group, ::Pair),
+        ) { manga, list, (busy, err), ord, (fil, grp) ->
             val visible =
                 list
                     .filter {
@@ -67,7 +70,8 @@ class MangaViewModel(
                             ChapterFilter.UNREAD -> !it.read
                             ChapterFilter.DOWNLOADED -> it.downloaded
                         }
-                    }.let { if (ord == Order.NEWEST_FIRST) it.sortedByDescending(Chapter::number) else it.sortedBy(Chapter::number) }
+                    }.filter { grp == null || it.source.group == grp }
+                    .let { if (ord == Order.NEWEST_FIRST) it.sortedByDescending(Chapter::number) else it.sortedBy(Chapter::number) }
             State(
                 manga = manga,
                 chapters = visible,
@@ -77,6 +81,8 @@ class MangaViewModel(
                 order = ord,
                 filter = fil,
                 totalChapters = list.map { it.number }.distinct().size,
+                group = grp,
+                groups = list.mapNotNull { it.source.group }.distinct().sorted(),
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, State())
 
@@ -128,6 +134,11 @@ class MangaViewModel(
 
     fun setFilter(value: ChapterFilter) {
         filter.value = value
+    }
+
+    /** RF-30: only one scan group's chapters; null shows all. */
+    fun setGroup(value: String?) {
+        group.value = value
     }
 
     /** RF-32: one or several chapters. */

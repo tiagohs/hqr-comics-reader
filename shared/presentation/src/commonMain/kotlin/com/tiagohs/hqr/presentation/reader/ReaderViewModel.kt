@@ -32,6 +32,14 @@ fun interface ChapterPages {
     ): List<SourcePage>
 }
 
+/** Loads page images into the cache ahead of the reader (RF-41). */
+fun interface PagePrefetcher {
+    suspend fun prefetch(
+        manga: Manga,
+        page: SourcePage,
+    )
+}
+
 /** Per-work and global reader settings (RF-37). */
 interface ReaderSettingsStore {
     suspend fun forManga(manga: Manga): ReaderSettings
@@ -59,6 +67,7 @@ class ReaderViewModel(
     private val pageSource: ChapterPages,
     private val clock: Clock,
     private val saved: SavedStateHandle = SavedStateHandle(),
+    private val prefetcher: PagePrefetcher? = null,
 ) : ViewModel() {
     data class Transition(
         val finished: Chapter,
@@ -89,6 +98,9 @@ class ReaderViewModel(
     private var saveJob: Job? = null
     private var allChapters: List<Chapter> = emptyList()
     private var endDismissed = false
+    private val nextPages = HashMap<Long, List<SourcePage>>()
+    private var prefetchJob: Job? = null
+    private val prefetched = HashSet<String>()
 
     init {
         // RF-88: after the process dies, the chapter and page the reader was on win over the route's arguments.
@@ -107,7 +119,7 @@ class ReaderViewModel(
         val chapter = chapters.get(id) ?: return
         allChapters = chapters.list(mangaId)
         val settings = settingsStore.forManga(manga)
-        attempt { pageSource.pages(manga, chapter) }
+        attempt { nextPages.remove(chapter.id) ?: pageSource.pages(manga, chapter) }
             .onSuccess { pages ->
                 val start =
                     (
@@ -137,6 +149,7 @@ class ReaderViewModel(
                         next = ReadingRules.nextChapter(allChapters, chapter),
                     )
                 }
+                prefetchAround(start)
             }.onFailure { e ->
                 _state.update { it.copy(manga = manga, chapter = chapter, loading = false, error = e.toErrorKind(), settings = settings) }
             }
@@ -149,6 +162,7 @@ class ReaderViewModel(
         _state.update { it.copy(page = page) }
         saved[KEY_PAGE] = page
         if (page < current.pageCount - 1) endDismissed = false
+        prefetchAround(page)
         save(page, immediate = false)
     }
 
@@ -183,6 +197,28 @@ class ReaderViewModel(
     fun toggleMenu() = _state.update { it.copy(menuVisible = !it.menuVisible) }
 
     fun hideMenu() = _state.update { it.copy(menuVisible = false) }
+
+    /**
+     * RF-41: the next [ReaderSettings.preload] pages go to the cache; 3 pages before the end, the next chapter's page
+     * list is asked too, so turning to it starts at once.
+     */
+    private fun prefetchAround(page: Int) {
+        val s = _state.value
+        val manga = s.manga ?: return
+        prefetchJob?.cancel()
+        prefetchJob =
+            viewModelScope.launch {
+                val next = s.next
+                if (next != null && page >= s.pageCount - NEXT_CHAPTER_DISTANCE && next.id !in nextPages) {
+                    attempt { pageSource.pages(manga, next) }.onSuccess { nextPages[next.id] = it }
+                }
+                val ahead = s.pages.drop(page + 1).take(s.settings.preload)
+                for (p in ahead) {
+                    if (!prefetched.add(p.imageUrl)) continue
+                    attempt { prefetcher?.prefetch(manga, p) }.onFailure { prefetched.remove(p.imageUrl) }
+                }
+            }
+    }
 
     fun goToNext() {
         val next = _state.value.next ?: return
@@ -240,6 +276,7 @@ class ReaderViewModel(
 
     companion object {
         const val SAVE_DELAY_MS = 500L
+        private const val NEXT_CHAPTER_DISTANCE = 3
         private const val KEY_CHAPTER = "reader.chapter"
         private const val KEY_PAGE = "reader.page"
     }

@@ -41,7 +41,15 @@ fun main() {
                 single<ImageCache> { MemoryImageCache() }
                 single<FileTree> { BrowserFileTree() }
                 single { LocalSource(get()) }
-                single { MangaDexSource(get(), contentLanguages = { get<AppPreferences>().contentLanguages.value }, reportImages = false) }
+                single {
+                    val prefs = get<AppPreferences>()
+                    MangaDexSource(
+                        get(),
+                        contentLanguages = { prefs.contentLanguages.value },
+                        contentRatings = { prefs.mangaDexRatings() },
+                        reportImages = false,
+                    )
+                }
                 single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
             },
             coreModule,

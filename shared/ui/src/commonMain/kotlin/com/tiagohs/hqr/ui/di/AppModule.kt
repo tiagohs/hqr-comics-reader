@@ -25,6 +25,7 @@ import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
 import com.tiagohs.hqr.presentation.reader.ChapterPages
+import com.tiagohs.hqr.presentation.reader.PagePrefetcher
 import com.tiagohs.hqr.presentation.reader.PageScale
 import com.tiagohs.hqr.presentation.reader.ReaderBackground
 import com.tiagohs.hqr.presentation.reader.ReaderMode
@@ -65,9 +66,13 @@ val coreModule: Module =
         viewModel { HistoryViewModel(get(), get()) }
         viewModel { (id: SourceId) -> BrowseSourceViewModel(id, get(), get()) }
         single<CoverPixels> { ImageCoverPixels(get()) }
+        single<PagePrefetcher> {
+            val images = get<ImageBytes>()
+            PagePrefetcher { manga, page -> images.load(manga.sourceId, page.imageUrl, page.headers) }
+        }
         viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get(), get()) }
         viewModel { (mangaId: Long, chapterId: Long, page: Int) ->
-            ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get())
+            ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get(), get())
         }
     }
 

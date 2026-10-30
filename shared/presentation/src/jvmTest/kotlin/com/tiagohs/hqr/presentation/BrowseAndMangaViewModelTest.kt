@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.presentation
 
 import com.tiagohs.hqr.domain.model.ReadAction
+import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.source.SourceException
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
@@ -158,6 +159,27 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
                 .first { it.filter == MangaViewModel.ChapterFilter.UNREAD }
                 .chapters
                 .map { it.number } shouldContainExactly listOf(3.0)
+        }
+
+    @Test
+    fun RF30_filterByGroup() =
+        runTest {
+            source.chapterList =
+                listOf(
+                    SourceChapter("a", 1.0, group = "Aurora"),
+                    SourceChapter("b", 1.0, group = "Kitsune"),
+                    SourceChapter("c", 2.0, group = "Aurora"),
+                )
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters))
+            vm.state.first { it.chapters.size == 3 }.groups shouldContainExactly listOf("Aurora", "Kitsune")
+            vm.setGroup("Kitsune")
+            vm.state
+                .first { it.group == "Kitsune" }
+                .chapters
+                .map { it.source.key } shouldContainExactly listOf("b")
+            vm.setGroup(null)
+            vm.state.first { it.group == null && it.chapters.size == 3 }
         }
 
     @Test

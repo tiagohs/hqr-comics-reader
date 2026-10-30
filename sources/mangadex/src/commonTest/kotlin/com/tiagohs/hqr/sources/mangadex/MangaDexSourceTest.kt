@@ -55,6 +55,7 @@ class MangaDexSourceTest {
     )
 
     private var report = true
+    private var ratings = setOf("safe")
 
     private val source by lazy {
         MangaDexSource(
@@ -73,6 +74,7 @@ class MangaDexSourceTest {
                     },
                 ),
             contentLanguages = { setOf("pt-br") },
+            contentRatings = { ratings },
             clock = clock,
             sleep = {
                 waits += it
@@ -97,6 +99,18 @@ class MangaDexSourceTest {
             url.parameters.getAll("includes[]")!! shouldContain "cover_art"
             page.hasNextPage shouldBe true
             page.items.size shouldBe 2
+        }
+
+    @Test
+    fun RF08_eroticaAndPornographicAreNeverAsked() =
+        runTest {
+            ratings = setOf("safe", "suggestive", "erotica", "pornographic")
+            source.popular(1)
+            requests
+                .last()
+                .url.parameters
+                .getAll("contentRating[]")!!
+                .toSet() shouldBe setOf("safe", "suggestive")
         }
 
     @Test

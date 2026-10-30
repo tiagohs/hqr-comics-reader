@@ -42,6 +42,19 @@ class AppPreferences(
     private val _wifiOnlyDownloads = MutableStateFlow(settings.getBoolean(WIFI_ONLY, true))
     val wifiOnlyDownloads: StateFlow<Boolean> = _wifiOnlyDownloads.asStateFlow()
 
+    private val _mangaDexSuggestive = MutableStateFlow(settings.getBoolean(MANGADEX_SUGGESTIVE, false))
+
+    /** RF-08: "suggestive" on MangaDex only after the 18+ confirmation; off by default. */
+    val mangaDexSuggestive: StateFlow<Boolean> = _mangaDexSuggestive.asStateFlow()
+
+    fun setMangaDexSuggestive(on: Boolean) {
+        settings.putBoolean(MANGADEX_SUGGESTIVE, on)
+        _mangaDexSuggestive.value = on
+    }
+
+    /** The MangaDex content ratings to ask for (RF-08): never erotica or pornographic. */
+    fun mangaDexRatings(): Set<String> = if (_mangaDexSuggestive.value) setOf("safe", "suggestive") else setOf("safe")
+
     fun setTheme(mode: ThemeMode) {
         settings.putInt(THEME, mode.ordinal)
         _theme.value = mode
@@ -102,5 +115,6 @@ class AppPreferences(
         const val ONBOARDED = "onboarded"
         const val LANGUAGES = "content_languages"
         const val WIFI_ONLY = "downloads_wifi_only"
+        const val MANGADEX_SUGGESTIVE = "mangadex_mangaDexSuggestive"
     }
 }

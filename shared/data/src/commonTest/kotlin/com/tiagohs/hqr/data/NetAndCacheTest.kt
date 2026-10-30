@@ -149,4 +149,12 @@ class NetAndCacheTest {
         }
         AppPreferences(settings).localFolder.value shouldBe null
     }
+
+    @Test
+    fun RF08_suggestiveOnlyWhenTurnedOn() {
+        val prefs = AppPreferences(MapSettings())
+        prefs.mangaDexRatings() shouldBe setOf("safe")
+        prefs.setMangaDexSuggestive(true)
+        prefs.mangaDexRatings() shouldBe setOf("safe", "suggestive")
+    }
 }

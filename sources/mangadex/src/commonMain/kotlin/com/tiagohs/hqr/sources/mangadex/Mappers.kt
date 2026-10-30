@@ -71,3 +71,7 @@ internal fun mangaDexKind(originalLanguage: String?): ReadingKind =
         null -> ReadingKind.UNKNOWN
         else -> ReadingKind.COMIC
     }
+
+/** RF-08: whatever the caller asks, erotica and pornographic never go out. */
+internal fun allowedRatings(requested: Set<String>): Set<String> =
+    requested.intersect(setOf("safe", "suggestive")).ifEmpty { setOf("safe") }

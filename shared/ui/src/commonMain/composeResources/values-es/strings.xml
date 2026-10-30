@@ -129,4 +129,12 @@
     <string name="library_tab_uncategorized">Sin categoría</string>
     <string name="source_local">Archivos locales</string>
     <string name="manga_no_chapters">Ningún capítulo en tus idiomas en esta fuente. Cambia los idiomas de contenido en Ajustes o abre la obra en el sitio.</string>
+    <string name="manga_filter_all">Todos</string>
+    <string name="manga_filter_unread">No leídos</string>
+    <string name="manga_open_group">Abrir la página del grupo</string>
+    <string name="settings_mangadex_suggestive">MangaDex: contenido sugerente</string>
+    <string name="settings_mangadex_suggestive_hint">Desactivado por defecto. El contenido erótico y pornográfico nunca aparece.</string>
+    <string name="settings_adult_title">¿Tienes 18 años o más?</string>
+    <string name="settings_adult_message">Las obras sugerentes pueden tener escenas de desnudez parcial y fan service.</string>
+    <string name="settings_adult_confirm">Tengo 18 años o más</string>
 </resources>

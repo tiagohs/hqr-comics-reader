@@ -45,7 +45,11 @@ class HqrApplication : Application() {
             single {
                 LocalSource(get(), AndroidPdfPages(contentResolver, get()) { get<AppPreferences>().localFolder.value })
             }
-            single { MangaDexSource(get(), contentLanguages = { get<AppPreferences>().contentLanguages.value }) }
+            single {
+                MangaDexSource(get(), contentLanguages = {
+                    get<AppPreferences>().contentLanguages.value
+                }, contentRatings = { get<AppPreferences>().mangaDexRatings() })
+            }
             single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
         }
 

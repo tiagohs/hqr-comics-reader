@@ -129,4 +129,12 @@
     <string name="library_tab_uncategorized">No category</string>
     <string name="source_local">Local files</string>
     <string name="manga_no_chapters">No chapters in your languages at this source. Change the content languages in Settings or open the work on the site.</string>
+    <string name="manga_filter_all">All</string>
+    <string name="manga_filter_unread">Unread</string>
+    <string name="manga_open_group">Open the group page</string>
+    <string name="settings_mangadex_suggestive">MangaDex: suggestive content</string>
+    <string name="settings_mangadex_suggestive_hint">Off by default. Erotic and pornographic content is never shown.</string>
+    <string name="settings_adult_title">Are you 18 or older?</string>
+    <string name="settings_adult_message">Suggestive works may show nudity-adjacent scenes and fan service.</string>
+    <string name="settings_adult_confirm">I am 18 or older</string>
 </resources>

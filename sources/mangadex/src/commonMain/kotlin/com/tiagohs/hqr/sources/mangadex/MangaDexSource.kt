@@ -95,7 +95,7 @@ class MangaDexSource(
                 parameter("offset", (page - 1).coerceAtLeast(0) * PAGE_SIZE)
                 parameter("hasAvailableChapters", true)
                 INCLUDES.forEach { parameter("includes[]", it) }
-                contentRatings().forEach { parameter("contentRating[]", it) }
+                allowedRatings(contentRatings()).forEach { parameter("contentRating[]", it) }
                 contentLanguages().forEach { parameter("availableTranslatedLanguage[]", it) }
                 order()
             }
@@ -121,7 +121,7 @@ class MangaDexSource(
                     parameter("order[volume]", "desc")
                     parameter("order[chapter]", "desc")
                     contentLanguages().forEach { parameter("translatedLanguage[]", it) }
-                    contentRatings().forEach { parameter("contentRating[]", it) }
+                    allowedRatings(contentRatings()).forEach { parameter("contentRating[]", it) }
                 }
             all += response.data.map { it.toChapter() }
             offset += response.data.size

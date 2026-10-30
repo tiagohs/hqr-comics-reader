@@ -48,15 +48,19 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.SubcomposeAsyncImage
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.presentation.color.CoverColor
+import com.tiagohs.hqr.presentation.reader.PageScale
 import com.tiagohs.hqr.presentation.reader.ReaderBackground
 import com.tiagohs.hqr.presentation.reader.ReaderMode
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
@@ -66,6 +70,7 @@ import com.tiagohs.hqr.ui.components.ImageRef
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
+import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.chapter_short
 import com.tiagohs.hqr.ui.resources.error_title
@@ -88,6 +93,9 @@ import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
 import com.tiagohs.hqr.ui.theme.bangers
 import kotlinx.coroutines.launch
+import me.saket.telephoto.zoomable.ZoomSpec
+import me.saket.telephoto.zoomable.rememberZoomableState
+import me.saket.telephoto.zoomable.zoomable
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -96,6 +104,7 @@ import org.koin.core.parameter.parametersOf
 /** Pages kept composed on each side of the visible one, so their images load ahead (RF-41). */
 private const val MAX_PRELOAD = 6
 private const val MAX_SLIDER_TICKS = 30
+private const val MAX_ZOOM = 4f
 
 /** SCR-RDR-001: zero chrome until a center tap; the bars use the cover color (RF-36 to RF-43, RF-98). */
 @Composable
@@ -129,14 +138,18 @@ fun ReaderScreen(
                         viewModel::retry,
                         onBack,
                     )
-                state.isEmptyChapter ->
+                state.isEmptyChapter -> {
+                    // RF-51: "Back" and "Open in browser" (the chapter's own page, else the work's).
+                    val uriHandler = LocalUriHandler.current
+                    val url = state.chapter?.source?.externalUrl ?: state.manga?.source?.url
                     ReaderMessage(
                         stringResource(Res.string.reader_chapter_unavailable),
                         "",
-                        stringResource(Res.string.action_back),
-                        onBack,
+                        stringResource(Res.string.action_open_browser),
+                        { url?.let(uriHandler::openUri) ?: onBack() },
                         onBack,
                     )
+                }
                 state.transition != null -> TransitionPage(state, viewModel, onBack)
                 // A new chapter starts a new pager/list at its own page.
                 else -> key(state.chapter?.id) { Pages(state, viewModel) }
@@ -232,35 +245,55 @@ private fun Pages(
                 scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
                 Unit
             }
-            val tapModifier =
-                Modifier.fillMaxSize().pointerInput(settings) {
-                    detectTapGestures { offset -> tap(offset.x / size.width, offset.y / size.height, prev, next) }
+            val onTap: (Float, Float) -> Unit = { x, y -> tap(x, y, prev, next) }
+            val scale = settings.scale.toContentScale()
+            val preload = settings.preload.coerceIn(1, MAX_PRELOAD)
+            val page: @Composable (Int) -> Unit = { index ->
+                if (index < state.pageCount) {
+                    ZoomablePage(onTap) { PageImage(state, index, state.pages[index].imageUrl, state.pages[index].headers, scale) }
+                } else {
+                    // The extra page after the last one leads to the transition.
+                    Box(Modifier.fillMaxSize())
                 }
+            }
             if (settings.mode == ReaderMode.VERTICAL) {
-                VerticalPager(pager, modifier = tapModifier, beyondViewportPageCount = settings.preload.coerceIn(1, MAX_PRELOAD)) { index ->
-                    if (index <
-                        state.pageCount
-                    ) {
-                        PageImage(state, index, state.pages[index].imageUrl, state.pages[index].headers, ContentScale.Fit)
-                    }
-                }
+                VerticalPager(pager, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = preload) { page(it) }
             } else {
                 HorizontalPager(
                     pager,
-                    modifier = tapModifier,
+                    modifier = Modifier.fillMaxSize(),
                     reverseLayout = rtl,
-                    beyondViewportPageCount = settings.preload.coerceIn(1, MAX_PRELOAD),
-                ) { index ->
-                    if (index <
-                        state.pageCount
-                    ) {
-                        PageImage(state, index, state.pages[index].imageUrl, state.pages[index].headers, ContentScale.Fit)
-                    }
-                }
+                    beyondViewportPageCount = preload,
+                ) { page(it) }
             }
         }
     }
 }
+
+/** RF-39: pinch and double tap zoom on each page; a single tap goes to the tap zones (RF-38). */
+@Composable
+private fun ZoomablePage(
+    onTap: (Float, Float) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val zoom = rememberZoomableState(zoomSpec = ZoomSpec(maxZoomFactor = MAX_ZOOM))
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .onSizeChanged { size = it }
+            .zoomable(zoom, onClick = { offset -> if (size.width > 0) onTap(offset.x / size.width, offset.y / size.height) }),
+        contentAlignment = Alignment.Center,
+    ) { content() }
+}
+
+private fun PageScale.toContentScale(): ContentScale =
+    when (this) {
+        PageScale.FIT_SCREEN -> ContentScale.Fit
+        PageScale.FIT_WIDTH -> ContentScale.FillWidth
+        PageScale.FIT_HEIGHT -> ContentScale.FillHeight
+        PageScale.ORIGINAL -> ContentScale.None
+    }
 
 @Composable
 private fun PageImage(

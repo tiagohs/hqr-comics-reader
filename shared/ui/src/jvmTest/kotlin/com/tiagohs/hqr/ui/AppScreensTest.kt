@@ -23,6 +23,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+private const val DOUBLE_TAP_WINDOW_MS = 600L
+
 /** Integration through the real app: navigation, screens, ViewModels and the database. */
 @OptIn(ExperimentalTestApi::class)
 class AppScreensTest {
@@ -63,10 +65,12 @@ class AppScreensTest {
         if (prefix == "demo") {
             // Right to left: the left edge moves forward (RF-38). Live works may open in webtoon mode (RF-37).
             onRoot().performTouchInput { click(centerLeft.copy(x = 10f)) }
-            waitFor(hasContentDescription("2 of ", substring = true), timeout)
+            // Past the double tap window (RF-39 zoom), so the next tap is a single one.
+            mainClock.advanceTimeBy(DOUBLE_TAP_WINDOW_MS)
         }
         onRoot().performTouchInput { click(center.copy(y = center.y * 0.9f)) }
-        waitFor(hasText(" of ", substring = true), timeout)
+        mainClock.advanceTimeBy(DOUBLE_TAP_WINDOW_MS)
+        waitFor(if (prefix == "demo") hasText("2 of 22") else hasText(" of ", substring = true), timeout)
         screenshot("$prefix-SCR-RDR-001-menu")
         onAllNodes(hasContentDescription("Back"))[0].performClick()
         // Demo: page 2 of the chapter, so "Continue"; live (webtoon, not scrolled): still "Read" (RF-31).

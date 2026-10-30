@@ -85,11 +85,14 @@ import com.tiagohs.hqr.ui.resources.manga_chapter_label
 import com.tiagohs.hqr.ui.resources.manga_chapters
 import com.tiagohs.hqr.ui.resources.manga_continue_chapter
 import com.tiagohs.hqr.ui.resources.manga_details
+import com.tiagohs.hqr.ui.resources.manga_filter_all
+import com.tiagohs.hqr.ui.resources.manga_filter_unread
 import com.tiagohs.hqr.ui.resources.manga_in_library
 import com.tiagohs.hqr.ui.resources.manga_mark_previous
 import com.tiagohs.hqr.ui.resources.manga_mark_read
 import com.tiagohs.hqr.ui.resources.manga_mark_unread
 import com.tiagohs.hqr.ui.resources.manga_no_chapters
+import com.tiagohs.hqr.ui.resources.manga_open_group
 import com.tiagohs.hqr.ui.resources.manga_open_site
 import com.tiagohs.hqr.ui.resources.manga_order
 import com.tiagohs.hqr.ui.resources.manga_page_of
@@ -214,6 +217,7 @@ private fun MangaContent(
                                 modifier = Modifier.weight(1f),
                             )
                         }
+                        ChapterFilters(state, viewModel)
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                     if (state.totalChapters == 0 && !state.refreshing && state.error == null) {
@@ -382,6 +386,60 @@ private fun Actions(
 
 private const val MAX_GENRES = 8
 
+/** RF-30: unread and scan group filters above the chapter list. */
+@Composable
+private fun ChapterFilters(
+    state: MangaViewModel.State,
+    viewModel: MangaViewModel,
+) {
+    if (state.totalChapters == 0) return
+    androidx.compose.foundation.lazy.LazyRow(
+        contentPadding =
+            androidx.compose.foundation.layout
+                .PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(bottom = 8.dp),
+    ) {
+        item {
+            androidx.compose.material3.FilterChip(
+                selected = state.filter == MangaViewModel.ChapterFilter.ALL && state.group == null,
+                onClick = {
+                    viewModel.setFilter(MangaViewModel.ChapterFilter.ALL)
+                    viewModel.setGroup(null)
+                },
+                label = { Text(stringResource(Res.string.manga_filter_all)) },
+            )
+        }
+        item {
+            androidx.compose.material3.FilterChip(
+                selected = state.filter == MangaViewModel.ChapterFilter.UNREAD,
+                onClick = {
+                    viewModel.setFilter(
+                        if (state.filter ==
+                            MangaViewModel.ChapterFilter.UNREAD
+                        ) {
+                            MangaViewModel.ChapterFilter.ALL
+                        } else {
+                            MangaViewModel.ChapterFilter.UNREAD
+                        },
+                    )
+                },
+                label = { Text(stringResource(Res.string.manga_filter_unread)) },
+            )
+        }
+        if (state.groups.size > 1) {
+            items(state.groups.size) { i ->
+                val name = state.groups[i]
+                androidx.compose.material3.FilterChip(
+                    selected = state.group == name,
+                    onClick = { viewModel.setGroup(if (state.group == name) null else name) },
+                    label = { Text(name) },
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun shortDate(epochMs: Long): String {
     val date = Instant.fromEpochMilliseconds(epochMs).toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -483,9 +541,27 @@ private fun ChapterRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                // RF-07: the scan group is credited and opens its page.
+                val groupUrl = chapter.source.groupUrl
+                val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                chapter.source.group?.let { group ->
+                    Text(
+                        group,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (groupUrl != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier =
+                            if (groupUrl != null) {
+                                Modifier.clickable(
+                                    onClickLabel = stringResource(Res.string.manga_open_group),
+                                ) { uriHandler.openUri(groupUrl) }
+                            } else {
+                                Modifier
+                            },
+                    )
+                }
                 val meta =
                     listOfNotNull(
-                        chapter.source.group,
                         chapter.source.uploadedAtEpochMs?.let { shortDate(it) },
                         if (chapter.read) stringResource(Res.string.manga_read) else null,
                     ).joinToString(" · ")

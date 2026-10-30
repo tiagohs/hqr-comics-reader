@@ -9,6 +9,7 @@ import com.tiagohs.hqr.domain.source.SourceException
 import com.tiagohs.hqr.presentation.common.ErrorKind
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.reader.ChapterPages
+import com.tiagohs.hqr.presentation.reader.PagePrefetcher
 import com.tiagohs.hqr.presentation.reader.ReaderSettings
 import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
@@ -47,8 +48,12 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
 
     private var pagesPerChapter = 10
     private var failPages: SourceException.Kind? = null
+    private val pageCalls = mutableListOf<String>()
+    private val cached = java.util.Collections.synchronizedList(mutableListOf<Int>())
+    private val prefetcher = PagePrefetcher { _, page -> cached += page.index }
     private val pages =
         ChapterPages { _, chapter ->
+            pageCalls += chapter.source.key
             failPages?.let { throw SourceException("falhou", it) }
             (0 until pagesPerChapter).map { SourcePage(it, "https://img/${chapter.source.key}/$it.jpg") }
         }
@@ -65,7 +70,21 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
         chapterId: Long,
         startPage: Int = -1,
         saved: SavedStateHandle = SavedStateHandle(),
-    ) = track(ReaderViewModel(mangaId, chapterId, startPage, db.mangas, db.chapters, db.history, settings, pages, fixedClock, saved))
+    ) = track(
+        ReaderViewModel(
+            mangaId,
+            chapterId,
+            startPage,
+            db.mangas,
+            db.chapters,
+            db.history,
+            settings,
+            pages,
+            fixedClock,
+            saved,
+            prefetcher,
+        ),
+    )
 
     /** Waits in real time for work done on Room's threads. */
     private suspend fun eventually(condition: suspend () -> Boolean) =
@@ -136,6 +155,23 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
             vm.onPageChanged(3)
             vm.onReachedEnd()
             (vm.state.value.transition != null) shouldBe true
+        }
+
+    @Test
+    fun RF41_nextPagesAndTheNextChapterAreLoadedAhead() =
+        runTest {
+            val (id, chapters) = work(1.0, 2.0)
+            val vm = reader(id, chapters[0].id, 0)
+            vm.loaded()
+            eventually { cached.containsAll(listOf(1, 2, 3, 4)) }
+            vm.onPageChanged(5)
+            eventually { cached.containsAll(listOf(6, 7, 8, 9)) }
+            vm.onPageChanged(7)
+            eventually { pageCalls.count { it == "c2.0" } == 1 }
+            vm.goToNext()
+            vm.state.first { !it.loading && it.chapter?.number == 2.0 }
+            // The list asked near the end is reused: no second request for chapter 2.
+            pageCalls.count { it == "c2.0" } shouldBe 1
         }
 
     @Test

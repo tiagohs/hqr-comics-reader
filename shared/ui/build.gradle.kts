@@ -41,6 +41,7 @@ kotlin {
             implementation(project(":shared:data"))
             implementation(libs.kotlinx.coroutines.swing)
             implementation(project(":sources:mangadex"))
+            implementation(libs.okio.fakefilesystem)
         }
     }
 }

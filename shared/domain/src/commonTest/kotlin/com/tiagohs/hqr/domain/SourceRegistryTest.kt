@@ -11,6 +11,7 @@ import com.tiagohs.hqr.domain.source.SourceException
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.async
 import kotlin.test.Test
 
 class SourceRegistryTest {
@@ -59,6 +60,45 @@ class SourceRegistryTest {
         registry.active.value.map { it.id } shouldBe listOf(SourceId.LOCAL)
         registry.all.map { it.id } shouldBe listOf(SourceId.HQ_NOW, SourceId.LOCAL)
         registry.status(SourceId.MANGADEX) shouldBe SourceRegistry.Status.OFF_BY_LIST
+    }
+
+    @Test
+    fun RF88_lookupsWaitUntilServersAreRegistered() =
+        kotlinx.coroutines.test.runTest {
+            val registry = SourceRegistry(listOf(Stub(SourceId.MANGADEX)), ready = false)
+            val server = Stub(SourceId("opds-1"))
+            val found =
+                async {
+                    registry.awaitRequire(server.id)
+                }
+            kotlinx.coroutines.yield()
+            registry.register(server)
+            registry.markReady()
+            found.await() shouldBe server
+            registry.version.value shouldBe 2
+        }
+
+    @Test
+    fun RF22_filtersKnowWhenTheyAreAtTheirDefaults() {
+        val option =
+            com.tiagohs.hqr.domain.source.SourceFilter
+                .Option("a", "A")
+        com.tiagohs.hqr.domain.source.SourceFilter
+            .Tags("t", listOf(option))
+            .isDefault shouldBe true
+        com.tiagohs.hqr.domain.source.SourceFilter
+            .Tags("t", listOf(option), excluded = setOf("a"))
+            .isDefault shouldBe false
+        com.tiagohs.hqr.domain.source.SourceFilter
+            .Choice("c", listOf(option), setOf("a"))
+            .isDefault shouldBe false
+        com.tiagohs.hqr.domain.source.SourceFilter
+            .Text("y", " ")
+            .isDefault shouldBe true
+        com.tiagohs.hqr.domain.source.SourceFilter
+            .Sort("o", listOf(option), "a")
+            .isDefault shouldBe true
+        Stub(SourceId.MANGADEX).webUrl() shouldBe null
     }
 
     @Test

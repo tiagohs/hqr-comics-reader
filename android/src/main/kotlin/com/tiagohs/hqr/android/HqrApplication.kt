@@ -5,6 +5,7 @@ import com.russhwolf.settings.Settings
 import com.russhwolf.settings.SharedPreferencesSettings
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.androidDatabase
+import com.tiagohs.hqr.data.download.DownloadFiles
 import com.tiagohs.hqr.data.net.DiskImageCache
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
@@ -13,6 +14,7 @@ import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.data.sources.SourceListFetcher
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
@@ -26,6 +28,7 @@ import com.tiagohs.hqr.sources.opds.DiskBookStore
 import com.tiagohs.hqr.ui.di.AppVersion
 import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
+import com.tiagohs.hqr.ui.di.downloadModule
 import io.ktor.client.HttpClient
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
@@ -39,7 +42,7 @@ class HqrApplication : Application() {
         CrashReporting.init(this)
         startKoin {
             androidContext(this@HqrApplication)
-            modules(platformModule(), coreModule)
+            modules(platformModule(), coreModule, downloadModule)
         }
     }
 
@@ -65,6 +68,9 @@ class HqrApplication : Application() {
             single<SecretStore> { KeystoreSecretStore(this@HqrApplication) }
             // RF-18: book files from servers on disk, read by ranges (never whole in memory).
             single<BookStore> { DiskBookStore(FileSystem.SYSTEM, cacheDir.toOkioPath() / "books") }
+            // RF-62 to RF-66: chapter files in the app's own storage, run by WorkManager (ADR-009).
+            single { DownloadFiles(FileSystem.SYSTEM, filesDir.toOkioPath() / "downloads") }
+            single<DownloadScheduler> { WorkManagerDownloadScheduler(this@HqrApplication, get()) }
             single(AppVersion) { BuildConfig.VERSION_NAME }
             single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
         }

@@ -11,32 +11,39 @@ import com.tiagohs.hqr.domain.repository.Downloads
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 
-/** The pages of downloaded chapters, one folder per chapter id, read only by HQR (RF-65). */
+/**
+ * The pages of downloaded chapters, one folder per chapter id, read only by HQR (RF-65). One operation at a time: the
+ * queue writes while the screens list and read.
+ */
 class DownloadFiles(
     private val fs: FileSystem,
     private val root: Path,
 ) {
+    private val lock = Mutex()
+
     fun dir(chapterId: Long): Path = root / chapterId.toString()
 
-    fun page(
+    private fun page(
         chapterId: Long,
         index: Int,
     ): Path = dir(chapterId) / index.toString().padStart(PAD, '0')
 
-    fun has(
+    suspend fun has(
         chapterId: Long,
         index: Int,
-    ): Boolean = fs.exists(page(chapterId, index))
+    ): Boolean = lock.withLock { fs.exists(page(chapterId, index)) }
 
-    fun write(
+    suspend fun write(
         chapterId: Long,
         index: Int,
         bytes: ByteArray,
-    ) {
+    ) = lock.withLock {
         fs.createDirectories(dir(chapterId))
         val target = page(chapterId, index)
         val tmp = target.parent!! / "${target.name}.tmp"
@@ -45,23 +52,38 @@ class DownloadFiles(
     }
 
     /** Paths of the pages, in order; empty when the chapter has none. */
-    fun pages(chapterId: Long): List<Path> =
-        if (!fs.exists(dir(chapterId))) emptyList() else fs.list(dir(chapterId)).filter { !it.name.endsWith(".tmp") }.sortedBy { it.name }
+    suspend fun pages(chapterId: Long): List<Path> =
+        lock.withLock {
+            if (!fs.exists(
+                    dir(chapterId),
+                )
+            ) {
+                emptyList()
+            } else {
+                fs.list(dir(chapterId)).filter { !it.name.endsWith(".tmp") }.sortedBy { it.name }
+            }
+        }
 
-    fun read(path: Path): ByteArray = fs.read(path) { readByteArray() }
+    suspend fun read(path: Path): ByteArray = lock.withLock { fs.read(path) { readByteArray() } }
 
-    fun delete(chapterId: Long) = fs.deleteRecursively(dir(chapterId))
+    suspend fun delete(chapterId: Long) = lock.withLock { fs.deleteRecursively(dir(chapterId)) }
 
-    fun usedBytes(): Long = if (!fs.exists(root)) 0 else fs.listRecursively(root).sumOf { fs.metadataOrNull(it)?.size ?: 0L }
+    suspend fun usedBytes(): Long =
+        lock.withLock {
+            if (!fs.exists(root)) 0 else fs.listRecursively(root).sumOf { fs.metadataOrNull(it)?.size ?: 0L }
+        }
 
     /** The address a page of a downloaded chapter carries to the image loader. */
     fun address(path: Path): String = SCHEME + path.toString()
 
+    /** The file behind an address, only under the downloads folder. */
     fun pathOf(address: String): Path? =
-        address.removePrefix(SCHEME).takeIf { address.startsWith(SCHEME) }?.toPath()?.takeIf {
-            // Only files under the downloads folder.
-            it.normalized().toString().startsWith(root.normalized().toString())
-        }
+        address
+            .takeIf { it.startsWith(SCHEME) }
+            ?.removePrefix(SCHEME)
+            ?.toPath()
+            ?.normalized()
+            ?.takeIf { it.toString().startsWith(root.normalized().toString() + "/") }
 
     companion object {
         const val SCHEME = "download:"

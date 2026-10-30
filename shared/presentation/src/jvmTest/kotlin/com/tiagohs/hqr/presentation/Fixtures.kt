@@ -93,3 +93,9 @@ class FakeSource(
         chapter: SourceChapter,
     ) = (0 until 22).map { SourcePage(it, "https://img/${chapter.key}/$it.jpg") }
 }
+
+/** Waits in real time for work done on other threads (Room, the view model's Main). */
+suspend fun waitFor(condition: suspend () -> Boolean) =
+    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+        kotlinx.coroutines.withTimeout(5_000) { while (!condition()) kotlinx.coroutines.delay(20) }
+    }

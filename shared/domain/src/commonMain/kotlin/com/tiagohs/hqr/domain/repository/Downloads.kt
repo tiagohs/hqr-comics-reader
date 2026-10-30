@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 /** One chapter in the download queue or already downloaded (SCR-DL-001). */
 data class DownloadItem(
@@ -48,4 +49,14 @@ interface Downloads {
 /** Starts the platform's executor for the queue (WorkManager on Android); a no-op where downloads don't run. */
 fun interface DownloadScheduler {
     fun schedule()
+}
+
+/** The two download options of SCR-DL-001: Wi-Fi only (RF-64) and delete after read (RF-66). */
+interface DownloadSettings {
+    val wifiOnly: StateFlow<Boolean>
+    val deleteAfterRead: StateFlow<Boolean>
+
+    fun setWifiOnly(on: Boolean)
+
+    fun setDeleteAfterRead(on: Boolean)
 }

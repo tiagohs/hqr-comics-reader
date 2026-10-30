@@ -24,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import coil3.compose.setSingletonImageLoaderFactory
+import com.tiagohs.hqr.data.download.DownloadManager
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.data.sources.SourceConfig
@@ -31,6 +32,7 @@ import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.ui.components.hqrImageLoader
+import com.tiagohs.hqr.ui.downloads.DownloadsScreen
 import com.tiagohs.hqr.ui.explore.BrowseSourceScreen
 import com.tiagohs.hqr.ui.explore.ExploreScreen
 import com.tiagohs.hqr.ui.explore.GlobalSearchScreen
@@ -44,14 +46,17 @@ import com.tiagohs.hqr.ui.resources.nav_explore
 import com.tiagohs.hqr.ui.resources.nav_history
 import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.nav_settings
+import com.tiagohs.hqr.ui.settings.BackupScreen
 import com.tiagohs.hqr.ui.settings.SettingsScreen
 import com.tiagohs.hqr.ui.sources.AddServerScreen
 import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
 import com.tiagohs.hqr.ui.sources.SourcesScreen
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
+import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 
 private data class TopLevel(
@@ -86,6 +91,14 @@ fun HqrApp(systemDark: Boolean) {
         }
         // RF-105: the remote list may take a while; nothing waits for it.
         sourceConfig.refreshIfStale()
+    }
+    val downloads = getKoin().getOrNull<DownloadManager>()
+    if (downloads != null) {
+        LaunchedEffect(downloads) {
+            // RF-66: with the option on, a chapter marked as read loses its files.
+            combine(prefs.deleteAfterRead, downloads.observeReadDone()) { on, read -> if (on) read else emptyList() }
+                .collect { read -> if (read.isNotEmpty()) downloads.remove(read) }
+        }
     }
     val images = koinInject<ImageBytes>()
     setSingletonImageLoaderFactory { context -> hqrImageLoader(context, images) }
@@ -141,7 +154,11 @@ private fun AppNavigation(dark: Boolean) {
                     // bring the Library back).
                     onExplore = { nav.navigateTopLevel(Route.Explore) },
                     onCategories = { nav.navigate(Route.Categories) },
+                    onDownloads = { nav.navigate(Route.Downloads) },
                 )
+            }
+            composable<Route.Downloads> {
+                DownloadsScreen(onBack = { nav.popBackStack() }, onLibrary = { nav.navigateTopLevel(Route.Library) })
             }
             composable<Route.Categories> { CategoriesScreen(onBack = { nav.popBackStack() }) }
             composable<Route.Explore> {
@@ -179,7 +196,14 @@ private fun AppNavigation(dark: Boolean) {
             composable<Route.History> {
                 HistoryScreen(onResume = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) })
             }
-            composable<Route.Settings> { SettingsScreen() }
+            composable<Route.Settings> {
+                SettingsScreen(
+                    onSources = { nav.navigate(Route.Sources) },
+                    onDownloads = { nav.navigate(Route.Downloads) },
+                    onBackup = { nav.navigate(Route.Backup) },
+                )
+            }
+            composable<Route.Backup> { BackupScreen(onBack = { nav.popBackStack() }) }
             composable<Route.BrowseSource> { back ->
                 val route = back.toRoute<Route.BrowseSource>()
                 BrowseSourceScreen(

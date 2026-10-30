@@ -50,6 +50,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.domain.model.chapterLabel
+import com.tiagohs.hqr.domain.repository.DownloadState
+import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.HistoryEntry
 import com.tiagohs.hqr.domain.repository.LibraryItem
 import com.tiagohs.hqr.domain.source.SourceRegistry
@@ -67,6 +69,7 @@ import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_continue
 import com.tiagohs.hqr.ui.resources.action_more
+import com.tiagohs.hqr.ui.resources.downloads_title
 import com.tiagohs.hqr.ui.resources.library_categories
 import com.tiagohs.hqr.ui.resources.library_clear_filters
 import com.tiagohs.hqr.ui.resources.library_continue_reading
@@ -87,8 +90,10 @@ import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.onomatopoeia_empty
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -100,10 +105,15 @@ fun LibraryScreen(
     onContinue: (mangaId: Long, chapterId: Long, page: Int) -> Unit,
     onExplore: () -> Unit,
     onCategories: () -> Unit = {},
+    onDownloads: () -> Unit = {},
     viewModel: LibraryViewModel = koinViewModel(),
     registry: SourceRegistry = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // Downloads have a shortcut here, with a badge while the queue runs (UX §4); only where downloads exist.
+    val downloads = getKoin().getOrNull<Downloads>()
+    val queue by (downloads?.observe() ?: flowOf(emptyList())).collectAsStateWithLifecycle(emptyList())
+    val running = queue.any { it.state == DownloadState.RUNNING || it.state == DownloadState.QUEUED }
     var searching by rememberSaveable { mutableStateOf(false) }
     var optionsOpen by rememberSaveable { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
@@ -137,6 +147,13 @@ fun LibraryScreen(
                 TopAppBar(
                     title = { Text(stringResource(Res.string.nav_library), style = MaterialTheme.typography.headlineLarge) },
                     actions = {
+                        if (downloads != null) {
+                            IconButton(onClick = onDownloads) {
+                                BadgedBox(badge = { if (running) Badge() }) {
+                                    Icon(HqrIcons.Download, stringResource(Res.string.downloads_title))
+                                }
+                            }
+                        }
                         if (!state.isEmpty) {
                             IconButton(
                                 onClick = { searching = true },

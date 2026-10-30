@@ -7,8 +7,11 @@ import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadAction
 import com.tiagohs.hqr.domain.model.ReadingRules
+import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.DownloadItem
+import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.LibraryRemoval
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.source.SourceRegistry
@@ -22,11 +25,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** The work screen (SCR-OBR-001): details, chapters, the main button and the chapter actions (RF-29 to RF-33). */
+@Suppress("TooManyFunctions") // One screen, many chapter actions: read, select, download, categories.
 class MangaViewModel(
     private val mangaId: Long,
     private val registry: SourceRegistry,
@@ -34,6 +39,7 @@ class MangaViewModel(
     private val chapters: ChapterRepository,
     private val coverPixels: CoverPixels? = null,
     private val categories: CategoryRepository? = null,
+    private val downloads: Downloads? = null,
 ) : ViewModel() {
     enum class Order { NEWEST_FIRST, OLDEST_FIRST }
 
@@ -185,6 +191,59 @@ class MangaViewModel(
         read: Boolean,
     ) {
         viewModelScope.launch { chapters.setRead(ids, read) }
+        clearSelection()
+    }
+
+    /** Downloads exist on this platform and the work is not already on the device. */
+    val canDownload: Boolean get() = downloads != null && state.value.manga?.sourceId != SourceId.LOCAL
+
+    /** The queue and downloaded state of this work's chapters, by chapter id (SCR-OBR-001). */
+    val downloadStates: StateFlow<Map<Long, DownloadItem>> =
+        (downloads?.observe() ?: flowOf(emptyList()))
+            .map { items -> items.filter { it.mangaId == mangaId }.associateBy { it.chapterId } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MS), emptyMap())
+
+    /** Chapters picked with a long press: download or mark them together (RF-32, RF-62). */
+    private val _selected = MutableStateFlow<Set<Long>>(emptySet())
+    val selected: StateFlow<Set<Long>> = _selected
+
+    fun toggleSelected(id: Long) {
+        _selected.value = _selected.value.let { if (id in it) it - id else it + id }
+    }
+
+    fun clearSelection() {
+        _selected.value = emptySet()
+    }
+
+    /** RF-62: one chapter or the selected ones. */
+    fun download(ids: Collection<Long>) {
+        val queue = downloads ?: return
+        viewModelScope.launch {
+            val order = chapters.list(mangaId).sortedBy { it.number }.filter { it.id in ids && it.source.externalUrl == null }
+            queue.enqueue(order.map { it.id })
+        }
+        clearSelection()
+    }
+
+    /** RF-62: the next [count] unread chapters, or all of them (null). */
+    fun downloadUnread(count: Int? = null) {
+        val queue = downloads ?: return
+        viewModelScope.launch {
+            val unread =
+                chapters
+                    .list(mangaId)
+                    .filter { !it.read && !it.downloaded && it.source.externalUrl == null }
+                    .sortedBy { it.number }
+                    .distinctBy { it.number }
+            queue.enqueue((if (count == null) unread else unread.take(count)).map { it.id })
+        }
+    }
+
+    /** RF-66: the files of these chapters go. */
+    fun removeDownloads(ids: Collection<Long>) {
+        val queue = downloads ?: return
+        viewModelScope.launch { queue.remove(ids) }
+        clearSelection()
     }
 
     /** RF-32: every chapter before [chapter] becomes read. */

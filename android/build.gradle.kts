@@ -102,6 +102,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose.viewmodel)
     implementation(libs.androidx.profileinstaller)
+    implementation(libs.androidx.work.runtime)
     if (hasFirebase) {
         implementation(platform(libs.firebase.bom))
         implementation(libs.firebase.crashlytics)

@@ -1,7 +1,9 @@
 package com.tiagohs.hqr.ui.manga
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +56,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -65,6 +69,7 @@ import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadAction
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.chapterLabel
+import com.tiagohs.hqr.domain.repository.DownloadItem
 import com.tiagohs.hqr.presentation.color.CoverColor
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
 import com.tiagohs.hqr.ui.components.Cover
@@ -75,6 +80,7 @@ import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.label
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
+import com.tiagohs.hqr.ui.downloads.rememberNotificationPermission
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
@@ -92,8 +98,13 @@ import com.tiagohs.hqr.ui.resources.library_removed
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_chapter_label
 import com.tiagohs.hqr.ui.resources.manga_chapters
+import com.tiagohs.hqr.ui.resources.manga_clear_selection
 import com.tiagohs.hqr.ui.resources.manga_continue_chapter
+import com.tiagohs.hqr.ui.resources.manga_delete_download
 import com.tiagohs.hqr.ui.resources.manga_details
+import com.tiagohs.hqr.ui.resources.manga_download
+import com.tiagohs.hqr.ui.resources.manga_download_next
+import com.tiagohs.hqr.ui.resources.manga_download_unread
 import com.tiagohs.hqr.ui.resources.manga_edit_categories
 import com.tiagohs.hqr.ui.resources.manga_filter_all
 import com.tiagohs.hqr.ui.resources.manga_filter_unread
@@ -110,6 +121,8 @@ import com.tiagohs.hqr.ui.resources.manga_page_of
 import com.tiagohs.hqr.ui.resources.manga_read
 import com.tiagohs.hqr.ui.resources.manga_refresh_failed
 import com.tiagohs.hqr.ui.resources.manga_removed_from_source
+import com.tiagohs.hqr.ui.resources.manga_select
+import com.tiagohs.hqr.ui.resources.manga_selected
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
 import kotlinx.coroutines.launch
@@ -158,7 +171,7 @@ fun MangaScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun MangaContent(
     manga: Manga,
@@ -173,6 +186,12 @@ private fun MangaContent(
     val snackbar = remember { SnackbarHostState() }
     val categoryChoice by viewModel.categoryChoice.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
+    val downloadStates by viewModel.downloadStates.collectAsStateWithLifecycle()
+    val selected by viewModel.selected.collectAsStateWithLifecycle()
+    val canDownload = viewModel.canDownload
+    // RF-94: the first download asks for the notification permission (Android 13+); refused, the queue still runs.
+    val askNotifications = rememberNotificationPermission()
+    var downloadMenu by remember { mutableStateOf(false) }
     // RF-52: taking out offers "Desfazer"; putting in asks for the categories when there are any (RF-53).
     val toggleLibrary: () -> Unit = {
         val removing = manga.inLibrary
@@ -202,27 +221,80 @@ private fun MangaContent(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = { IconButton(onClick = onBack) { Icon(HqrIcons.Back, stringResource(Res.string.action_back)) } },
-                actions = {
-                    IconButton(onClick = {
-                        viewModel.setOrder(
-                            if (state.order ==
-                                MangaViewModel.Order.NEWEST_FIRST
-                            ) {
-                                MangaViewModel.Order.OLDEST_FIRST
-                            } else {
-                                MangaViewModel.Order.NEWEST_FIRST
-                            },
-                        )
-                    }) { Icon(HqrIcons.Sort, stringResource(Res.string.manga_order)) }
-                    if (manga.inLibrary && categoryChoice.first.isNotEmpty()) {
-                        IconButton(onClick = { picking = true }) { Icon(HqrIcons.Folder, stringResource(Res.string.manga_edit_categories)) }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-            )
+            if (selected.isNotEmpty()) {
+                // RF-32, RF-62: the chapters picked with a long press, together.
+                TopAppBar(
+                    title = { Text(stringResource(Res.string.manga_selected, selected.size)) },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = viewModel::clearSelection,
+                        ) { Icon(HqrIcons.Close, stringResource(Res.string.manga_clear_selection)) }
+                    },
+                    actions = {
+                        if (canDownload) {
+                            IconButton(onClick = {
+                                askNotifications()
+                                viewModel.download(selected)
+                            }) { Icon(HqrIcons.Download, stringResource(Res.string.manga_download)) }
+                        }
+                        IconButton(
+                            onClick = { viewModel.setRead(selected, true) },
+                        ) { Icon(HqrIcons.Check, stringResource(Res.string.manga_mark_read)) }
+                        IconButton(onClick = { viewModel.setRead(selected, false) }) {
+                            Icon(HqrIcons.BookmarkOutline, stringResource(Res.string.manga_mark_unread))
+                        }
+                    },
+                )
+            } else {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = { IconButton(onClick = onBack) { Icon(HqrIcons.Back, stringResource(Res.string.action_back)) } },
+                    actions = {
+                        if (canDownload) {
+                            Box {
+                                IconButton(
+                                    onClick = { downloadMenu = true },
+                                ) { Icon(HqrIcons.Download, stringResource(Res.string.manga_download)) }
+                                DropdownMenu(expanded = downloadMenu, onDismissRequest = { downloadMenu = false }) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.manga_download_next, NEXT_UNREAD)) },
+                                        onClick = {
+                                            downloadMenu = false
+                                            askNotifications()
+                                            viewModel.downloadUnread(NEXT_UNREAD)
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.manga_download_unread)) },
+                                        onClick = {
+                                            downloadMenu = false
+                                            askNotifications()
+                                            viewModel.downloadUnread()
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                        IconButton(onClick = {
+                            viewModel.setOrder(
+                                if (state.order ==
+                                    MangaViewModel.Order.NEWEST_FIRST
+                                ) {
+                                    MangaViewModel.Order.OLDEST_FIRST
+                                } else {
+                                    MangaViewModel.Order.NEWEST_FIRST
+                                },
+                            )
+                        }) { Icon(HqrIcons.Sort, stringResource(Res.string.manga_order)) }
+                        if (manga.inLibrary && categoryChoice.first.isNotEmpty()) {
+                            IconButton(
+                                onClick = { picking = true },
+                            ) { Icon(HqrIcons.Folder, stringResource(Res.string.manga_edit_categories)) }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                )
+            }
         },
     ) { padding ->
         PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
@@ -279,9 +351,24 @@ private fun MangaContent(
                         ChapterRow(
                             chapter = chapter,
                             isNew = chapter.id in state.newChapterIds,
-                            onClick = { onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME) },
+                            download = downloadStates[chapter.id],
+                            canDownload = canDownload,
+                            selected = chapter.id in selected,
+                            onClick = {
+                                if (selected.isNotEmpty()) {
+                                    viewModel.toggleSelected(chapter.id)
+                                } else {
+                                    onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME)
+                                }
+                            },
+                            onLongPress = { viewModel.toggleSelected(chapter.id) },
                             onMarkRead = { viewModel.setRead(listOf(chapter.id), !chapter.read) },
                             onMarkPrevious = { viewModel.markPreviousAsRead(chapter) },
+                            onDownload = {
+                                askNotifications()
+                                viewModel.download(listOf(chapter.id))
+                            },
+                            onDeleteDownload = { viewModel.removeDownloads(listOf(chapter.id)) },
                         )
                     }
                 }
@@ -556,9 +643,15 @@ private fun Synopsis(
 private fun ChapterRow(
     chapter: Chapter,
     isNew: Boolean,
+    download: DownloadItem?,
+    canDownload: Boolean,
+    selected: Boolean,
     onClick: () -> Unit,
+    onLongPress: () -> Unit,
     onMarkRead: () -> Unit,
     onMarkPrevious: () -> Unit,
+    onDownload: () -> Unit,
+    onDeleteDownload: () -> Unit,
 ) {
     var menu by remember { mutableStateOf(false) }
     val numberColor =
@@ -567,7 +660,12 @@ private fun ChapterRow(
             chapter.inProgress -> MaterialTheme.colorScheme.onSurface
             else -> MaterialTheme.colorScheme.primary
         }
-    Column(Modifier.clickable(onClick = onClick)) {
+    Column(
+        Modifier
+            .combinedClickable(onClick = onClick, onLongClick = onLongPress, onLongClickLabel = stringResource(Res.string.manga_select))
+            .then(if (selected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
+            .semantics { this.selected = selected },
+    ) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(start = 16.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -655,6 +753,7 @@ private fun ChapterRow(
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
+            DownloadMark(download)
             Box {
                 IconButton(onClick = { menu = true }) { Icon(HqrIcons.More, stringResource(Res.string.action_more)) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -672,9 +771,28 @@ private fun ChapterRow(
                             onMarkPrevious()
                         },
                     )
+                    if (download != null) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.manga_delete_download)) },
+                            onClick = {
+                                menu = false
+                                onDeleteDownload()
+                            },
+                        )
+                    } else if (canDownload && chapter.source.externalUrl == null) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.manga_download)) },
+                            onClick = {
+                                menu = false
+                                onDownload()
+                            },
+                        )
+                    }
                 }
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
+
+private const val NEXT_UNREAD = 5

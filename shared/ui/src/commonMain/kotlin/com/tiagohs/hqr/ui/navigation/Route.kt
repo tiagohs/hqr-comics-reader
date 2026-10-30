@@ -32,6 +32,12 @@ sealed interface Route {
     @Serializable
     data object Sources : Route
 
+    @Serializable
+    data object Downloads : Route
+
+    @Serializable
+    data object Backup : Route
+
     /** [id] edits a saved server; null adds one. */
     @Serializable
     data class AddServer(

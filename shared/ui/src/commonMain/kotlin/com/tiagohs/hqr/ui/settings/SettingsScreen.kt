@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
+import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.nav_settings
@@ -36,9 +37,12 @@ import com.tiagohs.hqr.ui.resources.settings_adult_confirm
 import com.tiagohs.hqr.ui.resources.settings_adult_message
 import com.tiagohs.hqr.ui.resources.settings_adult_title
 import com.tiagohs.hqr.ui.resources.settings_appearance
+import com.tiagohs.hqr.ui.resources.settings_backup
 import com.tiagohs.hqr.ui.resources.settings_cover_color
 import com.tiagohs.hqr.ui.resources.settings_cover_color_hint
+import com.tiagohs.hqr.ui.resources.settings_downloads
 import com.tiagohs.hqr.ui.resources.settings_local_folder
+import com.tiagohs.hqr.ui.resources.settings_manage_sources
 import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive
 import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive_hint
 import com.tiagohs.hqr.ui.resources.settings_no_folder
@@ -49,12 +53,19 @@ import com.tiagohs.hqr.ui.resources.settings_theme_system
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 
 /** SCR-SET-001 (the full list arrives with FEAT-020): appearance, cover color and the local folder. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(prefs: AppPreferences = koinInject()) {
+fun SettingsScreen(
+    onSources: () -> Unit = {},
+    onDownloads: () -> Unit = {},
+    onBackup: () -> Unit = {},
+    prefs: AppPreferences = koinInject(),
+) {
+    val hasDownloads = getKoin().getOrNull<Downloads>() != null
     val theme by prefs.theme.collectAsStateWithLifecycle()
     val coverColor by prefs.coverColor.collectAsStateWithLifecycle()
     val folder by prefs.localFolder.collectAsStateWithLifecycle()
@@ -110,6 +121,30 @@ fun SettingsScreen(prefs: AppPreferences = koinInject()) {
                 )
             }
             item { Section(Res.string.settings_sources) }
+            // UX §4: Ajustes leads to sources, downloads and backup (UC-007, UC-009, UC-011).
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_manage_sources)) },
+                    leadingContent = { Icon(HqrIcons.Server, null) },
+                    modifier = Modifier.clickable(onClick = onSources),
+                )
+            }
+            if (hasDownloads) {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(Res.string.settings_downloads)) },
+                        leadingContent = { Icon(HqrIcons.Download, null) },
+                        modifier = Modifier.clickable(onClick = onDownloads),
+                    )
+                }
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_backup)) },
+                    leadingContent = { Icon(HqrIcons.Refresh, null) },
+                    modifier = Modifier.clickable(onClick = onBackup),
+                )
+            }
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(Res.string.settings_local_folder)) },

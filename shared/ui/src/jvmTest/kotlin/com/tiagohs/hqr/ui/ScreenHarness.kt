@@ -10,19 +10,27 @@ import com.russhwolf.settings.PropertiesSettings
 import com.russhwolf.settings.Settings
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.inMemoryDatabase
+import com.tiagohs.hqr.data.download.DownloadFiles
+import com.tiagohs.hqr.data.download.DownloadManager
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.MemoryImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
 import com.tiagohs.hqr.data.settings.SettingsSecretStore
 import com.tiagohs.hqr.data.sources.SourceListFetcher
+import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.ui.di.AppVersion
 import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
+import com.tiagohs.hqr.ui.di.downloadModule
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import okio.Path.Companion.toPath
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Surface
@@ -45,8 +53,14 @@ fun startTestKoin(sources: (HttpClient) -> List<Source> = { listOf(DemoSource())
                 single<SourceListFetcher> { SourceListFetcher { null } }
                 single<SecretStore> { SettingsSecretStore(get()) }
                 single(AppVersion) { "1.0.0" }
+                // Downloads on a fake disk; the "executor" runs the queue right away, like WorkManager would.
+                single { DownloadFiles(okio.fakefilesystem.FakeFileSystem(), "/downloads".toPath()) }
+                single<DownloadScheduler> {
+                    DownloadScheduler { CoroutineScope(Dispatchers.Default).launch { get<DownloadManager>().run { true } } }
+                }
             },
             coreModule,
+            downloadModule,
         )
     }
     return db

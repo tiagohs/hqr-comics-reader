@@ -116,7 +116,7 @@ class AppPreferences(
         value: Boolean,
     ) = settings.putBoolean(key, value)
 
-    private companion object {
+    companion object {
         const val THEME = "theme"
         const val PURE_BLACK = "pure_black"
         const val COVER_COLOR = "cover_color"

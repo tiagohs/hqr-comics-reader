@@ -148,6 +148,62 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF62_downloadOneSelectedNextUnreadAndDelete() =
+        runTest {
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            val queued = mutableListOf<List<Long>>()
+            val removed = mutableListOf<Long>()
+            val downloads =
+                object : com.tiagohs.hqr.domain.repository.Downloads {
+                    override fun observe() = kotlinx.coroutines.flow.flowOf(emptyList<com.tiagohs.hqr.domain.repository.DownloadItem>())
+
+                    override suspend fun enqueue(chapterIds: List<Long>) {
+                        queued += chapterIds
+                    }
+
+                    override suspend fun pauseAll() = Unit
+
+                    override suspend fun resumeAll() = Unit
+
+                    override suspend fun move(
+                        chapterId: Long,
+                        by: Int,
+                    ) = Unit
+
+                    override suspend fun remove(chapterIds: Collection<Long>) {
+                        removed += chapterIds
+                    }
+
+                    override suspend fun removeAll() = Unit
+
+                    override suspend fun usedBytes() = 0L
+                }
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters, downloads = downloads))
+            val chapters =
+                vm.state
+                    .first { it.chapters.size == 3 }
+                    .chapters
+                    .sortedBy { it.number }
+            vm.canDownload shouldBe true
+            db.chapters.setRead(listOf(chapters[0].id), true)
+            vm.downloadUnread(1)
+            waitFor { queued.size == 1 }
+            queued[0] shouldContainExactly listOf(chapters[1].id)
+            vm.toggleSelected(chapters[2].id)
+            vm.toggleSelected(chapters[0].id)
+            vm.selected.value.size shouldBe 2
+            vm.download(vm.selected.value)
+            waitFor { queued.size == 2 }
+            queued[1] shouldContainExactly listOf(chapters[0].id, chapters[2].id)
+            vm.selected.value shouldBe emptySet()
+            vm.downloadUnread()
+            waitFor { queued.size == 3 }
+            queued[2] shouldContainExactly listOf(chapters[1].id, chapters[2].id)
+            vm.removeDownloads(listOf(chapters[1].id))
+            waitFor { removed.isNotEmpty() }
+        }
+
+    @Test
     fun RF05_failureStaysInTheSourceWithItsKind() =
         runTest {
             source.fail = SourceException.Kind.NETWORK

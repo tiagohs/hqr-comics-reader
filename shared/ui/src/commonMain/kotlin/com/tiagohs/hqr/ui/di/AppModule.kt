@@ -1,7 +1,10 @@
 package com.tiagohs.hqr.ui.di
 
+import com.tiagohs.hqr.data.backup.BackupService
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.MangaReaderSettingsEntity
+import com.tiagohs.hqr.data.download.DownloadFiles
+import com.tiagohs.hqr.data.download.DownloadManager
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.bytes
 import com.tiagohs.hqr.data.repository.RoomCategoryRepository
@@ -10,10 +13,14 @@ import com.tiagohs.hqr.data.repository.RoomHistoryRepository
 import com.tiagohs.hqr.data.repository.RoomMangaRepository
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.sources.SourceConfig
+import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.repository.Backups
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.DownloadSettings
+import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.source.ImageBytes
@@ -25,6 +32,7 @@ import com.tiagohs.hqr.domain.source.SourceSwitches
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.color.CoverPixels
+import com.tiagohs.hqr.presentation.downloads.DownloadsViewModel
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
 import com.tiagohs.hqr.presentation.library.LibraryOptions
@@ -40,6 +48,7 @@ import com.tiagohs.hqr.presentation.reader.ReaderSettings
 import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
 import com.tiagohs.hqr.presentation.reader.TapZones
+import com.tiagohs.hqr.presentation.settings.BackupViewModel
 import com.tiagohs.hqr.presentation.sources.AddServerViewModel
 import com.tiagohs.hqr.presentation.sources.ServerCatalogViewModel
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
@@ -82,14 +91,23 @@ val coreModule: Module =
         single { SourceConfig(get(), get(), get(), get(), get(AppVersion)) }
         single<SourceSwitches> { get<SourceConfig>() }
         viewModel { SourcesViewModel(get(), get(), get()) }
+        single<Backups> {
+            val registry = get<SourceRegistry>()
+            BackupService(get(), get(), "HQR ${get<String>(AppVersion)}", { registry.everything.associate { it.id.value to it.name } })
+        }
+        viewModel { BackupViewModel(get()) }
         single<ServerManager> { OpdsServers(get(), get(), get(), get(), getOrNull<BookStore>() ?: MemoryBookStore()) }
         viewModel { (id: SourceId?) -> AddServerViewModel(get(), id, get()) }
         viewModel { (id: SourceId) -> ServerCatalogViewModel(id, get(), get(), get()) }
-        single<ImageBytes> { AppImageBytes(get(), get(), get()) }
+        single<ImageBytes> { AppImageBytes(get(), get(), get(), getOrNull()) }
         single<ReaderSettingsStore> { DbReaderSettingsStore(get(), get()) }
         single<ChapterPages> {
             val registry = get<SourceRegistry>()
-            ChapterPages { manga, chapter -> registry.awaitRequire(manga.sourceId).pages(manga.source, chapter.source) }
+            val downloads = getOrNull<DownloadManager>()
+            // RF-65: a downloaded chapter is read from its files, also without internet.
+            ChapterPages { manga, chapter ->
+                downloads?.offlinePages(chapter.id) ?: registry.awaitRequire(manga.sourceId).pages(manga.source, chapter.source)
+            }
         }
         single<LibraryOptionsStore> { PrefsLibraryOptionsStore(get()) }
         viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
@@ -102,17 +120,64 @@ val coreModule: Module =
             val images = get<ImageBytes>()
             PagePrefetcher { manga, page -> images.load(manga.sourceId, page.imageUrl, page.headers) }
         }
-        viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get(), get(), get()) }
+        viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get(), get(), get(), getOrNull()) }
+        single<DownloadSettings> {
+            val prefs = get<AppPreferences>()
+            object : DownloadSettings {
+                override val wifiOnly = prefs.wifiOnlyDownloads
+                override val deleteAfterRead = prefs.deleteAfterRead
+
+                override fun setWifiOnly(on: Boolean) = prefs.setWifiOnlyDownloads(on)
+
+                override fun setDeleteAfterRead(on: Boolean) = prefs.setDeleteAfterRead(on)
+            }
+        }
         viewModel { (mangaId: Long, chapterId: Long, page: Int) ->
             ReaderViewModel(mangaId, chapterId, page, get(), get(), get(), get(), get(), get(), get(), get())
         }
     }
 
-/** Images: the cache first, then the source's own loader or a plain GET (ADR-006). */
+/**
+ * Downloads where the platform has files (Android): the queue of ADR-009 run by the platform's [DownloadScheduler].
+ * Pages are fetched straight from the source, never through the reading cache.
+ */
+val downloadModule: Module =
+    module {
+        single {
+            val registry = get<SourceRegistry>()
+            val mangas = get<MangaRepository>()
+            val chapters = get<ChapterRepository>()
+            val http = get<HttpClient>()
+
+            suspend fun target(chapterId: Long): Pair<Manga, Chapter> {
+                val chapter = chapters.get(chapterId) ?: error("Capítulo apagado")
+                val manga = mangas.get(chapter.mangaId) ?: error("Obra apagada")
+                return manga to chapter
+            }
+            DownloadManager(
+                get(),
+                get(),
+                get(),
+                pagesOf = { id ->
+                    val (manga, chapter) = target(id)
+                    registry.awaitRequire(manga.sourceId).pages(manga.source, chapter.source)
+                },
+                bytesOf = { id, page ->
+                    val source = registry.awaitRequire(target(id).first.sourceId)
+                    if (source is ImageSource) source.image(page.imageUrl, page.headers) else http.bytes(page.imageUrl, page.headers)
+                },
+            )
+        }
+        single<Downloads> { get<DownloadManager>() }
+        viewModel { DownloadsViewModel(get(), get()) }
+    }
+
+/** Images: downloaded files, the cache, then the source's own loader or a plain GET (ADR-006). */
 class AppImageBytes(
     private val registry: SourceRegistry,
     private val http: HttpClient,
     private val cache: ImageCache,
+    private val files: DownloadFiles? = null,
 ) : ImageBytes {
     private val lock = Mutex()
 
@@ -127,6 +192,8 @@ class AppImageBytes(
         headers: Map<String, String>,
     ): ByteArray {
         val clean = headers.filterKeys { !it.startsWith("x-attempt") }
+        // RF-65: pages of a downloaded chapter, from the device.
+        files?.pathOf(url)?.let { return files.read(it) }
         if (url.startsWith(LocalSource.SCHEME)) return (registry.require(SourceId.LOCAL) as ImageSource).image(url, clean)
         cache.get(url)?.let { return it }
         while (true) {

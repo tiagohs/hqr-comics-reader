@@ -49,6 +49,7 @@ import com.tiagohs.hqr.ui.history.HistoryScreen
 import com.tiagohs.hqr.ui.library.CategoriesScreen
 import com.tiagohs.hqr.ui.library.LibraryScreen
 import com.tiagohs.hqr.ui.manga.MangaScreen
+import com.tiagohs.hqr.ui.manga.MigrationScreen
 import com.tiagohs.hqr.ui.reader.ReaderScreen
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.error_offline_banner
@@ -275,6 +276,18 @@ private fun AppNavigation(dark: Boolean) {
                     dark = dark,
                     onBack = { nav.popBackStack() },
                     onRead = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) },
+                    onMigrate = { nav.navigate(Route.Migrate(it)) },
+                )
+            }
+            composable<Route.Migrate> { back ->
+                val from = back.toRoute<Route.Migrate>().id
+                MigrationScreen(
+                    mangaId = from,
+                    onBack = { nav.popBackStack() },
+                    // The new work replaces the old one on the stack: back goes where the old one came from.
+                    onMigrated = { newId, _ ->
+                        nav.navigate(Route.Manga(newId)) { popUpTo<Route.Manga> { inclusive = true } }
+                    },
                 )
             }
             composable<Route.Reader> { back ->

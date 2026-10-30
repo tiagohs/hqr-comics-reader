@@ -228,7 +228,14 @@ class BrowseSourceViewModel(
                             if (append) {
                                 it.copy(loadingMore = false, loadMoreError = e.toErrorKind())
                             } else {
-                                it.copy(loading = false, loadingMore = false, refreshing = false, error = e.toErrorKind())
+                                // A failed pull keeps the list on screen; the error shows only when there is nothing.
+                                it.copy(
+                                    loading = false,
+                                    loadingMore = false,
+                                    refreshing = false,
+                                    error = if (it.refreshing && it.items.isNotEmpty()) null else e.toErrorKind(),
+                                    loadMoreError = if (it.refreshing && it.items.isNotEmpty()) e.toErrorKind() else null,
+                                )
                             }
                         }
                     }

@@ -46,6 +46,8 @@ import com.tiagohs.hqr.presentation.library.LibraryOptionsStore
 import com.tiagohs.hqr.presentation.library.LibraryUpdater
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
+import com.tiagohs.hqr.presentation.migration.MigrationViewModel
+import com.tiagohs.hqr.presentation.migration.WorkMigration
 import com.tiagohs.hqr.presentation.reader.ChapterPages
 import com.tiagohs.hqr.presentation.reader.PagePrefetcher
 import com.tiagohs.hqr.presentation.reader.PageScale
@@ -103,7 +105,13 @@ val coreModule: Module =
         viewModel { SourcesViewModel(get(), get(), get()) }
         single<Backups> {
             val registry = get<SourceRegistry>()
-            BackupService(get(), get(), "HQR ${get<String>(AppVersion)}", { registry.everything.associate { it.id.value to it.name } })
+            BackupService(
+                get(),
+                get(),
+                "HQR ${get<String>(AppVersion)}",
+                { registry.everything.associate { it.id.value to it.name } },
+                sources = { registry.builtIn },
+            )
         }
         viewModel { BackupViewModel(get()) }
         viewModel { UpdateViewModel(get()) }
@@ -156,6 +164,9 @@ val coreModule: Module =
                 getOrNull<Connectivity>() ?: Connectivity.Always,
             )
         }
+        // RF-69: the downloads only where the app has them (Android).
+        factory { WorkMigration(get(), get(), get(), get(), getOrNull(), getOrNull()) }
+        viewModel { (id: Long) -> MigrationViewModel(id, get(), get(), get()) }
         single<DownloadSettings> {
             val prefs = get<AppPreferences>()
             object : DownloadSettings {

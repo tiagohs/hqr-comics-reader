@@ -30,12 +30,22 @@ class SafDownloadExport(
                 child(tree, root, work)
                     ?: DocumentsContract.createDocument(resolver, root, Document.MIME_TYPE_DIR, work)
                     ?: return@withContext false
+            // Written under a temporary name first: a copy that fails never costs the one already there.
+            val partName = "$fileName.part"
+            child(tree, dir, partName)?.let { DocumentsContract.deleteDocument(resolver, it) }
+            val part = DocumentsContract.createDocument(resolver, dir, MIME, partName) ?: return@withContext false
+            try {
+                val out = resolver.openOutputStream(part) ?: error("no output")
+                out.sink().use { write(it) }
+            } catch (
+                @Suppress("TooGenericExceptionCaught") e: Exception,
+            ) {
+                DocumentsContract.deleteDocument(resolver, part)
+                throw e
+            }
             // Downloaded again: the new file takes the old one's place, never "name (1).cbz".
             child(tree, dir, fileName)?.let { DocumentsContract.deleteDocument(resolver, it) }
-            val file = DocumentsContract.createDocument(resolver, dir, MIME, fileName) ?: return@withContext false
-            val out = resolver.openOutputStream(file) ?: return@withContext false
-            out.sink().use { write(it) }
-            true
+            DocumentsContract.renameDocument(resolver, part, fileName) != null
         }
 
     private fun child(

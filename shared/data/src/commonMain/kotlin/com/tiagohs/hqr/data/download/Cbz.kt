@@ -30,6 +30,8 @@ internal object Cbz {
         read: (Int) -> ByteArray,
         name: (Int, ByteArray) -> String,
     ) {
+        // No ZIP64: a chapter past 65535 pages or 4 GB is refused instead of written broken.
+        require(count <= MAX_ENTRIES) { "Too many pages for a cbz" }
         val central = Buffer()
         var offset = 0L
         fs.sink(target).buffer().use { out ->
@@ -52,6 +54,7 @@ internal object Cbz {
                 central.writeIntLe(offset.toInt())
                 central.write(nameBytes)
                 offset += LOCAL_HEADER + nameBytes.size + bytes.size
+                check(offset < MAX_OFFSET) { "Chapter too big for a cbz" }
             }
             val centralSize = central.size
             out.writeAll(central)
@@ -122,6 +125,8 @@ internal object Cbz {
     private const val LOCAL_HEADER = 30
     private const val END_SIZE = 22
     private const val MASK = 0xFFFF
+    private const val MAX_ENTRIES = 0xFFFF
+    private const val MAX_OFFSET = 0xFFFFFFFFL
     private const val SKIP_TO_COUNT = 6L
     private const val SKIP_TO_SIZE = 20L
     private const val SKIP_TO_OFFSET = 12L

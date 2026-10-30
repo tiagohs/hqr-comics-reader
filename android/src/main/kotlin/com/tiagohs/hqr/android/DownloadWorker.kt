@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -21,6 +22,7 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.repository.DownloadState
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -50,6 +52,8 @@ class DownloadWorker(
                 }
             val waiting = manager.run { allowed() }
             progress.cancel()
+            // RF-68: the queue stopped for lack of space; the user hears it even with the app closed.
+            if (manager.observe().first().any { it.lowSpace }) lowSpaceNotice()
             // Chapters left waiting for the network: WorkManager tries again later, under the run's constraint (RF-63).
             if (waiting) Result.retry() else Result.success()
         }
@@ -87,7 +91,21 @@ class DownloadWorker(
         }
     }
 
+    private fun lowSpaceNotice() {
+        val notification =
+            NotificationCompat
+                .Builder(applicationContext, CHANNEL)
+                .setSmallIcon(android.R.drawable.stat_notify_error)
+                .setContentTitle(applicationContext.getString(R.string.downloads_low_space_title))
+                .setContentText(applicationContext.getString(R.string.downloads_low_space_text))
+                .setAutoCancel(true)
+                .build()
+        // Without the notification permission (RF-94), the reason still shows on the downloads screen.
+        runCatching { NotificationManagerCompat.from(applicationContext).notify(LOW_SPACE_ID, notification) }
+    }
+
     companion object {
+        private const val LOW_SPACE_ID = 43
         private const val CHANNEL = "downloads"
         private const val NOTIFICATION_ID = 42
         const val NAME = "hqr-downloads"

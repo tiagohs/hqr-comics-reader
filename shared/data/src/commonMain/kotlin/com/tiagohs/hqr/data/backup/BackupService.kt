@@ -46,6 +46,8 @@ class BackupService(
     /** Source id → name of every source this build has, built in or a server. */
     private val knownSources: () -> Map<String, String>,
     private val clock: Clock = Clock.System,
+    /** RF-91: the app's sources, to bring keys of an older format up to date on restore. */
+    private val sources: () -> List<com.tiagohs.hqr.domain.source.Source> = { emptyList() },
 ) : Backups {
     private val json =
         Json {
@@ -55,6 +57,7 @@ class BackupService(
 
     override suspend fun create(): ByteArray = gzip(json.encodeToString(Backup.serializer(), build()).encodeToByteArray())
 
+    @Suppress("LongMethod") // One flat mapping from the tables to the file.
     suspend fun build(): Backup {
         val mangas = db.mangaDao().all()
         val chapters = db.chapterDao().all().groupBy { it.mangaId }
@@ -70,6 +73,12 @@ class BackupService(
                 m.inLibrary || chapters[m.id].orEmpty().any { progress[it.id] != null || history[it.id] != null }
             }
         return Backup(
+            sourceVersions =
+                db
+                    .sourceDao()
+                    .list()
+                    .filter { it.schemaVersion > 0 }
+                    .associate { it.id to it.schemaVersion },
             createdAtEpochMs = clock.now().toEpochMilliseconds(),
             app = app,
             categories = categories.map { BackupCategory(it.name, it.sortOrder) },
@@ -143,13 +152,30 @@ class BackupService(
                 throw BackupException("Não é um backup do HQR", cause = e)
             }
         if (backup.schemaVersion > Backup.SCHEMA_VERSION) throw BackupException("Backup de uma versão mais nova", newerVersion = true)
-        val summary = db.withWriteTransaction { merge(backup) }
+        val summary = db.withWriteTransaction { merge(upToDateKeys(backup)) }
         // App settings: those already set on this device stay.
         backup.settings.forEach { (key, value) ->
             val type = SETTINGS[key] ?: return@forEach
             if (!settings.hasKey(key)) write(key, type, value)
         }
         return summary
+    }
+
+    /** RF-91: works saved under an older key format of their source come back in today's format. */
+    private fun upToDateKeys(backup: Backup): Backup {
+        val byId = sources().associateBy { it.id.value }
+        return backup.copy(
+            mangas =
+                backup.mangas.map { m ->
+                    val source = byId[m.sourceId] ?: return@map m
+                    val from = backup.sourceVersions[m.sourceId] ?: 1
+                    if (from >= source.schemaVersion) return@map m
+                    m.copy(
+                        key = source.migrateMangaKey(m.key, from) ?: m.key,
+                        chapters = m.chapters.map { c -> c.copy(key = source.migrateChapterKey(c.key, from) ?: c.key) },
+                    )
+                },
+        )
     }
 
     private suspend fun merge(backup: Backup): RestoreSummary {

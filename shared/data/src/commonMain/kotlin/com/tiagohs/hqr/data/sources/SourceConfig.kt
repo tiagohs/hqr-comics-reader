@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.data.sources
 
+import androidx.room3.withWriteTransaction
 import com.russhwolf.settings.Settings
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.SourceEntity
@@ -40,7 +41,7 @@ data class SourceList(
  * day, the last good copy kept; without any, the list built into the app.
  */
 class SourceConfig(
-    db: HqrDatabase,
+    private val db: HqrDatabase,
     private val settings: Settings,
     private val registry: SourceRegistry,
     private val fetcher: SourceListFetcher,
@@ -102,7 +103,13 @@ class SourceConfig(
      * RF-91: a source whose key format grew since the keys were saved gets them rewritten, works and chapters, before any
      * screen reads them. A key the source can't migrate, or that would clash with one already there, stays as it was.
      */
-    private suspend fun migrateKeys() {
+    suspend fun migrateKeys() =
+        db.withWriteTransaction {
+            // One transaction: a start killed halfway migrates nothing twice.
+            migrateKeysUnlocked()
+        }
+
+    private suspend fun migrateKeysUnlocked() {
         val saved = dao.list().associateBy { it.id }
         // The servers' keys are addresses on the user's own server: only the app's sources change format.
         registry.builtIn.forEach { source ->

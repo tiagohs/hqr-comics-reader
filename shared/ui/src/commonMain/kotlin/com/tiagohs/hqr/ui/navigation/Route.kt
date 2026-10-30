@@ -83,6 +83,13 @@ sealed interface Route {
         val sourceId: String,
     ) : Route
 
+    /** SCR-OBR-002: migrating a work to another source (RF-69). */
+    @Serializable
+    @SerialName("migrate")
+    data class Migrate(
+        val id: Long,
+    ) : Route
+
     @Serializable
     @SerialName("manga")
     data class Manga(

@@ -21,6 +21,8 @@ data class Backup(
     val savedSearches: List<BackupSavedSearch> = emptyList(),
     val feed: List<BackupFeedItem> = emptyList(),
     val settings: Map<String, String> = emptyMap(),
+    /** RF-91: each source's key format when the backup was made; missing means 1. */
+    val sourceVersions: Map<String, Int> = emptyMap(),
 ) {
     companion object {
         const val SCHEMA_VERSION = 1

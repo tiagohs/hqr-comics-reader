@@ -9,6 +9,7 @@ import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.model.SourcePage
+import com.tiagohs.hqr.domain.repository.DownloadItem
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.repository.DownloadState
 import com.tiagohs.hqr.domain.source.SourceException
@@ -154,6 +155,63 @@ class DownloadManagerTest {
             manager.run { true }
             manager.observe().first().map { it.state } shouldBe listOf(DownloadState.DONE, DownloadState.DONE)
             manager.observe().first().none { it.lowSpace } shouldBe true
+        }
+
+    @Test
+    fun RF67_RF68_packingNeedsRoomAndTheReaderNeverSeesTheFolderOfAPackedChapter() =
+        runTest {
+            val ids = work()
+            asCbz = true
+            // Room for the pages, not for packing them: the chapter waits, with the reason, and nothing half written stays.
+            free = DownloadItem.MIN_FREE_BYTES + 5
+            manager.enqueue(ids.take(1))
+            manager.run { true } shouldBe false
+            manager
+                .observe()
+                .first()
+                .single()
+                .lowSpace shouldBe true
+            manager.offlinePages(ids[0]) shouldBe null
+            fs.listRecursively("/data/downloads".toPath()).none { it.name.endsWith(".tmp") } shouldBe true
+            // A pause by hand drops the old reason.
+            manager.resumeAll()
+            manager.pauseAll()
+            manager
+                .observe()
+                .first()
+                .single()
+                .lowSpace shouldBe false
+            free = null
+            manager.resumeAll()
+            manager.run { true }
+            manager.offlinePages(ids[0])!!.all { "!/" in it.imageUrl } shouldBe true
+        }
+
+    @Test
+    fun RF67_aFailingCopyKeepsTheDownloadAndImagesKeepTheirType() =
+        runTest {
+            val ids = work()
+            val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2)
+            val failing =
+                DownloadManager(
+                    db,
+                    files,
+                    DownloadScheduler { },
+                    pagesOf = { listOf(SourcePage(0, "https://img/0")) },
+                    bytesOf = { _, _ -> png },
+                    folder = { "content://tree/hqr" },
+                    export = { _, _, _, _ -> error("pasta sumiu") },
+                )
+            failing.enqueue(ids.take(1))
+            failing.run { true }
+            failing
+                .observe()
+                .first()
+                .single()
+                .state shouldBe DownloadState.DONE
+            val page = failing.offlinePages(ids[0])!!.single()
+            page.imageUrl.endsWith("0000.png") shouldBe true
+            files.bytes(page.imageUrl) shouldBe png
         }
 
     @Test

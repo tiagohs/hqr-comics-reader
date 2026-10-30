@@ -181,4 +181,58 @@ class BackupServiceTest {
                 com.tiagohs.hqr.domain.repository.RestoreProblem.NEWER_VERSION
             tablet.backups.fileName().endsWith(".hqrbackup") shouldBe true
         }
+
+    @Test
+    fun RF91_anOldBackupComesBackWithTodaysKeys() =
+        runTest {
+            // A backup from when HQ Now's keys had no prefix (its version 1, the default of old files).
+            val old =
+                gzip(
+                    """{"schemaVersion":1,"createdAtEpochMs":0,"app":"x","mangas":[{"sourceId":"hqnow","sourceName":"HQ Now",
+                    "key":"saga","title":"Saga","inLibrary":true,"chapters":[{"key":"c1","number":1.0,"read":true}]}]}""".encodeToByteArray(),
+                )
+            val v2 =
+                object : com.tiagohs.hqr.domain.source.Source {
+                    override val id = SourceId.HQ_NOW
+                    override val name = "HQ Now"
+                    override val languages = listOf("pt-br")
+                    override val schemaVersion = 2
+
+                    override fun migrateMangaKey(
+                        key: String,
+                        fromVersion: Int,
+                    ) = "id:$key"
+
+                    override fun migrateChapterKey(
+                        key: String,
+                        fromVersion: Int,
+                    ) = "ch:$key"
+
+                    override suspend fun details(manga: SourceManga) = manga
+
+                    override suspend fun chapters(manga: SourceManga) = emptyList<com.tiagohs.hqr.domain.model.SourceChapter>()
+
+                    override suspend fun pages(
+                        manga: SourceManga,
+                        chapter: com.tiagohs.hqr.domain.model.SourceChapter,
+                    ) = emptyList<com.tiagohs.hqr.domain.model.SourcePage>()
+                }
+            val service = BackupService(tablet.db, tablet.settings, "HQR", { tablet.known }, sources = { listOf(v2) })
+            service.restoreOrThrow(old)
+            val manga = tablet.mangas.find(SourceId.HQ_NOW, "id:saga")!!
+            tablet.chapters
+                .list(manga.id)
+                .single()
+                .source.key shouldBe "ch:c1"
+            tablet.chapters
+                .list(manga.id)
+                .single()
+                .read shouldBe true
+            // A backup made today records the versions, so it is never migrated twice.
+            tablet.db.sourceDao().upsert(
+                com.tiagohs.hqr.data.db
+                    .SourceEntity("hqnow", "builtin", "HQ Now", "pt-br", 2, true, "{}"),
+            )
+            service.build().sourceVersions shouldBe mapOf("hqnow" to 2)
+        }
 }

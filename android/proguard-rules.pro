@@ -15,4 +15,3 @@
 -dontwarn org.brotli.dec.**
 -dontwarn org.objectweb.asm.**
 -dontwarn org.osgi.**
--dontwarn org.slf4j.**

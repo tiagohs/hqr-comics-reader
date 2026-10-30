@@ -251,14 +251,15 @@ interface DownloadDao {
     @Query(
         """
         SELECT d.chapterId, d.state, d.pagesDone, d.pagesTotal, d.error, d.queueOrder,
-          c.mangaId, c.number, c.title AS chapterTitle, m.title AS mangaTitle
+          c.mangaId, c.number, c.title AS chapterTitle, m.title AS mangaTitle, c.groupName AS `group`
         FROM download d JOIN chapter c ON c.id = d.chapterId JOIN manga m ON m.id = c.mangaId
         ORDER BY d.queueOrder
         """,
     )
     fun observeRows(): Flow<List<DownloadRow>>
 
-    @Query("UPDATE download SET state = :state WHERE state IN (:from)")
+    // A pause or resume by the user drops an old reason (RF-68's "Pouco espaço").
+    @Query("UPDATE download SET state = :state, error = NULL WHERE state IN (:from)")
     suspend fun setStates(
         from: List<String>,
         state: String,
@@ -330,6 +331,8 @@ data class DownloadRow(
     val number: Double,
     val chapterTitle: String?,
     val mangaTitle: String,
+    /** The scanlation group: two chapters with the same number tell apart by it (RF-67). */
+    val group: String? = null,
 )
 
 @Dao

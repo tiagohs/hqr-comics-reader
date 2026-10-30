@@ -90,7 +90,7 @@ class LocalSource(
      * would have to be unpacked whole just to list them, so their numbers and titles come from the file name.
      */
     suspend fun comicInfo(path: String): ComicInfo? =
-        runCatching {
+        try {
             when (LocalFormat.of(path)) {
                 LocalFormat.CBZ -> {
                     val zip = ZipReader(tree, path)
@@ -102,7 +102,14 @@ class LocalSource(
                     }
                 else -> null
             }?.decodeToString()?.let(ComicInfo::parse)
-        }.getOrNull()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (
+            @Suppress("TooGenericExceptionCaught", "SwallowedException") e: Exception,
+        ) {
+            // A broken file or ComicInfo: the name of the file is used instead.
+            null
+        }
 
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> {
         val key = manga.key

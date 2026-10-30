@@ -75,8 +75,11 @@ class JvmArchiveUnpacker(
     ) = "$path|$size".encodeUtf8().sha256().hex().take(KEY)
 
     private suspend fun unpack(path: String): Unpacked {
-        last?.takeIf { it.first == path }?.let { return it.second }
         val size = tree.size(path)
+        // The same file (path and size) still unpacked: the cache may have been cleared by the system meanwhile.
+        last
+            ?.takeIf { it.first == "$path|$size" && withContext(Dispatchers.IO) { File(it.second.dir, INDEX).exists() } }
+            ?.let { return it.second }
         val dir = File(cache, key(path, size))
         val index = File(dir, INDEX)
         if (!index.exists()) {
@@ -103,7 +106,7 @@ class JvmArchiveUnpacker(
                 trim()
                 Unpacked(dir, index.readLines().filter { it.isNotEmpty() })
             }
-        last = path to unpacked
+        last = "$path|$size" to unpacked
         return unpacked
     }
 

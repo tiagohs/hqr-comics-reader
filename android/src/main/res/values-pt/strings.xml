@@ -2,4 +2,6 @@
 <resources>
     <string name="downloads_channel">Downloads</string>
     <string name="downloads_running">Baixando capítulos</string>
+    <string name="downloads_low_space_title">Downloads pausados</string>
+    <string name="downloads_low_space_text">Pouco espaço: libere pelo menos 200 MB e retome.</string>
 </resources>

@@ -125,6 +125,7 @@ import com.tiagohs.hqr.ui.resources.manga_refresh_failed
 import com.tiagohs.hqr.ui.resources.manga_removed_from_source
 import com.tiagohs.hqr.ui.resources.manga_select
 import com.tiagohs.hqr.ui.resources.manga_selected
+import com.tiagohs.hqr.ui.resources.migrate_action
 import com.tiagohs.hqr.ui.resources.source_unavailable
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
@@ -146,6 +147,7 @@ fun MangaScreen(
     dark: Boolean,
     onBack: () -> Unit,
     onRead: (mangaId: Long, chapterId: Long, page: Int) -> Unit,
+    onMigrate: (mangaId: Long) -> Unit = {},
     viewModel: MangaViewModel = koinViewModel(key = "manga-$mangaId") { parametersOf(mangaId) },
     prefs: AppPreferences = koinInject(),
 ) {
@@ -169,7 +171,7 @@ fun MangaScreen(
                 }
             }
         } else {
-            MangaContent(manga, state, dark, viewModel, onBack, onRead)
+            MangaContent(manga, state, dark, viewModel, onBack, onRead, onMigrate)
         }
     }
 }
@@ -183,6 +185,7 @@ private fun MangaContent(
     viewModel: MangaViewModel,
     onBack: () -> Unit,
     onRead: (Long, Long, Int) -> Unit,
+    onMigrate: (Long) -> Unit,
 ) {
     val uri = LocalUriHandler.current
     val isLocal = manga.sourceId == SourceId.LOCAL
@@ -293,6 +296,12 @@ private fun MangaContent(
                             IconButton(
                                 onClick = { picking = true },
                             ) { Icon(HqrIcons.Folder, stringResource(Res.string.manga_edit_categories)) }
+                        }
+                        // RF-69: local files have no other source to go to.
+                        if (manga.sourceId != SourceId.LOCAL) {
+                            IconButton(onClick = { onMigrate(manga.id) }) {
+                                Icon(HqrIcons.Swap, stringResource(Res.string.migrate_action))
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),

@@ -449,4 +449,14 @@
     <string name="downloads_folder_clear">Stop copying to the folder</string>
     <string name="downloads_low_space">Low space: the queue was paused. Free up at least 200 MB and resume.</string>
     <string name="download_state_low_space">Low space</string>
+    <string name="migrate_action">Migrate to another source</string>
+    <string name="migrate_title">Migrate %1$s</string>
+    <string name="migrate_query">Title to search</string>
+    <string name="migrate_sources">Search in</string>
+    <string name="migrate_no_sources">No other source searches. Turn one on in Sources.</string>
+    <string name="migrate_nothing">Nothing found here.</string>
+    <string name="migrate_confirm_title">Migrate to %1$s?</string>
+    <string name="migrate_confirm_message">"%1$s" takes the categories, the chapters read (by number) and the history. The old one leaves the library.</string>
+    <string name="migrate_delete_downloads">Delete the old downloads</string>
+    <string name="migrate_confirm">Migrate</string>
 </resources>

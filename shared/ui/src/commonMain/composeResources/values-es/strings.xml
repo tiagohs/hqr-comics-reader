@@ -449,4 +449,14 @@
     <string name="downloads_folder_clear">Dejar de copiar a la carpeta</string>
     <string name="downloads_low_space">Poco espacio: la cola se pausó. Libera al menos 200 MB y reanuda.</string>
     <string name="download_state_low_space">Poco espacio</string>
+    <string name="migrate_action">Migrar a otra fuente</string>
+    <string name="migrate_title">Migrar %1$s</string>
+    <string name="migrate_query">Título para buscar</string>
+    <string name="migrate_sources">Buscar en</string>
+    <string name="migrate_no_sources">Ninguna otra fuente busca. Activa una en Fuentes.</string>
+    <string name="migrate_nothing">Nada encontrado aquí.</string>
+    <string name="migrate_confirm_title">¿Migrar a %1$s?</string>
+    <string name="migrate_confirm_message">"%1$s" lleva las categorías, los capítulos leídos (por número) y el historial. La antigua sale de la biblioteca.</string>
+    <string name="migrate_delete_downloads">Borrar las descargas antiguas</string>
+    <string name="migrate_confirm">Migrar</string>
 </resources>

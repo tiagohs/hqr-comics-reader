@@ -55,6 +55,7 @@ object HqrIcons {
                 "2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4z",
         )
     val Minus = stroke("minus", "M6 12h12")
+    val Swap = stroke("swap", "M5 8h13l-3-3", "M19 16H6l3 3")
     val Search = stroke("search", "M11 4.5a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13z", "M16 16l4.5 4.5")
     val Download = stroke("download", "M12 4v11M7 10l5 5 5-5M5 20h14")
     val Downloaded = stroke("downloaded", "M4 12.5l4.5 4.5L20 6M5 21h14")

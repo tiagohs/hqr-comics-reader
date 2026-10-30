@@ -12,13 +12,17 @@ actual fun rememberDownloadFolderPicker(onPicked: (String?) -> Unit): () -> Unit
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
             // Kept across restarts: the queue writes there from the background (RF-67).
-            uri?.let {
-                context.contentResolver.takePersistableUriPermission(
-                    it,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                )
-            }
-            onPicked(uri?.toString())
+            // A folder whose permission can't be kept is not offered: the queue could not write there later.
+            val kept =
+                uri?.takeIf {
+                    runCatching {
+                        context.contentResolver.takePersistableUriPermission(
+                            it,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+                        )
+                    }.isSuccess
+                }
+            onPicked(kept?.toString())
         }
     return { launcher.launch(null) }
 }

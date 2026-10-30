@@ -249,12 +249,34 @@ private fun Options(
 }
 
 /** The folder as people see it: "Download/HQR" for "content://…/tree/primary%3ADownload%2FHQR". */
-private fun folderName(uri: String): String =
-    uri
-        .substringAfterLast("/")
-        .substringAfter("%3A")
-        .replace("%2F", "/")
-        .replace("%20", " ")
+internal fun folderName(uri: String): String = percentDecode(percentDecode(uri.substringAfterLast("/")).substringAfter(":"))
+
+/** "%C3%A7" → "ç": the UTF-8 bytes of a percent-encoded address. */
+private fun percentDecode(text: String): String {
+    val out = ArrayList<Byte>(text.length)
+    var i = 0
+    while (i < text.length) {
+        val hex =
+            if (text[i] == '%' &&
+                i + 2 < text.length + 0 &&
+                i + 2 <= text.lastIndex
+            ) {
+                text.substring(i + 1, i + 3).toIntOrNull(HEX)
+            } else {
+                null
+            }
+        if (hex != null) {
+            out += hex.toByte()
+            i += 3
+        } else {
+            out += text[i].toString().encodeToByteArray().toList()
+            i++
+        }
+    }
+    return out.toByteArray().decodeToString()
+}
+
+private const val HEX = 16
 
 @Composable
 private fun QueueRow(

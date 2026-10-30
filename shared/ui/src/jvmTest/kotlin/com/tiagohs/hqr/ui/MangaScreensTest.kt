@@ -6,13 +6,18 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.printToLog
+import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.ui.navigation.HqrApp
+import io.kotest.matchers.shouldBe
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -71,5 +76,31 @@ class MangaScreensTest {
             onAllNodes(hasText("Open site", substring = true))[0].performClick()
             waitUntil(timeoutMillis = 5_000) { opened.isNotEmpty() }
             assertEquals(listOf("https://example.org/m1"), opened)
+        }
+
+    @Test
+    fun RF69_migrateAWorkToAnotherSourceFromItsScreen() =
+        screenTest {
+            startTestKoin(sources = { listOf(DemoSource(), DemoSource(id = SourceId("yomu"))) })
+            setAppContent { HqrApp(systemDark = false) }
+            waitFor(hasText("Explore"))
+            onAllNodes(hasText("Explore"))[0].performClick()
+            waitFor(hasText("MangaDex"))
+            onAllNodes(hasText("MangaDex"))[0].performClick()
+            waitFor(hasText("Kaiju Express"))
+            onAllNodes(hasText("Kaiju Express"))[0].performClick()
+            waitFor(hasContentDescription("Migrate to another source"))
+            onAllNodes(hasContentDescription("Migrate to another source"))[0].performClick()
+            waitFor(hasText("Migrate Kaiju Express"))
+            waitFor(hasText("Search in"))
+            waitUntil(timeoutMillis = 10_000) { onAllNodes(hasText("Kaiju Express")).fetchSemanticsNodes().isNotEmpty() }
+            screenshot("demo-SCR-OBR-002")
+            // The candidate, not the search field that holds the same title.
+            onAllNodes(hasText("Kaiju Express") and hasClickAction() and !hasSetTextAction())[0].performClick()
+            waitFor(hasText("Delete the old downloads"))
+            onAllNodes(hasText("Migrate"))[0].performClick()
+            // The new work opens in place of the old one.
+            waitFor(hasText("Read"))
+            onAllNodes(hasText("Migrate Kaiju Express")).fetchSemanticsNodes().isEmpty() shouldBe true
         }
 }

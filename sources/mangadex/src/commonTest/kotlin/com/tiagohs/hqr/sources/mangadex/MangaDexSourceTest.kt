@@ -26,6 +26,7 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -59,6 +60,7 @@ class MangaDexSourceTest {
     )
 
     private var report = true
+    private val mockLock = kotlinx.coroutines.sync.Mutex()
     private var ratings = setOf("safe")
     private var saver = false
     private var languages = setOf("pt-br")
@@ -68,8 +70,11 @@ class MangaDexSourceTest {
             http =
                 HttpClient(
                     MockEngine { request ->
-                        requests += request
-                        route(request) ?: when {
+                        // One answer at a time: parallel image requests read and grow the same list (a flaky CI run).
+                        mockLock.withLock {
+                            requests += request
+                            route(request)
+                        } ?: when {
                             request.url.encodedPath == "/manga" -> json(Fixtures.MANGA_LIST)
                             request.url.encodedPath == "/manga/tag" -> json(Fixtures.TAGS)
                             request.url.encodedPath.endsWith("/feed") -> json(Fixtures.FEED)

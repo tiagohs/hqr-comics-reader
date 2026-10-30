@@ -1,14 +1,17 @@
 package com.tiagohs.hqr.android
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -101,7 +104,11 @@ class DownloadWorker(
                 .setAutoCancel(true)
                 .build()
         // Without the notification permission (RF-94), the reason still shows on the downloads screen.
-        runCatching { NotificationManagerCompat.from(applicationContext).notify(LOW_SPACE_ID, notification) }
+        val allowed =
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+        if (allowed) NotificationManagerCompat.from(applicationContext).notify(LOW_SPACE_ID, notification)
     }
 
     companion object {

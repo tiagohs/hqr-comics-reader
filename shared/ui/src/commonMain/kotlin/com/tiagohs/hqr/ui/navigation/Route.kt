@@ -48,6 +48,11 @@ sealed interface Route {
     @SerialName("downloads")
     data object Downloads : Route
 
+    /** SCR-SRC-002: MangaDex's own settings (RF-06). */
+    @Serializable
+    @SerialName("source-settings")
+    data object SourceSettings : Route
+
     /** SCR-WEB-001: the user's bridge, only in the browser (RF-108). */
     @Serializable
     @SerialName("bridge")

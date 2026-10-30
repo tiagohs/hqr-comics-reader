@@ -62,9 +62,13 @@ class HqrApplication : Application() {
                 LocalSource(get(), AndroidPdfPages(contentResolver, get()) { get<AppPreferences>().localFolder.value })
             }
             single {
-                MangaDexSource(get(), contentLanguages = {
-                    get<AppPreferences>().contentLanguages.value
-                }, contentRatings = { get<AppPreferences>().mangaDexRatings() })
+                val prefs = get<AppPreferences>()
+                MangaDexSource(
+                    get(),
+                    contentLanguages = { prefs.mangaDexLanguages() },
+                    contentRatings = { prefs.mangaDexRatings() },
+                    dataSaver = { prefs.mangaDexDataSaver.value },
+                )
             }
             // RF-12: HQ Now only on Android; the browser needs the bridge for its images (FEAT-051).
             single { HqNowSource(get(), apiUrl = { get<SourceConfig>().baseUrl(SourceId.HQ_NOW) ?: HqNowSource.API }) }

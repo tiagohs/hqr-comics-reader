@@ -11,7 +11,11 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.printToLog
+import com.tiagohs.hqr.data.settings.AppPreferences
+import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.ui.navigation.HqrApp
+import io.kotest.matchers.shouldBe
+import org.koin.core.context.GlobalContext
 import kotlin.test.AfterTest
 import kotlin.test.Test
 
@@ -60,5 +64,36 @@ class SourcesScreensTest {
             onAllNodes(hasText("Test"))[0].performClick()
             waitFor(hasText("Put the user and password in their own fields, not in the address."))
             screenshot("demo-SCR-SRV-001")
+        }
+
+    @Test
+    fun RF06_RF08_mangaDexSettingsChooseLanguagesQualityAndSuggestive() =
+        screenTest {
+            startTestKoin(sources = { listOf(DemoSource(id = SourceId.MANGADEX)) })
+            val prefs = GlobalContext.get().get<AppPreferences>()
+            setAppContent { HqrApp(systemDark = false) }
+            waitFor(hasText("Explore"))
+            onAllNodes(hasText("Explore"))[0].performClick()
+            waitFor(hasText("Manage sources and servers"))
+            onAllNodes(hasText("Manage sources and servers"))[0].performScrollTo().performClick()
+            waitFor(hasContentDescription("MangaDex settings"))
+            onAllNodes(hasContentDescription("MangaDex settings"))[0].performClick()
+            waitFor(hasText("Chapter languages"))
+            // RF-06: only this source asks for English too; the content languages stay as they were.
+            onAllNodes(hasText("English"))[0].performClick()
+            prefs.mangaDexLanguages() shouldBe setOf("pt-br", "en")
+            prefs.contentLanguages.value shouldBe setOf("pt-br")
+            onAllNodes(hasText("Data saver"))[0].performClick()
+            prefs.mangaDexDataSaver.value shouldBe true
+            screenshot("demo-SCR-SRC-002")
+            // Back to following the content languages.
+            onAllNodes(hasText("Same as the content languages"))[0].performClick()
+            prefs.mangaDexLanguagesOverride.value shouldBe null
+            // RF-08: suggestive only after the 18+ confirmation.
+            onAllNodes(hasText("Suggestive content"))[0].performScrollTo().performClick()
+            waitFor(hasText("I am 18 or older"))
+            prefs.mangaDexSuggestive.value shouldBe false
+            onAllNodes(hasText("I am 18 or older"))[0].performClick()
+            prefs.mangaDexSuggestive.value shouldBe true
         }
 }

@@ -57,6 +57,8 @@ class MangaDexSource(
     private val reportImages: Boolean = true,
     // Where reports run without holding the page; null sends them in line (tests).
     private val reportScope: CoroutineScope? = null,
+    /** RF-06: smaller, compressed pages ("data-saver") instead of the originals. */
+    private val dataSaver: () -> Boolean = { false },
 ) : CatalogSource,
     SearchSource,
     ImageSource {
@@ -78,6 +80,7 @@ class MangaDexSource(
         val hash: String,
         val files: List<String>,
         val fetchedAt: Instant,
+        val saverFiles: List<String> = emptyList(),
     )
 
     private val servers = HashMap<String, Server>()
@@ -173,7 +176,10 @@ class MangaDexSource(
             throw SourceException("Chapter hosted outside MangaDex: ${chapter.externalUrl}", SourceException.Kind.UNAVAILABLE)
         }
         val server = server(chapter.key, failed = null, fresh = true)
-        return server.files.mapIndexed { i, file -> SourcePage(i, "$SCHEME${chapter.key}/$file") }
+        // RF-06: the economy pages when chosen and offered; their address says so, as the server keeps both.
+        val saver = dataSaver() && server.saverFiles.isNotEmpty()
+        val files = if (saver) server.saverFiles else server.files
+        return files.mapIndexed { i, file -> SourcePage(i, "$SCHEME${chapter.key}/${if (saver) SAVER else ""}$file") }
     }
 
     @Suppress("SwallowedException") // The failure is answered with a new server, not lost.
@@ -184,9 +190,10 @@ class MangaDexSource(
         if (!url.startsWith(SCHEME)) return networkCall { http.get(url).ensureOk().bodyAsBytes() }
         val chapterId = url.removePrefix(SCHEME).substringBefore('/')
         val file = url.substringAfterLast('/')
+        val saver = url.contains("/$SAVER")
         val first = server(chapterId, failed = null)
         return try {
-            download(first, file)
+            download(first, file, saver)
         } catch (e: CancellationException) {
             // A page leaving the screen is not a server failure: no renewal, no at-home quota spent.
             throw e
@@ -194,15 +201,16 @@ class MangaDexSource(
             @Suppress("TooGenericExceptionCaught") e: Exception,
         ) {
             // A 403 or any failure: a new server, once for all the pages that failed on this one (RF-09).
-            download(server(chapterId, failed = first), file)
+            download(server(chapterId, failed = first), file, saver)
         }
     }
 
     private suspend fun download(
         server: Server,
         file: String,
+        saver: Boolean,
     ): ByteArray {
-        val imageUrl = "${server.baseUrl}/data/${server.hash}/$file"
+        val imageUrl = "${server.baseUrl}/${if (saver) "data-saver" else "data"}/${server.hash}/$file"
         val start = clock.now()
         val result =
             try {
@@ -267,7 +275,7 @@ class MangaDexSource(
             try {
                 atHomeLimiter.acquire()
                 val answer: AtHomeResponse = api("$API/at-home/server/$chapterId") {}
-                val server = Server(answer.baseUrl, answer.chapter.hash, answer.chapter.data, clock.now())
+                val server = Server(answer.baseUrl, answer.chapter.hash, answer.chapter.data, clock.now(), answer.chapter.dataSaver)
                 serverLock.withLock {
                     servers[chapterId] = server
                     inFlight.remove(chapterId)
@@ -309,6 +317,7 @@ class MangaDexSource(
 
     companion object {
         const val SCHEME = "mangadex-page:"
+        private const val SAVER = "saver/"
         private const val API = "https://api.mangadex.org"
         private const val REPORT = "https://api.mangadex.network/report"
         private const val PAGE_SIZE = 20

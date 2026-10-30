@@ -87,6 +87,36 @@ class AppPreferences(
         _mangaDexSuggestive.value = on
     }
 
+    // RF-06: MangaDex's own chapter languages; null follows the content languages (RF-81).
+    private val mangaDexLanguagesValue =
+        MutableStateFlow(
+            settings
+                .getStringOrNull(MANGADEX_LANGUAGES)
+                ?.split(',')
+                ?.filter { it.isNotBlank() }
+                ?.toSet()
+                ?.ifEmpty { null },
+        )
+    val mangaDexLanguagesOverride: StateFlow<Set<String>?> = mangaDexLanguagesValue.asStateFlow()
+
+    /** The chapter languages MangaDex asks for (RF-06). */
+    fun mangaDexLanguages(): Set<String> = mangaDexLanguagesValue.value ?: _contentLanguages.value
+
+    fun setMangaDexLanguages(languages: Set<String>?) {
+        val value = languages?.ifEmpty { null }
+        if (value == null) settings.remove(MANGADEX_LANGUAGES) else settings.putString(MANGADEX_LANGUAGES, value.joinToString(","))
+        mangaDexLanguagesValue.value = value
+    }
+
+    // RF-06: "data-saver" pages, smaller and compressed; off by default.
+    private val _mangaDexDataSaver = MutableStateFlow(settings.getBoolean(MANGADEX_DATA_SAVER, false))
+    val mangaDexDataSaver: StateFlow<Boolean> = _mangaDexDataSaver.asStateFlow()
+
+    fun setMangaDexDataSaver(on: Boolean) {
+        settings.putBoolean(MANGADEX_DATA_SAVER, on)
+        _mangaDexDataSaver.value = on
+    }
+
     /** The MangaDex content ratings to ask for (RF-08): never erotica or pornographic. */
     fun mangaDexRatings(): Set<String> = if (_mangaDexSuggestive.value) setOf("safe", "suggestive") else setOf("safe")
 
@@ -157,5 +187,7 @@ class AppPreferences(
         const val DELETE_AFTER_READ = "downloads.deleteAfterRead"
         const val WIFI_ONLY = "downloads_wifi_only"
         const val MANGADEX_SUGGESTIVE = "mangadex_mangaDexSuggestive"
+        const val MANGADEX_LANGUAGES = "mangadex_languages"
+        const val MANGADEX_DATA_SAVER = "mangadex_data_saver"
     }
 }

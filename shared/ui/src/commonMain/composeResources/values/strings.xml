@@ -432,4 +432,14 @@
     <string name="library_new_many">%1$d new chapters</string>
     <string name="library_new_none">No new chapters</string>
     <string name="library_update_failed">%1$d works couldn't be updated</string>
+    <string name="source_settings_open">%1$s settings</string>
+    <string name="source_settings_languages">Chapter languages</string>
+    <string name="source_settings_follow">Same as the content languages</string>
+    <string name="source_settings_follow_hint">Turn off to choose others just for this source.</string>
+    <string name="source_settings_quality">Image quality</string>
+    <string name="source_settings_quality_original">Original</string>
+    <string name="source_settings_quality_saver">Data saver</string>
+    <string name="source_settings_quality_hint">Data saver loads smaller, compressed pages: faster and lighter on mobile data.</string>
+    <string name="source_settings_content">Content</string>
+    <string name="source_settings_suggestive">Suggestive content</string>
 </resources>

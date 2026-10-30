@@ -60,6 +60,8 @@ class MangaDexSourceTest {
 
     private var report = true
     private var ratings = setOf("safe")
+    private var saver = false
+    private var languages = setOf("pt-br")
 
     private val source by lazy {
         MangaDexSource(
@@ -78,8 +80,9 @@ class MangaDexSourceTest {
                         }
                     },
                 ),
-            contentLanguages = { setOf("pt-br") },
+            contentLanguages = { languages },
             contentRatings = { ratings },
+            dataSaver = { saver },
             clock = clock,
             sleep = {
                 waits += it
@@ -183,6 +186,36 @@ class MangaDexSourceTest {
             val image = requests.first { it.url.host == "node.example.net" }
             image.url.toString() shouldBe "https://node.example.net/data/hash1/p1.png"
             requests.count { it.url.encodedPath.startsWith("/at-home/") } shouldBe 1
+        }
+
+    @Test
+    fun RF06_dataSaverAsksTheSmallerPages() =
+        runTest {
+            saver = true
+            val pages = source.pages(manga, chapter)
+            pages.map { it.imageUrl } shouldContainExactly
+                listOf("mangadex-page:ch1/saver/p1.jpg", "mangadex-page:ch1/saver/p2.jpg")
+            source.image(pages[1].imageUrl, emptyMap()) shouldBe byteArrayOf(1, 2, 3)
+            requests.first { it.url.host == "node.example.net" }.url.toString() shouldBe
+                "https://node.example.net/data-saver/hash1/p2.jpg"
+        }
+
+    @Test
+    fun RF06_onlyPortugueseChaptersWhenOnlyPtBrIsChosen() =
+        runTest {
+            languages = setOf("pt-br")
+            source.chapters(manga)
+            requests
+                .first { it.url.encodedPath.endsWith("/feed") }
+                .url.parameters
+                .getAll("translatedLanguage[]") shouldBe listOf("pt-br")
+            languages = setOf("pt-br", "en")
+            requests.clear()
+            source.chapters(manga)
+            requests
+                .first { it.url.encodedPath.endsWith("/feed") }
+                .url.parameters
+                .getAll("translatedLanguage[]") shouldBe listOf("pt-br", "en")
         }
 
     @Test

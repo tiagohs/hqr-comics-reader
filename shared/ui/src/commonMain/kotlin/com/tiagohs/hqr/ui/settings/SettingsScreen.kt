@@ -44,9 +44,6 @@ import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.action_ok
 import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.resources.settings_about
-import com.tiagohs.hqr.ui.resources.settings_adult_confirm
-import com.tiagohs.hqr.ui.resources.settings_adult_message
-import com.tiagohs.hqr.ui.resources.settings_adult_title
 import com.tiagohs.hqr.ui.resources.settings_appearance
 import com.tiagohs.hqr.ui.resources.settings_backup
 import com.tiagohs.hqr.ui.resources.settings_cache
@@ -65,7 +62,6 @@ import com.tiagohs.hqr.ui.resources.settings_language_system
 import com.tiagohs.hqr.ui.resources.settings_local_folder
 import com.tiagohs.hqr.ui.resources.settings_manage_sources
 import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive
-import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive_hint
 import com.tiagohs.hqr.ui.resources.settings_no_folder
 import com.tiagohs.hqr.ui.resources.settings_other
 import com.tiagohs.hqr.ui.resources.settings_pure_black
@@ -130,24 +126,6 @@ fun SettingsScreen(
     val theme by prefs.theme.collectAsStateWithLifecycle()
     val coverColor by prefs.coverColor.collectAsStateWithLifecycle()
     val folder by prefs.localFolder.collectAsStateWithLifecycle()
-    val suggestive by prefs.mangaDexSuggestive.collectAsStateWithLifecycle()
-    var askAge by remember { mutableStateOf(false) }
-    if (askAge) {
-        // RF-08: suggestive content only after the 18+ confirmation.
-        AlertDialog(
-            onDismissRequest = { askAge = false },
-            title = { Text(stringResource(Res.string.settings_adult_title)) },
-            text = { Text(stringResource(Res.string.settings_adult_message)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    prefs.setMangaDexSuggestive(true)
-                    askAge = false
-                }) { Text(stringResource(Res.string.settings_adult_confirm)) }
-            },
-            dismissButton = { TextButton(onClick = { askAge = false }) { Text(stringResource(Res.string.action_cancel)) } },
-        )
-    }
-    val toggleSuggestive = { if (suggestive) prefs.setMangaDexSuggestive(false) else askAge = true }
     val pick = rememberFolderPicker { }
     Scaffold(topBar = {
         TopAppBar(title = { Text(stringResource(Res.string.nav_settings), style = MaterialTheme.typography.headlineLarge) })
@@ -261,14 +239,7 @@ fun SettingsScreen(
                     modifier = Modifier.clickable { pick() },
                 )
             }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(Res.string.settings_mangadex_suggestive)) },
-                    supportingContent = { Text(stringResource(Res.string.settings_mangadex_suggestive_hint)) },
-                    trailingContent = { Switch(checked = suggestive, onCheckedChange = null) },
-                    modifier = Modifier.toggleable(value = suggestive, role = Role.Switch, onValueChange = { toggleSuggestive() }),
-                )
-            }
+            item { SuggestiveSetting(prefs, Res.string.settings_mangadex_suggestive) }
             item { Section(Res.string.settings_other) }
             item {
                 ListItem(

@@ -66,6 +66,7 @@ import com.tiagohs.hqr.ui.settings.UpdateScreen
 import com.tiagohs.hqr.ui.sources.AddServerScreen
 import com.tiagohs.hqr.ui.sources.BridgeScreen
 import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
+import com.tiagohs.hqr.ui.sources.SourceSettingsScreen
 import com.tiagohs.hqr.ui.sources.SourcesScreen
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
@@ -230,8 +231,10 @@ private fun AppNavigation(dark: Boolean) {
                     onEditServer = { nav.navigate(Route.AddServer(it)) },
                     onOpenServer = { nav.navigate(Route.ServerCatalog(it)) },
                     onBridge = { nav.navigate(Route.Bridge) },
+                    onSourceSettings = { nav.navigate(Route.SourceSettings) },
                 )
             }
+            composable<Route.SourceSettings> { SourceSettingsScreen(onBack = { nav.popBackStack() }) }
             composable<Route.Bridge> { BridgeScreen(onBack = { nav.popBackStack() }) }
             composable<Route.AddServer> { back -> AddServerScreen(back.toRoute<Route.AddServer>().id, onDone = { nav.popBackStack() }) }
             composable<Route.ServerCatalog> { back ->

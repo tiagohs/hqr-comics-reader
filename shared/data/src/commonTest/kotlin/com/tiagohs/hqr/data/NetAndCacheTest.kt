@@ -168,6 +168,27 @@ class NetAndCacheTest {
     }
 
     @Test
+    fun RF06_mangaDexLanguagesFollowTheContentOnesUntilChosenAndSaverPersists() {
+        val settings = MapSettings()
+        AppPreferences(settings).apply {
+            setContentLanguages(setOf("en", "pt-br"))
+            mangaDexLanguages() shouldBe setOf("en", "pt-br")
+            mangaDexLanguagesOverride.value shouldBe null
+            setMangaDexLanguages(setOf("pt-br"))
+            mangaDexDataSaver.value shouldBe false
+            setMangaDexDataSaver(true)
+        }
+        AppPreferences(settings).apply {
+            mangaDexLanguages() shouldBe setOf("pt-br")
+            mangaDexDataSaver.value shouldBe true
+            // Back to following the content languages.
+            setMangaDexLanguages(null)
+            mangaDexLanguages() shouldBe setOf("en", "pt-br")
+        }
+        AppPreferences(settings).mangaDexLanguagesOverride.value shouldBe null
+    }
+
+    @Test
     fun RF08_suggestiveOnlyWhenTurnedOn() {
         val prefs = AppPreferences(MapSettings())
         prefs.mangaDexRatings() shouldBe setOf("safe")

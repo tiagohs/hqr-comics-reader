@@ -21,10 +21,10 @@ class DemoSource(
     private val kind: ReadingKind = ReadingKind.MANGA,
     /** Adds chapter 16, licensed: only on the publisher's site (RF-11). */
     private val externalChapter: Boolean = false,
+    override val id: SourceId = SourceId("demo"),
 ) : CatalogSource,
     SearchSource,
     ImageSource {
-    override val id = SourceId("demo")
     override val name = "MangaDex"
     override val languages = listOf("pt-br", "en")
 

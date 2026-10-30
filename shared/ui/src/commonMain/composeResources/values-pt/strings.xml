@@ -432,4 +432,14 @@
     <string name="library_new_many">%1$d capítulos novos</string>
     <string name="library_new_none">Nenhum capítulo novo</string>
     <string name="library_update_failed">%1$d obras não atualizaram</string>
+    <string name="source_settings_open">Ajustes do %1$s</string>
+    <string name="source_settings_languages">Idiomas dos capítulos</string>
+    <string name="source_settings_follow">Os mesmos dos idiomas de conteúdo</string>
+    <string name="source_settings_follow_hint">Desligue para escolher outros só para esta fonte.</string>
+    <string name="source_settings_quality">Qualidade das imagens</string>
+    <string name="source_settings_quality_original">Original</string>
+    <string name="source_settings_quality_saver">Econômica</string>
+    <string name="source_settings_quality_hint">A econômica carrega páginas menores e comprimidas: mais rápido e gasta menos dados móveis.</string>
+    <string name="source_settings_content">Conteúdo</string>
+    <string name="source_settings_suggestive">Conteúdo sugestivo</string>
 </resources>

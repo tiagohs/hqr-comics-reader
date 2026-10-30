@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -32,6 +33,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.data.settings.AppPreferences
+import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.source.Bridge
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
@@ -55,6 +57,7 @@ import com.tiagohs.hqr.ui.resources.server_edit_title
 import com.tiagohs.hqr.ui.resources.server_open
 import com.tiagohs.hqr.ui.resources.settings_local_folder
 import com.tiagohs.hqr.ui.resources.settings_no_folder
+import com.tiagohs.hqr.ui.resources.source_settings_open
 import com.tiagohs.hqr.ui.resources.sources_add_server
 import com.tiagohs.hqr.ui.resources.sources_local
 import com.tiagohs.hqr.ui.resources.sources_off_by_list
@@ -80,6 +83,7 @@ fun SourcesScreen(
     onEditServer: (String) -> Unit = {},
     onOpenServer: (String) -> Unit = {},
     onBridge: () -> Unit = {},
+    onSourceSettings: () -> Unit = {},
     viewModel: SourcesViewModel = koinViewModel(),
     prefs: AppPreferences = koinInject(),
 ) {
@@ -129,7 +133,16 @@ fun SourcesScreen(
                         )
                     },
                     leadingContent = { SourceMonogram(row.name) },
-                    trailingContent = { Switch(checked = row.on, onCheckedChange = null, enabled = !offByList) },
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // RF-06: MangaDex has its own settings (SCR-SRC-002).
+                            if (row.id == SourceId.MANGADEX) {
+                                val label = stringResource(Res.string.source_settings_open, row.name)
+                                IconButton(onClick = onSourceSettings) { Icon(HqrIcons.Tune, label) }
+                            }
+                            Switch(checked = row.on, onCheckedChange = null, enabled = !offByList)
+                        }
+                    },
                     modifier =
                         Modifier.toggleable(value = row.on, enabled = !offByList, role = Role.Switch) {
                             viewModel.setEnabled(row.id, it)

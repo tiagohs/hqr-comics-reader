@@ -11,9 +11,9 @@
 | RF-03 | Should | UC-001, UC-012 | settings | SCR-EXP-001, SCR-SRC-001 | FEAT-025 | GlobalSearchViewModelTest, SourceConfigTest, SourceRegistryTest, SourcesScreensTest, SourcesViewModelTest |
 | RF-04 | Must | UC-001, UC-007 | net, ADR-005 | — | FEAT-001 | HqNowSourceTest, MangaDexSourceTest, NetAndCacheTest |
 | RF-05 | Must | UC-001, UC-002 | browse | SCR-STA-001 | FEAT-012 | BrowseAndMangaViewModelTest, ContractsTest, GlobalSearchViewModelTest, HqNowSourceTest, MangaDexSourceTest, NetAndCacheTest, ReaderAndHistoryViewModelTest, SearchScreensTest |
-| RF-06 | Should | UC-012 | settings | SCR-SRC-002 | FEAT-025 | — |
+| RF-06 | Should | UC-012 | settings | SCR-SRC-002 | FEAT-025 | MangaDexSourceTest, NetAndCacheTest, SourcesScreensTest |
 | RF-07 | Must | UC-003 | sources/mangadex, ADR-008 | SCR-OBR-001 | FEAT-002 | NetAndCacheTest |
-| RF-08 | Must | UC-012 | sources/mangadex, ADR-008 | SCR-SRC-002 | FEAT-002 | MangaDexSourceTest, NetAndCacheTest |
+| RF-08 | Must | UC-012 | sources/mangadex, ADR-008 | SCR-SRC-002 | FEAT-002 | MangaDexSourceTest, NetAndCacheTest, SourcesScreensTest |
 | RF-09 | Must | UC-004 | sources/mangadex, ADR-005, ADR-008 | — | FEAT-001 | MangaDexSourceTest |
 | RF-10 | Must | UC-012 | sources/mangadex | SCR-SRC-002 | FEAT-001 | — |
 | RF-11 | Should | UC-003 | sources/mangadex | SCR-OBR-001 | FEAT-034 | MangaScreensTest |

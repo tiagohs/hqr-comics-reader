@@ -432,4 +432,14 @@
     <string name="library_new_many">%1$d capítulos nuevos</string>
     <string name="library_new_none">Ningún capítulo nuevo</string>
     <string name="library_update_failed">%1$d obras no se actualizaron</string>
+    <string name="source_settings_open">Ajustes de %1$s</string>
+    <string name="source_settings_languages">Idiomas de los capítulos</string>
+    <string name="source_settings_follow">Los mismos de los idiomas de contenido</string>
+    <string name="source_settings_follow_hint">Desactívalo para elegir otros solo para esta fuente.</string>
+    <string name="source_settings_quality">Calidad de las imágenes</string>
+    <string name="source_settings_quality_original">Original</string>
+    <string name="source_settings_quality_saver">Ahorro de datos</string>
+    <string name="source_settings_quality_hint">El ahorro de datos carga páginas más pequeñas y comprimidas: más rápido y gasta menos datos móviles.</string>
+    <string name="source_settings_content">Contenido</string>
+    <string name="source_settings_suggestive">Contenido sugerente</string>
 </resources>

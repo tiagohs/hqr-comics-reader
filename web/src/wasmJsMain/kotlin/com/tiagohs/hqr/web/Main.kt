@@ -67,8 +67,9 @@ fun main() {
                     val prefs = get<AppPreferences>()
                     MangaDexSource(
                         get(),
-                        contentLanguages = { prefs.contentLanguages.value },
+                        contentLanguages = { prefs.mangaDexLanguages() },
                         contentRatings = { prefs.mangaDexRatings() },
+                        dataSaver = { prefs.mangaDexDataSaver.value },
                         reportImages = false,
                     )
                 }

@@ -1,0 +1,10 @@
+{
+  "name": "hqr-bridge",
+  "private": true,
+  "type": "module",
+  "description": "HQR personal bridge (Cloudflare Worker) for the web app's online sources",
+  "scripts": {
+    "test": "node --test",
+    "deploy": "wrangler deploy"
+  }
+}

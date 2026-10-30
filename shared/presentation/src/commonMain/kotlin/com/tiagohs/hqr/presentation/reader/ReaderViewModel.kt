@@ -56,8 +56,11 @@ interface ReaderSettingsStore {
 /**
  * The reader engine (ADR-007): pages, current page, saving progress 500 ms after the last change (RF-43), the
  * chapter transition with gap warning (RF-42) and the next chapter loaded near the end (RF-41).
+ *
+ * One port per concern (pages, progress, history, settings, cache, downloads), all from Koin; one function per gesture
+ * or key.
  */
-@Suppress("LongParameterList") // One port per concern (pages, progress, history, settings, cache, downloads), all from Koin.
+@Suppress("LongParameterList", "TooManyFunctions")
 class ReaderViewModel(
     private val mangaId: Long,
     private val chapterId: Long,
@@ -203,6 +206,21 @@ class ReaderViewModel(
     fun toggleMenu() = _state.update { it.copy(menuVisible = !it.menuVisible) }
 
     fun hideMenu() = _state.update { it.copy(menuVisible = false) }
+
+    fun showMenu() = _state.update { it.copy(menuVisible = true) }
+
+    /** RF-112: the keyboard turns pages; past the last one comes the transition (RF-42). */
+    fun key(action: KeyAction) {
+        val s = _state.value
+        if (s.pages.isEmpty() || s.transition != null) return
+        when (action) {
+            KeyAction.NEXT -> if (s.page >= s.pageCount - 1) onReachedEnd() else onPageChanged(s.page + 1)
+            KeyAction.PREVIOUS -> onPageChanged((s.page - 1).coerceAtLeast(0))
+            KeyAction.FIRST -> onPageChanged(0)
+            KeyAction.LAST -> onPageChanged(s.pageCount - 1)
+            else -> Unit
+        }
+    }
 
     /**
      * RF-41: the next [ReaderSettings.preload] pages go to the cache; 3 pages before the end, the next chapter's page

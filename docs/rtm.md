@@ -112,11 +112,11 @@
 | RF-105 | Must | UC-012 | sourceconfig, ADR-019 | SCR-SRC-001 | FEAT-024 | SourceConfigTest, SourceRegistryTest, SourcesViewModelTest |
 | RF-106 | Should | UC-001 | challenge, ADR-020 | SCR-STA-001 | FEAT-036 | — |
 | RF-107 | Should | UC-014 | ui, web, ADR-004, ADR-022 | SCR-WEB-004 | FEAT-050 | — |
-| RF-108 | Should | UC-014 | bridge, ADR-023 | SCR-WEB-001 | FEAT-051 | — |
-| RF-109 | Should | UC-014 | bridge-worker/, ADR-023 | SCR-WEB-001 | FEAT-051 | — |
+| RF-108 | Should | UC-014 | bridge, ADR-023 | SCR-WEB-001 | FEAT-051 | BridgeTest, WebScreensTest |
+| RF-109 | Should | UC-014 | bridge-worker/, ADR-023 | SCR-WEB-001 | FEAT-051 | BridgeTest |
 | RF-110 | Should | UC-014 | web | SCR-WEB-002 | FEAT-052 | — |
-| RF-111 | Should | UC-014 | web, ADR-023 | SCR-SRV-001 | FEAT-053 | — |
-| RF-112 | Should | UC-014 | web, ADR-022 | SCR-WEB-003 | FEAT-054 | — |
+| RF-111 | Should | UC-014 | web, ADR-023 | SCR-SRV-001 | FEAT-053 | BridgeTest |
+| RF-112 | Should | UC-014 | web, ADR-022 | SCR-WEB-003 | FEAT-054 | ReaderAndHistoryViewModelTest, WebScreensTest |
 | RF-113 | Should | UC-014 | web, ADR-022 | SCR-RDR-001 | FEAT-050 | — |
 | RF-114 | Should | UC-014 | web, ADR-023 | SCR-SRC-001, SCR-WEB-004 | FEAT-050 | — |
 

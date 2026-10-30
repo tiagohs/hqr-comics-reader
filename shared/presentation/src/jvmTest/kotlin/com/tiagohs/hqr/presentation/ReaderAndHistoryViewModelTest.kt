@@ -9,7 +9,11 @@ import com.tiagohs.hqr.domain.source.SourceException
 import com.tiagohs.hqr.presentation.common.ErrorKind
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.reader.ChapterPages
+import com.tiagohs.hqr.presentation.reader.KeyAction
 import com.tiagohs.hqr.presentation.reader.PagePrefetcher
+import com.tiagohs.hqr.presentation.reader.ReaderKey
+import com.tiagohs.hqr.presentation.reader.ReaderKeys
+import com.tiagohs.hqr.presentation.reader.ReaderMode
 import com.tiagohs.hqr.presentation.reader.ReaderSettings
 import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
@@ -141,6 +145,26 @@ class ReaderAndHistoryViewModelTest : MainDispatcherTest() {
                 .first { !it.loading && it.chapter?.number == 12.0 }
                 .previous
                 ?.number shouldBe 10.0
+        }
+
+    @Test
+    fun RF112_arrowsTurnPagesInTheReadingDirectionAndPassTheEnd() =
+        runTest {
+            val (id, chapters) = work(1.0, 2.0)
+            val vm = reader(id, chapters[0].id, 0)
+            val loaded = vm.loaded()
+            repeat(3) { vm.key(ReaderKeys.action(ReaderKey.RIGHT, ReaderMode.LEFT_TO_RIGHT)!!) }
+            vm.state.value.page shouldBe 3
+            vm.key(ReaderKeys.action(ReaderKey.LEFT, ReaderMode.LEFT_TO_RIGHT)!!)
+            vm.state.value.page shouldBe 2
+            // Right to left: the left arrow goes forward.
+            ReaderKeys.action(ReaderKey.LEFT, ReaderMode.RIGHT_TO_LEFT) shouldBe KeyAction.NEXT
+            ReaderKeys.action(ReaderKey.SPACE, ReaderMode.RIGHT_TO_LEFT) shouldBe KeyAction.NEXT
+            ReaderKeys.action(ReaderKey.QUESTION, ReaderMode.WEBTOON) shouldBe KeyAction.SHORTCUTS
+            vm.key(KeyAction.LAST)
+            vm.state.value.page shouldBe loaded.pageCount - 1
+            vm.key(KeyAction.NEXT)
+            (vm.state.value.transition != null) shouldBe true
         }
 
     @Test

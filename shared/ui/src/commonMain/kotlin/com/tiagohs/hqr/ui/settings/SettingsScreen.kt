@@ -75,6 +75,9 @@ import com.tiagohs.hqr.ui.resources.settings_theme_dark
 import com.tiagohs.hqr.ui.resources.settings_theme_light
 import com.tiagohs.hqr.ui.resources.settings_theme_system
 import com.tiagohs.hqr.ui.resources.settings_updates
+import com.tiagohs.hqr.ui.resources.web_crash_reason
+import com.tiagohs.hqr.ui.resources.web_downloads_reason
+import com.tiagohs.hqr.ui.resources.web_only_phone
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.dynamicColorAvailable
 import kotlinx.coroutines.launch
@@ -234,6 +237,9 @@ fun SettingsScreen(
                         modifier = Modifier.clickable(onClick = onDownloads),
                     )
                 }
+            } else if (runsInBrowser) {
+                // RF-114: shown with the reason instead of disappearing.
+                item { Unavailable(Res.string.settings_downloads, Res.string.web_downloads_reason, HqrIcons.Download) }
             }
             item {
                 ListItem(
@@ -287,6 +293,9 @@ fun SettingsScreen(
                 }
             }
             // RNF-10: crash reports, only where the app sends them.
+            if (crashReports == null && runsInBrowser) {
+                item { Unavailable(Res.string.settings_crash_reports, Res.string.web_crash_reason, HqrIcons.Info) }
+            }
             if (crashReports != null) {
                 item {
                     ListItem(
@@ -355,5 +364,19 @@ private fun LanguageDialog(
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+    )
+}
+
+/** RF-114: a feature this platform doesn't have, greyed out with why. */
+@Composable
+private fun Unavailable(
+    title: StringResource,
+    reason: StringResource,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+) {
+    ListItem(
+        headlineContent = { Text(stringResource(title), color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        supportingContent = { Text(stringResource(Res.string.web_only_phone) + " · " + stringResource(reason)) },
+        leadingContent = { Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
     )
 }

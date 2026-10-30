@@ -35,6 +35,10 @@ sealed interface Route {
     @Serializable
     data object Downloads : Route
 
+    /** SCR-WEB-001: the user's bridge, only in the browser (RF-108). */
+    @Serializable
+    data object Bridge : Route
+
     @Serializable
     data object Backup : Route
 

@@ -38,6 +38,7 @@ import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.domain.source.SourceRegistry
+import com.tiagohs.hqr.ui.components.DroppedFilesBanner
 import com.tiagohs.hqr.ui.components.OfflineBanner
 import com.tiagohs.hqr.ui.components.hqrImageLoader
 import com.tiagohs.hqr.ui.downloads.DownloadsScreen
@@ -63,6 +64,7 @@ import com.tiagohs.hqr.ui.settings.SettingsScreen
 import com.tiagohs.hqr.ui.settings.UpdateNotice
 import com.tiagohs.hqr.ui.settings.UpdateScreen
 import com.tiagohs.hqr.ui.sources.AddServerScreen
+import com.tiagohs.hqr.ui.sources.BridgeScreen
 import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
 import com.tiagohs.hqr.ui.sources.SourcesScreen
 import com.tiagohs.hqr.ui.theme.HqrIcons
@@ -146,6 +148,7 @@ fun HqrApp(systemDark: Boolean) {
                                     Modifier.statusBarsPadding(),
                                 ) { OfflineBanner(stringResource(Res.string.error_offline_banner)) }
                             }
+                            DroppedFilesBanner()
                             Box(Modifier.weight(1f)) { AppNavigation(dark) }
                         }
                     }
@@ -207,6 +210,7 @@ private fun AppNavigation(dark: Boolean) {
                     onOpenSource = { nav.navigate(Route.BrowseSource(it)) },
                     onSearch = { nav.navigate(Route.Search) },
                     onManageSources = { nav.navigate(Route.Sources) },
+                    onBridge = { nav.navigate(Route.Bridge) },
                 )
             }
             composable<Route.Search> {
@@ -224,8 +228,10 @@ private fun AppNavigation(dark: Boolean) {
                     onAddServer = { nav.navigate(Route.AddServer()) },
                     onEditServer = { nav.navigate(Route.AddServer(it)) },
                     onOpenServer = { nav.navigate(Route.ServerCatalog(it)) },
+                    onBridge = { nav.navigate(Route.Bridge) },
                 )
             }
+            composable<Route.Bridge> { BridgeScreen(onBack = { nav.popBackStack() }) }
             composable<Route.AddServer> { back -> AddServerScreen(back.toRoute<Route.AddServer>().id, onDone = { nav.popBackStack() }) }
             composable<Route.ServerCatalog> { back ->
                 ServerCatalogScreen(
@@ -256,6 +262,7 @@ private fun AppNavigation(dark: Boolean) {
                     initialQuery = route.query,
                     onBack = { nav.popBackStack() },
                     onOpenManga = { nav.navigate(Route.Manga(it)) },
+                    onBridge = { nav.navigate(Route.Bridge) },
                 )
             }
             composable<Route.Manga> { back ->
@@ -271,6 +278,8 @@ private fun AppNavigation(dark: Boolean) {
                 ReaderScreen(route.mangaId, route.chapterId, route.page, onBack = { nav.popBackStack() })
             }
         }
+        // RF-113: in the browser, each screen has its address and the back and forward buttons work.
+        BrowserNavigation(nav)
     }
 }
 

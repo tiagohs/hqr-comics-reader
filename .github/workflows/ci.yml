@@ -55,6 +55,10 @@ jobs:
       - name: Strings in the three languages
         run: python3 scripts/strings/check_strings.py
 
+      - name: Bridge tests (Cloudflare Worker, RF-109)
+        run: |
+          if command -v node >/dev/null; then (cd bridge-worker && node --test); else echo "::warning title=Bridge::Node.js not found on the Mac: bridge tests skipped"; fi
+
       - name: Tests, coverage, ktlint, detekt and lint
         id: tests
         run: |

@@ -5,6 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -22,12 +23,16 @@ kotlin {
             implementation(project(":shared:data"))
             implementation(project(":sources:local"))
             implementation(project(":sources:mangadex"))
+            implementation(project(":sources:hqnow"))
+            implementation(project(":sources:opds"))
             implementation(libs.koin.core)
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.cmp.runtime)
             implementation(libs.cmp.ui)
             implementation(libs.cmp.foundation)
             implementation(libs.sqlite.web)
             implementation(npm("@sqlite.org/sqlite-wasm", "3.50.4-build1"))
+            implementation(npm("pdfjs-dist", "4.10.38"))
         }
     }
 }
@@ -41,4 +46,17 @@ val sqliteWasm =
         }
         into(layout.buildDirectory.dir("generated/sqlite"))
     }
-kotlin.sourceSets.named("wasmJsMain") { resources.srcDir(sqliteWasm.map { it.destinationDir }) }
+
+// PDF pages in the browser (ADR-011): pdf.js and its worker go next to the app too, loaded only when a PDF opens.
+val pdfJs =
+    tasks.register<Copy>("copyPdfJs") {
+        dependsOn(rootProject.tasks.named("kotlinWasmNpmInstall"))
+        from(rootProject.layout.buildDirectory.dir("wasm/node_modules/pdfjs-dist/build")) {
+            include("pdf.min.mjs", "pdf.worker.min.mjs")
+        }
+        into(layout.buildDirectory.dir("generated/pdfjs"))
+    }
+kotlin.sourceSets.named("wasmJsMain") {
+    resources.srcDir(sqliteWasm.map { it.destinationDir })
+    resources.srcDir(pdfJs.map { it.destinationDir })
+}

@@ -29,3 +29,34 @@ interface FileTree {
         length: Int,
     ): ByteArray
 }
+
+/** What an import brought in and what it refused, with the file names (RF-110). */
+data class ImportResult(
+    val imported: List<String>,
+    val refused: List<String>,
+)
+
+/** Used and available bytes of the browser storage (RF-110). */
+data class StorageUsage(
+    val used: Long,
+    val quota: Long,
+)
+
+/**
+ * RF-110: in the browser, files are imported into the app's storage (by picker or by dropping them on the window)
+ * instead of reading a folder. CBR is refused with its reason.
+ */
+interface ImportedFiles {
+    /** Grows on every import or removal, so the screens reload. */
+    val changes: kotlinx.coroutines.flow.StateFlow<Int>
+
+    /** Results of files dropped on the window. */
+    val dropped: kotlinx.coroutines.flow.Flow<ImportResult>
+
+    suspend fun pick(): ImportResult
+
+    suspend fun usage(): StorageUsage?
+
+    /** Asks the browser not to evict the files when space is short. */
+    suspend fun persist(): Boolean
+}

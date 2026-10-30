@@ -46,6 +46,7 @@ import java.io.File
 /** Starts Koin with an in-memory database, the given sources and map settings, like the apps do. */
 fun startTestKoin(
     onboarded: Boolean = true,
+    extra: org.koin.core.module.Module = module {},
     sources: (HttpClient) -> List<Source> = { listOf(DemoSource()) },
 ): HqrDatabase {
     val db = inMemoryDatabase()
@@ -69,6 +70,7 @@ fun startTestKoin(
             },
             coreModule,
             downloadModule,
+            extra,
         )
     }
     return db

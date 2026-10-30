@@ -120,7 +120,7 @@ Mesmo desenho do Script Reader: `ios/HQR.xcodeproj` com pastas sincronizadas, fr
 
 ### 3.2 App web (marco Web)
 
-`web/` é um alvo `wasmJs` que usa o mesmo `ui` do Android (ADR-022). Diferenças por interface: `FileTree` sobre o OPFS (importação por seletor ou arrastar e soltar), `PdfPages` pelo pdf.js, `ArchiveReader` só ZIP/CBZ e CB7, `SecretStore` no armazenamento do navegador, `DownloadScheduler` que só roda com a aba aberta, e o `bridge` na frente das fontes online (ADR-023). Fontes com verificação do Cloudflare (`challenge`), `updater` e Crashlytics não existem na web. Rotas da navegação viram o endereço do navegador (RF-113).
+`web/` é um alvo `wasmJs` que usa o mesmo `ui` do Android (ADR-022). Diferenças por interface: `FileTree` sobre o OPFS (importação por seletor ou arrastar e soltar), `PdfPages` pelo pdf.js, `ArchiveReader` só ZIP/CBZ (CBR e CB7 recusados com o motivo), `SecretStore` no armazenamento do navegador, Downloads só no app do celular por enquanto (mostrados com o motivo, RF-114), e o `bridge` na frente das fontes online (ADR-023). Fontes com verificação do Cloudflare (`challenge`), `updater` e Crashlytics não existem na web. Rotas da navegação viram o endereço do navegador (RF-113).
 
 ## 4. Execução
 

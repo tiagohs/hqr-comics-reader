@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.ui.sources
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,9 +16,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -25,12 +32,24 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.data.settings.AppPreferences
+import com.tiagohs.hqr.domain.source.Bridge
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
+import com.tiagohs.hqr.sources.local.ImportResult
+import com.tiagohs.hqr.sources.local.ImportedFiles
+import com.tiagohs.hqr.sources.local.StorageUsage
+import com.tiagohs.hqr.ui.components.importMessage
 import com.tiagohs.hqr.ui.components.sourceDisplayName
+import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.explore.SourceMonogram
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
+import com.tiagohs.hqr.ui.resources.bridge_configured
+import com.tiagohs.hqr.ui.resources.bridge_needed
+import com.tiagohs.hqr.ui.resources.bridge_title
+import com.tiagohs.hqr.ui.resources.files_import
+import com.tiagohs.hqr.ui.resources.files_title
+import com.tiagohs.hqr.ui.resources.files_usage
 import com.tiagohs.hqr.ui.resources.server_delete
 import com.tiagohs.hqr.ui.resources.server_edit_title
 import com.tiagohs.hqr.ui.resources.server_open
@@ -45,8 +64,10 @@ import com.tiagohs.hqr.ui.resources.sources_servers_empty
 import com.tiagohs.hqr.ui.resources.sources_title
 import com.tiagohs.hqr.ui.settings.rememberFolderPicker
 import com.tiagohs.hqr.ui.theme.HqrIcons
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -58,11 +79,16 @@ fun SourcesScreen(
     onAddServer: () -> Unit,
     onEditServer: (String) -> Unit = {},
     onOpenServer: (String) -> Unit = {},
+    onBridge: () -> Unit = {},
     viewModel: SourcesViewModel = koinViewModel(),
     prefs: AppPreferences = koinInject(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val folder by prefs.localFolder.collectAsStateWithLifecycle()
+    val bridge = getKoin().getOrNull<Bridge>()
+    val imported = getKoin().getOrNull<ImportedFiles>()
+    // The bridge exists or not for the whole run: the condition never changes between compositions.
+    val bridgeAddress = bridge?.address?.collectAsStateWithLifecycle()?.value
     val pick = rememberFolderPicker { }
     Scaffold(topBar = {
         TopAppBar(
@@ -72,6 +98,23 @@ fun SourcesScreen(
     }) { padding ->
         LazyColumn(Modifier.padding(padding).fillMaxSize()) {
             item { Section(Res.string.sources_online) }
+            // RF-108: the bridge, where the online sources need one (the browser).
+            if (bridge != null) {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(Res.string.bridge_title)) },
+                        supportingContent = {
+                            Text(
+                                bridgeAddress?.let { stringResource(Res.string.bridge_configured, it) }
+                                    ?: stringResource(Res.string.bridge_needed),
+                            )
+                        },
+                        leadingContent = { Icon(HqrIcons.Server, null) },
+                        trailingContent = { Icon(HqrIcons.Expand, null) },
+                        modifier = Modifier.clickable(onClick = onBridge),
+                    )
+                }
+            }
             items(state.online, key = { it.id.value }) { row ->
                 val offByList = row.status == SourceRegistry.Status.OFF_BY_LIST
                 ListItem(
@@ -94,15 +137,11 @@ fun SourcesScreen(
                 )
             }
             item { Section(Res.string.sources_local) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(Res.string.settings_local_folder)) },
-                    supportingContent = {
-                        Text(folder?.substringAfterLast("%3A")?.replace("%2F", "/") ?: stringResource(Res.string.settings_no_folder))
-                    },
-                    leadingContent = { Icon(HqrIcons.Folder, null) },
-                    modifier = Modifier.clickable { pick() },
-                )
+            if (imported != null) {
+                // RF-110: in the browser, the imported files and the space they use.
+                item { BrowserFilesRow(imported) }
+            } else {
+                item { LocalFolderRow(folder, pick) }
             }
             item { Section(Res.string.sources_servers) }
             items(state.servers, key = { it.id.value }) { server ->
@@ -145,5 +184,54 @@ private fun Section(title: StringResource) {
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp).semantics { heading() },
+    )
+}
+
+@Composable
+private fun LocalFolderRow(
+    folder: String?,
+    pick: () -> Unit,
+) {
+    ListItem(
+        headlineContent = { Text(stringResource(Res.string.settings_local_folder)) },
+        supportingContent = {
+            Text(folder?.substringAfterLast("%3A")?.replace("%2F", "/") ?: stringResource(Res.string.settings_no_folder))
+        },
+        leadingContent = { Icon(HqrIcons.Folder, null) },
+        modifier = Modifier.clickable { pick() },
+    )
+}
+
+@Composable
+private fun BrowserFilesRow(files: ImportedFiles) {
+    val changes by files.changes.collectAsStateWithLifecycle()
+    var usage by remember { mutableStateOf<StorageUsage?>(null) }
+    var result by remember { mutableStateOf<ImportResult?>(null) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(changes) { usage = files.usage() }
+    ListItem(
+        headlineContent = { Text(stringResource(Res.string.files_title)) },
+        supportingContent = {
+            Column {
+                usage?.let { Text(stringResource(Res.string.files_usage, formatBytes(it.used), formatBytes(it.quota))) }
+                importMessage(result)?.let {
+                    Text(
+                        it,
+                        color =
+                            MaterialTheme.colorScheme.error.takeIf { _ -> result?.refused?.isNotEmpty() == true }
+                                ?: MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        },
+        leadingContent = { Icon(HqrIcons.Folder, null) },
+        trailingContent = {
+            TextButton(onClick = {
+                scope.launch {
+                    files.persist()
+                    result = files.pick()
+                }
+            }) { Text(stringResource(Res.string.files_import)) }
+        },
     )
 }

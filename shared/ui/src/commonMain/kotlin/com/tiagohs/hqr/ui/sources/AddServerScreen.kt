@@ -47,6 +47,7 @@ import com.tiagohs.hqr.ui.resources.server_ok
 import com.tiagohs.hqr.ui.resources.server_password
 import com.tiagohs.hqr.ui.resources.server_problem_certificate
 import com.tiagohs.hqr.ui.resources.server_problem_cleartext
+import com.tiagohs.hqr.ui.resources.server_problem_cors
 import com.tiagohs.hqr.ui.resources.server_problem_credentials_in_address
 import com.tiagohs.hqr.ui.resources.server_problem_invalid_address
 import com.tiagohs.hqr.ui.resources.server_problem_not_opds
@@ -127,7 +128,15 @@ fun AddServerScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             when (val result = state.result) {
-                is AddServerViewModel.Result.Problem -> InlineError(stringResource(result.problem.message()))
+                is AddServerViewModel.Result.Problem -> {
+                    // RF-111: in the browser an unreachable server is most often one that blocks this address.
+                    val origin = browserOrigin()
+                    if (result.problem == ServerProblem.UNREACHABLE && origin != null) {
+                        InlineError(stringResource(Res.string.server_problem_cors, origin))
+                    } else {
+                        InlineError(stringResource(result.problem.message()))
+                    }
+                }
                 AddServerViewModel.Result.Ok ->
                     Text(
                         stringResource(Res.string.server_ok),

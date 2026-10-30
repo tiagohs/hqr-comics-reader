@@ -68,6 +68,7 @@ import coil3.compose.SubcomposeAsyncImage
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.presentation.color.CoverColor
+import com.tiagohs.hqr.presentation.reader.KeyAction
 import com.tiagohs.hqr.presentation.reader.PageScale
 import com.tiagohs.hqr.presentation.reader.ReaderBackground
 import com.tiagohs.hqr.presentation.reader.ReaderMode
@@ -129,6 +130,7 @@ fun ReaderScreen(
     val coverOn by prefs.coverColor.collectAsStateWithLifecycle()
     val seed = state.manga?.coverColor?.takeIf { coverOn } ?: CoverColor.VIOLET
     var settingsOpen by remember { mutableStateOf(false) }
+    var shortcutsOpen by remember { mutableStateOf(false) }
     HqrTheme(dark = true, seed = seed) {
         val background =
             when (state.settings.background) {
@@ -136,7 +138,25 @@ fun ReaderScreen(
                 ReaderBackground.GRAY -> Color(0xFF3A3A3C)
                 else -> Color.Black
             }
-        Box(Modifier.fillMaxSize().background(background)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(background)
+                .readerInput(
+                    mode = state.settings.mode,
+                    menuVisible = state.menuVisible,
+                    onAction = { action ->
+                        when (action) {
+                            KeyAction.FULLSCREEN -> toggleFullscreen()
+                            KeyAction.SHORTCUTS -> shortcutsOpen = true
+                            KeyAction.CLOSE -> onBack()
+                            else -> viewModel.key(action)
+                        }
+                    },
+                    onMouseMoved = viewModel::showMenu,
+                    onMouseIdle = viewModel::hideMenu,
+                ),
+        ) {
             when {
                 state.loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 state.error != null ->
@@ -166,6 +186,7 @@ fun ReaderScreen(
             AnimatedVisibility(state.menuVisible && state.transition == null && !state.loading, enter = fadeIn(), exit = fadeOut()) {
                 ReaderMenu(state, viewModel, onBack, onSettings = { settingsOpen = true })
             }
+            if (shortcutsOpen) ShortcutsDialog(onDismiss = { shortcutsOpen = false })
             if (settingsOpen) {
                 ReaderSettingsSheet(
                     settings = state.settings,

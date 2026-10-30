@@ -52,6 +52,7 @@ import com.tiagohs.hqr.presentation.reader.TapZones
 import com.tiagohs.hqr.presentation.settings.BackupViewModel
 import com.tiagohs.hqr.presentation.settings.UpdateViewModel
 import com.tiagohs.hqr.presentation.sources.AddServerViewModel
+import com.tiagohs.hqr.presentation.sources.BridgeViewModel
 import com.tiagohs.hqr.presentation.sources.ServerCatalogViewModel
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
 import com.tiagohs.hqr.sources.local.LocalSource
@@ -99,6 +100,7 @@ val coreModule: Module =
         }
         viewModel { BackupViewModel(get()) }
         viewModel { UpdateViewModel(get()) }
+        viewModel { BridgeViewModel(get()) }
         single<ServerManager> { OpdsServers(get(), get(), get(), get(), getOrNull<BookStore>() ?: MemoryBookStore()) }
         viewModel { (id: SourceId?) -> AddServerViewModel(get(), id, get()) }
         viewModel { (id: SourceId) -> ServerCatalogViewModel(id, get(), get(), get()) }

@@ -157,4 +157,4 @@ Mesmos SCR; `TabView` com os quatro destinos no iPhone, `NavigationSplitView` no
 - **Mouse:** todo item clicável tem hover (camada de estado do M3) e menu de contexto com as ações do toque longo; capas mostram "Continuar" no hover.
 - **Teclado:** foco visível em tudo; "/" abre a busca; no leitor, setas, espaço, F e "?" (SCR-WEB-003).
 - **Ponte:** fontes online sem ponte ficam visíveis com o selo "Precisa da ponte" e levam a SCR-WEB-001; nada some sem explicação.
-- **Arquivos:** soltar CBZ, CB7 ou PDF em qualquer tela abre a importação (SCR-WEB-002); o espaço do navegador aparece em Ajustes e em Downloads.
+- **Arquivos:** soltar CBZ ou PDF em qualquer tela importa e avisa no topo (SCR-WEB-002); o espaço do navegador e o botão "Importar arquivos" ficam em Fontes › Arquivos neste navegador.

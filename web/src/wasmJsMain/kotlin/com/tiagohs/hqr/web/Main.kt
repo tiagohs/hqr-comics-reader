@@ -20,6 +20,7 @@ import com.tiagohs.hqr.data.net.MemoryImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.local.FileTree
+import com.tiagohs.hqr.sources.local.ImportedFiles
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.data.settings.AppPreferences
@@ -27,10 +28,18 @@ import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
 import com.tiagohs.hqr.ui.navigation.HqrApp
 import io.ktor.client.HttpClient
+import com.tiagohs.hqr.data.bridge.PersonalBridge
+import com.tiagohs.hqr.data.bridge.routeThroughBridge
+import com.tiagohs.hqr.data.sources.SourceConfig
+import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.source.Bridge
+import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import kotlinx.browser.document
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.w3c.dom.Worker
+
+private const val USER_AGENT = "HQR/1.0.0 (https://github.com/tiagohs/hqr-comics-reader)"
 
 private fun sqliteWorker(): Worker = js("""new Worker(new URL('sqlite-worker.js', document.baseURI), { type: 'module' })""")
 
@@ -43,10 +52,16 @@ fun main() {
                     Room.databaseBuilder<HqrDatabase>(HqrDatabase.NAME).setDriver(WebWorkerSQLiteDriver(sqliteWorker())).buildHqr()
                 }
                 single<Settings> { StorageSettings() }
-                single<HttpClient> { hqrHttpClient("HQR/1.0.0 (https://github.com/tiagohs/hqr-comics-reader)") }
+                // RF-108, ADR-023: requests for the online sources go through the user's bridge; the bridge's own test
+                // goes straight to it.
+                single { PersonalBridge(get(), get(), hqrHttpClient(USER_AGENT)) }
+                single<Bridge> { get<PersonalBridge>() }
+                single<HttpClient> { hqrHttpClient(USER_AGENT) { routeThroughBridge(get()) } }
                 single<ImageCache> { MemoryImageCache() }
-                single<FileTree> { BrowserFileTree() }
-                single { LocalSource(get()) }
+                single { BrowserFileTree() }
+                single<FileTree> { get<BrowserFileTree>() }
+                single<ImportedFiles> { get<BrowserFileTree>() }
+                single { LocalSource(get(), get<BrowserFileTree>()) }
                 single {
                     val prefs = get<AppPreferences>()
                     MangaDexSource(
@@ -56,7 +71,8 @@ fun main() {
                         reportImages = false,
                     )
                 }
-                single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
+                single { HqNowSource(get(), apiUrl = { get<SourceConfig>().baseUrl(SourceId.HQ_NOW) ?: HqNowSource.API }) }
+                single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
                 single<SourceListFetcher> { HttpSourceListFetcher(get()) }
                 single<SecretStore> { SettingsSecretStore(get()) }
                 single<Connectivity> { BrowserConnectivity() }

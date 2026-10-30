@@ -58,7 +58,8 @@ open class SourceException(
     val kind: Kind,
     cause: Throwable? = null,
 ) : Exception(message, cause) {
-    enum class Kind { NETWORK, SERVER, PARSE, NOT_FOUND, AUTH, CHALLENGE, UNAVAILABLE, CERTIFICATE }
+    /** [BRIDGE]: in the browser, an online source with no bridge configured (RF-108). */
+    enum class Kind { NETWORK, SERVER, PARSE, NOT_FOUND, AUTH, CHALLENGE, UNAVAILABLE, CERTIFICATE, BRIDGE }
 }
 
 /**

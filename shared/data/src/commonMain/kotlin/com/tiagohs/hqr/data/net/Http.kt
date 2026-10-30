@@ -30,8 +30,12 @@ private const val SERVER_ERROR = 500
 private const val LAST_SERVER_ERROR = 599
 
 /** The shared client: 3 retries only on GET, with growing waits, and timeouts (ADR-005). */
-fun hqrHttpClient(userAgent: String): HttpClient =
+fun hqrHttpClient(
+    userAgent: String,
+    extra: io.ktor.client.HttpClientConfig<*>.() -> Unit = {},
+): HttpClient =
     httpClient {
+        extra()
         expectSuccess = false
         install(HttpTimeout) {
             connectTimeoutMillis = CONNECT_TIMEOUT_MS

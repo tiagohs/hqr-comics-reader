@@ -27,10 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tiagohs.hqr.domain.source.Bridge
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
+import com.tiagohs.hqr.ui.resources.bridge_needed
 import com.tiagohs.hqr.ui.resources.explore_manage_sources
 import com.tiagohs.hqr.ui.resources.explore_search_all
 import com.tiagohs.hqr.ui.resources.explore_sources
@@ -39,6 +41,7 @@ import com.tiagohs.hqr.ui.resources.search_hint
 import com.tiagohs.hqr.ui.theme.BalloonShape
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.getKoin
 import org.koin.compose.koinInject
 
 /** SCR-EXP-001: global search on top and the sources (the Feed joins with FEAT-026). */
@@ -48,10 +51,15 @@ fun ExploreScreen(
     onOpenSource: (String) -> Unit,
     onSearch: () -> Unit = {},
     onManageSources: () -> Unit = {},
+    onBridge: () -> Unit = {},
     registry: SourceRegistry = koinInject(),
 ) {
     // RF-03: only the sources that are on.
     val active by registry.active.collectAsStateWithLifecycle()
+    // RF-108: in the browser, online sources stay listed and say they need the bridge.
+    val bridge = getKoin().getOrNull<Bridge>()
+    // The bridge exists or not for the whole run: the condition never changes between compositions.
+    val bridgeAddress = bridge?.address?.collectAsStateWithLifecycle()?.value
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(Res.string.nav_explore), style = MaterialTheme.typography.headlineLarge) },
@@ -87,10 +95,13 @@ fun ExploreScreen(
                 )
             }
             items(active, key = { it.id.value }) { source ->
+                val needsBridge = bridge != null && bridgeAddress == null && bridge.needs(source.id)
                 ListItem(
                     headlineContent = { Text(sourceDisplayName(source.id, source.name)) },
                     supportingContent = {
-                        if (source.languages.isNotEmpty()) {
+                        if (needsBridge) {
+                            Text(stringResource(Res.string.bridge_needed), color = MaterialTheme.colorScheme.error)
+                        } else if (source.languages.isNotEmpty()) {
                             Text(
                                 source.languages.joinToString(" · ") { it.uppercase() },
                             )
@@ -98,7 +109,7 @@ fun ExploreScreen(
                     },
                     leadingContent = { SourceMonogram(source) },
                     trailingContent = { Icon(HqrIcons.Expand, contentDescription = null) },
-                    modifier = Modifier.clickable { onOpenSource(source.id.value) },
+                    modifier = Modifier.clickable { if (needsBridge) onBridge() else onOpenSource(source.id.value) },
                 )
             }
             // SCR-SRC-001: switches, the local folder and the servers.

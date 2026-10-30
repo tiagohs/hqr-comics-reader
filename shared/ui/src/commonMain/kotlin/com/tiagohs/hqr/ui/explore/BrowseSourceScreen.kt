@@ -52,12 +52,15 @@ import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel.Listing
 import com.tiagohs.hqr.presentation.common.ErrorKind
+import com.tiagohs.hqr.sources.local.ImportResult
+import com.tiagohs.hqr.sources.local.ImportedFiles
 import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.ErrorState
 import com.tiagohs.hqr.ui.components.InLibraryBadge
 import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.LoadingState
+import com.tiagohs.hqr.ui.components.importMessage
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
@@ -67,13 +70,19 @@ import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.action_search
 import com.tiagohs.hqr.ui.resources.action_undo
+import com.tiagohs.hqr.ui.resources.bridge_configure
+import com.tiagohs.hqr.ui.resources.bridge_needed
 import com.tiagohs.hqr.ui.resources.browse_added
 import com.tiagohs.hqr.ui.resources.browse_in_library
 import com.tiagohs.hqr.ui.resources.browse_latest
 import com.tiagohs.hqr.ui.resources.browse_no_results
 import com.tiagohs.hqr.ui.resources.browse_no_results_message
 import com.tiagohs.hqr.ui.resources.browse_popular
+import com.tiagohs.hqr.ui.resources.error_bridge
 import com.tiagohs.hqr.ui.resources.error_title
+import com.tiagohs.hqr.ui.resources.files_empty_message
+import com.tiagohs.hqr.ui.resources.files_empty_title
+import com.tiagohs.hqr.ui.resources.files_import
 import com.tiagohs.hqr.ui.resources.filter_active
 import com.tiagohs.hqr.ui.resources.filter_title
 import com.tiagohs.hqr.ui.resources.library_removed
@@ -86,6 +95,7 @@ import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -97,6 +107,7 @@ fun BrowseSourceScreen(
     onBack: () -> Unit,
     onOpenManga: (Long) -> Unit,
     initialQuery: String? = null,
+    onBridge: () -> Unit = {},
     viewModel: BrowseSourceViewModel =
         koinViewModel(key = "browse-$sourceId-${initialQuery.orEmpty()}") { parametersOf(SourceId(sourceId), initialQuery) },
 ) {
@@ -117,6 +128,13 @@ fun BrowseSourceScreen(
     LaunchedEffect(nearEnd, state.items.size) { if (nearEnd) viewModel.loadMore() }
     val isLocal = sourceId == SourceId.LOCAL.value
     val pickFolder = rememberFolderPicker { if (it != null) viewModel.retry() }
+    // RF-110: in the browser the files are imported; a new import (or a drop on the window) reloads the list.
+    val imported = if (isLocal) getKoin().getOrNull<ImportedFiles>() else null
+    var importResult by remember { mutableStateOf<ImportResult?>(null) }
+    if (imported != null) {
+        val changes by imported.changes.collectAsStateWithLifecycle()
+        LaunchedEffect(changes) { if (changes > 0) viewModel.retry() }
+    }
 
     val snackbar = remember { SnackbarHostState() }
     val uriHandler = LocalUriHandler.current
@@ -193,12 +211,32 @@ fun BrowseSourceScreen(
             }
             when {
                 state.loading -> LoadingState()
+                state.error == ErrorKind.UNAVAILABLE && imported != null ->
+                    EmptyState(
+                        title = stringResource(Res.string.files_empty_title),
+                        message = importMessage(importResult) ?: stringResource(Res.string.files_empty_message),
+                        action = stringResource(Res.string.files_import),
+                        onAction = {
+                            scope.launch {
+                                imported.persist()
+                                importResult = imported.pick()
+                            }
+                        },
+                    )
                 state.error == ErrorKind.UNAVAILABLE && isLocal ->
                     EmptyState(
                         title = stringResource(Res.string.local_no_folder),
                         message = stringResource(Res.string.local_no_folder_message),
                         action = stringResource(Res.string.action_choose_folder),
                         onAction = pickFolder,
+                    )
+                // RF-108: in the browser, an online source without a bridge asks for one.
+                state.error == ErrorKind.BRIDGE ->
+                    EmptyState(
+                        title = stringResource(Res.string.bridge_needed),
+                        message = stringResource(Res.string.error_bridge),
+                        action = stringResource(Res.string.bridge_configure),
+                        onAction = onBridge,
                     )
                 state.error != null && state.items.isEmpty() ->
                     ErrorState(

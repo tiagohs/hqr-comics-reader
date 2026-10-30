@@ -41,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -55,12 +56,14 @@ import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.ErrorState
 import com.tiagohs.hqr.ui.components.InLibraryBadge
+import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_choose_folder
+import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.action_search
 import com.tiagohs.hqr.ui.resources.action_undo
@@ -116,6 +119,7 @@ fun BrowseSourceScreen(
     val pickFolder = rememberFolderPicker { if (it != null) viewModel.retry() }
 
     val snackbar = remember { SnackbarHostState() }
+    val uriHandler = LocalUriHandler.current
     var showFilters by rememberSaveable { mutableStateOf(false) }
     if (showFilters) {
         SourceFiltersSheet(
@@ -202,6 +206,9 @@ fun BrowseSourceScreen(
                         message = stringResource(state.error!!.message()),
                         action = stringResource(Res.string.action_retry),
                         onAction = viewModel::retry,
+                        // RF-05: when the source has a web page.
+                        secondary = state.webUrl?.let { stringResource(Res.string.action_open_browser) },
+                        onSecondary = { state.webUrl?.let(uriHandler::openUri) },
                     )
                 state.isEmpty ->
                     EmptyState(stringResource(Res.string.browse_no_results), stringResource(Res.string.browse_no_results_message))
@@ -251,6 +258,16 @@ fun BrowseSourceScreen(
                                     style = MaterialTheme.typography.titleSmall,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        // RF-21: a failed next page keeps the list and asks to try again at the end.
+                        state.loadMoreError?.let { kind ->
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                InlineError(
+                                    message = stringResource(kind.message()),
+                                    action = stringResource(Res.string.action_retry),
+                                    onAction = viewModel::loadMore,
                                 )
                             }
                         }

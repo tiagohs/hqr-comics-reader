@@ -40,10 +40,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -171,14 +171,17 @@ private fun MangaContent(
     val uri = LocalUriHandler.current
     val isLocal = manga.sourceId == SourceId.LOCAL
     val snackbar = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     val categoryChoice by viewModel.categoryChoice.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
     // RF-52: taking out offers "Desfazer"; putting in asks for the categories when there are any (RF-53).
     val toggleLibrary: () -> Unit = {
         val removing = manga.inLibrary
-        viewModel.toggleLibrary { removal ->
-            scope.launch {
+        viewModel.toggleLibrary()
+        if (!removing && categoryChoice.first.isNotEmpty()) picking = true
+    }
+    LaunchedEffect(viewModel) {
+        viewModel.removed.collect { removal ->
+            launch {
                 val result =
                     snackbar.showSnackbar(
                         getString(Res.string.library_removed),
@@ -188,7 +191,6 @@ private fun MangaContent(
                 if (result == SnackbarResult.ActionPerformed) viewModel.undoRemove(removal)
             }
         }
-        if (!removing && categoryChoice.first.isNotEmpty()) picking = true
     }
     if (picking) {
         CategoryPicker(categoryChoice.first, categoryChoice.second, onDismiss = { picking = false }) {

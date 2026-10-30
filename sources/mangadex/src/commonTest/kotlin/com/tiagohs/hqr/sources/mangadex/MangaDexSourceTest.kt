@@ -276,12 +276,12 @@ class MangaDexSourceTest {
         }
 
     @Test
-    fun RF04_tooManyRequestsWithoutHeaderWaits() =
+    fun RF04_tooManyRequestsWithoutHeaderWaitsSixtySeconds() =
         runTest {
             var calls = 0
             route = { if (it.url.encodedPath == "/manga" && calls++ == 0) json("{}", HttpStatusCode.TooManyRequests) else null }
             source.popular(1)
-            waits shouldContain Duration.parse("10s")
+            waits shouldContain Duration.parse("60s")
         }
 
     @Test
@@ -355,7 +355,11 @@ class MangaDexSourceTest {
                     when (f) {
                         is SourceFilter.Tags -> f.copy(included = setOf("t-romance"), excluded = setOf("t-horror"))
                         is SourceFilter.Choice ->
-                            if (f.key == MangaDexFilters.STATUS) f.copy(selected = setOf("completed")) else f
+                            when (f.key) {
+                                MangaDexFilters.STATUS -> f.copy(selected = setOf("completed"))
+                                MangaDexFilters.DEMOGRAPHIC -> f.copy(selected = setOf("seinen"))
+                                else -> f.copy(selected = setOf("ko"))
+                            }
                         is SourceFilter.Text -> f.copy(value = " 2019 ")
                         is SourceFilter.Sort -> f.copy(selected = "rating", ascending = true)
                     }
@@ -365,6 +369,8 @@ class MangaDexSourceTest {
             p.getAll("includedTags[]") shouldBe listOf("t-romance")
             p.getAll("excludedTags[]") shouldBe listOf("t-horror")
             p.getAll("status[]") shouldBe listOf("completed")
+            p.getAll("publicationDemographic[]") shouldBe listOf("seinen")
+            p.getAll("originalLanguage[]") shouldBe listOf("ko")
             p["year"] shouldBe "2019"
             p["order[rating]"] shouldBe "asc"
             p["title"] shouldBe null
@@ -379,4 +385,23 @@ class MangaDexSourceTest {
             source.search("frieren", source.filters(), 1)
             requests.last().url.parameters["order[relevance]"] shouldBe "desc"
         }
+
+    @Test
+    fun RF21_listEndsWhereTheApiStopsAt10000() =
+        runTest {
+            route = {
+                if (it.url.encodedPath == "/manga") {
+                    json(Fixtures.MANGA_LIST.replace("\"offset\": 20", "\"offset\": 9980").replace("\"total\": 100", "\"total\": 50000"))
+                } else {
+                    null
+                }
+            }
+            source.popular(500).hasNextPage shouldBe false
+        }
+
+    @Test
+    fun RF05_webPageForOpenInBrowser() {
+        source.webUrl() shouldBe "https://mangadex.org/titles"
+        source.webUrl("one piece") shouldBe "https://mangadex.org/search?q=one%20piece"
+    }
 }

@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -144,12 +145,16 @@ class MangaViewModel(
         viewModelScope.launch { categories?.setCategories(mangaId, ids) }
     }
 
-    /** RF-52: puts the work in or takes it out; a removal hands [onRemoved] what "Desfazer" needs. */
-    fun toggleLibrary(onRemoved: (LibraryRemoval) -> Unit = {}) {
+    // RF-52: a removal waiting for "Desfazer"; a flow so the snackbar survives the screen being recreated.
+    private val _removed = kotlinx.coroutines.channels.Channel<LibraryRemoval>(kotlinx.coroutines.channels.Channel.BUFFERED)
+    val removed: kotlinx.coroutines.flow.Flow<LibraryRemoval> = _removed.receiveAsFlow()
+
+    /** RF-52: puts the work in or takes it out; a removal comes out of [removed] for "Desfazer". */
+    fun toggleLibrary() {
         viewModelScope.launch {
             val manga = mangas.get(mangaId) ?: return@launch
             if (manga.inLibrary) {
-                mangas.removeFromLibrary(mangaId)?.let(onRemoved)
+                mangas.removeFromLibrary(mangaId)?.let { _removed.send(it) }
             } else {
                 mangas.setInLibrary(mangaId, true)
             }

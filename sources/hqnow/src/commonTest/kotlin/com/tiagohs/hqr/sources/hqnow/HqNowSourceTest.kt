@@ -6,6 +6,7 @@ import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.source.SourceException
+import com.tiagohs.hqr.domain.source.SourceFilter
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -25,6 +26,8 @@ import kotlin.time.Instant
 
 class HqNowSourceTest {
     private val bodies = mutableListOf<String>()
+    private val times = mutableListOf<Instant>()
+    private val waits = mutableListOf<kotlin.time.Duration>()
     private var answer: (String) -> Pair<String, HttpStatusCode> = { body -> Fixtures.answer(body) to HttpStatusCode.OK }
     private var now = Instant.fromEpochMilliseconds(0)
     private val clock =
@@ -37,13 +40,23 @@ class HqNowSourceTest {
                 MockEngine { request ->
                     val body = (request.body as TextContent).text
                     bodies += body
+                    times += now
                     val (text, status) = answer(body)
-                    respond(text, status, headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()))
+                    val headers =
+                        if (status == HttpStatusCode.TooManyRequests && "retry-after" in text) {
+                            headersOf(HttpHeaders.RetryAfter, "7")
+                        } else {
+                            headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                        }
+                    respond(text, status, headers)
                 },
             ),
             clock,
             // The limiter waits on the fake clock (a no-op sleep with a frozen clock would wait forever).
-            sleep = { now += it },
+            sleep = {
+                waits += it
+                now += it
+            },
         )
     private val work = SourceManga(SourceId.HQ_NOW, "2219", "Invencível (2003)")
 
@@ -104,6 +117,46 @@ class HqNowSourceTest {
             answer = { "<html>" to HttpStatusCode.OK }
             shouldThrow<SourceException> { source.latest(1) }.kind shouldBe SourceException.Kind.PARSE
             shouldThrow<SourceException> { source.details(work.copy(key = "abc")) }.kind shouldBe SourceException.Kind.PARSE
+        }
+
+    @Test
+    fun RF04_neverMoreThanOneRequestEveryTwoSeconds() =
+        runTest {
+            source.popular(1)
+            source.latest(1)
+            source.search("invencível", emptyList(), 1)
+            times.zipWithNext { a, b -> (b - a).inWholeMilliseconds }.forEach { (it >= 2_000) shouldBe true }
+        }
+
+    @Test
+    fun RF04_tooManyRequestsWaitsRetryAfterOrSixtySeconds() =
+        runTest {
+            var calls = 0
+            answer = { body ->
+                calls++
+                when (calls) {
+                    1 -> "retry-after" to HttpStatusCode.TooManyRequests
+                    2 -> "{}" to HttpStatusCode.TooManyRequests
+                    else -> Fixtures.answer(body) to HttpStatusCode.OK
+                }
+            }
+            source.latest(1).items.size shouldBe 1
+            waits.filter { it >= kotlin.time.Duration.parse("7s") } shouldBe
+                listOf(kotlin.time.Duration.parse("7s"), kotlin.time.Duration.parse("60s"))
+        }
+
+    @Test
+    fun RF12_listByPublisherAndSearchWithinIt() =
+        runTest {
+            val publisher = source.filters().filterIsInstance<SourceFilter.Choice>().single()
+            publisher.options.first { it.label == "Marvel Comics" }.value shouldBe "3"
+            val marvel = listOf(publisher.copy(selected = setOf("3")))
+            source.search("", marvel, 2).items.size shouldBe 30
+            bodies.last() shouldContain "publisherId: 3, orderByViews: true, limit: 60"
+            // By name, only the chosen publisher's works stay (the fake's works are all from publisher 5).
+            source.search("obra", marvel, 1).items shouldBe emptyList()
+            source.search("obra", listOf(publisher.copy(selected = setOf("5"))), 1).items.size shouldBe 1
+            source.search("", emptyList(), 1).items shouldBe emptyList()
         }
 
     @Test

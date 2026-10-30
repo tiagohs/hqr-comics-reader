@@ -34,12 +34,15 @@ class SearchScreensTest {
         override val languages = listOf("pt-br")
         var down = true
 
+        override fun webUrl(query: String) = "https://example.org/busca"
+
         override suspend fun search(
             query: String,
             filters: List<SourceFilter>,
             page: Int,
         ): MangaPage {
             if (down) throw SourceException("fora do ar", SourceException.Kind.SERVER)
+            if (query == "xyzq") return MangaPage(emptyList(), false)
             return MangaPage(listOf(SourceManga(id, "x", "Turma do Bairro")), false)
         }
 
@@ -78,6 +81,8 @@ class SearchScreensTest {
             onAllNodes(hasSetTextAction())[0].performImeAction()
             waitFor(hasText("Kaiju Express"))
             waitFor(hasText("Try again"))
+            // RF-05: the failed source also offers its web page.
+            waitFor(hasText("Open in browser"))
             screenshot("demo-SCR-SRCH-001")
             down.down = false
             onAllNodes(hasText("Try again"))[0].performClick()
@@ -112,5 +117,23 @@ class SearchScreensTest {
             val tags = demo.lastFilters.filterIsInstance<SourceFilter.Tags>().single()
             kotlin.test.assertEquals(setOf("romance"), tags.included)
             kotlin.test.assertEquals(setOf("horror"), tags.excluded)
+        }
+
+    @Test
+    fun RF28_nothingFoundShowsTheTermAndTheWayToTheSources() =
+        screenTest {
+            startTestKoin { listOf(DownSource().apply { down = false }) }
+            setContent { HqrApp(systemDark = false) }
+            waitFor(hasText("Explore"))
+            onAllNodes(hasText("Explore"))[0].performClick()
+            waitFor(hasText("Search every source"))
+            onAllNodes(hasText("Search every source"))[0].performClick()
+            waitFor(hasSetTextAction())
+            onAllNodes(hasSetTextAction())[0].performTextInput("xyzq")
+            onAllNodes(hasSetTextAction())[0].performImeAction()
+            waitFor(hasText("Nothing found for “xyzq”"))
+            screenshot("demo-SCR-SRCH-001-nothing")
+            onAllNodes(hasText("See sources"))[0].performClick()
+            waitFor(hasText("Sources"))
         }
 }

@@ -225,4 +225,5 @@
     <string name="order_title">Title</string>
     <string name="order_year">Year</string>
     <string name="order_rating">Rating</string>
+    <string name="filter_excluded">excluded</string>
 </resources>

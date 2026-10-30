@@ -20,6 +20,9 @@ interface Source {
     /** Version of the key format; when it grows, saved keys are migrated (RF-91). */
     val schemaVersion: Int get() = 1
 
+    /** The source's web page for "Abrir no navegador" in its errors (RF-05); [query] opens its search. Null: none. */
+    fun webUrl(query: String = ""): String? = null
+
     suspend fun details(manga: SourceManga): SourceManga
 
     suspend fun chapters(manga: SourceManga): List<SourceChapter>

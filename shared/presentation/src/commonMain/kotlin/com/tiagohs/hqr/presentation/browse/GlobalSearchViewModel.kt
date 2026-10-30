@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
+import com.tiagohs.hqr.domain.repository.LibraryRemoval
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.source.SearchSource
 import com.tiagohs.hqr.domain.source.SourceRegistry
@@ -92,10 +93,15 @@ class GlobalSearchViewModel(
             }
     }
 
-    /** The keyboard's search key: no wait. */
+    /** The keyboard's search key: no wait; with the same text, the sources that failed are asked again. */
     fun submit() {
         debounceJob?.cancel()
-        runSearch(_state.value.query)
+        val current = _state.value
+        if (current.query.trim() == current.searched && current.groups.isNotEmpty()) {
+            current.groups.filter { it.state is GroupState.Error }.forEach { retry(it.sourceId) }
+        } else {
+            runSearch(current.query)
+        }
     }
 
     fun retry(sourceId: SourceId) {
@@ -164,6 +170,17 @@ class GlobalSearchViewModel(
             }
         }
     }
+
+    /** RF-52: long press on a result, as in the source screen. */
+    suspend fun toggleLibrary(manga: SourceManga): LibraryRemoval? = mangas.toggleInLibrary(manga)
+
+    suspend fun undoToggle(
+        manga: SourceManga,
+        removal: LibraryRemoval?,
+    ) = mangas.undoToggle(manga, removal)
+
+    /** RF-05: "Abrir no navegador" for a group in error. */
+    fun webUrl(sourceId: SourceId): String? = registry[sourceId]?.webUrl(_state.value.searched)
 
     /** Saves the work before opening it, so the work screen reads one id. */
     suspend fun open(manga: SourceManga): Long = mangas.upsert(manga).id

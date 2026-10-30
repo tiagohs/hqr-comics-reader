@@ -17,8 +17,10 @@ import com.tiagohs.hqr.domain.source.SourceFilter
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.delay
 import kotlinx.serialization.KSerializer
@@ -41,27 +43,42 @@ import kotlin.time.Duration.Companion.seconds
 class HqNowSource(
     private val http: HttpClient,
     clock: Clock = Clock.System,
-    sleep: suspend (Duration) -> Unit = { delay(it) },
+    private val sleep: suspend (Duration) -> Unit = { delay(it) },
 ) : CatalogSource,
     SearchSource {
     override val id: SourceId = SourceId.HQ_NOW
     override val name: String = "HQ Now"
     override val languages: List<String> = listOf("pt-br")
 
-    private val json = Json { ignoreUnknownKeys = true }
-    private val limiter = RateLimiter(PERMITS, 1.seconds, clock, sleep)
+    override fun webUrl(query: String): String = SITE
 
-    override suspend fun popular(page: Int): MangaPage {
+    private val json = Json { ignoreUnknownKeys = true }
+
+    // RF-04: at most one request every 2 seconds.
+    private val limiter = RateLimiter(1, 2.seconds, clock, sleep)
+
+    override suspend fun popular(page: Int): MangaPage = mostViewed(page, publisherId = null)
+
+    /** The API has no paging: a growing list, of which the new slice is shown. */
+    private suspend fun mostViewed(
+        page: Int,
+        publisherId: Int?,
+    ): MangaPage {
         val limit = page.coerceAtLeast(1) * PAGE_SIZE
+        val publisher = publisherId?.let { "publisherId: $it, " }.orEmpty()
         val all =
             query(
                 "getHqsByFilters",
-                "query { getHqsByFilters(orderByViews: true, limit: $limit, loadCovers: true) { $LIST_FIELDS } }",
+                "query { getHqsByFilters(${publisher}orderByViews: true, limit: $limit, loadCovers: true) { $LIST_FIELDS } }",
                 ListSerializer(HqDto.serializer()),
             )
         val slice = all.drop((page - 1).coerceAtLeast(0) * PAGE_SIZE)
         return MangaPage(slice.map { it.toManga() }, all.size >= limit && limit < MAX_POPULAR)
     }
+
+    // RF-12: the list by publisher. The API lists no publishers, so the known ones (with 10 or more works) are fixed here.
+    override suspend fun filters(): List<SourceFilter> =
+        listOf(SourceFilter.Choice(PUBLISHER, PUBLISHERS.map { (id, name) -> SourceFilter.Option(id.toString(), name) }, multiple = false))
 
     override suspend fun latest(page: Int): MangaPage {
         if (page > 1) return MangaPage(emptyList(), false)
@@ -74,7 +91,17 @@ class HqNowSource(
         filters: List<SourceFilter>,
         page: Int,
     ): MangaPage {
-        if (page > 1 || query.isBlank()) return MangaPage(emptyList(), false)
+        val publisherId =
+            filters
+                .filterIsInstance<SourceFilter.Choice>()
+                .firstOrNull { it.key == PUBLISHER }
+                ?.selected
+                ?.firstOrNull()
+                ?.toIntOrNull()
+        if (query.isBlank()) {
+            return if (publisherId != null) mostViewed(page, publisherId) else MangaPage(emptyList(), false)
+        }
+        if (page > 1) return MangaPage(emptyList(), false)
         val list =
             query(
                 "getHqsByName",
@@ -82,7 +109,7 @@ class HqNowSource(
                 ListSerializer(HqDto.serializer()),
                 buildJsonObject { put("name", query.trim()) },
             )
-        return MangaPage(list.map { it.toManga() }, false)
+        return MangaPage(list.filter { publisherId == null || it.editoraId == publisherId }.map { it.toManga() }, false)
     }
 
     override suspend fun details(manga: SourceManga): SourceManga = work(manga).toManga()
@@ -134,23 +161,31 @@ class HqNowSource(
         serializer: KSerializer<T>,
         variables: JsonObject? = null,
     ): T {
-        limiter.acquire()
+        val payload =
+            json.encodeToString(
+                JsonObject.serializer(),
+                buildJsonObject {
+                    put("query", text)
+                    variables?.let { put("variables", it) }
+                },
+            )
         val body =
             networkCall {
-                http
-                    .post(API) {
-                        contentType(ContentType.Application.Json)
-                        setBody(
-                            json.encodeToString(
-                                JsonObject.serializer(),
-                                buildJsonObject {
-                                    put("query", text)
-                                    variables?.let { put("variables", it) }
-                                },
-                            ),
-                        )
-                    }.ensureOk()
-                    .bodyAsText()
+                var attempt = 0
+                var response: HttpResponse
+                while (true) {
+                    limiter.acquire()
+                    response =
+                        http.post(API) {
+                            contentType(ContentType.Application.Json)
+                            setBody(payload)
+                        }
+                    // RF-04: a 429 waits for Retry-After (or 60 s) before asking again.
+                    if (response.status != HttpStatusCode.TooManyRequests || attempt++ >= MAX_RATE_RETRIES) break
+                    val wait = response.headers["Retry-After"]?.toLongOrNull() ?: DEFAULT_RETRY_AFTER_S
+                    sleep(wait.coerceIn(1, MAX_RETRY_AFTER_S).seconds)
+                }
+                response.ensureOk().bodyAsText()
             }
         try {
             val root = json.parseToJsonElement(body).jsonObject
@@ -185,7 +220,32 @@ class HqNowSource(
         private const val SITE = "https://www.hq-now.com"
         private const val PAGE_SIZE = 30
         private const val MAX_POPULAR = 600
-        private const val PERMITS = 3
+        private const val MAX_RATE_RETRIES = 3
+        private const val DEFAULT_RETRY_AFTER_S = 60L
+        private const val MAX_RETRY_AFTER_S = 120L
+        const val PUBLISHER = "publisher"
+
+        /** Publisher id → name, read from the API (works of each id, then their publisherName). */
+        private val PUBLISHERS =
+            listOf(
+                3 to "Marvel Comics",
+                1 to "DC Comics",
+                6 to "Dark Horse Comics",
+                13 to "Vertigo",
+                5 to "Image Comics",
+                8 to "IDW Publishing",
+                20 to "Dynamite Entertainment",
+                2 to "WildStorm",
+                19 to "Avatar Press",
+                12 to "Boom Studios",
+                4 to "Dargaud",
+                30 to "Delcourt",
+                29 to "Devir Livraria",
+                21 to "Glénat",
+                7 to "Archie Comics",
+                15 to "Norma Editorial",
+                36 to "Soleil",
+            )
         private const val LIST_FIELDS = "id name editoraId status hqCover synopsis updatedAt"
 
         // The type of "recentes" (UpdatedHqs) has no status nor publisher.
@@ -198,6 +258,7 @@ internal data class HqDto(
     val id: Int,
     val name: String,
     val status: String? = null,
+    val editoraId: Int? = null,
     val hqCover: String? = null,
     val synopsis: String? = null,
     val publisherName: String? = null,

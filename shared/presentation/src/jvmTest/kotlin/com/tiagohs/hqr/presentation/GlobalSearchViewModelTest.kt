@@ -107,4 +107,48 @@ class GlobalSearchViewModelTest : MainDispatcherTest() {
             val again = vm(saved)
             again.state.first { it.searched == "akira" && !it.searching }.query shouldBe "akira"
         }
+
+    @Test
+    fun RF23_searchKeyAsksAgainOnlyTheSourcesThatFailed() =
+        runTest {
+            hqNow.fail = SourceException.Kind.NETWORK
+            val vm = vm()
+            vm.type("akira")
+            vm.submit()
+            vm.state.first { !it.searching && it.searched == "akira" }
+            hqNow.fail = null
+            vm.submit()
+            vm.state.first { it.groups[1].state is GroupState.Results }
+            mangaDex.requested shouldContainExactly listOf("s:akira:1")
+        }
+
+    @Test
+    fun RF23_debounceWaits400Milliseconds() =
+        runTest {
+            val vm = track(GlobalSearchViewModel(registry, db.mangas))
+            vm.type("berserk")
+            Thread.sleep(150) // real time: the view model runs on a real Main thread
+            mangaDex.requested shouldBe emptyList()
+            vm.state.first { it.searched == "berserk" && !it.searching }
+            mangaDex.requested shouldContainExactly listOf("s:berserk:1")
+        }
+
+    @Test
+    fun RF52_longPressOnAResultAndUndo() =
+        runTest {
+            val vm = vm()
+            vm.type("kaiju")
+            val item =
+                vm.state
+                    .first { it.groups.firstOrNull()?.state is GroupState.Results }
+                    .groups[0]
+                    .state
+                    .shouldBeInstanceOf<GroupState.Results>()
+                    .items
+                    .first()
+            vm.toggleLibrary(item) shouldBe null
+            vm.state.first { item.key in it.groups[0].inLibrary }
+            vm.undoToggle(item, null)
+            vm.state.first { item.key !in it.groups[0].inLibrary }
+        }
 }

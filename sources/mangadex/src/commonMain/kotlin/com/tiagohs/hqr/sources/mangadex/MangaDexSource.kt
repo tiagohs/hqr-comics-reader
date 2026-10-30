@@ -26,6 +26,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.contentType
+import io.ktor.http.encodeURLQueryComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -62,6 +63,9 @@ class MangaDexSource(
     override val id: SourceId = SourceId.MANGADEX
     override val name: String = "MangaDex"
     override val languages: List<String> = listOf("pt-br", "en", "es", "es-la")
+
+    override fun webUrl(query: String): String =
+        if (query.isBlank()) "https://mangadex.org/titles" else "https://mangadex.org/search?q=${query.trim().encodeURLQueryComponent()}"
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -129,7 +133,9 @@ class MangaDexSource(
                 contentLanguages().forEach { parameter("availableTranslatedLanguage[]", it) }
                 order()
             }
-        return MangaPage(response.data.map { it.toManga(preferred()) }, response.offset + response.data.size < response.total)
+        // The API refuses offset + limit beyond 10 000: the list ends there.
+        val next = response.offset + response.data.size
+        return MangaPage(response.data.map { it.toManga(preferred()) }, next < response.total && next + PAGE_SIZE <= MAX_RESULTS)
     }
 
     private fun preferred(): List<String> = contentLanguages().toList() + listOf("en", "ja-ro", "ja")
@@ -306,12 +312,13 @@ class MangaDexSource(
         private const val API = "https://api.mangadex.org"
         private const val REPORT = "https://api.mangadex.network/report"
         private const val PAGE_SIZE = 20
+        private const val MAX_RESULTS = 10_000
         private const val FEED_SIZE = 500
         private const val API_PERMITS = 5
         private const val AT_HOME_PERMITS = 40
         private const val MAX_RATE_RETRIES = 3
-        private const val MAX_RETRY_AFTER_S = 60L
-        private const val DEFAULT_RETRY_AFTER_S = 10L
+        private const val MAX_RETRY_AFTER_S = 120L
+        private const val DEFAULT_RETRY_AFTER_S = 60L
         private val SERVER_LIFETIME = 12.minutes
         private val INCLUDES = listOf("cover_art", "author", "artist")
     }

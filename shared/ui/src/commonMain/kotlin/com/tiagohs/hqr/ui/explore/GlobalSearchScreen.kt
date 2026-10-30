@@ -1,7 +1,7 @@
 package com.tiagohs.hqr.ui.explore
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +23,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -38,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -55,9 +60,15 @@ import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
+import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
+import com.tiagohs.hqr.ui.resources.action_undo
+import com.tiagohs.hqr.ui.resources.browse_added
 import com.tiagohs.hqr.ui.resources.browse_in_library
 import com.tiagohs.hqr.ui.resources.browse_no_results_message
+import com.tiagohs.hqr.ui.resources.library_removed
+import com.tiagohs.hqr.ui.resources.manga_add_library
+import com.tiagohs.hqr.ui.resources.manga_remove_library
 import com.tiagohs.hqr.ui.resources.search_group_empty
 import com.tiagohs.hqr.ui.resources.search_hint
 import com.tiagohs.hqr.ui.resources.search_more
@@ -66,6 +77,7 @@ import com.tiagohs.hqr.ui.resources.search_see_sources
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -81,8 +93,11 @@ fun GlobalSearchScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val focus = remember { FocusRequester() }
+    val snackbar = remember { SnackbarHostState() }
+    val uriHandler = LocalUriHandler.current
     LaunchedEffect(Unit) { if (state.query.isEmpty()) focus.requestFocus() }
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(HqrIcons.Back, stringResource(Res.string.action_back)) } },
@@ -125,6 +140,20 @@ fun GlobalSearchScreen(
                         onRetry = { viewModel.retry(group.sourceId) },
                         onMore = { onOpenSource(group.sourceId.value, state.searched) },
                         onOpen = { manga -> scope.launch { onOpenManga(viewModel.open(manga)) } },
+                        onBrowser = viewModel.webUrl(group.sourceId)?.let { url -> { uriHandler.openUri(url) } },
+                        onLongPress = { manga ->
+                            // RF-52: as in the source screen, with "Desfazer".
+                            scope.launch {
+                                val removal = viewModel.toggleLibrary(manga)
+                                val result =
+                                    snackbar.showSnackbar(
+                                        getString(if (removal == null) Res.string.browse_added else Res.string.library_removed),
+                                        getString(Res.string.action_undo),
+                                        duration = SnackbarDuration.Long,
+                                    )
+                                if (result == SnackbarResult.ActionPerformed) viewModel.undoToggle(manga, removal)
+                            }
+                        },
                     )
                 }
             }
@@ -138,6 +167,8 @@ private fun SourceGroup(
     onRetry: () -> Unit,
     onMore: () -> Unit,
     onOpen: (SourceManga) -> Unit,
+    onBrowser: (() -> Unit)?,
+    onLongPress: (SourceManga) -> Unit,
 ) {
     val name = sourceDisplayName(group.sourceId, group.sourceName)
     Column(Modifier.padding(top = 12.dp)) {
@@ -169,6 +200,8 @@ private fun SourceGroup(
                     message = stringResource(s.kind.message()),
                     action = stringResource(Res.string.action_retry),
                     onAction = onRetry,
+                    secondary = onBrowser?.let { stringResource(Res.string.action_open_browser) },
+                    onSecondary = { onBrowser?.invoke() },
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             is GroupState.Results ->
@@ -182,8 +215,18 @@ private fun SourceGroup(
                 } else {
                     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         items(s.items, key = { it.key }) { manga ->
+                            val inLibrary = manga.key in group.inLibrary
                             Column(
-                                Modifier.width(COVER_WIDTH.dp).clickable { onOpen(manga) },
+                                Modifier
+                                    .width(COVER_WIDTH.dp)
+                                    .combinedClickable(
+                                        onClick = { onOpen(manga) },
+                                        onLongClick = { onLongPress(manga) },
+                                        onLongClickLabel =
+                                            stringResource(
+                                                if (inLibrary) Res.string.manga_remove_library else Res.string.manga_add_library,
+                                            ),
+                                    ),
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 Cover(manga) {

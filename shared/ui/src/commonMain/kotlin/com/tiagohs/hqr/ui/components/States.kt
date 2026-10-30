@@ -150,6 +150,8 @@ fun InlineError(
     action: String? = null,
     onAction: () -> Unit = {},
     icon: ImageVector = HqrIcons.Error,
+    secondary: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     val stripe = MaterialTheme.colorScheme.error
     Row(
@@ -164,6 +166,7 @@ fun InlineError(
     ) {
         Icon(icon, contentDescription = null, tint = stripe, modifier = Modifier.size(20.dp))
         Text(message, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        if (secondary != null) TextButton(onClick = onSecondary) { Text(secondary) }
         if (action != null) TextButton(onClick = onAction) { Text(action) }
     }
 }

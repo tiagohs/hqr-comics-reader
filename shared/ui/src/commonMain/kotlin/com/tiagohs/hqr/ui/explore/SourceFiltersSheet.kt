@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,6 +48,7 @@ import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.demographic_none
 import com.tiagohs.hqr.ui.resources.filter_apply
 import com.tiagohs.hqr.ui.resources.filter_demographic
+import com.tiagohs.hqr.ui.resources.filter_excluded
 import com.tiagohs.hqr.ui.resources.filter_order
 import com.tiagohs.hqr.ui.resources.filter_original_language
 import com.tiagohs.hqr.ui.resources.filter_reset
@@ -133,7 +135,12 @@ private fun Group(
     content: @Composable () -> Unit,
 ) {
     Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(groupTitle(key), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            groupTitle(key),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { heading() },
+        )
         hint?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
     }
@@ -144,6 +151,7 @@ private fun TagsGroup(
     filter: SourceFilter.Tags,
     onChange: (SourceFilter) -> Unit,
 ) {
+    val excludedState = stringResource(Res.string.filter_excluded)
     Group(filter.key, stringResource(Res.string.filter_tags_hint)) {
         filter.options.forEach { option ->
             val included = option.value in filter.included
@@ -176,7 +184,8 @@ private fun TagsGroup(
                     } else {
                         FilterChipDefaults.filterChipColors()
                     },
-                modifier = Modifier.semantics { if (excluded) stateDescription = label },
+                // design.md "Filtros": an excluded tag reads as such, like aria-pressed="mixed".
+                modifier = Modifier.semantics { if (excluded) stateDescription = excludedState },
             )
         }
     }

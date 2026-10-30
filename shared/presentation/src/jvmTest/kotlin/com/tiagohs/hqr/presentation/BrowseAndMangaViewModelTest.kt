@@ -94,6 +94,60 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF21_loadMoreFailureKeepsTheItemsAndOffersRetry() =
+        runTest {
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas))
+            awaitIdle(vm).items.size shouldBe 2
+            source.fail = SourceException.Kind.NETWORK
+            vm.loadMore()
+            val failed = vm.state.first { it.loadMoreError != null }
+            failed.items.size shouldBe 2
+            failed.error shouldBe null
+            source.fail = null
+            vm.loadMore()
+            vm.state.first { it.items.size == 4 && it.loadMoreError == null }
+        }
+
+    @Test
+    fun RF88_sourceScreenRestoresListingQueryAndFilters() =
+        runTest {
+            val tags =
+                com.tiagohs.hqr.domain.source.SourceFilter.Tags(
+                    "tags",
+                    listOf(
+                        com.tiagohs.hqr.domain.source.SourceFilter
+                            .Option("r", "Romance"),
+                    ),
+                )
+            source.offeredFilters = listOf(tags)
+            val saved = androidx.lifecycle.SavedStateHandle()
+            val vm = track(BrowseSourceViewModel(source.id, registry, db.mangas, saved = saved))
+            vm.state.first { it.filters.isNotEmpty() && !it.loading }
+            vm.search("frieren", listOf(tags.copy(included = setOf("r"))))
+            vm.state.first { it.listing == Listing.SEARCH && !it.loading }
+            val again = track(BrowseSourceViewModel(source.id, registry, db.mangas, saved = saved))
+            again.state.first { !it.loading }.let {
+                it.listing shouldBe Listing.SEARCH
+                it.query shouldBe "frieren"
+                (it.filters.single() as com.tiagohs.hqr.domain.source.SourceFilter.Tags).included shouldBe setOf("r")
+                it.items.first().key shouldBe "s:frieren:1-1"
+            }
+        }
+
+    @Test
+    fun RF52_removedFromTheWorkScreenComesBackWithUndo() =
+        runTest {
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            db.mangas.setInLibrary(id, true)
+            val manga = track(MangaViewModel(id, registry, db.mangas, db.chapters))
+            manga.toggleLibrary()
+            val removal = manga.removed.first()
+            db.mangas.get(id)!!.inLibrary shouldBe false
+            manga.undoRemove(removal)
+            manga.state.first { it.manga?.inLibrary == true }
+        }
+
+    @Test
     fun RF05_failureStaysInTheSourceWithItsKind() =
         runTest {
             source.fail = SourceException.Kind.NETWORK

@@ -11,6 +11,7 @@ import com.tiagohs.hqr.data.repository.RoomCategoryRepository
 import com.tiagohs.hqr.data.repository.RoomChapterRepository
 import com.tiagohs.hqr.data.repository.RoomHistoryRepository
 import com.tiagohs.hqr.data.repository.RoomMangaRepository
+import com.tiagohs.hqr.data.repository.RoomSearchRepository
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.model.Chapter
@@ -24,6 +25,7 @@ import com.tiagohs.hqr.domain.repository.DownloadSettings
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.MangaRepository
+import com.tiagohs.hqr.domain.repository.SearchRepository
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ImageSource
 import com.tiagohs.hqr.domain.source.ServerManager
@@ -34,6 +36,7 @@ import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.downloads.DownloadsViewModel
+import com.tiagohs.hqr.presentation.feed.FeedViewModel
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
 import com.tiagohs.hqr.presentation.library.LibraryOptions
@@ -89,6 +92,7 @@ val coreModule: Module =
         single<ChapterRepository> { RoomChapterRepository(get(), get()) }
         single<CategoryRepository> { RoomCategoryRepository(get()) }
         single<HistoryRepository> { RoomHistoryRepository(get(), get(), get()) }
+        single<SearchRepository> { RoomSearchRepository(get(), get()) }
         // Not ready until HqrApp applied the saved servers and switches (RF-88).
         single { SourceRegistry(get<List<Source>>(BuiltInSources), ready = false) }
         single { SourceConfig(get(), get(), get(), get(), get(AppVersion)) }
@@ -118,8 +122,9 @@ val coreModule: Module =
         viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
         viewModel { CategoriesViewModel(get(), get()) }
         viewModel { HistoryViewModel(get(), get()) }
-        viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query, get()) }
-        viewModel { GlobalSearchViewModel(get(), get(), get()) }
+        viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query, get(), get()) }
+        viewModel { FeedViewModel(get(), get(), get()) }
+        viewModel { GlobalSearchViewModel(get(), get(), get(), searches = get()) }
         single<CoverPixels> { ImageCoverPixels(get()) }
         single<PagePrefetcher> {
             val images = get<ImageBytes>()

@@ -142,7 +142,8 @@ class MangaDexSourceTest {
             val second = source.popular(1).items[1]
             second.description shouldBe null
             second.title shouldBe "Kaiju Express"
-            second.kind shouldBe ReadingKind.MANHWA
+            // Korean without the "Long Strip" tag pages left to right (RF-37).
+            second.kind shouldBe ReadingKind.COMIC
         }
 
     @Test
@@ -319,6 +320,15 @@ class MangaDexSourceTest {
             shouldThrow<SourceException> { source.pages(manga, chapter.copy(externalUrl = "https://x")) }.kind shouldBe
                 SourceException.Kind.UNAVAILABLE
         }
+
+    @Test
+    fun RF37_firstReadSuggestionFollowsLanguageAndLongStrip() {
+        mangaDexKind("ja") shouldBe ReadingKind.MANGA
+        mangaDexKind("ko", longStrip = true) shouldBe ReadingKind.MANHWA
+        mangaDexKind("zh", longStrip = true) shouldBe ReadingKind.MANHWA
+        // A Korean work without the tag pages left to right.
+        mangaDexKind("ko") shouldBe ReadingKind.COMIC
+    }
 
     @Test
     fun RF90_keysAndMappings() =

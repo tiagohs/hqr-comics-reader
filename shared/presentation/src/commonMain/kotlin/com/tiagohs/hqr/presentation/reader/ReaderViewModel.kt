@@ -93,6 +93,8 @@ class ReaderViewModel(
         val previous: Chapter? = null,
         val next: Chapter? = null,
         val transition: Transition? = null,
+        /** RF-44: pages known to be wider than tall (already a spread). */
+        val wide: Set<Int> = emptySet(),
     ) {
         val pageCount: Int get() = pages.size
         val isEmptyChapter: Boolean get() = !loading && error == null && pages.isEmpty()
@@ -119,7 +121,7 @@ class ReaderViewModel(
         page: Int,
     ) {
         endDismissed = false
-        _state.update { it.copy(loading = true, error = null, transition = null, pages = emptyList()) }
+        _state.update { it.copy(loading = true, error = null, transition = null, pages = emptyList(), wide = emptySet()) }
         val manga = mangas.get(mangaId)
         val chapter = chapters.get(id)
         if (manga == null || chapter == null) {
@@ -208,6 +210,15 @@ class ReaderViewModel(
     fun hideMenu() = _state.update { it.copy(menuVisible = false) }
 
     fun showMenu() = _state.update { it.copy(menuVisible = true) }
+
+    /** RF-44: the size of a page once its image loaded; a wide one is shown alone or split. */
+    fun onPageSize(
+        index: Int,
+        width: Float,
+        height: Float,
+    ) {
+        if (width > height && index !in _state.value.wide) _state.update { it.copy(wide = it.wide + index) }
+    }
 
     /** RF-112: the keyboard turns pages; past the last one comes the transition (RF-42). */
     fun key(action: KeyAction) {

@@ -5,6 +5,7 @@ import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
+import com.tiagohs.hqr.domain.model.isoEpochMs
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.Instant
@@ -33,7 +34,8 @@ internal fun MangaDto.toManga(preferred: List<String>): SourceManga {
         genres = attributes.tags.mapNotNull { tag -> preferred.firstNotNullOfOrNull { tag.attributes.name[it] } },
         description = preferred.firstNotNullOfOrNull { descriptions[it] }?.trim(),
         language = attributes.originalLanguage,
-        kind = mangaDexKind(attributes.originalLanguage),
+        kind = mangaDexKind(attributes.originalLanguage, attributes.tags.any { it.attributes.name["en"] == LONG_STRIP }),
+        updatedAtEpochMs = isoEpochMs(attributes.updatedAt),
     )
 }
 
@@ -64,11 +66,20 @@ internal fun mangaDexStatus(value: String?): PublicationStatus =
         else -> PublicationStatus.UNKNOWN
     }
 
-internal fun mangaDexKind(originalLanguage: String?): ReadingKind =
-    when (originalLanguage) {
-        "ja" -> ReadingKind.MANGA
-        "ko", "zh", "zh-hk" -> ReadingKind.MANHWA
-        null -> ReadingKind.UNKNOWN
+private const val LONG_STRIP = "Long Strip"
+
+/**
+ * RF-37: the first-read suggestion. Japanese manga reads right to left; the "Long Strip" tag (most manhwa and manhua)
+ * is a webtoon; a Korean or Chinese work without it pages left to right, like a western comic.
+ */
+internal fun mangaDexKind(
+    originalLanguage: String?,
+    longStrip: Boolean = false,
+): ReadingKind =
+    when {
+        longStrip -> ReadingKind.MANHWA
+        originalLanguage == "ja" -> ReadingKind.MANGA
+        originalLanguage == null -> ReadingKind.UNKNOWN
         else -> ReadingKind.COMIC
     }
 

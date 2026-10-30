@@ -19,6 +19,8 @@ import javax.imageio.ImageIO
 class DemoSource(
     private val pageCount: Int = 22,
     private val kind: ReadingKind = ReadingKind.MANGA,
+    /** Adds chapter 16, licensed: only on the publisher's site (RF-11). */
+    private val externalChapter: Boolean = false,
 ) : CatalogSource,
     SearchSource,
     ImageSource {
@@ -96,7 +98,14 @@ class DemoSource(
                     },
                 uploadedAtEpochMs = 1_790_000_000_000 - it * 86_400_000L,
             )
-        }
+        } +
+            if (externalChapter) {
+                listOf(
+                    SourceChapter("c16", 16.0, title = "Capítulo 16", externalUrl = "https://publisher.example/c16"),
+                )
+            } else {
+                emptyList()
+            }
 
     override suspend fun pages(
         manga: SourceManga,

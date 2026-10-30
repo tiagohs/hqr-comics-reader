@@ -29,7 +29,19 @@ data class SourceManga(
     val description: String? = null,
     val language: String? = null,
     val kind: ReadingKind = ReadingKind.UNKNOWN,
+    /** When the source last updated it, if it says; orders the feed (RF-25). */
+    val updatedAtEpochMs: Long? = null,
 )
+
+/** Parses an ISO 8601 date-time from a source; null when absent or in another format. */
+fun isoEpochMs(text: String?): Long? =
+    text?.let {
+        runCatching {
+            kotlin.time.Instant
+                .parse(it)
+                .toEpochMilliseconds()
+        }.getOrNull()
+    }
 
 /** A chapter (or issue, or volume) as a source lists it. [number] is decimal (10.5 exists). */
 @Serializable

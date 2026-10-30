@@ -107,6 +107,7 @@ import com.tiagohs.hqr.ui.resources.manga_download
 import com.tiagohs.hqr.ui.resources.manga_download_next
 import com.tiagohs.hqr.ui.resources.manga_download_unread
 import com.tiagohs.hqr.ui.resources.manga_edit_categories
+import com.tiagohs.hqr.ui.resources.manga_external
 import com.tiagohs.hqr.ui.resources.manga_filter_all
 import com.tiagohs.hqr.ui.resources.manga_filter_unread
 import com.tiagohs.hqr.ui.resources.manga_in_library
@@ -357,10 +358,12 @@ private fun MangaContent(
                             canDownload = canDownload,
                             selected = chapter.id in selected,
                             onClick = {
-                                if (selected.isNotEmpty()) {
-                                    viewModel.toggleSelected(chapter.id)
-                                } else {
-                                    onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME)
+                                val external = chapter.source.externalUrl
+                                when {
+                                    selected.isNotEmpty() -> viewModel.toggleSelected(chapter.id)
+                                    // RF-11: a chapter only on the publisher's site opens there.
+                                    external != null -> uri.openUri(external)
+                                    else -> onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME)
                                 }
                             },
                             onLongPress = { viewModel.toggleSelected(chapter.id) },
@@ -739,6 +742,18 @@ private fun ChapterRow(
                         modifier =
                             Modifier
                                 .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
+                                .padding(horizontal = 6.dp, vertical = 1.dp),
+                    )
+                }
+                if (chapter.source.externalUrl != null) {
+                    // RF-11: licensed chapters live on the publisher's site.
+                    Text(
+                        stringResource(Res.string.manga_external),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier =
+                            Modifier
+                                .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(6.dp))
                                 .padding(horizontal = 6.dp, vertical = 1.dp),
                     )
                 }

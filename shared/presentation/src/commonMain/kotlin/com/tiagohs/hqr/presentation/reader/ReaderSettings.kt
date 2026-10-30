@@ -32,6 +32,10 @@ data class ReaderSettings(
     val showPageNumber: Boolean = true,
     val preload: Int = 4,
     val volumeKeys: Boolean = false,
+    /** RF-44: in portrait, a wide page shows as two screens. */
+    val splitWide: Boolean = false,
+    /** RF-44: the other page (or half) first. */
+    val invertPages: Boolean = false,
     val webtoonMargin: Int = 0,
 ) {
     companion object {

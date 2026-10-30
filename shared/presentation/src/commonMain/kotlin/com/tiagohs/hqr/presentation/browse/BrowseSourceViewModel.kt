@@ -8,6 +8,8 @@ import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.repository.LibraryRemoval
 import com.tiagohs.hqr.domain.repository.MangaRepository
+import com.tiagohs.hqr.domain.repository.SavedSearch
+import com.tiagohs.hqr.domain.repository.SearchRepository
 import com.tiagohs.hqr.domain.source.CatalogSource
 import com.tiagohs.hqr.domain.source.SearchSource
 import com.tiagohs.hqr.domain.source.SourceFilter
@@ -17,19 +19,24 @@ import com.tiagohs.hqr.presentation.common.attempt
 import com.tiagohs.hqr.presentation.common.toErrorKind
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 /** One source: Populares, Recentes and search with filters, with continuous loading (SCR-EXP-002, RF-21, RF-22). */
+@Suppress("TooManyFunctions") // One screen: listings, search, filters and saved searches.
 class BrowseSourceViewModel(
     private val sourceId: SourceId,
     private val registry: SourceRegistry,
     private val mangas: MangaRepository,
     initialQuery: String? = null,
     private val saved: SavedStateHandle = SavedStateHandle(),
+    private val searches: SearchRepository? = null,
 ) : ViewModel() {
     enum class Listing { POPULAR, LATEST, SEARCH }
 
@@ -116,6 +123,36 @@ class BrowseSourceViewModel(
     }
 
     fun retry() = reload()
+
+    /** RF-24: this source's saved searches. */
+    val savedSearches: StateFlow<List<SavedSearch>> =
+        (searches?.observeSaved(sourceId) ?: flowOf(emptyList()))
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MS), emptyList())
+
+    /** RF-24: the text and filters on screen, kept by [name]. */
+    fun saveSearch(name: String) {
+        val repo = searches ?: return
+        val s = _state.value
+        if (name.isBlank()) return
+        viewModelScope.launch { repo.save(sourceId, name, s.query, s.filters) }
+    }
+
+    /** RF-24: one tap brings back the text and the filters, and the list is made again. */
+    fun applySaved(search: SavedSearch) = search(search.query, search.filters.ifEmpty { defaultFilters })
+
+    fun renameSaved(
+        search: SavedSearch,
+        name: String,
+    ) {
+        viewModelScope.launch { searches?.rename(search.id, name) }
+    }
+
+    fun deleteSaved(search: SavedSearch) {
+        viewModelScope.launch { searches?.delete(search.id) }
+    }
+
+    /** RF-25: this source's latest, or one of its saved searches, into the feed; false when the feed is full. */
+    suspend fun addToFeed(search: SavedSearch?): Boolean = searches?.addToFeed(sourceId, search?.id) ?: false
 
     /** RF-22: the sheet's "Buscar": the same text with the new filters. */
     fun applyFilters(filters: List<SourceFilter>) = search(_state.value.query, filters)
@@ -212,6 +249,7 @@ class BrowseSourceViewModel(
         const val KEY_LISTING = "browse.listing"
         const val KEY_QUERY = "browse.query"
         const val KEY_FILTERS = "browse.filters"
+        const val STOP_MS = 5_000L
         val filtersJson = Json { ignoreUnknownKeys = true }
     }
 }

@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.ui.explore
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,18 +10,25 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -29,6 +37,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +58,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.repository.SavedSearch
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel.Listing
 import com.tiagohs.hqr.presentation.common.ErrorKind
@@ -65,9 +75,12 @@ import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
+import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.action_choose_folder
+import com.tiagohs.hqr.ui.resources.action_more
 import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
+import com.tiagohs.hqr.ui.resources.action_save
 import com.tiagohs.hqr.ui.resources.action_search
 import com.tiagohs.hqr.ui.resources.action_undo
 import com.tiagohs.hqr.ui.resources.bridge_configure
@@ -80,6 +93,10 @@ import com.tiagohs.hqr.ui.resources.browse_no_results_message
 import com.tiagohs.hqr.ui.resources.browse_popular
 import com.tiagohs.hqr.ui.resources.error_bridge
 import com.tiagohs.hqr.ui.resources.error_title
+import com.tiagohs.hqr.ui.resources.feed_add
+import com.tiagohs.hqr.ui.resources.feed_add_latest
+import com.tiagohs.hqr.ui.resources.feed_added
+import com.tiagohs.hqr.ui.resources.feed_full
 import com.tiagohs.hqr.ui.resources.files_empty_message
 import com.tiagohs.hqr.ui.resources.files_empty_title
 import com.tiagohs.hqr.ui.resources.files_import
@@ -90,6 +107,12 @@ import com.tiagohs.hqr.ui.resources.local_no_folder
 import com.tiagohs.hqr.ui.resources.local_no_folder_message
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_remove_library
+import com.tiagohs.hqr.ui.resources.saved_delete
+import com.tiagohs.hqr.ui.resources.saved_name
+import com.tiagohs.hqr.ui.resources.saved_options
+import com.tiagohs.hqr.ui.resources.saved_rename
+import com.tiagohs.hqr.ui.resources.saved_save
+import com.tiagohs.hqr.ui.resources.saved_title
 import com.tiagohs.hqr.ui.settings.rememberFolderPicker
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
@@ -137,6 +160,22 @@ fun BrowseSourceScreen(
     }
 
     val snackbar = remember { SnackbarHostState() }
+    var menu by remember { mutableStateOf(false) }
+    val savedSearches by viewModel.savedSearches.collectAsStateWithLifecycle()
+    var naming by remember { mutableStateOf<SavedName?>(null) }
+    val feedAdded = stringResource(Res.string.feed_added)
+    val feedFull = stringResource(Res.string.feed_full)
+    naming?.let { current ->
+        SavedNameDialog(
+            initial = current.name,
+            onDismiss = { naming = null },
+            onConfirm = { name ->
+                naming = null
+                val search = current.search
+                if (search == null) viewModel.saveSearch(name) else viewModel.renameSaved(search, name)
+            },
+        )
+    }
     val uriHandler = LocalUriHandler.current
     var showFilters by rememberSaveable { mutableStateOf(false) }
     if (showFilters) {
@@ -156,6 +195,33 @@ fun BrowseSourceScreen(
             TopAppBar(
                 title = { Text(sourceDisplayName(SourceId(sourceId), state.sourceName), style = MaterialTheme.typography.headlineMedium) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(HqrIcons.Back, stringResource(Res.string.action_back)) } },
+                actions = {
+                    if (!isLocal) {
+                        Box {
+                            IconButton(onClick = { menu = true }) { Icon(HqrIcons.More, stringResource(Res.string.action_more)) }
+                            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                                // RF-24: what is on screen, kept by name.
+                                if (state.listing == Listing.SEARCH && state.canSearch) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.saved_save)) },
+                                        onClick = {
+                                            menu = false
+                                            naming = SavedName(null, state.query)
+                                        },
+                                    )
+                                }
+                                // RF-25: this source's latest in the feed.
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.feed_add_latest)) },
+                                    onClick = {
+                                        menu = false
+                                        scope.launch { snackbar.showSnackbar(if (viewModel.addToFeed(null)) feedAdded else feedFull) }
+                                    },
+                                )
+                            }
+                        }
+                    }
+                },
             )
         },
     ) { padding ->
@@ -208,6 +274,19 @@ fun BrowseSourceScreen(
                         modifier = Modifier.semantics { contentDescription = description },
                     )
                 }
+            }
+            // RF-24: one tap brings a saved search back; its menu renames, deletes or puts it in the feed.
+            if (savedSearches.isNotEmpty()) {
+                SavedSearchesRow(
+                    searches = savedSearches,
+                    onApply = { search ->
+                        query = search.query
+                        viewModel.applySaved(search)
+                    },
+                    onRename = { naming = SavedName(it, it.name) },
+                    onDelete = viewModel::deleteSaved,
+                    onFeed = { search -> scope.launch { snackbar.showSnackbar(if (viewModel.addToFeed(search)) feedAdded else feedFull) } },
+                )
             }
             when {
                 state.loading -> LoadingState()
@@ -326,6 +405,87 @@ fun BrowseSourceScreen(
                             }
                         }
                     }
+            }
+        }
+    }
+}
+
+/** The saved search being named: null for a new one. */
+private data class SavedName(
+    val search: SavedSearch?,
+    val name: String,
+)
+
+@Composable
+private fun SavedNameDialog(
+    initial: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
+    var name by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.saved_title)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(stringResource(Res.string.saved_name)) },
+                singleLine = true,
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(name) },
+                enabled = name.isNotBlank(),
+            ) { Text(stringResource(Res.string.action_save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
+    )
+}
+
+@Composable
+private fun SavedSearchesRow(
+    searches: List<SavedSearch>,
+    onApply: (SavedSearch) -> Unit,
+    onRename: (SavedSearch) -> Unit,
+    onDelete: (SavedSearch) -> Unit,
+    onFeed: (SavedSearch) -> Unit,
+) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(searches, key = { it.id }) { search ->
+            var open by remember { mutableStateOf(false) }
+            Box {
+                InputChip(
+                    selected = false,
+                    onClick = { onApply(search) },
+                    label = { Text(search.name) },
+                    leadingIcon = { Icon(HqrIcons.Bookmark, null, Modifier.size(18.dp)) },
+                    trailingIcon = {
+                        Icon(
+                            HqrIcons.More,
+                            stringResource(Res.string.saved_options, search.name),
+                            Modifier.size(18.dp).clickable { open = true },
+                        )
+                    },
+                )
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                    DropdownMenuItem(text = { Text(stringResource(Res.string.feed_add)) }, onClick = {
+                        open = false
+                        onFeed(search)
+                    })
+                    DropdownMenuItem(text = { Text(stringResource(Res.string.saved_rename)) }, onClick = {
+                        open = false
+                        onRename(search)
+                    })
+                    DropdownMenuItem(text = { Text(stringResource(Res.string.saved_delete)) }, onClick = {
+                        open = false
+                        onDelete(search)
+                    })
+                }
             }
         }
     }

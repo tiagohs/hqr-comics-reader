@@ -8,8 +8,10 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,10 +51,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
@@ -64,13 +69,18 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.LocalPlatformContext
 import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import coil3.request.transformations
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.presentation.color.CoverColor
 import com.tiagohs.hqr.presentation.reader.KeyAction
 import com.tiagohs.hqr.presentation.reader.PageScale
+import com.tiagohs.hqr.presentation.reader.PageView
 import com.tiagohs.hqr.presentation.reader.ReaderBackground
+import com.tiagohs.hqr.presentation.reader.ReaderLayout
 import com.tiagohs.hqr.presentation.reader.ReaderMode
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
 import com.tiagohs.hqr.presentation.reader.TapAction
@@ -101,6 +111,7 @@ import com.tiagohs.hqr.ui.theme.BalloonShape
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
 import com.tiagohs.hqr.ui.theme.bangers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.ZoomSpec
 import me.saket.telephoto.zoomable.rememberZoomableState
@@ -131,6 +142,11 @@ fun ReaderScreen(
     val seed = state.manga?.coverColor?.takeIf { coverOn } ?: CoverColor.VIOLET
     var settingsOpen by remember { mutableStateOf(false) }
     var shortcutsOpen by remember { mutableStateOf(false) }
+    // Keys and controller buttons go to the pages, which know whether a screen is one page or two (RF-44, RF-47).
+    val commands = remember { Channel<KeyAction>(Channel.CONFLATED) }
+    // RF-46: the screen stays on while reading, and the bars go away with the controls (camera cutout used).
+    KeepScreenOn(state.settings.keepScreenOn)
+    ImmersiveMode(hideBars = !state.menuVisible)
     HqrTheme(dark = true, seed = seed) {
         val background =
             when (state.settings.background) {
@@ -144,6 +160,7 @@ fun ReaderScreen(
                 .background(background)
                 .readerInput(
                     mode = state.settings.mode,
+                    volumeKeys = state.settings.volumeKeys,
                     menuVisible = state.menuVisible,
                     overlayOpen = shortcutsOpen || settingsOpen,
                     onAction = { action ->
@@ -151,7 +168,7 @@ fun ReaderScreen(
                             KeyAction.FULLSCREEN -> toggleFullscreen()
                             KeyAction.SHORTCUTS -> shortcutsOpen = true
                             KeyAction.CLOSE -> onBack()
-                            else -> viewModel.key(action)
+                            else -> commands.trySend(action)
                         }
                     },
                     onMouseMoved = viewModel::showMenu,
@@ -182,10 +199,15 @@ fun ReaderScreen(
                 }
                 state.transition != null -> TransitionPage(state, viewModel, onBack)
                 // A new chapter starts a new pager/list at its own page.
-                else -> key(state.chapter?.id) { Pages(state, viewModel) }
+                else -> key(state.chapter?.id) { Pages(state, viewModel, commands) }
             }
             AnimatedVisibility(state.menuVisible && state.transition == null && !state.loading, enter = fadeIn(), exit = fadeOut()) {
                 ReaderMenu(state, viewModel, onBack, onSettings = { settingsOpen = true })
+            }
+            // RF-46: the page number, while the controls are hidden.
+            val reading = state.pageCount > 0 && state.transition == null && !state.loading
+            if (state.settings.showPageNumber && !state.menuVisible && reading) {
+                PageNumber(state.page + 1, state.pageCount, Modifier.align(Alignment.BottomCenter))
             }
             if (shortcutsOpen) ShortcutsDialog(onDismiss = { shortcutsOpen = false })
             if (settingsOpen) {
@@ -203,11 +225,9 @@ fun ReaderScreen(
 private fun Pages(
     state: ReaderViewModel.State,
     viewModel: ReaderViewModel,
+    commands: Channel<KeyAction>,
 ) {
     val settings = state.settings
-    val rtl = settings.mode == ReaderMode.RIGHT_TO_LEFT
-    // One extra item after the last page leads to the transition.
-    val count = state.pageCount + 1
     val tap: (Float, Float, () -> Unit, () -> Unit) -> Unit = { x, y, prev, next ->
         when (TapZoneMap.action(settings.tapZones, settings.mode, settings.invertZones, x, y)) {
             TapAction.PREVIOUS -> prev()
@@ -237,6 +257,8 @@ private fun Pages(
                     }
                 }
             }
+            // RF-112: in the webtoon the keys move page by page through the list.
+            LaunchedEffect(list) { for (command in commands) viewModel.key(command) }
             LaunchedEffect(state.page) {
                 // The page slider moves the list too (RF-40).
                 if (state.page != list.firstVisibleItemIndex && state.page < pageCount) list.scrollToItem(state.page)
@@ -250,60 +272,124 @@ private fun Pages(
                     _,
                     ->
                     i
-                }) { index, page -> PageImage(state, index, page.imageUrl, page.headers, ContentScale.FillWidth) }
+                }) { index, _ -> PageImage(state, index, ContentScale.FillWidth, viewModel) }
             }
         }
-        else -> {
-            val pager = rememberPagerState(initialPage = state.page) { count }
-            val scope = rememberCoroutineScope()
-            LaunchedEffect(pager) {
-                // The settled page: half a swipe on the last page never opens the transition (RF-42).
-                snapshotFlow { pager.settledPage }.collect { index ->
-                    if (index >= state.pageCount) viewModel.onReachedEnd() else viewModel.onPageChanged(index)
-                }
+        else -> PagedPages(state, viewModel, commands, tap)
+    }
+}
+
+/** RF-36, RF-44: the paged modes; each screen is one page, a spread or half of a wide page. */
+@Composable
+private fun PagedPages(
+    state: ReaderViewModel.State,
+    viewModel: ReaderViewModel,
+    commands: Channel<KeyAction>,
+    tap: (Float, Float, () -> Unit, () -> Unit) -> Unit,
+) {
+    val settings = state.settings
+    val rtl = settings.mode == ReaderMode.RIGHT_TO_LEFT
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val landscape = maxWidth > maxHeight
+        val sideways = settings.mode != ReaderMode.VERTICAL
+        val views =
+            remember(state.pageCount, state.wide, settings.doublePage, settings.splitWide, landscape, sideways) {
+                ReaderLayout.views(
+                    count = state.pageCount,
+                    wide = state.wide,
+                    double = settings.doublePage && landscape && sideways,
+                    split = settings.splitWide && !landscape && sideways,
+                )
             }
-            LaunchedEffect(state.page) {
-                if (state.page != pager.currentPage &&
-                    state.page < state.pageCount
-                ) {
-                    pager.scrollToPage(state.page)
-                }
+        // One extra screen after the last leads to the transition.
+        val pager = rememberPagerState(initialPage = ReaderLayout.viewOf(views, state.page)) { views.size + 1 }
+        val scope = rememberCoroutineScope()
+        LaunchedEffect(pager, views) {
+            // The settled screen: half a swipe on the last page never opens the transition (RF-42).
+            snapshotFlow { pager.settledPage }.collect { index ->
+                if (index >= views.size) viewModel.onReachedEnd() else viewModel.onPageChanged(views[index].pages.first())
             }
-            val prev = {
-                scope.launch { pager.animateScrollToPage((pager.currentPage - 1).coerceAtLeast(0)) }
-                Unit
+        }
+        LaunchedEffect(state.page, views) {
+            val target = ReaderLayout.viewOf(views, state.page)
+            // A spread or the second half already shows the page: only another page moves the pager.
+            if (state.page !in views.getOrNull(pager.currentPage)?.pages.orEmpty() && state.page < state.pageCount) {
+                pager.scrollToPage(target)
             }
-            val next = {
-                scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
-                Unit
+        }
+        LaunchedEffect(pager, views) {
+            // RF-47, RF-112: keys and buttons move by screen, so a spread turns as one.
+            for (command in commands) {
+                val to =
+                    when (command) {
+                        KeyAction.NEXT -> pager.currentPage + 1
+                        KeyAction.PREVIOUS -> pager.currentPage - 1
+                        KeyAction.FIRST -> 0
+                        KeyAction.LAST -> views.size - 1
+                        else -> continue
+                    }
+                pager.animateScrollToPage(to.coerceIn(0, views.size))
             }
-            val onTap: (Float, Float) -> Unit = { x, y -> tap(x, y, prev, next) }
-            val scale = settings.scale.toContentScale()
-            val preload = settings.preload.coerceIn(1, MAX_PRELOAD)
-            val page: @Composable (Int) -> Unit = { index ->
-                if (index < state.pageCount) {
+        }
+        val prev = {
+            scope.launch { pager.animateScrollToPage((pager.currentPage - 1).coerceAtLeast(0)) }
+            Unit
+        }
+        val next = {
+            scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
+            Unit
+        }
+        val onTap: (Float, Float) -> Unit = { x, y -> tap(x, y, prev, next) }
+        val scale = settings.scale.toContentScale()
+        val preload = settings.preload.coerceIn(1, MAX_PRELOAD)
+        val firstOnLeft = ReaderLayout.firstOnLeft(settings.mode, settings.invertPages)
+        val screen: @Composable (Int) -> Unit = { index ->
+            when (val view = views.getOrNull(index)) {
+                null -> Box(Modifier.fillMaxSize())
+                is PageView.Single ->
                     ZoomablePage(onTap) {
                         // RF-39: a tall page fitted to the width (or at its size) scrolls down inside the page.
                         val scroll = scale == ContentScale.FillWidth || scale == ContentScale.None
                         Box(if (scroll) Modifier.fillMaxSize().verticalScroll(rememberScrollState()) else Modifier.fillMaxSize()) {
-                            PageImage(state, index, state.pages[index].imageUrl, state.pages[index].headers, scale)
+                            PageImage(state, view.index, scale, viewModel)
                         }
                     }
-                } else {
-                    // The extra page after the last one leads to the transition.
-                    Box(Modifier.fillMaxSize())
-                }
+                is PageView.Spread ->
+                    ZoomablePage(onTap) {
+                        val (left, right) = if (firstOnLeft) view.first to view.second else view.second to view.first
+                        Row(Modifier.fillMaxSize()) {
+                            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterEnd) {
+                                PageImage(state, left, ContentScale.Fit, viewModel, Alignment.CenterEnd)
+                            }
+                            Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
+                                PageImage(state, right, ContentScale.Fit, viewModel, Alignment.CenterStart)
+                            }
+                        }
+                    }
+                is PageView.Half ->
+                    ZoomablePage(onTap) {
+                        // The wide page at twice the screen's width, moved so only the half being read shows.
+                        val showLeft = (view.part == 0) == firstOnLeft
+                        Box(Modifier.fillMaxSize().clipToBounds()) {
+                            Box(
+                                Modifier
+                                    .fillMaxHeight()
+                                    .layout { measurable, constraints ->
+                                        val full = constraints.maxWidth * 2
+                                        val placeable = measurable.measure(constraints.copy(minWidth = full, maxWidth = full))
+                                        layout(constraints.maxWidth, placeable.height) {
+                                            placeable.place(if (showLeft) 0 else -constraints.maxWidth, 0)
+                                        }
+                                    },
+                            ) { PageImage(state, view.index, ContentScale.Fit, viewModel) }
+                        }
+                    }
             }
-            if (settings.mode == ReaderMode.VERTICAL) {
-                VerticalPager(pager, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = preload) { page(it) }
-            } else {
-                HorizontalPager(
-                    pager,
-                    modifier = Modifier.fillMaxSize(),
-                    reverseLayout = rtl,
-                    beyondViewportPageCount = preload,
-                ) { page(it) }
-            }
+        }
+        if (settings.mode == ReaderMode.VERTICAL) {
+            VerticalPager(pager, modifier = Modifier.fillMaxSize(), beyondViewportPageCount = preload) { screen(it) }
+        } else {
+            HorizontalPager(pager, modifier = Modifier.fillMaxSize(), reverseLayout = rtl, beyondViewportPageCount = preload) { screen(it) }
         }
     }
 }
@@ -337,21 +423,39 @@ private fun PageScale.toContentScale(): ContentScale =
 private fun PageImage(
     state: ReaderViewModel.State,
     index: Int,
-    url: String,
-    headers: Map<String, String>,
     scale: ContentScale,
+    viewModel: ReaderViewModel,
+    alignment: Alignment = Alignment.Center,
 ) {
     val manga = state.manga ?: return
-    var attempt by remember(url) { mutableStateOf(0) }
+    val page = state.pages.getOrNull(index) ?: return
+    var attempt by remember(page.imageUrl) { mutableStateOf(0) }
     val label = stringResource(Res.string.reader_page_of, index + 1, state.pageCount)
+    val context = LocalPlatformContext.current
+    val crop = state.settings.cropBorders
+    val request =
+        remember(page.imageUrl, attempt, crop) {
+            ImageRequest
+                .Builder(context)
+                .data(ImageRef(manga.sourceId, page.imageUrl, page.headers + ("x-attempt" to attempt.toString())))
+                // RF-45: uniform white or black margins cut off.
+                .apply { if (crop) transformations(CropBordersTransformation) }
+                .build()
+        }
     Box(
         Modifier.fillMaxWidth().semantics { contentDescription = label },
-        contentAlignment = Alignment.Center,
+        contentAlignment = alignment,
     ) {
         SubcomposeAsyncImage(
-            model = ImageRef(manga.sourceId, url, headers + ("x-attempt" to attempt.toString())),
+            model = request,
             contentDescription = null,
             contentScale = scale,
+            alignment = alignment,
+            // RF-44: a page wider than tall is shown alone (or split in portrait).
+            onSuccess = { success ->
+                val size = success.painter.intrinsicSize
+                if (size.isSpecified) viewModel.onPageSize(index, size.width, size.height)
+            },
             modifier =
                 when (scale) {
                     ContentScale.FillWidth -> Modifier.fillMaxWidth()
@@ -601,4 +705,24 @@ private fun ReaderMessage(
             Button(onClick = onAction) { Text(action) }
         }
     }
+}
+
+@Composable
+private fun PageNumber(
+    page: Int,
+    count: Int,
+    modifier: Modifier,
+) {
+    Text(
+        "$page / $count",
+        style = MaterialTheme.typography.labelMedium,
+        color = Color.White,
+        modifier =
+            modifier
+                .navigationBarsPadding()
+                .padding(bottom = 8.dp)
+                .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
+                .padding(horizontal = 10.dp, vertical = 3.dp)
+                .clearAndSetSemantics { },
+    )
 }

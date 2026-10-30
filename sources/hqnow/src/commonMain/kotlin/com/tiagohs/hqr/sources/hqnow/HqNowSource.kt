@@ -10,6 +10,7 @@ import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.model.SourcePage
+import com.tiagohs.hqr.domain.model.isoEpochMs
 import com.tiagohs.hqr.domain.source.CatalogSource
 import com.tiagohs.hqr.domain.source.SearchSource
 import com.tiagohs.hqr.domain.source.SourceException
@@ -215,6 +216,7 @@ class HqNowSource(
             description = synopsis?.trim()?.takeIf { it.isNotEmpty() },
             language = "pt-br",
             kind = ReadingKind.COMIC,
+            updatedAtEpochMs = isoEpochMs(updatedAt),
         )
 
     companion object {
@@ -264,6 +266,7 @@ internal data class HqDto(
     val hqCover: String? = null,
     val synopsis: String? = null,
     val publisherName: String? = null,
+    val updatedAt: String? = null,
     val capitulos: List<ChapterDto> = emptyList(),
 )
 

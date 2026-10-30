@@ -54,6 +54,8 @@ import com.tiagohs.hqr.ui.resources.reader_crop
 import com.tiagohs.hqr.ui.resources.reader_crop_hint
 import com.tiagohs.hqr.ui.resources.reader_double
 import com.tiagohs.hqr.ui.resources.reader_double_hint
+import com.tiagohs.hqr.ui.resources.reader_invert_pages
+import com.tiagohs.hqr.ui.resources.reader_invert_pages_hint
 import com.tiagohs.hqr.ui.resources.reader_keep_on
 import com.tiagohs.hqr.ui.resources.reader_keep_on_hint
 import com.tiagohs.hqr.ui.resources.reader_mode
@@ -62,12 +64,18 @@ import com.tiagohs.hqr.ui.resources.reader_mode_rtl
 import com.tiagohs.hqr.ui.resources.reader_mode_vertical
 import com.tiagohs.hqr.ui.resources.reader_mode_webtoon
 import com.tiagohs.hqr.ui.resources.reader_only_this_work
+import com.tiagohs.hqr.ui.resources.reader_page_number
+import com.tiagohs.hqr.ui.resources.reader_page_number_hint
 import com.tiagohs.hqr.ui.resources.reader_scale
 import com.tiagohs.hqr.ui.resources.reader_scale_height
 import com.tiagohs.hqr.ui.resources.reader_scale_original
 import com.tiagohs.hqr.ui.resources.reader_scale_screen
 import com.tiagohs.hqr.ui.resources.reader_scale_width
 import com.tiagohs.hqr.ui.resources.reader_settings
+import com.tiagohs.hqr.ui.resources.reader_split
+import com.tiagohs.hqr.ui.resources.reader_split_hint
+import com.tiagohs.hqr.ui.resources.reader_volume_keys
+import com.tiagohs.hqr.ui.resources.reader_volume_keys_hint
 import com.tiagohs.hqr.ui.resources.reader_zones
 import com.tiagohs.hqr.ui.resources.reader_zones_default
 import com.tiagohs.hqr.ui.resources.reader_zones_edges
@@ -177,6 +185,22 @@ fun ReaderSettingsSheet(
                 Res.string.reader_keep_on_hint,
                 settings.keepScreenOn,
             ) { update(settings.copy(keepScreenOn = it)) }
+            Toggle(Res.string.reader_split, Res.string.reader_split_hint, settings.splitWide) { update(settings.copy(splitWide = it)) }
+            Toggle(
+                Res.string.reader_invert_pages,
+                Res.string.reader_invert_pages_hint,
+                settings.invertPages,
+            ) { update(settings.copy(invertPages = it)) }
+            Toggle(
+                Res.string.reader_page_number,
+                Res.string.reader_page_number_hint,
+                settings.showPageNumber,
+            ) { update(settings.copy(showPageNumber = it)) }
+            Toggle(
+                Res.string.reader_volume_keys,
+                Res.string.reader_volume_keys_hint,
+                settings.volumeKeys,
+            ) { update(settings.copy(volumeKeys = it)) }
         }
     }
 }

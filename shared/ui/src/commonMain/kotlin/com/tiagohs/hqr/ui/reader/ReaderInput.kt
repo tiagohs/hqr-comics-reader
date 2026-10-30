@@ -54,6 +54,11 @@ private fun KeyEvent.toReaderKey(): ReaderKey? =
         Key.MoveEnd -> ReaderKey.END
         Key.F -> ReaderKey.F
         Key.Escape -> ReaderKey.ESCAPE
+        // RF-47: volume keys (when the option is on) and a controller's shoulders.
+        Key.VolumeUp -> ReaderKey.VOLUME_UP
+        Key.VolumeDown -> ReaderKey.VOLUME_DOWN
+        Key.ButtonR1, Key.ButtonR2 -> ReaderKey.NEXT_BUTTON
+        Key.ButtonL1, Key.ButtonL2 -> ReaderKey.PREVIOUS_BUTTON
         // "?" is Shift + "/" on most layouts; the typed character covers the others.
         Key.Slash -> if (isShiftPressed) ReaderKey.QUESTION else null
         else -> if (utf16CodePoint == QUESTION_MARK) ReaderKey.QUESTION else null
@@ -66,6 +71,7 @@ private fun KeyEvent.toReaderKey(): ReaderKey? =
 @Composable
 fun Modifier.readerInput(
     mode: ReaderMode,
+    volumeKeys: Boolean,
     menuVisible: Boolean,
     /** True while a dialog or sheet is open: when it closes, the keys come back to the reader. */
     overlayOpen: Boolean,
@@ -90,7 +96,7 @@ fun Modifier.readerInput(
         .focusable()
         .onKeyEvent { event ->
             if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-            val action = event.toReaderKey()?.let { ReaderKeys.action(it, mode) } ?: return@onKeyEvent false
+            val action = event.toReaderKey()?.let { ReaderKeys.action(it, mode, volumeKeys) } ?: return@onKeyEvent false
             // Escape with the controls open just closes them.
             if (action == KeyAction.CLOSE && menuVisible) onMouseIdle() else onAction(action)
             true

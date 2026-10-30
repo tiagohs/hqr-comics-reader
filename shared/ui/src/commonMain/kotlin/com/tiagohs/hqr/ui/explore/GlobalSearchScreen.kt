@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.ui.explore
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -73,6 +75,8 @@ import com.tiagohs.hqr.ui.resources.search_group_empty
 import com.tiagohs.hqr.ui.resources.search_hint
 import com.tiagohs.hqr.ui.resources.search_more
 import com.tiagohs.hqr.ui.resources.search_nothing_for
+import com.tiagohs.hqr.ui.resources.search_recent
+import com.tiagohs.hqr.ui.resources.search_recent_remove
 import com.tiagohs.hqr.ui.resources.search_see_sources
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
@@ -124,6 +128,7 @@ fun GlobalSearchScreen(
         },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
+            val recent by viewModel.recent.collectAsStateWithLifecycle()
             if (state.searching) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (state.nothingFound) {
                 EmptyState(
@@ -135,6 +140,29 @@ fun GlobalSearchScreen(
                 return@Column
             }
             LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
+                // RF-27: with the field empty, the last searches, each with "remover".
+                if (state.query.isBlank() && recent.isNotEmpty()) {
+                    item {
+                        Text(
+                            stringResource(Res.string.search_recent),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp),
+                        )
+                    }
+                    items(recent, key = { "recent:$it" }) { text ->
+                        ListItem(
+                            headlineContent = { Text(text) },
+                            leadingContent = { Icon(HqrIcons.History, null) },
+                            trailingContent = {
+                                IconButton(onClick = { viewModel.removeRecent(text) }) {
+                                    Icon(HqrIcons.Close, stringResource(Res.string.search_recent_remove, text))
+                                }
+                            },
+                            modifier = Modifier.clickable { viewModel.searchAgain(text) },
+                        )
+                    }
+                }
                 items(state.groups, key = { it.sourceId.value }) { group ->
                     SourceGroup(
                         group = group,

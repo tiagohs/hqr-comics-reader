@@ -211,6 +211,7 @@ private fun AppNavigation(dark: Boolean) {
                     onSearch = { nav.navigate(Route.Search) },
                     onManageSources = { nav.navigate(Route.Sources) },
                     onBridge = { nav.navigate(Route.Bridge) },
+                    onOpenManga = { nav.navigate(Route.Manga(it)) },
                 )
             }
             composable<Route.Search> {

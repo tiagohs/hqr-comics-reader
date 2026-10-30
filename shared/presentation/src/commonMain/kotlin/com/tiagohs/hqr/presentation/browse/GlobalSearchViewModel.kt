@@ -7,6 +7,7 @@ import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.repository.LibraryRemoval
 import com.tiagohs.hqr.domain.repository.MangaRepository
+import com.tiagohs.hqr.domain.repository.SearchRepository
 import com.tiagohs.hqr.domain.source.SearchSource
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.common.ErrorKind
@@ -15,9 +16,12 @@ import com.tiagohs.hqr.presentation.common.toErrorKind
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
@@ -32,7 +36,28 @@ class GlobalSearchViewModel(
     private val mangas: MangaRepository,
     private val saved: SavedStateHandle = SavedStateHandle(),
     private val debounce: Duration = DEBOUNCE,
+    private val searches: SearchRepository? = null,
 ) : ViewModel() {
+    /** RF-27: the last 10 global searches, shown while the field is empty. */
+    val recent: StateFlow<List<String>> =
+        (searches?.observeRecent() ?: flowOf(emptyList()))
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(RECENT_STOP_MS), emptyList())
+
+    fun removeRecent(query: String) {
+        viewModelScope.launch { searches?.removeRecent(query) }
+    }
+
+    /** A search the user meant (the keyboard's key, or opening one of its results) is kept; half-typed text isn't. */
+    private fun remember(query: String) {
+        if (query.isNotBlank()) viewModelScope.launch { searches?.addRecent(query) }
+    }
+
+    /** RF-27: a recent search, asked again. */
+    fun searchAgain(query: String) {
+        type(query)
+        submit()
+    }
+
     sealed interface GroupState {
         data object Loading : GroupState
 
@@ -98,6 +123,7 @@ class GlobalSearchViewModel(
     fun submit() {
         debounceJob?.cancel()
         val current = _state.value
+        remember(current.query)
         if (current.query.trim() == current.searched && current.groups.isNotEmpty()) {
             current.groups.filter { it.state is GroupState.Error }.forEach { retry(it.sourceId) }
         } else {
@@ -184,9 +210,13 @@ class GlobalSearchViewModel(
     fun webUrl(sourceId: SourceId): String? = registry[sourceId]?.webUrl(_state.value.searched)
 
     /** Saves the work before opening it, so the work screen reads one id. */
-    suspend fun open(manga: SourceManga): Long = mangas.upsert(manga).id
+    suspend fun open(manga: SourceManga): Long {
+        remember(_state.value.searched)
+        return mangas.upsert(manga).id
+    }
 
     companion object {
+        private const val RECENT_STOP_MS = 5_000L
         val DEBOUNCE = 400.milliseconds
         private const val KEY_QUERY = "search.query"
     }

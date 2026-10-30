@@ -34,6 +34,7 @@ internal data class MangaAttributes(
     val status: String? = null,
     val contentRating: String? = null,
     val tags: List<TagDto> = emptyList(),
+    val updatedAt: String? = null,
 )
 
 @Serializable

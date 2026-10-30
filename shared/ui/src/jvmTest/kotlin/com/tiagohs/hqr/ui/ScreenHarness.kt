@@ -13,7 +13,11 @@ import com.tiagohs.hqr.data.db.inMemoryDatabase
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.MemoryImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
+import com.tiagohs.hqr.data.settings.SettingsSecretStore
+import com.tiagohs.hqr.data.sources.SourceListFetcher
+import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
+import com.tiagohs.hqr.ui.di.AppVersion
 import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
 import io.ktor.client.HttpClient
@@ -38,6 +42,9 @@ fun startTestKoin(sources: (HttpClient) -> List<Source> = { listOf(DemoSource())
                 single<HttpClient> { hqrHttpClient("HQR/1.0.0 (https://github.com/tiagohs/hqr-comics-reader)") }
                 single<ImageCache> { MemoryImageCache() }
                 single<List<Source>>(BuiltInSources) { sources(get()) }
+                single<SourceListFetcher> { SourceListFetcher { null } }
+                single<SecretStore> { SettingsSecretStore(get()) }
+                single(AppVersion) { "1.0.0" }
             },
             coreModule,
         )

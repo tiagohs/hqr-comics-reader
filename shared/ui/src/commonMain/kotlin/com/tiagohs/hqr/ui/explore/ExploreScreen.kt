@@ -22,13 +22,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.resources.Res
+import com.tiagohs.hqr.ui.resources.explore_manage_sources
 import com.tiagohs.hqr.ui.resources.explore_search_all
 import com.tiagohs.hqr.ui.resources.explore_sources
 import com.tiagohs.hqr.ui.resources.nav_explore
@@ -44,8 +47,11 @@ import org.koin.compose.koinInject
 fun ExploreScreen(
     onOpenSource: (String) -> Unit,
     onSearch: () -> Unit = {},
+    onManageSources: () -> Unit = {},
     registry: SourceRegistry = koinInject(),
 ) {
+    // RF-03: only the sources that are on.
+    val active by registry.active.collectAsStateWithLifecycle()
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(Res.string.nav_explore), style = MaterialTheme.typography.headlineLarge) },
@@ -80,7 +86,7 @@ fun ExploreScreen(
                     modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp),
                 )
             }
-            items(registry.all, key = { it.id.value }) { source ->
+            items(active, key = { it.id.value }) { source ->
                 ListItem(
                     headlineContent = { Text(sourceDisplayName(source.id, source.name)) },
                     supportingContent = {
@@ -95,24 +101,38 @@ fun ExploreScreen(
                     modifier = Modifier.clickable { onOpenSource(source.id.value) },
                 )
             }
+            // SCR-SRC-001: switches, the local folder and the servers.
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.explore_manage_sources)) },
+                    leadingContent = { Icon(HqrIcons.Settings, contentDescription = null) },
+                    modifier = Modifier.clickable(onClick = onManageSources),
+                )
+            }
         }
     }
 }
 
 /** Two-letter monogram of a source (design.md §5), never a brand logo. */
 @Composable
-fun SourceMonogram(source: Source) {
+fun SourceMonogram(source: Source) = SourceMonogram(source.name, isLocal = source.id.value == "local")
+
+@Composable
+fun SourceMonogram(
+    name: String,
+    isLocal: Boolean = false,
+) {
     val letters =
-        source.name
+        name
             .split(' ', '-')
             .filter { it.isNotBlank() }
-            .let { words -> if (words.size >= 2) "${words[0][0]}${words[1][0]}" else source.name.take(2) }
+            .let { words -> if (words.size >= 2) "${words[0][0]}${words[1][0]}" else name.take(2) }
             .uppercase()
     Box(
         Modifier.size(40.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest, BalloonShape),
         contentAlignment = Alignment.Center,
     ) {
-        if (source.id.value == "local") {
+        if (isLocal) {
             Icon(HqrIcons.Folder, contentDescription = null, modifier = Modifier.size(20.dp))
         } else {
             Text(letters, style = MaterialTheme.typography.labelLarge)

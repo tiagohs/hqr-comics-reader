@@ -52,11 +52,8 @@ class LibraryViewModelTest : MainDispatcherTest() {
             // RF-53: a work out of the library leaves its categories.
             db.categories.observeFor(a).first() shouldBe emptySet()
             vm.undoRemove(removed.await())
-            vm.state
-                .first { it.items.size == 2 }
-                .items
-                .first { it.manga.id == a }
-                .categoryIds shouldBe setOf(reading.id, done.id)
+            // The library joins several tables: wait until the categories arrive too.
+            vm.state.first { s -> s.items.firstOrNull { it.manga.id == a }?.categoryIds == setOf(reading.id, done.id) }
             // "Desfazer" keeps the place under "Data em que entrou".
             db.mangas.get(a)!!.addedAtEpochMs shouldBe addedAt
         }

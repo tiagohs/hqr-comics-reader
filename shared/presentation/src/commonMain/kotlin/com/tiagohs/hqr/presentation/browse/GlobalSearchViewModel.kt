@@ -68,7 +68,8 @@ class GlobalSearchViewModel(
             get() = searched.isNotBlank() && groups.isNotEmpty() && groups.all { it.isEmpty }
     }
 
-    private val sources get() = registry.all.filterIsInstance<SearchSource>()
+    // RF-03: only the sources that are on.
+    private val sources get() = registry.active.value.filterIsInstance<SearchSource>()
     private val _state = MutableStateFlow(State(query = saved[KEY_QUERY] ?: ""))
     val state: StateFlow<State> = _state.asStateFlow()
     private var debounceJob: Job? = null

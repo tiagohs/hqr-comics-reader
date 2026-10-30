@@ -9,6 +9,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -25,7 +26,9 @@ import androidx.navigation.toRoute
 import coil3.compose.setSingletonImageLoaderFactory
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
+import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.source.ImageBytes
+import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.ui.components.hqrImageLoader
 import com.tiagohs.hqr.ui.explore.BrowseSourceScreen
 import com.tiagohs.hqr.ui.explore.ExploreScreen
@@ -41,6 +44,9 @@ import com.tiagohs.hqr.ui.resources.nav_history
 import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.settings.SettingsScreen
+import com.tiagohs.hqr.ui.sources.AddServerScreen
+import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
+import com.tiagohs.hqr.ui.sources.SourcesScreen
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
 import org.jetbrains.compose.resources.StringResource
@@ -65,6 +71,14 @@ private val topLevels =
 @Composable
 fun HqrApp(systemDark: Boolean) {
     val prefs = koinInject<AppPreferences>()
+    val sourceConfig = koinInject<SourceConfig>()
+    // RF-03, RF-105: the switches and the remote source list, once per start.
+    val servers = koinInject<ServerManager>()
+    LaunchedEffect(sourceConfig) {
+        sourceConfig.start()
+        // RF-17: the saved servers come back as sources.
+        servers.start()
+    }
     val images = koinInject<ImageBytes>()
     setSingletonImageLoaderFactory { context -> hqrImageLoader(context, images) }
     val theme by prefs.theme.collectAsStateWithLifecycle()
@@ -126,6 +140,7 @@ private fun AppNavigation(dark: Boolean) {
                 ExploreScreen(
                     onOpenSource = { nav.navigate(Route.BrowseSource(it)) },
                     onSearch = { nav.navigate(Route.Search) },
+                    onManageSources = { nav.navigate(Route.Sources) },
                 )
             }
             composable<Route.Search> {
@@ -133,6 +148,24 @@ private fun AppNavigation(dark: Boolean) {
                     onBack = { nav.popBackStack() },
                     onOpenManga = { nav.navigate(Route.Manga(it)) },
                     onOpenSource = { id, query -> nav.navigate(Route.BrowseSource(id, query)) },
+                    // RF-28: "Ver fontes" opens the sources screen.
+                    onSources = { nav.navigate(Route.Sources) },
+                )
+            }
+            composable<Route.Sources> {
+                SourcesScreen(
+                    onBack = { nav.popBackStack() },
+                    onAddServer = { nav.navigate(Route.AddServer()) },
+                    onEditServer = { nav.navigate(Route.AddServer(it)) },
+                    onOpenServer = { nav.navigate(Route.ServerCatalog(it)) },
+                )
+            }
+            composable<Route.AddServer> { back -> AddServerScreen(back.toRoute<Route.AddServer>().id, onDone = { nav.popBackStack() }) }
+            composable<Route.ServerCatalog> { back ->
+                ServerCatalogScreen(
+                    sourceId = back.toRoute<Route.ServerCatalog>().sourceId,
+                    onBack = { nav.popBackStack() },
+                    onOpenManga = { nav.navigate(Route.Manga(it)) },
                 )
             }
             composable<Route.History> {

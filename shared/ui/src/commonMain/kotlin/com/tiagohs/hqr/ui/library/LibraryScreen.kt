@@ -219,7 +219,7 @@ fun LibraryScreen(
         }
     }
     if (optionsOpen) {
-        val names = registry.all.associate { it.id.value to it.name }
+        val names = registry.everything.associate { it.id.value to it.name }
         LibraryOptionsSheet(state, names, viewModel::setOptions) { optionsOpen = false }
     }
 }

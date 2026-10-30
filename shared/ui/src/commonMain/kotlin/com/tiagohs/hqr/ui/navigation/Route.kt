@@ -30,6 +30,20 @@ sealed interface Route {
     data object Search : Route
 
     @Serializable
+    data object Sources : Route
+
+    /** [id] edits a saved server; null adds one. */
+    @Serializable
+    data class AddServer(
+        val id: String? = null,
+    ) : Route
+
+    @Serializable
+    data class ServerCatalog(
+        val sourceId: String,
+    ) : Route
+
+    @Serializable
     data class Manga(
         val id: Long,
     ) : Route

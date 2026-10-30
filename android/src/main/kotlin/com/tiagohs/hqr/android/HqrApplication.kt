@@ -9,6 +9,11 @@ import com.tiagohs.hqr.data.net.DiskImageCache
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
 import com.tiagohs.hqr.data.settings.AppPreferences
+import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
+import com.tiagohs.hqr.data.sources.SourceConfig
+import com.tiagohs.hqr.data.sources.SourceListFetcher
+import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import com.tiagohs.hqr.sources.local.AndroidPdfPages
@@ -16,6 +21,7 @@ import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.local.SafFileTree
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
+import com.tiagohs.hqr.ui.di.AppVersion
 import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.coreModule
 import io.ktor.client.HttpClient
@@ -52,7 +58,10 @@ class HqrApplication : Application() {
                 }, contentRatings = { get<AppPreferences>().mangaDexRatings() })
             }
             // RF-12: HQ Now only on Android; the browser needs the bridge for its images (FEAT-051).
-            single { HqNowSource(get()) }
+            single { HqNowSource(get(), apiUrl = { get<SourceConfig>().baseUrl(SourceId.HQ_NOW) ?: HqNowSource.API }) }
+            single<SourceListFetcher> { HttpSourceListFetcher(get()) }
+            single<SecretStore> { KeystoreSecretStore(this@HqrApplication) }
+            single(AppVersion) { BuildConfig.VERSION_NAME }
             single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
         }
 

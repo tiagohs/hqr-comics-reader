@@ -1,5 +1,10 @@
 package com.tiagohs.hqr.web
 
+import com.tiagohs.hqr.data.settings.SettingsSecretStore
+import com.tiagohs.hqr.domain.source.SecretStore
+import com.tiagohs.hqr.ui.di.AppVersion
+import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
+import com.tiagohs.hqr.data.sources.SourceListFetcher
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
@@ -51,6 +56,9 @@ fun main() {
                     )
                 }
                 single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
+                single<SourceListFetcher> { HttpSourceListFetcher(get()) }
+                single<SecretStore> { SettingsSecretStore(get()) }
+                single(AppVersion) { "1.0.0" }
             },
             coreModule,
         )

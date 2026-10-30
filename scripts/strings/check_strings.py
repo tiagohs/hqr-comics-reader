@@ -9,6 +9,12 @@ keys = {
     if (d / "strings.xml").exists()
 }
 base = keys["values"]
+
+# Compose resources show "\'" as written (a backslash on screen): apostrophes go plain.
+escaped = [f"{d.name}: {line.strip()}" for d in root.glob("values*") for line in (d / "strings.xml").read_text().splitlines() if "\\'" in line]
+if escaped:
+    print("Escaped apostrophes (show a backslash):", *escaped, sep="\n  ")
+    sys.exit(1)
 bad = {name: sorted(base ^ k) for name, k in keys.items() if k != base}
 if bad:
     print("Missing or extra keys:", bad)

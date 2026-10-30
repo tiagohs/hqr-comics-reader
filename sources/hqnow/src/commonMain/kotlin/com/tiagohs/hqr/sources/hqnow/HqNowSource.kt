@@ -44,6 +44,8 @@ class HqNowSource(
     private val http: HttpClient,
     clock: Clock = Clock.System,
     private val sleep: suspend (Duration) -> Unit = { delay(it) },
+    // RF-105: the remote source list can move the API to a new address.
+    private val apiUrl: () -> String = { API },
 ) : CatalogSource,
     SearchSource {
     override val id: SourceId = SourceId.HQ_NOW
@@ -176,7 +178,7 @@ class HqNowSource(
                 while (true) {
                     limiter.acquire()
                     response =
-                        http.post(API) {
+                        http.post(apiUrl()) {
                             contentType(ContentType.Application.Json)
                             setBody(payload)
                         }
@@ -216,7 +218,7 @@ class HqNowSource(
         )
 
     companion object {
-        private const val API = "https://admin.hq-now.com/graphql"
+        const val API = "https://admin.hq-now.com/graphql"
         private const val SITE = "https://www.hq-now.com"
         private const val PAGE_SIZE = 30
         private const val MAX_POPULAR = 600

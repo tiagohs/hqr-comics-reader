@@ -23,7 +23,7 @@ sealed interface UiState<out T> {
 enum class EmptyReason { NOTHING, NO_RESULTS, NO_FOLDER }
 
 /** What the screen says and which action fixes it (design.md: "Erros"). */
-enum class ErrorKind { OFFLINE, NETWORK, SERVER, PARSE, NOT_FOUND, AUTH, CHALLENGE, UNAVAILABLE, UNKNOWN }
+enum class ErrorKind { OFFLINE, NETWORK, SERVER, PARSE, NOT_FOUND, AUTH, CHALLENGE, UNAVAILABLE, CERTIFICATE, UNKNOWN }
 
 fun Throwable.toErrorKind(): ErrorKind =
     when (this) {
@@ -36,6 +36,7 @@ fun Throwable.toErrorKind(): ErrorKind =
                 SourceException.Kind.AUTH -> ErrorKind.AUTH
                 SourceException.Kind.CHALLENGE -> ErrorKind.CHALLENGE
                 SourceException.Kind.UNAVAILABLE -> ErrorKind.UNAVAILABLE
+                SourceException.Kind.CERTIFICATE -> ErrorKind.CERTIFICATE
             }
         else -> ErrorKind.UNKNOWN
     }

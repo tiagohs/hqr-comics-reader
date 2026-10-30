@@ -9,6 +9,7 @@ import com.tiagohs.hqr.data.repository.RoomChapterRepository
 import com.tiagohs.hqr.data.repository.RoomHistoryRepository
 import com.tiagohs.hqr.data.repository.RoomMangaRepository
 import com.tiagohs.hqr.data.settings.AppPreferences
+import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.CategoryRepository
@@ -17,8 +18,10 @@ import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ImageSource
+import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
+import com.tiagohs.hqr.domain.source.SourceSwitches
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.color.CoverPixels
@@ -37,7 +40,11 @@ import com.tiagohs.hqr.presentation.reader.ReaderSettings
 import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
 import com.tiagohs.hqr.presentation.reader.TapZones
+import com.tiagohs.hqr.presentation.sources.AddServerViewModel
+import com.tiagohs.hqr.presentation.sources.ServerCatalogViewModel
+import com.tiagohs.hqr.presentation.sources.SourcesViewModel
 import com.tiagohs.hqr.sources.local.LocalSource
+import com.tiagohs.hqr.sources.opds.OpdsServers
 import com.tiagohs.hqr.ui.color.ImageCoverPixels
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CancellationException
@@ -56,6 +63,9 @@ import kotlin.time.Clock
 /** Qualifier of the list of built-in sources each platform provides (ADR-003). */
 val BuiltInSources = named("builtInSources")
 
+/** Qualifier of the app version string ("1.0.0"), for the minimum version in `sources.json` (RF-105). */
+val AppVersion = named("appVersion")
+
 /** What every platform shares; the platform module brings database, settings, files, HTTP and the sources. */
 val coreModule: Module =
     module {
@@ -66,6 +76,12 @@ val coreModule: Module =
         single<CategoryRepository> { RoomCategoryRepository(get()) }
         single<HistoryRepository> { RoomHistoryRepository(get(), get(), get()) }
         single { SourceRegistry(get<List<Source>>(BuiltInSources)) }
+        single { SourceConfig(get(), get(), get(), get(), get(AppVersion)) }
+        single<SourceSwitches> { get<SourceConfig>() }
+        viewModel { SourcesViewModel(get(), get(), get()) }
+        single<ServerManager> { OpdsServers(get(), get(), get(), get()) }
+        viewModel { (id: SourceId?) -> AddServerViewModel(get(), id) }
+        viewModel { (id: SourceId) -> ServerCatalogViewModel(id, get(), get(), get()) }
         single<ImageBytes> { AppImageBytes(get(), get(), get()) }
         single<ReaderSettingsStore> { DbReaderSettingsStore(get(), get()) }
         single<ChapterPages> {
@@ -76,7 +92,7 @@ val coreModule: Module =
         viewModel { LibraryViewModel(get(), get(), get(), get(), get()) }
         viewModel { CategoriesViewModel(get(), get()) }
         viewModel { HistoryViewModel(get(), get()) }
-        viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query) }
+        viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query, get()) }
         viewModel { GlobalSearchViewModel(get(), get(), get()) }
         single<CoverPixels> { ImageCoverPixels(get()) }
         single<PagePrefetcher> {

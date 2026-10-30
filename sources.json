@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "sources": [
+    { "id": "mangadex", "enabled": true },
+    { "id": "hqnow", "enabled": true, "baseUrl": "https://admin.hq-now.com/graphql" },
+    { "id": "local", "enabled": true }
+  ]
+}

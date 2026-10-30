@@ -8,7 +8,7 @@
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
 | RF-01 | Must | UC-001, UC-002 | source, ADR-002 | — | FEAT-001 | — |
 | RF-02 | Must | UC-012 | ADR-003 | — | FEAT-024 | SourceRegistryTest |
-| RF-03 | Should | UC-001, UC-012 | settings | SCR-EXP-001, SCR-SRC-001 | FEAT-025 | — |
+| RF-03 | Should | UC-001, UC-012 | settings | SCR-EXP-001, SCR-SRC-001 | FEAT-025 | GlobalSearchViewModelTest, SourceConfigTest, SourceRegistryTest, SourcesScreensTest, SourcesViewModelTest |
 | RF-04 | Must | UC-001, UC-007 | net, ADR-005 | — | FEAT-001 | HqNowSourceTest, MangaDexSourceTest, NetAndCacheTest |
 | RF-05 | Must | UC-001, UC-002 | browse | SCR-STA-001 | FEAT-012 | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, HqNowSourceTest, MangaDexSourceTest, NetAndCacheTest, ReaderAndHistoryViewModelTest, SearchScreensTest |
 | RF-06 | Should | UC-012 | settings | SCR-SRC-002 | FEAT-025 | — |
@@ -22,9 +22,9 @@
 | RF-14 | Should | UC-008 | sources/local, ADR-011 | SCR-SRC-001 | FEAT-030 | — |
 | RF-15 | Should | UC-008 | sources/local | SCR-SRC-001 | FEAT-030 | — |
 | RF-16 | Must | UC-008 | sources/local | SCR-SRC-001 | FEAT-014 | LocalSourceTest |
-| RF-17 | Must | UC-009 | sources/opds | SCR-SRC-001, SCR-SRV-001 | FEAT-015 | — |
-| RF-18 | Must | UC-009 | sources/opds | SCR-SRV-001, SCR-SRV-002 | FEAT-016 | — |
-| RF-19 | Must | UC-009 | sources/opds | SCR-SRV-001 | FEAT-015 | — |
+| RF-17 | Must | UC-009 | sources/opds | SCR-SRC-001, SCR-SRV-001 | FEAT-015 | OpdsTest, ServersViewModelTest, SourcesScreensTest |
+| RF-18 | Must | UC-009 | sources/opds | SCR-SRV-001, SCR-SRV-002 | FEAT-016 | OpdsTest, ServersViewModelTest |
+| RF-19 | Must | UC-009 | sources/opds | SCR-SRV-001 | FEAT-015 | OpdsTest, ServersViewModelTest |
 | RF-20 | Could | UC-009 | sources/opds | SCR-SRV-002 | FEAT-045 | — |
 | RF-21 | Must | UC-002 | browse | SCR-EXP-002 | FEAT-001, FEAT-011 | BrowseAndMangaViewModelTest, MangaDexSourceTest |
 | RF-22 | Must | UC-001 | browse | SCR-EXP-002, SCR-EXP-003 | FEAT-011 | BrowseAndMangaViewModelTest, MangaDexSourceTest, SearchScreensTest |
@@ -79,7 +79,7 @@
 | RF-69 | Should | UC-010 | migration | SCR-OBR-002 | FEAT-031 | — |
 | RF-70 | Could | UC-010 | migration | SCR-OBR-002 | FEAT-042 | — |
 | RF-71 | Could | UC-010 | library, migration | SCR-OBR-002 | FEAT-042 | — |
-| RF-72 | Must | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | — |
+| RF-72 | Must | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | OpdsTest |
 | RF-73 | Must | UC-003, UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | — |
 | RF-74 | Must | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | — |
 | RF-75 | Could | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-046 | — |
@@ -94,14 +94,14 @@
 | RF-85 | Could | UC-008 | app | SCR-SRC-001 | FEAT-048 | ModelsTest |
 | RF-86 | Must | UC-001, UC-002 | browse | SCR-STA-001 | Fundações | — |
 | RF-87 | Must | UC-001 | browse | SCR-STA-001 | FEAT-023 | — |
-| RF-88 | Must | UC-004 | app, ADR-004, ADR-018 | SCR-STA-001 | Fundações | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, LibraryViewModelTest, NavigationTest, ReaderAndHistoryViewModelTest |
+| RF-88 | Must | UC-004 | app, ADR-004, ADR-018 | SCR-STA-001 | Fundações | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, LibraryViewModelTest, NavigationTest, ReaderAndHistoryViewModelTest, ServersViewModelTest |
 | RF-89 | Must | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | DatabaseFileTest, MigrationTest |
 | RF-90 | Must | UC-003 | source, ADR-002 | — | FEAT-001 | LibraryRepositoriesTest, MangaDexSourceTest, SourceRegistryTest |
 | RF-91 | Should | UC-012 | source, ADR-002 | — | FEAT-035 | — |
 | RF-92 | Must | UC-003 | browse | SCR-OBR-001 | FEAT-006 | LibraryRepositoriesTest, ReadingRulesTest |
 | RF-93 | Could | UC-008 | app | SCR-OBR-001 | FEAT-048 | — |
 | RF-94 | Must | UC-007 | app, ADR-009 | SCR-DL-001 | FEAT-017 | — |
-| RF-95 | Must | UC-009 | sources/opds | SCR-SRV-001 | FEAT-015 | — |
+| RF-95 | Must | UC-009 | sources/opds | SCR-SRV-001 | FEAT-015 | OpdsTest, SourcesScreensTest |
 | RF-96 | Could | UC-009 | sources/opds | SCR-SRV-001 | FEAT-045 | — |
 | RF-99 | Should | UC-001 | — | SCR-SRC-001 | FEAT-037 | — |
 | RF-100 | Should | UC-001 | — | SCR-SRC-001 | FEAT-038 | — |
@@ -109,7 +109,7 @@
 | RF-102 | Should | UC-001 | — | SCR-SRC-001 | FEAT-039 | — |
 | RF-103 | Should | UC-001 | — | SCR-SRC-001 | FEAT-040 | — |
 | RF-104 | Should | UC-001 | — | SCR-SRC-001 | FEAT-041 | — |
-| RF-105 | Must | UC-012 | sourceconfig, ADR-019 | SCR-SRC-001 | FEAT-024 | — |
+| RF-105 | Must | UC-012 | sourceconfig, ADR-019 | SCR-SRC-001 | FEAT-024 | SourceConfigTest, SourceRegistryTest, SourcesViewModelTest |
 | RF-106 | Should | UC-001 | challenge, ADR-020 | SCR-STA-001 | FEAT-036 | — |
 | RF-107 | Should | UC-014 | ui, web, ADR-004, ADR-022 | SCR-WEB-004 | FEAT-050 | — |
 | RF-108 | Should | UC-014 | bridge, ADR-023 | SCR-WEB-001 | FEAT-051 | — |

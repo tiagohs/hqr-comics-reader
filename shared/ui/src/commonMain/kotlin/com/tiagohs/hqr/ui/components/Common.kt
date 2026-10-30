@@ -19,6 +19,7 @@ import com.tiagohs.hqr.domain.model.PublicationStatus
 import com.tiagohs.hqr.presentation.common.ErrorKind
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.error_auth
+import com.tiagohs.hqr.ui.resources.error_certificate
 import com.tiagohs.hqr.ui.resources.error_challenge
 import com.tiagohs.hqr.ui.resources.error_network
 import com.tiagohs.hqr.ui.resources.error_not_found
@@ -81,6 +82,7 @@ fun ErrorKind.message(): StringResource =
         ErrorKind.AUTH -> Res.string.error_auth
         ErrorKind.CHALLENGE -> Res.string.error_challenge
         ErrorKind.UNAVAILABLE -> Res.string.error_unavailable
+        ErrorKind.CERTIFICATE -> Res.string.error_certificate
         ErrorKind.UNKNOWN -> Res.string.error_unknown
     }
 

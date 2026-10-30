@@ -88,6 +88,7 @@ fun GlobalSearchScreen(
     onBack: () -> Unit,
     onOpenManga: (Long) -> Unit,
     onOpenSource: (sourceId: String, query: String) -> Unit,
+    onSources: () -> Unit = onBack,
     viewModel: GlobalSearchViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -129,7 +130,7 @@ fun GlobalSearchScreen(
                     title = stringResource(Res.string.search_nothing_for, state.searched),
                     message = stringResource(Res.string.browse_no_results_message),
                     action = stringResource(Res.string.search_see_sources),
-                    onAction = onBack,
+                    onAction = onSources,
                 )
                 return@Column
             }

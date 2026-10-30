@@ -58,7 +58,7 @@ open class SourceException(
     val kind: Kind,
     cause: Throwable? = null,
 ) : Exception(message, cause) {
-    enum class Kind { NETWORK, SERVER, PARSE, NOT_FOUND, AUTH, CHALLENGE, UNAVAILABLE }
+    enum class Kind { NETWORK, SERVER, PARSE, NOT_FOUND, AUTH, CHALLENGE, UNAVAILABLE, CERTIFICATE }
 }
 
 /**

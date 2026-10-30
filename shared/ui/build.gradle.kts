@@ -10,6 +10,7 @@ kotlin {
             api(project(":shared:presentation"))
             implementation(project(":shared:data"))
             implementation(project(":sources:local"))
+            implementation(project(":sources:opds"))
             implementation(libs.cmp.runtime)
             implementation(libs.cmp.foundation)
             implementation(libs.cmp.ui)

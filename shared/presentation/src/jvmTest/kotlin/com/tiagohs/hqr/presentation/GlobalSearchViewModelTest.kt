@@ -151,4 +151,19 @@ class GlobalSearchViewModelTest : MainDispatcherTest() {
             vm.undoToggle(item, null)
             vm.state.first { item.key !in it.groups[0].inLibrary }
         }
+
+    @Test
+    fun RF03_aSourceTurnedOffIsNotAsked() =
+        runTest {
+            registry.setUserDisabled(setOf(SourceId("hq")))
+            val vm = vm()
+            vm.type("one piece")
+            vm.submit()
+            vm.state
+                .first { it.searched == "one piece" && !it.searching }
+                .groups
+                .map { it.sourceId.value } shouldContainExactly
+                listOf("md")
+            hqNow.requested shouldBe emptyList()
+        }
 }

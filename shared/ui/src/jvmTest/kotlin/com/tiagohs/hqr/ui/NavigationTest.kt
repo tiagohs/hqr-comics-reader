@@ -18,7 +18,7 @@ class NavigationTest {
     fun RF88_bottomBarGoesBackToTheLibrary() =
         screenTest {
             startTestKoin()
-            setContent { HqrApp(systemDark = false) }
+            setAppContent { HqrApp(systemDark = false) }
             waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Your library is empty")).fetchSemanticsNodes().isNotEmpty() }
             // The empty library's "Explore" button (index 0), then the Library tab must bring the Library back.
             onAllNodes(hasText("Explore"))[0].performClick()

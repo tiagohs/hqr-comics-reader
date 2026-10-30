@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.ui
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -34,6 +35,8 @@ import okio.Path.Companion.toPath
 import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Surface
+import org.koin.compose.KoinContext
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -67,6 +70,14 @@ fun startTestKoin(sources: (HttpClient) -> List<Source> = { listOf(DemoSource())
 }
 
 fun stopTestKoin() = stopKoin()
+
+/**
+ * Koin Compose keeps the first Koin it saw as the default; tests start a new Koin each time, so every screen gets
+ * this test's one explicitly (the app has a single Koin for its whole life).
+ */
+@OptIn(ExperimentalTestApi::class)
+@Suppress("DEPRECATION")
+fun ComposeUiTest.setAppContent(content: @Composable () -> Unit) = setContent { KoinContext(GlobalContext.get()) { content() } }
 
 /** Saves the current screen to build/screenshots/<name>.png for visual review against the canvas. */
 @OptIn(ExperimentalTestApi::class)

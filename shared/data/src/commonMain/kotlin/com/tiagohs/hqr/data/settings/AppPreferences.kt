@@ -20,6 +20,15 @@ class AppPreferences(
     private val _pureBlack = MutableStateFlow(settings.getBoolean(PURE_BLACK, false))
     val pureBlack: StateFlow<Boolean> = _pureBlack.asStateFlow()
 
+    // RF-77: null follows the device; else "pt", "en" or "es".
+    private val _appLanguage = MutableStateFlow(settings.getStringOrNull(APP_LANGUAGE))
+    val appLanguage: StateFlow<String?> = _appLanguage.asStateFlow()
+
+    fun setAppLanguage(tag: String?) {
+        if (tag == null) settings.remove(APP_LANGUAGE) else settings.putString(APP_LANGUAGE, tag)
+        _appLanguage.value = tag
+    }
+
     private val _coverColor = MutableStateFlow(settings.getBoolean(COVER_COLOR, true))
     val coverColor: StateFlow<Boolean> = _coverColor.asStateFlow()
 
@@ -118,6 +127,7 @@ class AppPreferences(
 
     companion object {
         const val THEME = "theme"
+        const val APP_LANGUAGE = "app_language"
         const val PURE_BLACK = "pure_black"
         const val COVER_COLOR = "cover_color"
         const val LOCAL_FOLDER = "local_folder"

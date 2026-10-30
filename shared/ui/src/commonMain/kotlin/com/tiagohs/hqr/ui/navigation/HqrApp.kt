@@ -12,8 +12,10 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,6 +34,7 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.domain.repository.Connectivity
+import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.domain.source.SourceRegistry
@@ -52,13 +55,18 @@ import com.tiagohs.hqr.ui.resources.nav_explore
 import com.tiagohs.hqr.ui.resources.nav_history
 import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.nav_settings
+import com.tiagohs.hqr.ui.settings.AboutScreen
 import com.tiagohs.hqr.ui.settings.BackupScreen
+import com.tiagohs.hqr.ui.settings.LocalAppLocale
 import com.tiagohs.hqr.ui.settings.SettingsScreen
+import com.tiagohs.hqr.ui.settings.UpdateNotice
+import com.tiagohs.hqr.ui.settings.UpdateScreen
 import com.tiagohs.hqr.ui.sources.AddServerScreen
 import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
 import com.tiagohs.hqr.ui.sources.SourcesScreen
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
+import com.tiagohs.hqr.ui.theme.LocalPureBlack
 import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -118,11 +126,18 @@ fun HqrApp(systemDark: Boolean) {
     // RF-87: a discreet banner while there is no network.
     val connectivity = getKoin().getOrNull<Connectivity>() ?: Connectivity.Always
     val online by connectivity.online.collectAsStateWithLifecycle()
-    HqrTheme(dark = dark) {
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(Modifier.fillMaxSize()) {
-                if (!online) Box(Modifier.statusBarsPadding()) { OfflineBanner(stringResource(Res.string.error_offline_banner)) }
-                Box(Modifier.weight(1f)) { AppNavigation(dark) }
+    val language by prefs.appLanguage.collectAsStateWithLifecycle()
+    val pureBlack by prefs.pureBlack.collectAsStateWithLifecycle()
+    // RF-77: the chosen language for every screen; RF-76: pure black for every dark theme.
+    CompositionLocalProvider(LocalAppLocale provides language, LocalPureBlack provides pureBlack) {
+        key(language) {
+            HqrTheme(dark = dark) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    Column(Modifier.fillMaxSize()) {
+                        if (!online) Box(Modifier.statusBarsPadding()) { OfflineBanner(stringResource(Res.string.error_offline_banner)) }
+                        Box(Modifier.weight(1f)) { AppNavigation(dark) }
+                    }
+                }
             }
         }
     }
@@ -131,6 +146,8 @@ fun HqrApp(systemDark: Boolean) {
 @Composable
 private fun AppNavigation(dark: Boolean) {
     val nav = rememberNavController()
+    // RF-82: where the app updates itself, a new version is offered once a day at most.
+    if (getKoin().getOrNull<Updates>() != null) UpdateNotice(onOpen = { nav.navigate(Route.Update) })
     val entry by nav.currentBackStackEntryAsState()
     val destination = entry?.destination
     val inReader = destination?.hasRoute(Route.Reader::class) == true
@@ -213,8 +230,12 @@ private fun AppNavigation(dark: Boolean) {
                     onSources = { nav.navigate(Route.Sources) },
                     onDownloads = { nav.navigate(Route.Downloads) },
                     onBackup = { nav.navigate(Route.Backup) },
+                    onAbout = { nav.navigate(Route.About) },
+                    onUpdates = { nav.navigate(Route.Update) },
                 )
             }
+            composable<Route.About> { AboutScreen(onBack = { nav.popBackStack() }) }
+            composable<Route.Update> { UpdateScreen(onBack = { nav.popBackStack() }) }
             composable<Route.Backup> { BackupScreen(onBack = { nav.popBackStack() }) }
             composable<Route.BrowseSource> { back ->
                 val route = back.toRoute<Route.BrowseSource>()

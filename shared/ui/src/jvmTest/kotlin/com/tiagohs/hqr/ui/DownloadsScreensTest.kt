@@ -36,7 +36,7 @@ class DownloadsScreensTest {
     fun RF62_RF66_downloadNextUnreadAndSelectedThenDelete() =
         screenTest {
             startTestKoin()
-            setContent { HqrApp(systemDark = false) }
+            setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
             waitFor(hasText("MangaDex"))
@@ -53,7 +53,8 @@ class DownloadsScreensTest {
             waitFor(hasText("1 selected"))
             screenshot("demo-SCR-OBR-001-selection")
             onAllNodes(hasContentDescription("Download"))[0].performClick()
-            waitFor(hasContentDescription("Downloaded"))
+            // Six chapters of drawn pages go first: a slow machine needs time.
+            waitFor(hasContentDescription("Downloaded"), timeout = 90_000)
             // One screen at a time: each back waits for the screen under it.
             onAllNodes(hasContentDescription("Back"))[0].performClick()
             waitFor(hasText("Popular"))
@@ -62,8 +63,8 @@ class DownloadsScreensTest {
             onAllNodes(hasText("Library"))[0].performClick()
             waitFor(hasContentDescription("Downloads"))
             onAllNodes(hasContentDescription("Downloads"))[0].performClick()
-            waitFor(hasText("Downloaded"))
-            waitUntil(timeoutMillis = 10_000) { onAllNodes(hasText("Kaiju Express")).fetchSemanticsNodes().isNotEmpty() }
+            waitFor(hasText("Downloaded"), timeout = 30_000)
+            waitUntil(timeoutMillis = 30_000) { onAllNodes(hasText("Kaiju Express")).fetchSemanticsNodes().isNotEmpty() }
             screenshot("demo-SCR-DL-001")
             // RF-66: the whole work's files go at once.
             onAllNodes(hasContentDescription("Delete the downloads of Kaiju Express"))[0].performClick()
@@ -74,7 +75,7 @@ class DownloadsScreensTest {
     fun RF72_RF73_backupFromSettingsAndRestoreShowsTheSummary() =
         screenTest {
             startTestKoin()
-            setContent { HqrApp(systemDark = false) }
+            setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Settings"))
             onAllNodes(hasText("Settings"))[0].performClick()
             waitFor(hasText("Backup and restore"))

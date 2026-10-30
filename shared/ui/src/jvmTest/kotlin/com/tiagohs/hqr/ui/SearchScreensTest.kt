@@ -69,7 +69,7 @@ class SearchScreensTest {
         screenTest {
             val down = DownSource()
             startTestKoin { listOf(DemoSource(), down) }
-            setContent { HqrApp(systemDark = false) }
+            setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
             waitFor(hasText("Search every source"))
@@ -98,7 +98,7 @@ class SearchScreensTest {
         screenTest {
             val demo = DemoSource()
             startTestKoin { listOf(demo) }
-            setContent { HqrApp(systemDark = true) }
+            setAppContent { HqrApp(systemDark = true) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
             waitFor(hasText("MangaDex"))
@@ -123,7 +123,7 @@ class SearchScreensTest {
     fun RF28_nothingFoundShowsTheTermAndTheWayToTheSources() =
         screenTest {
             startTestKoin { listOf(DownSource().apply { down = false }) }
-            setContent { HqrApp(systemDark = false) }
+            setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
             waitFor(hasText("Search every source"))

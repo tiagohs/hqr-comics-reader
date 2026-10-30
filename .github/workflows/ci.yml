@@ -68,8 +68,10 @@ jobs:
           import glob, re
           for f in glob.glob("**/build/test-results/**/*.xml", recursive=True):
               s = open(f, encoding="utf-8", errors="replace").read()
-              for m in re.finditer(r'<testcase name="([^"]*)" classname="([^"]*)"[^>]*>\s*<failure message="([^"]*)', s):
-                  print(f"::error title={m.group(2)}.{m.group(1)}::{m.group(3)[:500]}")
+              for m in re.finditer(r'<testcase name="([^"]*)" classname="([^"]*)"[^>]*>\s*<failure message="([^"]*)"[^>]*>([^<]*)', s):
+                  # The test's own lines in the stack say which wait or assertion failed.
+                  where = " ".join(dict.fromkeys(re.findall(r"\w+Test\.kt:\d+", m.group(4))))
+                  print(f"::error title={m.group(2)}.{m.group(1)}::{m.group(3)[:400]} at {where}")
           PY
           find . -path "*/build/reports/detekt/*.txt" -exec grep -h "\]$" {} + 2>/dev/null | head -20 | sed 's/^/::error title=detekt::/' || true
           # What Gradle says went wrong, as one annotation (the Actions log is not readable from outside).

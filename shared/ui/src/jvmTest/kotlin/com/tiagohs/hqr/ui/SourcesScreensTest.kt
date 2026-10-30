@@ -36,7 +36,7 @@ class SourcesScreensTest {
     fun RF03_RF17_RF95_switchHidesTheSourceAndTheFormSaysTheCause() =
         screenTest {
             startTestKoin()
-            setContent { HqrApp(systemDark = false) }
+            setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
             waitFor(hasText("Manage sources and servers"))

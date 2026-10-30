@@ -8,6 +8,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import com.tiagohs.hqr.presentation.color.CoverColor
 
@@ -62,6 +63,9 @@ fun hqrColorScheme(
     )
 }
 
+/** RF-76: the "preto puro" setting, given once by the app for every theme below it. */
+val LocalPureBlack = staticCompositionLocalOf { false }
+
 /**
  * The app theme. [seed] is the violet base everywhere except the work screen, the reader and the work detail pane,
  * which pass the cover color (RF-98). The change animates in 300 ms; with reduced motion it switches at once.
@@ -73,7 +77,9 @@ fun HqrTheme(
     animate: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val target = hqrColorScheme(seed, dark)
+    // RF-76: "preto puro" turns the dark backgrounds to #000000.
+    val base = hqrColorScheme(seed, dark)
+    val target = if (dark && LocalPureBlack.current) base.copy(background = Color.Black, surface = Color.Black) else base
     val scheme = if (animate) target.animated() else target
     MaterialTheme(colorScheme = scheme, typography = hqrTypography(), shapes = HqrShapes.material, content = content)
 }

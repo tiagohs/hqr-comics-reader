@@ -43,7 +43,7 @@ class AppScreensTest {
         firstWork: () -> String,
         timeout: Long,
     ): Int {
-        setContent { HqrApp(systemDark = true) }
+        setAppContent { HqrApp(systemDark = true) }
         waitFor(hasText("Your library is empty"), timeout)
         screenshot("$prefix-SCR-LIB-001-empty")
         onAllNodes(hasText("Explore"))[0].performClick()
@@ -99,7 +99,7 @@ class AppScreensTest {
     fun RF43_webtoonEndMarksTheChapterReadAndShowsTheTransition() =
         screenTest {
             val db = startTestKoin { listOf(DemoSource(pageCount = 3, kind = ReadingKind.MANHWA)) }
-            setContent { HqrApp(systemDark = true) }
+            setAppContent { HqrApp(systemDark = true) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
             waitFor(hasText("MangaDex"))

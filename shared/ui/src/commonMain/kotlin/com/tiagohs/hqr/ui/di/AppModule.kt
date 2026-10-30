@@ -50,6 +50,7 @@ import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
 import com.tiagohs.hqr.presentation.reader.TapZones
 import com.tiagohs.hqr.presentation.settings.BackupViewModel
+import com.tiagohs.hqr.presentation.settings.UpdateViewModel
 import com.tiagohs.hqr.presentation.sources.AddServerViewModel
 import com.tiagohs.hqr.presentation.sources.ServerCatalogViewModel
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
@@ -97,6 +98,7 @@ val coreModule: Module =
             BackupService(get(), get(), "HQR ${get<String>(AppVersion)}", { registry.everything.associate { it.id.value to it.name } })
         }
         viewModel { BackupViewModel(get()) }
+        viewModel { UpdateViewModel(get()) }
         single<ServerManager> { OpdsServers(get(), get(), get(), get(), getOrNull<BookStore>() ?: MemoryBookStore()) }
         viewModel { (id: SourceId?) -> AddServerViewModel(get(), id, get()) }
         viewModel { (id: SourceId) -> ServerCatalogViewModel(id, get(), get(), get()) }

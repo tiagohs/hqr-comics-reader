@@ -36,7 +36,7 @@ class LibraryScreensTest {
     fun RF52_RF53_RF54_libraryCategoriesAndDisplay() =
         screenTest {
             startTestKoin()
-            setContent { HqrApp(systemDark = false) }
+            setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             tap("Explore")
             waitFor(hasText("MangaDex"))

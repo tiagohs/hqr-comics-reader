@@ -13,9 +13,11 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.data.sources.SourceListFetcher
+import com.tiagohs.hqr.data.update.ReleaseChecker
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
+import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
@@ -73,6 +75,8 @@ class HqrApplication : Application() {
             single { DownloadFiles(FileSystem.SYSTEM, filesDir.toOkioPath() / "downloads") }
             single<DownloadScheduler> { WorkManagerDownloadScheduler(this@HqrApplication, get()) }
             single<Connectivity> { AndroidConnectivity(this@HqrApplication) }
+            // RF-82: the GitHub flavor updates itself (ADR-015).
+            single<Updates> { AndroidUpdates(this@HqrApplication, ReleaseChecker(get(), get(), BuildConfig.VERSION_NAME), get()) }
             single(AppVersion) { BuildConfig.VERSION_NAME }
             single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
         }

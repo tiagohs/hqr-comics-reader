@@ -38,6 +38,12 @@ sealed interface Route {
     @Serializable
     data object Backup : Route
 
+    @Serializable
+    data object About : Route
+
+    @Serializable
+    data object Update : Route
+
     /** [id] edits a saved server; null adds one. */
     @Serializable
     data class AddServer(

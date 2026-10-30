@@ -1,15 +1,18 @@
 package com.tiagohs.hqr.ui.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -19,38 +22,54 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.domain.repository.Downloads
+import com.tiagohs.hqr.domain.repository.Updates
+import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.nav_settings
+import com.tiagohs.hqr.ui.resources.settings_about
 import com.tiagohs.hqr.ui.resources.settings_adult_confirm
 import com.tiagohs.hqr.ui.resources.settings_adult_message
 import com.tiagohs.hqr.ui.resources.settings_adult_title
 import com.tiagohs.hqr.ui.resources.settings_appearance
 import com.tiagohs.hqr.ui.resources.settings_backup
+import com.tiagohs.hqr.ui.resources.settings_cache
+import com.tiagohs.hqr.ui.resources.settings_cache_clear
+import com.tiagohs.hqr.ui.resources.settings_cache_size
 import com.tiagohs.hqr.ui.resources.settings_cover_color
 import com.tiagohs.hqr.ui.resources.settings_cover_color_hint
 import com.tiagohs.hqr.ui.resources.settings_downloads
+import com.tiagohs.hqr.ui.resources.settings_language
+import com.tiagohs.hqr.ui.resources.settings_language_system
 import com.tiagohs.hqr.ui.resources.settings_local_folder
 import com.tiagohs.hqr.ui.resources.settings_manage_sources
 import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive
 import com.tiagohs.hqr.ui.resources.settings_mangadex_suggestive_hint
 import com.tiagohs.hqr.ui.resources.settings_no_folder
+import com.tiagohs.hqr.ui.resources.settings_other
+import com.tiagohs.hqr.ui.resources.settings_pure_black
+import com.tiagohs.hqr.ui.resources.settings_pure_black_hint
 import com.tiagohs.hqr.ui.resources.settings_sources
 import com.tiagohs.hqr.ui.resources.settings_theme_dark
 import com.tiagohs.hqr.ui.resources.settings_theme_light
 import com.tiagohs.hqr.ui.resources.settings_theme_system
+import com.tiagohs.hqr.ui.resources.settings_updates
 import com.tiagohs.hqr.ui.theme.HqrIcons
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
@@ -63,9 +82,26 @@ fun SettingsScreen(
     onSources: () -> Unit = {},
     onDownloads: () -> Unit = {},
     onBackup: () -> Unit = {},
+    onAbout: () -> Unit = {},
+    onUpdates: () -> Unit = {},
     prefs: AppPreferences = koinInject(),
+    cache: ImageCache = koinInject(),
 ) {
     val hasDownloads = getKoin().getOrNull<Downloads>() != null
+    val hasUpdates = getKoin().getOrNull<Updates>() != null
+    val pureBlack by prefs.pureBlack.collectAsStateWithLifecycle()
+    val language by prefs.appLanguage.collectAsStateWithLifecycle()
+    var choosingLanguage by remember { mutableStateOf(false) }
+    // RF-80: the cache size, read again after clearing.
+    var cacheBytes by remember { mutableStateOf<Long?>(null) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) { cacheBytes = cache.size() }
+    if (choosingLanguage) {
+        LanguageDialog(language, onDismiss = { choosingLanguage = false }) {
+            choosingLanguage = false
+            prefs.setAppLanguage(it)
+        }
+    }
     val theme by prefs.theme.collectAsStateWithLifecycle()
     val coverColor by prefs.coverColor.collectAsStateWithLifecycle()
     val folder by prefs.localFolder.collectAsStateWithLifecycle()
@@ -120,6 +156,24 @@ fun SettingsScreen(
                     modifier = Modifier.toggleable(value = coverColor, role = Role.Switch, onValueChange = prefs::setCoverColor),
                 )
             }
+            // RF-76: pure black for the dark theme.
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_pure_black)) },
+                    supportingContent = { Text(stringResource(Res.string.settings_pure_black_hint)) },
+                    trailingContent = { Switch(checked = pureBlack, onCheckedChange = null) },
+                    modifier = Modifier.toggleable(value = pureBlack, role = Role.Switch, onValueChange = prefs::setPureBlack),
+                )
+            }
+            // RF-77: the app's language, the device's by default.
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_language)) },
+                    supportingContent = { Text(languageName(language)) },
+                    leadingContent = { Icon(HqrIcons.Globe, null) },
+                    modifier = Modifier.clickable { choosingLanguage = true },
+                )
+            }
             item { Section(Res.string.settings_sources) }
             // UX §4: Ajustes leads to sources, downloads and backup (UC-007, UC-009, UC-011).
             item {
@@ -165,6 +219,37 @@ fun SettingsScreen(
                     modifier = Modifier.toggleable(value = suggestive, role = Role.Switch, onValueChange = { toggleSuggestive() }),
                 )
             }
+            item { Section(Res.string.settings_other) }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_cache)) },
+                    supportingContent = { Text(stringResource(Res.string.settings_cache_size, formatBytes(cacheBytes ?: 0))) },
+                    trailingContent = {
+                        TextButton(onClick = {
+                            scope.launch {
+                                cache.clear()
+                                cacheBytes = cache.size()
+                            }
+                        }) { Text(stringResource(Res.string.settings_cache_clear)) }
+                    },
+                )
+            }
+            if (hasUpdates) {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(Res.string.settings_updates)) },
+                        leadingContent = { Icon(HqrIcons.Refresh, null) },
+                        modifier = Modifier.clickable(onClick = onUpdates),
+                    )
+                }
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.settings_about)) },
+                    leadingContent = { Icon(HqrIcons.Info, null) },
+                    modifier = Modifier.clickable(onClick = onAbout),
+                )
+            }
         }
     }
 }
@@ -176,5 +261,41 @@ private fun Section(title: StringResource) {
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 16.dp, top = 20.dp, bottom = 4.dp),
+    )
+}
+
+private val LANGUAGES = listOf(null, "pt", "en", "es")
+
+/** Each language in its own name, so anyone finds theirs (RF-77). */
+@Composable
+private fun languageName(tag: String?): String =
+    when (tag) {
+        "pt" -> "Português (Brasil)"
+        "en" -> "English"
+        "es" -> "Español"
+        else -> stringResource(Res.string.settings_language_system)
+    }
+
+@Composable
+private fun LanguageDialog(
+    current: String?,
+    onDismiss: () -> Unit,
+    onPick: (String?) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.settings_language)) },
+        text = {
+            Column {
+                LANGUAGES.forEach { tag ->
+                    ListItem(
+                        headlineContent = { Text(languageName(tag)) },
+                        leadingContent = { RadioButton(selected = current == tag, onClick = null) },
+                        modifier = Modifier.selectable(selected = current == tag, role = Role.RadioButton) { onPick(tag) },
+                    )
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.action_cancel)) } },
     )
 }

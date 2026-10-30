@@ -19,6 +19,7 @@ import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.Backups
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.DownloadSettings
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.HistoryRepository
@@ -120,7 +121,18 @@ val coreModule: Module =
             val images = get<ImageBytes>()
             PagePrefetcher { manga, page -> images.load(manga.sourceId, page.imageUrl, page.headers) }
         }
-        viewModel { (id: Long) -> MangaViewModel(id, get(), get(), get(), get(), get(), getOrNull()) }
+        viewModel { (id: Long) ->
+            MangaViewModel(
+                id,
+                get(),
+                get(),
+                get(),
+                get(),
+                get(),
+                getOrNull(),
+                getOrNull<Connectivity>() ?: Connectivity.Always,
+            )
+        }
         single<DownloadSettings> {
             val prefs = get<AppPreferences>()
             object : DownloadSettings {

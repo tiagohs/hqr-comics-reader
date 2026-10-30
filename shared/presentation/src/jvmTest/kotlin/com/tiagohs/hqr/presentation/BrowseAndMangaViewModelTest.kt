@@ -204,6 +204,20 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF87_offlineRefreshChangesNothing() =
+        runTest {
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            val offline =
+                object : com.tiagohs.hqr.domain.repository.Connectivity {
+                    override val online = kotlinx.coroutines.flow.MutableStateFlow(false)
+                }
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters, connectivity = offline))
+            vm.state.first { !it.refreshing }.error shouldBe ErrorKind.OFFLINE
+            db.chapters.list(id) shouldBe emptyList()
+            source.requested.none { it.startsWith("d") } shouldBe true
+        }
+
+    @Test
     fun RF05_failureStaysInTheSourceWithItsKind() =
         runTest {
             source.fail = SourceException.Kind.NETWORK

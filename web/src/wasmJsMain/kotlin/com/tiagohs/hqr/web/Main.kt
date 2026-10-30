@@ -1,5 +1,6 @@
 package com.tiagohs.hqr.web
 
+import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.data.settings.SettingsSecretStore
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.ui.di.AppVersion
@@ -58,6 +59,7 @@ fun main() {
                 single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<LocalSource>()) }
                 single<SourceListFetcher> { HttpSourceListFetcher(get()) }
                 single<SecretStore> { SettingsSecretStore(get()) }
+                single<Connectivity> { BrowserConnectivity() }
                 single(AppVersion) { "1.0.0" }
             },
             coreModule,

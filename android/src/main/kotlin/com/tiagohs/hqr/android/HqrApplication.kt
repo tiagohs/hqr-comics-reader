@@ -14,6 +14,7 @@ import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.data.sources.SourceListFetcher
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
@@ -71,6 +72,7 @@ class HqrApplication : Application() {
             // RF-62 to RF-66: chapter files in the app's own storage, run by WorkManager (ADR-009).
             single { DownloadFiles(FileSystem.SYSTEM, filesDir.toOkioPath() / "downloads") }
             single<DownloadScheduler> { WorkManagerDownloadScheduler(this@HqrApplication, get()) }
+            single<Connectivity> { AndroidConnectivity(this@HqrApplication) }
             single(AppVersion) { BuildConfig.VERSION_NAME }
             single<List<Source>>(BuiltInSources) { listOf(get<MangaDexSource>(), get<HqNowSource>(), get<LocalSource>()) }
         }

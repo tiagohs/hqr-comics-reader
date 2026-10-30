@@ -54,8 +54,11 @@ class DownloadsScreensTest {
             screenshot("demo-SCR-OBR-001-selection")
             onAllNodes(hasContentDescription("Download"))[0].performClick()
             waitFor(hasContentDescription("Downloaded"))
+            // One screen at a time: each back waits for the screen under it.
             onAllNodes(hasContentDescription("Back"))[0].performClick()
+            waitFor(hasText("Popular"))
             onAllNodes(hasContentDescription("Back"))[0].performClick()
+            waitFor(hasText("Manage sources and servers"))
             onAllNodes(hasText("Library"))[0].performClick()
             waitFor(hasContentDescription("Downloads"))
             onAllNodes(hasContentDescription("Downloads"))[0].performClick()

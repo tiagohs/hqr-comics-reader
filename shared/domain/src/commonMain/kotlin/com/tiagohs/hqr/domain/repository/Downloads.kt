@@ -60,3 +60,13 @@ interface DownloadSettings {
 
     fun setDeleteAfterRead(on: Boolean)
 }
+
+/** RF-87: whether the device has a network now; without one, nothing online is asked and nothing changes. */
+interface Connectivity {
+    val online: StateFlow<Boolean>
+
+    /** Where the platform can't tell (tests, desktop), the network is assumed. */
+    object Always : Connectivity {
+        override val online: StateFlow<Boolean> = kotlinx.coroutines.flow.MutableStateFlow(true)
+    }
+}

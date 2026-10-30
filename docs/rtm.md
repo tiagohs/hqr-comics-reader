@@ -93,7 +93,7 @@
 | RF-84 | Must | UC-013 | ADR-015, ADR-016 | SCR-SET-004 | FEAT-022 | — |
 | RF-85 | Could | UC-008 | app | SCR-SRC-001 | FEAT-048 | ModelsTest |
 | RF-86 | Must | UC-001, UC-002 | browse | SCR-STA-001 | Fundações | — |
-| RF-87 | Must | UC-001 | browse | SCR-STA-001 | FEAT-023 | — |
+| RF-87 | Must | UC-001 | browse | SCR-STA-001 | FEAT-023 | BrowseAndMangaViewModelTest |
 | RF-88 | Must | UC-004 | app, ADR-004, ADR-018 | SCR-STA-001 | Fundações | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, LibraryViewModelTest, NavigationTest, ReaderAndHistoryViewModelTest, ServersViewModelTest, SourceRegistryTest |
 | RF-89 | Must | UC-011 | backup, ADR-010 | SCR-SET-002 | FEAT-019 | BackupServiceTest, DatabaseFileTest, MigrationTest |
 | RF-90 | Must | UC-003 | source, ADR-002 | — | FEAT-001 | LibraryRepositoriesTest, MangaDexSourceTest, SourceRegistryTest |

@@ -10,6 +10,7 @@ import com.tiagohs.hqr.domain.model.ReadingRules
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
+import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.DownloadItem
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.LibraryRemoval
@@ -40,6 +41,7 @@ class MangaViewModel(
     private val coverPixels: CoverPixels? = null,
     private val categories: CategoryRepository? = null,
     private val downloads: Downloads? = null,
+    private val connectivity: Connectivity = Connectivity.Always,
 ) : ViewModel() {
     enum class Order { NEWEST_FIRST, OLDEST_FIRST }
 
@@ -131,6 +133,12 @@ class MangaViewModel(
             val manga = mangas.get(mangaId)
             if (manga == null) {
                 error.value = ErrorKind.NOT_FOUND
+                refreshing.value = false
+                return@launch
+            }
+            // RF-87: offline, pulling to refresh changes nothing (files on the device still refresh).
+            if (!connectivity.online.value && manga.sourceId != SourceId.LOCAL) {
+                error.value = ErrorKind.OFFLINE
                 refreshing.value = false
                 return@launch
             }

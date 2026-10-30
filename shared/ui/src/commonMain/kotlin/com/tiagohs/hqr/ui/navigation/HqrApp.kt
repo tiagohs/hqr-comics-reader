@@ -1,6 +1,9 @@
 package com.tiagohs.hqr.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -28,9 +31,11 @@ import com.tiagohs.hqr.data.download.DownloadManager
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.data.sources.SourceConfig
+import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.domain.source.SourceRegistry
+import com.tiagohs.hqr.ui.components.OfflineBanner
 import com.tiagohs.hqr.ui.components.hqrImageLoader
 import com.tiagohs.hqr.ui.downloads.DownloadsScreen
 import com.tiagohs.hqr.ui.explore.BrowseSourceScreen
@@ -42,6 +47,7 @@ import com.tiagohs.hqr.ui.library.LibraryScreen
 import com.tiagohs.hqr.ui.manga.MangaScreen
 import com.tiagohs.hqr.ui.reader.ReaderScreen
 import com.tiagohs.hqr.ui.resources.Res
+import com.tiagohs.hqr.ui.resources.error_offline_banner
 import com.tiagohs.hqr.ui.resources.nav_explore
 import com.tiagohs.hqr.ui.resources.nav_history
 import com.tiagohs.hqr.ui.resources.nav_library
@@ -109,9 +115,15 @@ fun HqrApp(systemDark: Boolean) {
             ThemeMode.LIGHT -> false
             ThemeMode.DARK -> true
         }
+    // RF-87: a discreet banner while there is no network.
+    val connectivity = getKoin().getOrNull<Connectivity>() ?: Connectivity.Always
+    val online by connectivity.online.collectAsStateWithLifecycle()
     HqrTheme(dark = dark) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            AppNavigation(dark)
+            Column(Modifier.fillMaxSize()) {
+                if (!online) Box(Modifier.statusBarsPadding()) { OfflineBanner(stringResource(Res.string.error_offline_banner)) }
+                Box(Modifier.weight(1f)) { AppNavigation(dark) }
+            }
         }
     }
 }

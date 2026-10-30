@@ -123,8 +123,18 @@ private object Fixtures {
         """{"id":$id,"name":"Obra $id","editoraId":5,"status":"Concluído",""" +
             """"hqCover":"http://static.hq-now.com/c$id.jpg","synopsis":"S","updatedAt":"2021"}"""
 
+    // The real schema (checked live, FEAT013LiveTest): UpdatedHqs has no status nor editoraId, and the variables are
+    // required (String!, Int!). The fake refuses the same queries the server refuses.
+    private val refused =
+        listOf(
+            Regex("getRecentlyUpdatedHqs \\{[^}]*(status|editoraId)"),
+            Regex("\\$(name|id): (String|Int)[^!]"),
+        )
+
     fun answer(body: String): String =
         when {
+            refused.any { it.containsMatchIn(body) } -> """{"errors":[{"message":"GRAPHQL_VALIDATION_FAILED"}]}"""
+
             "getHqsByFilters" in body -> {
                 val limit = Regex("limit: (\\d+)").find(body)!!.groupValues[1].toInt()
                 // 75 works in total: the third page is short.

@@ -65,7 +65,7 @@ class HqNowSource(
 
     override suspend fun latest(page: Int): MangaPage {
         if (page > 1) return MangaPage(emptyList(), false)
-        val list = query("getRecentlyUpdatedHqs", "query { getRecentlyUpdatedHqs { $LIST_FIELDS } }", ListSerializer(HqDto.serializer()))
+        val list = query("getRecentlyUpdatedHqs", "query { getRecentlyUpdatedHqs { $RECENT_FIELDS } }", ListSerializer(HqDto.serializer()))
         return MangaPage(list.map { it.toManga() }, false)
     }
 
@@ -78,7 +78,7 @@ class HqNowSource(
         val list =
             query(
                 "getHqsByName",
-                "query(\$name: String) { getHqsByName(name: \$name) { $LIST_FIELDS } }",
+                "query(\$name: String!) { getHqsByName(name: \$name) { $LIST_FIELDS } }",
                 ListSerializer(HqDto.serializer()),
                 buildJsonObject { put("name", query.trim()) },
             )
@@ -108,7 +108,7 @@ class HqNowSource(
         val result =
             query(
                 "getChapterById",
-                "query(\$id: Int) { getChapterById(chapterId: \$id) { pictures { pictureUrl } } }",
+                "query(\$id: Int!) { getChapterById(chapterId: \$id) { pictures { pictureUrl } } }",
                 ChapterPagesDto.serializer(),
                 buildJsonObject { put("id", id) },
             )
@@ -120,7 +120,7 @@ class HqNowSource(
         val list =
             query(
                 "getHqsById",
-                "query(\$id: Int) { getHqsById(id: \$id) { $LIST_FIELDS publisherName capitulos { id name number } } }",
+                "query(\$id: Int!) { getHqsById(id: \$id) { $LIST_FIELDS publisherName capitulos { id name number } } }",
                 ListSerializer(HqDto.serializer()),
                 buildJsonObject { put("id", id) },
             )
@@ -187,6 +187,9 @@ class HqNowSource(
         private const val MAX_POPULAR = 600
         private const val PERMITS = 3
         private const val LIST_FIELDS = "id name editoraId status hqCover synopsis updatedAt"
+
+        // The type of "recentes" (UpdatedHqs) has no status nor publisher.
+        private const val RECENT_FIELDS = "id name hqCover synopsis updatedAt"
     }
 }
 

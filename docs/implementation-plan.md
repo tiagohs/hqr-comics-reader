@@ -15,7 +15,7 @@ O que ordena o trabalho é **tirar risco cedo**: o motor do leitor (R-02), o Man
 | 1.1 Android | FEAT-025 a FEAT-041 | Should, incluindo as fontes adicionais |
 | Web | FEAT-050 a FEAT-054 | Requisitos da §3.1.19, depois do 1.0 |
 | Depois | FEAT-042 a FEAT-049 | Could |
-| iOS | Fora deste plano | Só depois que o Tiago aprovar as telas do Android (C-09); terá plano próprio sobre o mesmo núcleo |
+| iOS | FEAT-060 a FEAT-064 | Começou com o OK do Tiago às telas do Android (C-09); mesmo núcleo, telas em SwiftUI |
 
 Dev solo (C-10), sem custo (C-01, C-08). As fases além da próxima são uma ordem viva, não um compromisso de datas.
 
@@ -162,6 +162,16 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-052 | Importar arquivos no navegador | RF-110 | UC-014, UC-008 | SCR-WEB-002 | `web`, `FileTree` sobre OPFS | — |
 | FEAT-053 | Servidores na web | RF-111 | UC-014, UC-009 | SCR-SRV-001 | `sources/opds`, `web` | `server` |
 | FEAT-054 | Leitor por teclado e mouse | RF-112 | UC-014, UC-004 | SCR-WEB-003, SCR-RDR-001 | `reader`, `web` | — |
+
+### E16 · iOS e iPadOS (`shared/app`, `ios/`)
+
+| ID | Fatia | RF | UC | Telas | Componentes | Dados |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| FEAT-060 | Núcleo no iOS: framework `Shared`, `SharedGraph`, peças do sistema por interface | RNF-13, RNF-15 | todos | — | `shared/app` (iosMain), `data` e `sources/local` (iosMain) | Room 3 em Application Support |
+| FEAT-061 | App base: projeto, textos, tokens, ícone, abas no iPhone e barra lateral no iPad | RNF-12, RNF-14, RF-76, RF-87 | UC-012 | SCR-LIB-001, SCR-SET-001 | `ios/` (scripts em `scripts/ios/`) | preferências |
+| FEAT-062 | Biblioteca, explorar, fonte, busca global, obra com a cor da capa | RF-21 a RF-35, RF-52 a RF-58, RF-98 | UC-001 a UC-005 | SCR-LIB-001 a 003, SCR-EXP-001 e 002, SCR-SRCH-001, SCR-OBR-001 | `ios/Features` | — |
+| FEAT-063 | Leitor: páginas com ImageIO, direita para esquerda, duas páginas no iPad, vertical, webtoon, fim do capítulo | RF-36 a RF-42 | UC-004 | SCR-RDR-001 a 003 | `ios/Features/Reader` | progresso |
+| FEAT-064 | Histórico, downloads, backup, fontes, servidores, migração e verificação do Cloudflare | RF-59 a RF-75, RF-106, RNF-28 | UC-006 a UC-011 | SCR-HIS-001, SCR-DL-001, SCR-SET-002 e 003, SCR-SRC-001, SCR-SRV-001 e 002, SCR-OBR-002 | `ios/Features` | — |
 
 ## 4. Ordem de construção
 

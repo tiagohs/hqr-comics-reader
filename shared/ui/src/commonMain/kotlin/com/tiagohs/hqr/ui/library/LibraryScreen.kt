@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -87,6 +88,9 @@ import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.HalftoneProgress
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.UnreadBalloon
+import com.tiagohs.hqr.ui.components.cascadeIn
+import com.tiagohs.hqr.ui.components.rememberOpening
+import com.tiagohs.hqr.ui.components.sharedCover
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.components.unavailableSourceName
 import com.tiagohs.hqr.ui.navigation.RESUME
@@ -414,6 +418,8 @@ private fun LibraryItems(
             LibraryDisplay.COMFORTABLE_GRID -> GridCells.Adaptive(COMFORTABLE_CELL)
             LibraryDisplay.LIST -> GridCells.Fixed(1)
         }
+    // RF-118: the works cascade in as the library opens.
+    val opening = rememberOpening()
     LazyVerticalGrid(
         columns = columns,
         contentPadding = PaddingValues(16.dp),
@@ -424,7 +430,8 @@ private fun LibraryItems(
         if (continueReading != null) {
             item(span = { GridItemSpan(maxLineSpan) }) { ContinueCard(continueReading, onContinue) }
         }
-        items(items, key = { it.manga.id }) { item ->
+        itemsIndexed(items, key = { _, work -> work.manga.id }) { index, item ->
+            val cascade = Modifier.cascadeIn(index, opening)
             val unreadLabel =
                 if (item.unread > 0) {
                     pluralStringResource(Res.plurals.library_unread, item.unread, item.unread)
@@ -436,7 +443,7 @@ private fun LibraryItems(
             when (options.display) {
                 LibraryDisplay.LIST ->
                     Row(
-                        Modifier
+                        cascade
                             .fillMaxWidth()
                             .pickable(item.manga.id)
                             .semantics(mergeDescendants = true) {
@@ -446,7 +453,13 @@ private fun LibraryItems(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Box(Modifier.width(LIST_COVER)) { Cover(item.manga.source, shape = HqrShapes.coverSmall) { Badges(item, options) } }
+                        Box(Modifier.width(LIST_COVER)) {
+                            Cover(
+                                item.manga.source,
+                                Modifier.sharedCover(item.manga.source),
+                                shape = HqrShapes.coverSmall,
+                            ) { Badges(item, options) }
+                        }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
                                 item.manga.title,
@@ -463,14 +476,14 @@ private fun LibraryItems(
                     }
                 LibraryDisplay.COMPACT_GRID ->
                     Box(
-                        Modifier
+                        cascade
                             .pickable(item.manga.id)
                             .semantics(mergeDescendants = true) {
                                 contentDescription = description
                                 selected = item.manga.id in picked
                             },
                     ) {
-                        Cover(item.manga.source) {
+                        Cover(item.manga.source, Modifier.sharedCover(item.manga.source)) {
                             Badges(item, options)
                             // ADR-026: the title in a yellow caption box, like a comic panel's narration.
                             Text(
@@ -494,7 +507,7 @@ private fun LibraryItems(
                     }
                 LibraryDisplay.COMFORTABLE_GRID ->
                     Column(
-                        Modifier
+                        cascade
                             .pickable(item.manga.id)
                             .semantics(mergeDescendants = true) {
                                 contentDescription = description
@@ -502,7 +515,7 @@ private fun LibraryItems(
                             },
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Cover(item.manga.source) { Badges(item, options) }
+                        Cover(item.manga.source, Modifier.sharedCover(item.manga.source)) { Badges(item, options) }
                         Text(item.manga.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(unreadLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }

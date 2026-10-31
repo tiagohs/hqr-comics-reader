@@ -43,7 +43,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tiagohs.hqr.ui.components.ComicMotion
 import com.tiagohs.hqr.ui.components.halftoneBehind
+import com.tiagohs.hqr.ui.components.rememberEntrance
+import com.tiagohs.hqr.ui.components.sketchFrame
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.onboarding_no_content
 import com.tiagohs.hqr.ui.resources.onboarding_paged
@@ -68,6 +71,7 @@ fun OnboardingScreen(
 ) {
     var languages by rememberSaveable { mutableStateOf(initial.toList()) }
     var webtoon by rememberSaveable { mutableStateOf(false) }
+    val printed = rememberEntrance(ComicMotion.PANEL_MS)
     val ink = Color(0xFF16161A)
     val paper = MaterialTheme.colorScheme.background
     Surface(Modifier.fillMaxSize(), color = paper) {
@@ -75,7 +79,8 @@ fun OnboardingScreen(
             Modifier
                 .fillMaxSize()
                 .background(Brush.verticalGradient(0f to ink, 0.3f to ink.copy(alpha = 0.6f), 0.48f to paper))
-                .halftoneBehind(ink.copy(alpha = 0.25f), step = 6.dp, radius = 1.4.dp, until = 0.42f)
+                // RF-118: the dots come down the page like ink being printed.
+                .halftoneBehind(ink.copy(alpha = 0.25f), step = 6.dp, radius = 1.4.dp, until = 0.42f, progress = { printed.value })
                 .statusBarsPadding()
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -111,12 +116,14 @@ fun OnboardingScreen(
                         stringResource(Res.string.onboarding_paged_tag),
                         selected = !webtoon,
                         tilt = -2f,
+                        delayMs = ComicMotion.PANEL_MS / 2,
                     ) { webtoon = false }
                     ReadingCard(
                         stringResource(Res.string.onboarding_webtoon),
                         stringResource(Res.string.onboarding_webtoon_tag),
                         selected = webtoon,
                         tilt = 1.5f,
+                        delayMs = ComicMotion.PANEL_MS,
                     ) { webtoon = true }
                 }
                 Text(stringResource(Res.string.onboarding_select_language), fontFamily = bangers(), fontSize = 20.sp)
@@ -154,16 +161,20 @@ private fun ReadingCard(
     tag: String,
     selected: Boolean,
     tilt: Float,
+    delayMs: Int,
     onClick: () -> Unit,
 ) {
     val ink = Color(0xFF16161A)
+    // RF-118: the card is drawn by hand, stroke after stroke, then its shadow is inked.
+    val drawn = rememberEntrance(ComicMotion.SKETCH_MS, delayMs)
     Box(Modifier.rotate(tilt)) {
         Column(
             Modifier
                 .width(220.dp)
-                .drawBehind { drawRect(ink, topLeft = Offset(5.dp.toPx(), 5.dp.toPx()), size = size) }
-                .background(Color(0xFFFFFDF7))
-                .border(if (selected) 4.dp else 2.dp, if (selected) MaterialTheme.colorScheme.primary else ink)
+                .drawBehind {
+                    drawRect(ink, topLeft = Offset(5.dp.toPx(), 5.dp.toPx()), size = size, alpha = drawn.value)
+                }.background(Color(0xFFFFFDF7))
+                .sketchFrame(if (selected) MaterialTheme.colorScheme.primary else ink, if (selected) 4.dp else 2.dp) { drawn.value }
                 .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
                 .padding(vertical = 20.dp, horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

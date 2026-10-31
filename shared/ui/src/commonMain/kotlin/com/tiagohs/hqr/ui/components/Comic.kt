@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,7 +49,6 @@ import com.tiagohs.hqr.ui.theme.bangers
 import org.jetbrains.compose.resources.Font
 import kotlin.math.PI
 import kotlin.math.cos
-import kotlin.math.max
 import kotlin.math.sin
 
 // The comic language of ADR-026: lettering, badges, halftone and speed lines. Controls stay Material 3.
@@ -59,13 +59,15 @@ fun Modifier.halftoneBehind(
     step: Dp = 6.dp,
     radius: Dp = 1.1.dp,
     until: Float = 1f,
+    progress: () -> Float = { 1f },
 ): Modifier =
     drawBehind {
         val s = step.toPx()
         val r = radius.toPx()
         var y = s / 2
         var row = 0
-        while (y < size.height * until) {
+        // RF-118: [progress] lets the dots come down the panel like ink being printed.
+        while (y < size.height * until * progress().coerceIn(0f, 1f)) {
             var x = if (row % 2 == 0) s / 2 else s
             while (x < size.width) {
                 drawCircle(color, r, Offset(x, y))
@@ -76,27 +78,41 @@ fun Modifier.halftoneBehind(
         }
     }
 
-/** Manga speed lines from the center: thin rays every 7 degrees (design.md §4). */
+/**
+ * Manga speed lines (design.md §4): hairlines that stay at the edges of the panel, uneven like ink, leaving the middle
+ * clear for the cover. [progress] (0 to 1) draws them in from the edges toward the center (RF-118).
+ */
 fun Modifier.speedLines(
     color: Color,
-    stepDegrees: Float = 7f,
+    stepDegrees: Float = 6f,
+    progress: () -> Float = { 1f },
 ): Modifier =
     drawBehind {
         val c = center
-        val reach = max(size.width, size.height)
+        val reach = kotlin.math.hypot(size.width / 2, size.height / 2)
+        val p = progress().coerceIn(0f, 1f)
         var a = 0f
+        var i = 0
         while (a < 360f) {
-            val rad = a * (PI.toFloat() / 180f)
-            val inner = reach * 0.34f
+            val rad = (a + JITTER[i % JITTER.size]) * (PI.toFloat() / 180f)
+            // Uneven lengths, as drawn by hand; none closer to the center than 62 % of the way.
+            val rest = reach * (SPEED_INNER + SPEED_SPREAD * LENGTH[i % LENGTH.size])
+            val inner = reach - (reach - rest) * p
             drawLine(
                 color,
                 Offset(c.x + inner * cos(rad), c.y + inner * sin(rad)),
                 Offset(c.x + reach * cos(rad), c.y + reach * sin(rad)),
-                strokeWidth = 1.2.dp.toPx(),
+                strokeWidth = (if (i % 3 == 0) 1f else 0.6f).dp.toPx(),
             )
             a += stepDegrees
+            i++
         }
     }
+
+private const val SPEED_INNER = 0.62f
+private const val SPEED_SPREAD = 0.22f
+private val JITTER = floatArrayOf(0f, 1.6f, -1.1f, 2.3f, -0.4f, 0.9f, -2f)
+private val LENGTH = floatArrayOf(0f, 0.55f, 0.2f, 0.9f, 0.35f, 0.7f, 0.1f, 0.45f)
 
 /** Comic title: Bangers with the offset shadow in the primary color. */
 @Composable
@@ -134,7 +150,13 @@ fun Stamp(
         fontSize = 15.sp,
         letterSpacing = 1.sp,
         color = content,
-        modifier = modifier.rotate(-4f).background(container).padding(horizontal = 8.dp, vertical = 2.dp),
+        // RF-118: it lands like a rubber stamp.
+        modifier =
+            modifier
+                .stampIn()
+                .rotate(-4f)
+                .background(container)
+                .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }
 
@@ -271,9 +293,20 @@ fun VerticalTitle(
             .FontFamily(Font(Res.font.dela_gothic_one_jp))
     val ink = MaterialTheme.colorScheme.onSurface
     val paper = MaterialTheme.colorScheme.background
+    val letters = text.take(MAX_VERTICAL)
+    // RF-118: written from top to bottom, one letter after the other.
+    val reduce = LocalReduceMotion.current
+    val written = rememberEntrance(ComicMotion.writeMs(letters.length), delayMs = ComicMotion.PANEL_MS / 2)
     Column(modifier.clearAndSetSemantics { }, horizontalAlignment = Alignment.CenterHorizontally) {
-        text.take(MAX_VERTICAL).forEach { ch ->
-            Box(contentAlignment = Alignment.Center) {
+        letters.forEachIndexed { index, ch ->
+            Box(
+                Modifier.graphicsLayer {
+                    val shown = ComicMotion.letterAlpha(index, letters.length, written.value, reduce)
+                    alpha = shown
+                    translationY = (1f - shown) * -6f * density
+                },
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     ch.toString(),
                     fontFamily = family,

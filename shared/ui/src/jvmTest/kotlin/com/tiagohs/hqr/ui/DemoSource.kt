@@ -47,6 +47,8 @@ class DemoSource(
             sourceId = id,
             key = "m$i",
             title = titles[i % titles.size],
+            // A manga with its original title: the work opens on speed lines and the vertical title (RF-118).
+            alternativeTitles = if (i == 0) listOf("北の刃") else emptyList(),
             coverUrl = "demo://cover/$i",
             url = "https://example.org/m$i",
             authors = listOf("Rui Takeda"),

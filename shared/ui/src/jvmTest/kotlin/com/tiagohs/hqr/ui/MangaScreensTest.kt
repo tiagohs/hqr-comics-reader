@@ -58,6 +58,24 @@ class MangaScreensTest {
     }
 
     @Test
+    fun RF118_aMangaOpensOnSpeedLinesWithItsOriginalTitle() =
+        screenTest {
+            startTestKoin()
+            setAppContent { HqrApp(systemDark = false) }
+            waitFor(hasText("Explore"))
+            onAllNodes(hasText("Explore"))[0].performClick()
+            waitFor(hasText("MangaDex"))
+            onAllNodes(hasText("MangaDex"))[0].performClick()
+            waitFor(hasText("Lâmina do Norte"))
+            onAllNodes(hasText("Lâmina do Norte"))[0].performClick()
+            waitFor(hasText("Read ch.", substring = true))
+            // The vertical title is drawing only; the original title is read from the line under the name.
+            waitFor(hasText("北の刃"))
+            mainClock.advanceTimeBy(1_000)
+            screenshot("demo-SCR-OBR-001-manga")
+        }
+
+    @Test
     fun RF11_externalChapterIsMarkedAndOpensThePublisherSite() =
         screenTest {
             startTestKoin { listOf(DemoSource(externalChapter = true)) }

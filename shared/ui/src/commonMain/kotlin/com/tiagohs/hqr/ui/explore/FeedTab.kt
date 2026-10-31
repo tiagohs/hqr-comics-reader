@@ -48,6 +48,7 @@ import com.tiagohs.hqr.ui.components.DotsLoader
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.Skeleton
+import com.tiagohs.hqr.ui.components.sharedCover
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.feed_edit
 import com.tiagohs.hqr.ui.resources.feed_empty_message
@@ -122,7 +123,7 @@ fun FeedTab(
                             Modifier.clickable { scope.launch { onOpenManga(viewModel.open(entry.manga)) } },
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Cover(entry.manga) {}
+                            Cover(entry.manga, Modifier.sharedCover(entry.manga)) {}
                             Text(
                                 entry.manga.title,
                                 style = MaterialTheme.typography.titleSmall,

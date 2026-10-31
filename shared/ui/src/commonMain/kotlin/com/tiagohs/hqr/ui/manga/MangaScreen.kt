@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -70,8 +71,10 @@ import com.tiagohs.hqr.ui.components.ErrorState
 import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.Stamp
+import com.tiagohs.hqr.ui.components.cascadeIn
 import com.tiagohs.hqr.ui.components.label
 import com.tiagohs.hqr.ui.components.message
+import com.tiagohs.hqr.ui.components.rememberOpening
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.downloads.rememberNotificationPermission
 import com.tiagohs.hqr.ui.navigation.RESUME
@@ -332,6 +335,8 @@ private fun MangaContent(
             modifier = Modifier.fillMaxSize(),
         ) {
             val sourceLabel = sourceName(manga)
+            // RF-118: the chapters cascade in once, as the work opens.
+            val opening = rememberOpening()
             LazyColumn(Modifier.fillMaxSize()) {
                 // The panel starts under the bar, so its halftone or speed lines fill the top of the screen.
                 item { Hero(manga, topPadding = padding.calculateTopPadding()) }
@@ -428,8 +433,9 @@ private fun MangaContent(
                         )
                     }
                 }
-                items(state.chapters, key = { it.id }) { chapter ->
+                itemsIndexed(state.chapters, key = { _, row -> row.id }) { index, chapter ->
                     ChapterRow(
+                        modifier = Modifier.cascadeIn(index, opening),
                         chapter = chapter,
                         isNew = chapter.id in state.newChapterIds,
                         download = downloadStates[chapter.id],
@@ -587,6 +593,7 @@ private fun ChapterRow(
     onMarkPrevious: () -> Unit,
     onDownload: () -> Unit,
     onDeleteDownload: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var menu by remember { mutableStateOf(false) }
     val numberColor =
@@ -596,7 +603,7 @@ private fun ChapterRow(
             else -> MaterialTheme.colorScheme.primary
         }
     Column(
-        Modifier
+        modifier
             .combinedClickable(onClick = onClick, onLongClick = onLongPress, onLongClickLabel = stringResource(Res.string.manga_select))
             .then(if (selected) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
             .semantics { this.selected = selected },

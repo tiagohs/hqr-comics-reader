@@ -46,7 +46,7 @@ Papel e tinta são fixos; só o destaque muda (violeta #5C51A8 fora da obra, cor
 - **Fundos:** retícula (pontos de 1,1 em passo de 6) e, na obra, linhas de velocidade a cada 7° (mangá, quando há título japonês) ou pontos Ben-Day na cor da capa (HQ).
 - **Controles Material:** botões em pílula (48 a 52 de altura), botão de ícone redondo, chips de 8 dp, campos com contorno de 1, interruptores do M3; sem sombra deslocada, sem inclinação.
 - Espaço: grade de 8 (margens 16, 8 entre itens, 16 entre blocos, 24 antes das seções); alvos de 48 (44 no iOS).
-- **Movimento (150 a 480 ms; "reduzir movimento" desliga):** capa → obra por elemento compartilhado girando 2,5°; linhas de velocidade entram de fora para dentro; título vertical escreve de cima para baixo; selos entram como carimbo; listas em cascata; folhas sobem.
+- **Movimento (RF-118; 150 a 480 ms; "reduzir movimento" vira esmaecimento de 150 ms):** capa → obra por elemento compartilhado girando 2,5°; linhas de velocidade finas (0,6 a 1 dp, tinta a 22%) só nas bordas do painel, entrando de fora para dentro; título vertical escreve de cima para baixo; selos entram como carimbo (mola); listas em cascata só ao abrir a tela (30 ms por linha, até 8); primeiro acesso: retícula desce e cartões se desenham a traço; folhas sobem. Tudo nativo (Compose, SwiftUI), sem Lottie.
 
 ## 5. Componentes
 

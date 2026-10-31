@@ -77,6 +77,7 @@ import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.Skeleton
 import com.tiagohs.hqr.ui.components.importMessage
 import com.tiagohs.hqr.ui.components.message
+import com.tiagohs.hqr.ui.components.sharedCover
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.components.sourceMessage
 import com.tiagohs.hqr.ui.resources.Res
@@ -451,7 +452,7 @@ fun BrowseSourceScreen(
                                     ),
                                     verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
-                                    Cover(manga) {
+                                    Cover(manga, Modifier.sharedCover(manga)) {
                                         if (manga.key in state.inLibrary) InLibraryBadge(stringResource(Res.string.browse_in_library))
                                     }
                                     Text(

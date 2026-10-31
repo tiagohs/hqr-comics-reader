@@ -107,7 +107,8 @@ class FakeSource(
 /** Waits in real time for work done on other threads (Room, the view model's Main). */
 suspend fun waitFor(condition: suspend () -> Boolean) =
     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-        kotlinx.coroutines.withTimeout(5_000) { while (!condition()) kotlinx.coroutines.delay(20) }
+        // 10 s: the shared CI machine and this cloud run every suite at once.
+        kotlinx.coroutines.withTimeout(10_000) { while (!condition()) kotlinx.coroutines.delay(20) }
     }
 
 /** A [com.tiagohs.hqr.domain.repository.CacheStore] in memory with a clock the test moves. */

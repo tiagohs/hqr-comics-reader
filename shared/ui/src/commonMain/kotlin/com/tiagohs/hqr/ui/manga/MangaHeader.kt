@@ -26,10 +26,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,6 +43,8 @@ import com.tiagohs.hqr.ui.components.VerticalTitle
 import com.tiagohs.hqr.ui.components.halftoneBehind
 import com.tiagohs.hqr.ui.components.isJapanese
 import com.tiagohs.hqr.ui.components.label
+import com.tiagohs.hqr.ui.components.rememberEntrance
+import com.tiagohs.hqr.ui.components.sharedCover
 import com.tiagohs.hqr.ui.components.speedLines
 import com.tiagohs.hqr.ui.components.unavailableSourceName
 import com.tiagohs.hqr.ui.resources.Res
@@ -88,6 +91,7 @@ internal fun ChapterSkeleton(index: Int) {
 }
 
 internal const val SKELETON_ROWS = 4
+private const val COVER_TILT = 2.5f
 
 /**
  * The work's panel (ADR-026): the tilted cover over speed lines and the vertical original title for manga, or over
@@ -104,11 +108,18 @@ internal fun Hero(
         manga.source.alternativeTitles
             .firstOrNull { it.trim().isJapanese() }
             ?.trim()
+    // RF-118: the panel draws itself in as the work opens; the cover settles at its 2.5° tilt.
+    val entrance = rememberEntrance()
     val art =
         if (vertical != null) {
-            Modifier.speedLines(ink.copy(alpha = 0.3f))
+            Modifier.speedLines(ink.copy(alpha = 0.22f), progress = { entrance.value })
         } else {
-            Modifier.halftoneBehind(MaterialTheme.colorScheme.primary.copy(alpha = 0.45f), step = 9.dp, radius = 2.4.dp)
+            Modifier.halftoneBehind(
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                step = 9.dp,
+                radius = 2.4.dp,
+                progress = { entrance.value },
+            )
         }
     Column(
         Modifier
@@ -117,15 +128,17 @@ internal fun Hero(
                 MaterialTheme.colorScheme.primaryContainer
                     .copy(alpha = HERO_TINT)
                     .compositeOver(MaterialTheme.colorScheme.background),
-            ).then(art)
+            ).clipToBounds()
+            .then(art)
             .padding(top = topPadding, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Box(
                 Modifier
+                    .sharedCover(manga.source)
                     .width(140.dp)
-                    .rotate(-2.5f)
+                    .graphicsLayer { rotationZ = -COVER_TILT * entrance.value }
                     .drawBehind {
                         drawRect(
                             ink,

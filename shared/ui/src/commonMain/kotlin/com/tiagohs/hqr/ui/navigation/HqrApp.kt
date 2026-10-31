@@ -1,5 +1,7 @@
 package com.tiagohs.hqr.ui.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -139,7 +142,16 @@ fun HqrApp(systemDark: Boolean) {
     val onboarded by prefs.onboarded.collectAsStateWithLifecycle()
     val dynamicColor by prefs.dynamicColor.collectAsStateWithLifecycle()
     // RF-77: the chosen language for every screen; RF-76: pure black for every dark theme.
-    CompositionLocalProvider(LocalAppLocale provides language, LocalPureBlack provides pureBlack, LocalDynamicColor provides dynamicColor) {
+    // RF-118: the system's "less motion" turns the comic motion into fades on every screen.
+    val reduceMotion =
+        com.tiagohs.hqr.ui.components
+            .rememberSystemReduceMotion()
+    CompositionLocalProvider(
+        LocalAppLocale provides language,
+        LocalPureBlack provides pureBlack,
+        LocalDynamicColor provides dynamicColor,
+        com.tiagohs.hqr.ui.components.LocalReduceMotion provides reduceMotion,
+    ) {
         key(language) {
             HqrTheme(dark = dark) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -170,6 +182,7 @@ fun HqrApp(systemDark: Boolean) {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AppNavigation(dark: Boolean) {
     val nav = rememberNavController()
@@ -201,121 +214,133 @@ private fun AppNavigation(dark: Boolean) {
             }
         },
     ) {
-        NavHost(nav, startDestination = Route.Library) {
-            composable<Route.Library> {
-                LibraryScreen(
-                    onOpenManga = { nav.navigate(Route.Manga(it)) },
-                    onContinue = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) },
-                    // The same as the bottom bar: Explore as a tab, never stacked over the Library (the Library tab must
-                    // bring the Library back).
-                    onExplore = { nav.navigateTopLevel(Route.Explore) },
-                    onCategories = { nav.navigate(Route.Categories) },
-                    onDownloads = { nav.navigate(Route.Downloads) },
-                )
-            }
-            composable<Route.Downloads> {
-                DownloadsScreen(onBack = { nav.popBackStack() }, onLibrary = { nav.navigateTopLevel(Route.Library) })
-            }
-            composable<Route.Categories> { CategoriesScreen(onBack = { nav.popBackStack() }) }
-            composable<Route.Explore> {
-                ExploreScreen(
-                    onOpenSource = { nav.navigate(Route.BrowseSource(it)) },
-                    onSearch = { nav.navigate(Route.Search) },
-                    onManageSources = { nav.navigate(Route.Sources) },
-                    onBridge = { nav.navigate(Route.Bridge) },
-                    onOpenManga = { nav.navigate(Route.Manga(it)) },
-                )
-            }
-            composable<Route.Search> {
-                GlobalSearchScreen(
-                    onBack = { nav.popBackStack() },
-                    onOpenManga = { nav.navigate(Route.Manga(it)) },
-                    onOpenSource = { id, query -> nav.navigate(Route.BrowseSource(id, query)) },
-                    // RF-28: "Ver fontes" opens the sources screen.
-                    onSources = { nav.navigate(Route.Sources) },
-                )
-            }
-            composable<Route.Sources> {
-                SourcesScreen(
-                    onBack = { nav.popBackStack() },
-                    onAddServer = { nav.navigate(Route.AddServer()) },
-                    onEditServer = { nav.navigate(Route.AddServer(it)) },
-                    onOpenServer = { nav.navigate(Route.ServerCatalog(it)) },
-                    onBridge = { nav.navigate(Route.Bridge) },
-                    onSourceSettings = { nav.navigate(Route.SourceSettings) },
-                )
-            }
-            composable<Route.SourceSettings> { SourceSettingsScreen(onBack = { nav.popBackStack() }) }
-            composable<Route.Bridge> { BridgeScreen(onBack = { nav.popBackStack() }) }
-            composable<Route.AddServer> { back -> AddServerScreen(back.toRoute<Route.AddServer>().id, onDone = { nav.popBackStack() }) }
-            composable<Route.ServerCatalog> { back ->
-                ServerCatalogScreen(
-                    sourceId = back.toRoute<Route.ServerCatalog>().sourceId,
-                    onBack = { nav.popBackStack() },
-                    onOpenManga = { nav.navigate(Route.Manga(it)) },
-                )
-            }
-            composable<Route.History> {
-                HistoryScreen(onResume = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) })
-            }
-            composable<Route.Settings> {
-                SettingsScreen(
-                    onSources = { nav.navigate(Route.Sources) },
-                    onDownloads = { nav.navigate(Route.Downloads) },
-                    onBackup = { nav.navigate(Route.Backup) },
-                    onAbout = { nav.navigate(Route.About) },
-                    onUpdates = { nav.navigate(Route.Update) },
-                )
-            }
-            composable<Route.About> { AboutScreen(onBack = { nav.popBackStack() }) }
-            composable<Route.Update> { UpdateScreen(onBack = { nav.popBackStack() }) }
-            composable<Route.Backup> { BackupScreen(onBack = { nav.popBackStack() }) }
-            composable<Route.BrowseSource> { back ->
-                val route = back.toRoute<Route.BrowseSource>()
-                BrowseSourceScreen(
-                    sourceId = route.sourceId,
-                    initialQuery = route.query,
-                    onBack = { nav.popBackStack() },
-                    onOpenManga = { nav.navigate(Route.Manga(it)) },
-                    onBridge = { nav.navigate(Route.Bridge) },
-                    onChallenge = { nav.navigate(Route.Challenge(it)) },
-                )
-            }
-            composable<Route.Challenge> { back ->
-                ChallengeScreen(
-                    url = back.toRoute<Route.Challenge>().url,
-                    onPassed = { nav.popBackStack() },
-                    onBack = { nav.popBackStack() },
-                )
-            }
-            composable<Route.Manga> { back ->
-                MangaScreen(
-                    mangaId = back.toRoute<Route.Manga>().id,
-                    dark = dark,
-                    onBack = { nav.popBackStack() },
-                    onRead = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) },
-                    onMigrate = { nav.navigate(Route.Migrate(it)) },
-                )
-            }
-            composable<Route.Migrate> { back ->
-                val from = back.toRoute<Route.Migrate>().id
-                MigrationScreen(
-                    mangaId = from,
-                    onBack = { nav.popBackStack() },
-                    // The new work replaces the old one on the stack: back goes where the old one came from.
-                    onMigrated = { newId, _ ->
-                        nav.navigate(Route.Manga(newId)) { popUpTo<Route.Manga> { inclusive = true } }
-                    },
-                )
-            }
-            composable<Route.Reader> { back ->
-                val route = back.toRoute<Route.Reader>()
-                ReaderScreen(route.mangaId, route.chapterId, route.page, onBack = { nav.popBackStack() })
+        // RF-118: one shared transition around every screen, so a cover can fly from a list into the work.
+        SharedTransitionLayout {
+            CompositionLocalProvider(com.tiagohs.hqr.ui.components.LocalSharedTransition provides this) {
+                NavHost(nav, startDestination = Route.Library) {
+                    screen<Route.Library> {
+                        LibraryScreen(
+                            onOpenManga = { nav.navigate(Route.Manga(it)) },
+                            onContinue = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) },
+                            // The same as the bottom bar: Explore as a tab, never stacked over the Library (the Library tab must
+                            // bring the Library back).
+                            onExplore = { nav.navigateTopLevel(Route.Explore) },
+                            onCategories = { nav.navigate(Route.Categories) },
+                            onDownloads = { nav.navigate(Route.Downloads) },
+                        )
+                    }
+                    screen<Route.Downloads> {
+                        DownloadsScreen(onBack = { nav.popBackStack() }, onLibrary = { nav.navigateTopLevel(Route.Library) })
+                    }
+                    screen<Route.Categories> { CategoriesScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.Explore> {
+                        ExploreScreen(
+                            onOpenSource = { nav.navigate(Route.BrowseSource(it)) },
+                            onSearch = { nav.navigate(Route.Search) },
+                            onManageSources = { nav.navigate(Route.Sources) },
+                            onBridge = { nav.navigate(Route.Bridge) },
+                            onOpenManga = { nav.navigate(Route.Manga(it)) },
+                        )
+                    }
+                    screen<Route.Search> {
+                        GlobalSearchScreen(
+                            onBack = { nav.popBackStack() },
+                            onOpenManga = { nav.navigate(Route.Manga(it)) },
+                            onOpenSource = { id, query -> nav.navigate(Route.BrowseSource(id, query)) },
+                            // RF-28: "Ver fontes" opens the sources screen.
+                            onSources = { nav.navigate(Route.Sources) },
+                        )
+                    }
+                    screen<Route.Sources> {
+                        SourcesScreen(
+                            onBack = { nav.popBackStack() },
+                            onAddServer = { nav.navigate(Route.AddServer()) },
+                            onEditServer = { nav.navigate(Route.AddServer(it)) },
+                            onOpenServer = { nav.navigate(Route.ServerCatalog(it)) },
+                            onBridge = { nav.navigate(Route.Bridge) },
+                            onSourceSettings = { nav.navigate(Route.SourceSettings) },
+                        )
+                    }
+                    screen<Route.SourceSettings> { SourceSettingsScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.Bridge> { BridgeScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.AddServer> { back -> AddServerScreen(back.toRoute<Route.AddServer>().id, onDone = { nav.popBackStack() }) }
+                    screen<Route.ServerCatalog> { back ->
+                        ServerCatalogScreen(
+                            sourceId = back.toRoute<Route.ServerCatalog>().sourceId,
+                            onBack = { nav.popBackStack() },
+                            onOpenManga = { nav.navigate(Route.Manga(it)) },
+                        )
+                    }
+                    screen<Route.History> {
+                        HistoryScreen(onResume = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) })
+                    }
+                    screen<Route.Settings> {
+                        SettingsScreen(
+                            onSources = { nav.navigate(Route.Sources) },
+                            onDownloads = { nav.navigate(Route.Downloads) },
+                            onBackup = { nav.navigate(Route.Backup) },
+                            onAbout = { nav.navigate(Route.About) },
+                            onUpdates = { nav.navigate(Route.Update) },
+                        )
+                    }
+                    screen<Route.About> { AboutScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.Update> { UpdateScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.Backup> { BackupScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.BrowseSource> { back ->
+                        val route = back.toRoute<Route.BrowseSource>()
+                        BrowseSourceScreen(
+                            sourceId = route.sourceId,
+                            initialQuery = route.query,
+                            onBack = { nav.popBackStack() },
+                            onOpenManga = { nav.navigate(Route.Manga(it)) },
+                            onBridge = { nav.navigate(Route.Bridge) },
+                            onChallenge = { nav.navigate(Route.Challenge(it)) },
+                        )
+                    }
+                    screen<Route.Challenge> { back ->
+                        ChallengeScreen(
+                            url = back.toRoute<Route.Challenge>().url,
+                            onPassed = { nav.popBackStack() },
+                            onBack = { nav.popBackStack() },
+                        )
+                    }
+                    screen<Route.Manga> { back ->
+                        MangaScreen(
+                            mangaId = back.toRoute<Route.Manga>().id,
+                            dark = dark,
+                            onBack = { nav.popBackStack() },
+                            onRead = { mangaId, chapterId, page -> nav.navigate(Route.Reader(mangaId, chapterId, page)) },
+                            onMigrate = { nav.navigate(Route.Migrate(it)) },
+                        )
+                    }
+                    screen<Route.Migrate> { back ->
+                        val from = back.toRoute<Route.Migrate>().id
+                        MigrationScreen(
+                            mangaId = from,
+                            onBack = { nav.popBackStack() },
+                            // The new work replaces the old one on the stack: back goes where the old one came from.
+                            onMigrated = { newId, _ ->
+                                nav.navigate(Route.Manga(newId)) { popUpTo<Route.Manga> { inclusive = true } }
+                            },
+                        )
+                    }
+                    screen<Route.Reader> { back ->
+                        val route = back.toRoute<Route.Reader>()
+                        ReaderScreen(route.mangaId, route.chapterId, route.page, onBack = { nav.popBackStack() })
+                    }
+                }
             }
         }
         // RF-113: in the browser, each screen has its address and the back and forward buttons work.
         BrowserNavigation(nav)
     }
+}
+
+/** A destination that tells its content which transition it is in (the cover's flight, RF-118). */
+private inline fun <reified T : Any> NavGraphBuilder.screen(
+    noinline content: @Composable (androidx.navigation.NavBackStackEntry) -> Unit,
+) = composable<T> { back ->
+    CompositionLocalProvider(com.tiagohs.hqr.ui.components.LocalScreenAnimation provides this) { content(back) }
 }
 
 /** Top-level destinations swap like tabs, each keeping its own back stack (ADR-012). */

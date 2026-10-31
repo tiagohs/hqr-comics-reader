@@ -16,13 +16,59 @@ import com.tiagohs.hqr.presentation.color.CoverColor
 private val errorLight = Triple(Color(0xFFBA1A1A), Color(0xFFFFDAD6), Color(0xFF410002))
 private val errorDark = Triple(Color(0xFFFFB4AB), Color(0xFF93000A), Color(0xFFFFDAD6))
 
-/** Material color scheme from a seed: the violet base or the cover color (RF-98). */
+/**
+ * Paper and ink (ADR-026): the neutral roles are fixed, warm paper in light and ink in dark, so every screen reads
+ * like a printed page; only the accent roles follow the seed.
+ */
+private data class Paper(
+    val background: Color,
+    val lowest: Color,
+    val low: Color,
+    val container: Color,
+    val high: Color,
+    val highest: Color,
+    val onSurface: Color,
+    val onSurfaceVariant: Color,
+    val outline: Color,
+    val outlineVariant: Color,
+)
+
+private val paperLight =
+    Paper(
+        background = Color(0xFFF6F1E7),
+        lowest = Color(0xFFFFFDF7),
+        low = Color(0xFFFBF7EE),
+        container = Color(0xFFF1ECE1),
+        high = Color(0xFFECE6DA),
+        highest = Color(0xFFE5DFD2),
+        onSurface = Color(0xFF16161A),
+        onSurfaceVariant = Color(0xFF55545A),
+        outline = Color(0xFF77757C),
+        outlineVariant = Color(0xFFCFC8BB),
+    )
+
+private val paperDark =
+    Paper(
+        background = Color(0xFF16161A),
+        lowest = Color(0xFF0F0F12),
+        low = Color(0xFF1C1C21),
+        container = Color(0xFF222127),
+        high = Color(0xFF2A292F),
+        highest = Color(0xFF35343A),
+        onSurface = Color(0xFFF6F1E7),
+        onSurfaceVariant = Color(0xFFC4C0C8),
+        outline = Color(0xFF8F8C94),
+        outlineVariant = Color(0xFF3E3D43),
+    )
+
+/** Material color scheme from a seed: the violet base or the cover color (RF-98), over paper and ink. */
 fun hqrColorScheme(
     seed: Int,
     dark: Boolean,
 ): ColorScheme {
     val r = CoverColor.roles(seed, dark)
     val (error, errorContainer, onErrorContainer) = if (dark) errorDark else errorLight
+    val p = if (dark) paperDark else paperLight
     val base = if (dark) darkColorScheme() else lightColorScheme()
     return base.copy(
         primary = Color(r.primary),
@@ -37,23 +83,23 @@ fun hqrColorScheme(
         onTertiary = Color(r.onPrimary),
         tertiaryContainer = Color(r.primaryContainer),
         onTertiaryContainer = Color(r.onPrimaryContainer),
-        background = Color(r.background),
-        onBackground = Color(r.onSurface),
-        surface = Color(r.background),
-        onSurface = Color(r.onSurface),
-        surfaceVariant = Color(r.surface3),
-        onSurfaceVariant = Color(r.onSurfaceVariant),
-        surfaceContainerLowest = Color(r.background),
-        surfaceContainerLow = Color(r.surface1),
-        surfaceContainer = Color(r.surface1),
-        surfaceContainerHigh = Color(r.surface2),
-        surfaceContainerHighest = Color(r.surface3),
-        surfaceBright = Color(r.surface3),
-        surfaceDim = Color(r.background),
-        outline = Color(r.outline),
-        outlineVariant = Color(r.outlineVariant),
-        inverseSurface = Color(r.onSurface),
-        inverseOnSurface = Color(r.surface1),
+        background = p.background,
+        onBackground = p.onSurface,
+        surface = p.background,
+        onSurface = p.onSurface,
+        surfaceVariant = p.highest,
+        onSurfaceVariant = p.onSurfaceVariant,
+        surfaceContainerLowest = p.lowest,
+        surfaceContainerLow = p.low,
+        surfaceContainer = p.container,
+        surfaceContainerHigh = p.high,
+        surfaceContainerHighest = p.highest,
+        surfaceBright = p.highest,
+        surfaceDim = p.background,
+        outline = p.outline,
+        outlineVariant = p.outlineVariant,
+        inverseSurface = p.onSurface,
+        inverseOnSurface = p.background,
         inversePrimary = Color(CoverColor.roles(seed, !dark).primary),
         error = error,
         onError = if (dark) Color(0xFF690005) else Color.White,

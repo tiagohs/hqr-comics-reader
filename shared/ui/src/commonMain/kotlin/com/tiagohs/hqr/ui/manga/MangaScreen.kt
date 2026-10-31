@@ -7,16 +7,12 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,7 +31,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -46,23 +40,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
@@ -72,23 +65,20 @@ import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.domain.repository.DownloadItem
 import com.tiagohs.hqr.presentation.color.CoverColor
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
-import com.tiagohs.hqr.ui.components.Cover
+import com.tiagohs.hqr.ui.components.DotsLoader
 import com.tiagohs.hqr.ui.components.ErrorState
-import com.tiagohs.hqr.ui.components.ImageRef
 import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.LoadingState
+import com.tiagohs.hqr.ui.components.Stamp
 import com.tiagohs.hqr.ui.components.label
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
-import com.tiagohs.hqr.ui.components.unavailableSourceName
 import com.tiagohs.hqr.ui.downloads.rememberNotificationPermission
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
-import com.tiagohs.hqr.ui.resources.action_continue
-import com.tiagohs.hqr.ui.resources.action_less_text
 import com.tiagohs.hqr.ui.resources.action_more
-import com.tiagohs.hqr.ui.resources.action_more_text
+import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_read
 import com.tiagohs.hqr.ui.resources.action_read_again
 import com.tiagohs.hqr.ui.resources.action_retry
@@ -100,9 +90,8 @@ import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_chapter_label
 import com.tiagohs.hqr.ui.resources.manga_chapters
 import com.tiagohs.hqr.ui.resources.manga_clear_selection
-import com.tiagohs.hqr.ui.resources.manga_continue_chapter
+import com.tiagohs.hqr.ui.resources.manga_continue_short
 import com.tiagohs.hqr.ui.resources.manga_delete_download
-import com.tiagohs.hqr.ui.resources.manga_details
 import com.tiagohs.hqr.ui.resources.manga_download
 import com.tiagohs.hqr.ui.resources.manga_download_next
 import com.tiagohs.hqr.ui.resources.manga_download_unread
@@ -117,18 +106,21 @@ import com.tiagohs.hqr.ui.resources.manga_mark_unread
 import com.tiagohs.hqr.ui.resources.manga_new
 import com.tiagohs.hqr.ui.resources.manga_no_chapters
 import com.tiagohs.hqr.ui.resources.manga_open_group
-import com.tiagohs.hqr.ui.resources.manga_open_site
 import com.tiagohs.hqr.ui.resources.manga_order
 import com.tiagohs.hqr.ui.resources.manga_page_of
 import com.tiagohs.hqr.ui.resources.manga_read
+import com.tiagohs.hqr.ui.resources.manga_read_chapter
+import com.tiagohs.hqr.ui.resources.manga_refresh
 import com.tiagohs.hqr.ui.resources.manga_refresh_failed
 import com.tiagohs.hqr.ui.resources.manga_removed_from_source
+import com.tiagohs.hqr.ui.resources.manga_searching_source
 import com.tiagohs.hqr.ui.resources.manga_select
 import com.tiagohs.hqr.ui.resources.manga_selected
 import com.tiagohs.hqr.ui.resources.migrate_action
-import com.tiagohs.hqr.ui.resources.source_unavailable
+import com.tiagohs.hqr.ui.resources.source_content_error
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
+import com.tiagohs.hqr.ui.theme.bangers
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
@@ -171,7 +163,7 @@ fun MangaScreen(
                 }
             }
         } else {
-            MangaContent(manga, state, dark, viewModel, onBack, onRead, onMigrate)
+            MangaContent(manga, state, viewModel, onBack, onRead, onMigrate)
         }
     }
 }
@@ -181,7 +173,6 @@ fun MangaScreen(
 private fun MangaContent(
     manga: Manga,
     state: MangaViewModel.State,
-    dark: Boolean,
     viewModel: MangaViewModel,
     onBack: () -> Unit,
     onRead: (Long, Long, Int) -> Unit,
@@ -197,7 +188,7 @@ private fun MangaContent(
     val canDownload = viewModel.canDownload
     // RF-94: the first download asks for the notification permission (Android 13+); refused, the queue still runs.
     val askNotifications = rememberNotificationPermission()
-    var downloadMenu by remember { mutableStateOf(false) }
+    var overflow by remember { mutableStateOf(false) }
     // RF-52: taking out offers "Desfazer"; putting in asks for the categories when there are any (RF-53).
     val toggleLibrary: () -> Unit = {
         val removing = manga.inLibrary
@@ -223,7 +214,14 @@ private fun MangaContent(
             picking = false
         }
     }
+    // The bar takes the hero's tint at the top and the paper once the list scrolls under it.
+    val bar = TopAppBarDefaults.pinnedScrollBehavior()
+    val heroColor =
+        MaterialTheme.colorScheme.primaryContainer
+            .copy(alpha = HERO_TINT)
+            .compositeOver(MaterialTheme.colorScheme.background)
     Scaffold(
+        modifier = Modifier.nestedScroll(bar.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
@@ -254,207 +252,211 @@ private fun MangaContent(
             } else {
                 TopAppBar(
                     title = {},
-                    navigationIcon = { IconButton(onClick = onBack) { Icon(HqrIcons.Back, stringResource(Res.string.action_back)) } },
+                    navigationIcon = { RoundIconButton(HqrIcons.Back, stringResource(Res.string.action_back), onBack) },
                     actions = {
-                        if (canDownload) {
-                            Box {
-                                IconButton(
-                                    onClick = { downloadMenu = true },
-                                ) { Icon(HqrIcons.Download, stringResource(Res.string.manga_download)) }
-                                DropdownMenu(expanded = downloadMenu, onDismissRequest = { downloadMenu = false }) {
+                        Box {
+                            RoundIconButton(HqrIcons.More, stringResource(Res.string.action_more)) { overflow = true }
+                            DropdownMenu(expanded = overflow, onDismissRequest = { overflow = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.manga_refresh)) },
+                                    leadingIcon = { Icon(HqrIcons.Refresh, null) },
+                                    onClick = {
+                                        overflow = false
+                                        viewModel.refresh()
+                                    },
+                                )
+                                if (canDownload) {
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.manga_download_next, NEXT_UNREAD)) },
+                                        leadingIcon = { Icon(HqrIcons.Download, null) },
                                         onClick = {
-                                            downloadMenu = false
+                                            overflow = false
                                             askNotifications()
                                             viewModel.downloadUnread(NEXT_UNREAD)
                                         },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(Res.string.manga_download_unread)) },
+                                        leadingIcon = { Icon(HqrIcons.Download, null) },
                                         onClick = {
-                                            downloadMenu = false
+                                            overflow = false
                                             askNotifications()
                                             viewModel.downloadUnread()
                                         },
                                     )
                                 }
-                            }
-                        }
-                        IconButton(onClick = {
-                            viewModel.setOrder(
-                                if (state.order ==
-                                    MangaViewModel.Order.NEWEST_FIRST
-                                ) {
-                                    MangaViewModel.Order.OLDEST_FIRST
-                                } else {
-                                    MangaViewModel.Order.NEWEST_FIRST
-                                },
-                            )
-                        }) { Icon(HqrIcons.Sort, stringResource(Res.string.manga_order)) }
-                        if (manga.inLibrary && categoryChoice.first.isNotEmpty()) {
-                            IconButton(
-                                onClick = { picking = true },
-                            ) { Icon(HqrIcons.Folder, stringResource(Res.string.manga_edit_categories)) }
-                        }
-                        // RF-69: local files have no other source to go to.
-                        if (manga.sourceId != SourceId.LOCAL) {
-                            IconButton(onClick = { onMigrate(manga.id) }) {
-                                Icon(HqrIcons.Swap, stringResource(Res.string.migrate_action))
+                                if (manga.inLibrary && categoryChoice.first.isNotEmpty()) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.manga_edit_categories)) },
+                                        leadingIcon = { Icon(HqrIcons.Folder, null) },
+                                        onClick = {
+                                            overflow = false
+                                            picking = true
+                                        },
+                                    )
+                                }
+                                // RF-69: local files have no other source to go to.
+                                if (!isLocal) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.migrate_action)) },
+                                        leadingIcon = { Icon(HqrIcons.Swap, null) },
+                                        onClick = {
+                                            overflow = false
+                                            onMigrate(manga.id)
+                                        },
+                                    )
+                                }
+                                // RF-34: the work's page at the source.
+                                manga.source.url?.takeIf { !isLocal }?.let { url ->
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(Res.string.action_open_browser)) },
+                                        leadingIcon = { Icon(HqrIcons.Globe, null) },
+                                        onClick = {
+                                            overflow = false
+                                            uri.openUri(url)
+                                        },
+                                    )
+                                }
                             }
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = heroColor,
+                            scrolledContainerColor = MaterialTheme.colorScheme.background,
+                        ),
+                    scrollBehavior = bar,
                 )
             }
         },
     ) { padding ->
-        PullToRefreshBox(isRefreshing = state.refreshing, onRefresh = viewModel::refresh, modifier = Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize()) {
-                Hero(manga, dark)
-                LazyColumn(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
-                    item { Header(manga) }
+        PullToRefreshBox(
+            isRefreshing = state.refreshing && !state.chaptersLoading,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            val sourceLabel = sourceName(manga)
+            LazyColumn(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
+                item { Hero(manga, topPadding = 0.dp) }
+                item { Header(manga, sourceLabel) }
+                item {
+                    Actions(
+                        manga = manga,
+                        action = state.action,
+                        waiting = state.chaptersLoading,
+                        onRead = { chapter, page -> onRead(manga.id, chapter.id, page) },
+                        onToggleLibrary = toggleLibrary,
+                    )
+                }
+                // RF-117: a failure of the details stays here; a failure of the list stays in the list.
+                if (state.error != null && state.chaptersError == null) {
                     item {
-                        Actions(
-                            manga = manga,
-                            action = state.action,
-                            isLocal = isLocal,
-                            onRead = { chapter, page -> onRead(manga.id, chapter.id, page) },
-                            onToggleLibrary = toggleLibrary,
-                            onOpenSite = { manga.source.url?.let { uri.openUri(it) } },
-                        )
-                    }
-                    item { Synopsis(manga.source.description, manga.source.genres, manga.source.alternativeTitles) }
-                    if (state.error != null) {
-                        item {
-                            InlineError(
-                                stringResource(Res.string.manga_refresh_failed),
-                                action = stringResource(Res.string.action_retry),
-                                onAction = viewModel::refresh,
-                                modifier = Modifier.padding(16.dp),
-                            )
-                        }
-                    }
-                    item {
-                        Row(
-                            Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 14.dp, bottom = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                stringResource(Res.string.manga_chapters, state.totalChapters),
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        ChapterFilters(state, viewModel)
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    }
-                    if (state.totalChapters == 0 && !state.refreshing && state.error == null) {
-                        item {
-                            Text(
-                                stringResource(Res.string.manga_no_chapters),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(16.dp),
-                            )
-                        }
-                    }
-                    items(state.chapters, key = { it.id }) { chapter ->
-                        ChapterRow(
-                            chapter = chapter,
-                            isNew = chapter.id in state.newChapterIds,
-                            download = downloadStates[chapter.id],
-                            canDownload = canDownload,
-                            selected = chapter.id in selected,
-                            onClick = {
-                                val external = chapter.source.externalUrl
-                                when {
-                                    selected.isNotEmpty() -> viewModel.toggleSelected(chapter.id)
-                                    // RF-11: a chapter only on the publisher's site opens there.
-                                    external != null -> uri.openUri(external)
-                                    else -> onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME)
-                                }
-                            },
-                            onLongPress = { viewModel.toggleSelected(chapter.id) },
-                            onMarkRead = { viewModel.setRead(listOf(chapter.id), !chapter.read) },
-                            onMarkPrevious = { viewModel.markPreviousAsRead(chapter) },
-                            onDownload = {
-                                askNotifications()
-                                viewModel.download(listOf(chapter.id))
-                            },
-                            onDeleteDownload = { viewModel.removeDownloads(listOf(chapter.id)) },
+                        InlineError(
+                            stringResource(Res.string.manga_refresh_failed),
+                            action = stringResource(Res.string.action_retry),
+                            onAction = viewModel::refresh,
+                            modifier = Modifier.padding(16.dp),
                         )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Hero(
-    manga: Manga,
-    dark: Boolean,
-) {
-    val background = MaterialTheme.colorScheme.background
-    Box(Modifier.fillMaxWidth().height(340.dp)) {
-        manga.source.coverUrl?.let {
-            AsyncImage(
-                model = ImageRef(manga.sourceId, it),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                alpha = if (dark) 0.9f else 0.55f,
-                modifier = Modifier.fillMaxSize().blur(28.dp),
-            )
-        }
-        Box(
-            Modifier.fillMaxSize().background(
-                Brush.verticalGradient(
-                    listOf(if (dark) Color.Black.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.25f), background),
-                    endY =
-                        300f * 3,
-                ),
-            ),
-        )
-    }
-}
-
-@Composable
-private fun Header(manga: Manga) {
-    val source = manga.source
-    Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Box(Modifier.width(116.dp)) { Cover(source) }
-        Column(Modifier.weight(1f).padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(source.title, style = MaterialTheme.typography.headlineMedium, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            if (source.alternativeTitles.isNotEmpty()) {
-                // RF-29: alternative titles, one line; the full list is in the synopsis when expanded.
-                Text(
-                    source.alternativeTitles.take(2).joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            val people = (source.authors + source.artists).distinct()
-            if (people.isNotEmpty()) {
-                Text(
-                    people.joinToString(" · "),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            val status = source.status.label()?.let { stringResource(it) }
-            val sourceLine = listOfNotNull(status, sourceName(manga), source.language?.uppercase()).joinToString(" · ")
-            Text(sourceLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            unavailableSourceName(manga.sourceId)?.let { name ->
-                Text(
-                    stringResource(Res.string.source_unavailable, name),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.error,
-                )
+                item {
+                    Row(
+                        Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 24.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            if (state.chaptersLoading) {
+                                stringResource(Res.string.manga_chapters, 0).filter { !it.isDigit() }.trim()
+                            } else {
+                                stringResource(Res.string.manga_chapters, state.totalChapters)
+                            },
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (state.chaptersLoading) {
+                            // RF-117: the list says where it is still looking.
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.padding(end = 12.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                            ) {
+                                DotsLoader()
+                                Text(
+                                    stringResource(Res.string.manga_searching_source, sourceLabel),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = {
+                                viewModel.setOrder(
+                                    if (state.order == MangaViewModel.Order.NEWEST_FIRST) {
+                                        MangaViewModel.Order.OLDEST_FIRST
+                                    } else {
+                                        MangaViewModel.Order.NEWEST_FIRST
+                                    },
+                                )
+                            }) { Icon(HqrIcons.Sort, stringResource(Res.string.manga_order)) }
+                        }
+                    }
+                    ChapterFilters(state, viewModel)
+                    HorizontalDivider(thickness = 3.dp, color = MaterialTheme.colorScheme.onSurface)
+                }
+                if (state.chaptersLoading) {
+                    items(SKELETON_ROWS) { ChapterSkeleton(it) }
+                }
+                state.chaptersError?.let {
+                    item {
+                        InlineError(
+                            stringResource(Res.string.source_content_error, sourceLabel),
+                            action = stringResource(Res.string.action_retry),
+                            onAction = viewModel::refresh,
+                            secondary =
+                                manga.source.url
+                                    ?.takeIf { !isLocal }
+                                    ?.let { stringResource(Res.string.action_open_browser) },
+                            onSecondary = { manga.source.url?.let { uri.openUri(it) } },
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
+                }
+                val nothingFailed = state.chaptersError == null && state.error == null
+                if (state.totalChapters == 0 && !state.chaptersLoading && nothingFailed) {
+                    item {
+                        Text(
+                            stringResource(Res.string.manga_no_chapters),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
+                }
+                items(state.chapters, key = { it.id }) { chapter ->
+                    ChapterRow(
+                        chapter = chapter,
+                        isNew = chapter.id in state.newChapterIds,
+                        download = downloadStates[chapter.id],
+                        canDownload = canDownload,
+                        selected = chapter.id in selected,
+                        onClick = {
+                            val external = chapter.source.externalUrl
+                            when {
+                                selected.isNotEmpty() -> viewModel.toggleSelected(chapter.id)
+                                // RF-11: a chapter only on the publisher's site opens there.
+                                external != null -> uri.openUri(external)
+                                else -> onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME)
+                            }
+                        },
+                        onLongPress = { viewModel.toggleSelected(chapter.id) },
+                        onMarkRead = { viewModel.setRead(listOf(chapter.id), !chapter.read) },
+                        onMarkPrevious = { viewModel.markPreviousAsRead(chapter) },
+                        onDownload = {
+                            askNotifications()
+                            viewModel.download(listOf(chapter.id))
+                        },
+                        onDeleteDownload = { viewModel.removeDownloads(listOf(chapter.id)) },
+                    )
+                }
             }
         }
     }
@@ -467,78 +469,46 @@ private fun sourceName(manga: Manga): String =
         koinInject<com.tiagohs.hqr.domain.source.SourceRegistry>()[manga.sourceId]?.name ?: manga.sourceId.value,
     )
 
+/** RF-31: the main button, then the library: a round toggle in it, a full-width button out of it (RF-52). */
 @Composable
 private fun Actions(
     manga: Manga,
     action: ReadAction,
-    isLocal: Boolean,
+    waiting: Boolean,
     onRead: (Chapter, Int) -> Unit,
     onToggleLibrary: () -> Unit,
-    onOpenSite: () -> Unit,
 ) {
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        val (label, detail, target) =
-            when (action) {
-                is ReadAction.Start -> Triple(stringResource(Res.string.action_read), null, action.chapter to 0)
-                is ReadAction.Continue ->
-                    Triple(
-                        stringResource(Res.string.action_continue),
-                        stringResource(Res.string.manga_continue_chapter, action.chapter.number.chapterLabel(), action.page + 1),
-                        action.chapter to RESUME,
-                    )
-                is ReadAction.ReadAgain -> Triple(stringResource(Res.string.action_read_again), null, action.chapter to 0)
-                ReadAction.Nothing -> Triple(stringResource(Res.string.action_read), null, null)
-            }
-        Button(
-            onClick = { target?.let { onRead(it.first, it.second) } },
-            enabled = target != null,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) {
-            Text(label, style = MaterialTheme.typography.titleMedium)
-            if (detail != null) Text("  $detail", style = MaterialTheme.typography.bodyMedium)
+    val (label, target) =
+        when (action) {
+            is ReadAction.Start ->
+                stringResource(Res.string.manga_read_chapter, action.chapter.number.chapterLabel()) to (action.chapter to 0)
+            is ReadAction.Continue ->
+                stringResource(Res.string.manga_continue_short, action.chapter.number.chapterLabel()) to (action.chapter to RESUME)
+            is ReadAction.ReadAgain -> stringResource(Res.string.action_read_again) to (action.chapter to 0)
+            ReadAction.Nothing -> stringResource(Res.string.action_read) to null
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            val libraryLabel = stringResource(if (manga.inLibrary) Res.string.manga_in_library else Res.string.manga_add_library)
+    Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            // RF-117: the button waits for the chapters; until then it cannot know where to open.
+            Button(
+                onClick = { target?.let { onRead(it.first, it.second) } },
+                enabled = target != null && !waiting,
+                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+            ) { Text(label, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) }
             if (manga.inLibrary) {
-                Button(
-                    onClick = onToggleLibrary,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(24.dp, 8.dp, 8.dp, 24.dp),
-                ) {
-                    Icon(HqrIcons.Bookmark, null, Modifier.size(18.dp))
-                    Text(" $libraryLabel", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            } else {
-                FilledTonalButton(
-                    onClick = onToggleLibrary,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(24.dp, 8.dp, 8.dp, 24.dp),
-                ) {
-                    Icon(HqrIcons.BookmarkOutline, null, Modifier.size(18.dp))
-                    Text(" $libraryLabel", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                androidx.compose.material3.FilledIconButton(onClick = onToggleLibrary, modifier = Modifier.size(52.dp)) {
+                    Icon(HqrIcons.Bookmark, stringResource(Res.string.manga_in_library))
                 }
             }
-            if (!isLocal && manga.source.url != null) {
-                FilledTonalButton(
-                    onClick = onOpenSite,
-                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    shape = RoundedCornerShape(8.dp, 24.dp, 24.dp, 8.dp),
-                ) {
-                    Icon(HqrIcons.Globe, null, Modifier.size(18.dp))
-                    Text(" " + stringResource(Res.string.manga_open_site), maxLines = 1)
-                }
-            } else if (isLocal) {
-                FilledTonalButton(onClick = {
-                }, modifier = Modifier.weight(1f).heightIn(min = 48.dp), shape = RoundedCornerShape(8.dp, 24.dp, 24.dp, 8.dp)) {
-                    Icon(HqrIcons.Info, null, Modifier.size(18.dp))
-                    Text(" " + stringResource(Res.string.manga_details), maxLines = 1)
-                }
+        }
+        if (!manga.inLibrary) {
+            androidx.compose.material3.OutlinedButton(onClick = onToggleLibrary, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Icon(HqrIcons.Add, null, Modifier.size(18.dp))
+                Text("  " + stringResource(Res.string.manga_add_library))
             }
         }
     }
 }
-
-private const val MAX_GENRES = 8
 
 /** RF-30: unread and scan group filters above the chapter list. */
 @Composable
@@ -607,59 +577,6 @@ private fun shortDate(epochMs: Long): String {
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun Synopsis(
-    text: String?,
-    genres: List<String>,
-    alternativeTitles: List<String>,
-) {
-    if (text.isNullOrBlank() && genres.isEmpty()) return
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-        if (!text.isNullOrBlank()) {
-            Text(
-                text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = if (expanded) Int.MAX_VALUE else 3,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (expanded && alternativeTitles.size > 2) {
-                Text(
-                    alternativeTitles.joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
-            TextButton(onClick = { expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(stringResource(if (expanded) Res.string.action_less_text else Res.string.action_more_text))
-            }
-        }
-        if (genres.isNotEmpty()) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(bottom = 4.dp),
-            ) {
-                genres.take(MAX_GENRES).forEach {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier =
-                            Modifier
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    RoundedCornerShape(8.dp),
-                                ).padding(horizontal = 10.dp, vertical = 6.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun ChapterRow(
     chapter: Chapter,
@@ -694,9 +611,11 @@ private fun ChapterRow(
         ) {
             Text(
                 chapter.number.chapterLabel(),
-                style = MaterialTheme.typography.titleLarge,
+                fontFamily = bangers(),
+                fontSize = 26.sp,
                 color = numberColor,
-                modifier = Modifier.widthIn(min = 34.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier.widthIn(min = 44.dp),
             )
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
@@ -744,15 +663,7 @@ private fun ChapterRow(
                 }
                 if (isNew) {
                     // RF-33: seen at the source after the last opening of the work.
-                    Text(
-                        stringResource(Res.string.manga_new),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier =
-                            Modifier
-                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
-                                .padding(horizontal = 6.dp, vertical = 1.dp),
-                    )
+                    Stamp(stringResource(Res.string.manga_new), Modifier.padding(top = 2.dp))
                 }
                 if (chapter.source.externalUrl != null) {
                     // RF-11: licensed chapters live on the publisher's site.
@@ -824,7 +735,7 @@ private fun ChapterRow(
                 }
             }
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 

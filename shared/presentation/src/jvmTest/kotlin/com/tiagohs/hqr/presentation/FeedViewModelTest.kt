@@ -25,9 +25,9 @@ import kotlin.test.Test
 class FeedViewModelTest : MainDispatcherTest() {
     private class Fake(
         override val id: SourceId,
-        private val latest: List<SourceManga> = emptyList(),
+        var latest: List<SourceManga> = emptyList(),
         private val found: List<SourceManga> = emptyList(),
-        private val fails: Boolean = false,
+        var fails: Boolean = false,
     ) : CatalogSource,
         SearchSource {
         override val name = id.value.uppercase()
@@ -36,7 +36,10 @@ class FeedViewModelTest : MainDispatcherTest() {
 
         override suspend fun popular(page: Int) = MangaPage(emptyList(), false)
 
+        var asked = 0
+
         override suspend fun latest(page: Int): MangaPage {
+            asked++
             if (fails) throw SourceException("fora", SourceException.Kind.SERVER)
             return MangaPage(latest, false)
         }
@@ -94,7 +97,12 @@ class FeedViewModelTest : MainDispatcherTest() {
         override suspend fun addToFeed(
             sourceId: SourceId,
             savedSearchId: Long?,
-        ) = false
+        ): Boolean {
+            val present = rows.value.any { it.sourceId == sourceId && it.savedSearch?.id == savedSearchId }
+            if (present || rows.value.size >= SearchRepository.MAX_FEED) return false
+            rows.value = rows.value + FeedItem((rows.value.maxOfOrNull { it.id } ?: 0) + 1, sourceId, null)
+            return true
+        }
 
         override suspend fun removeFromFeed(id: Long) {
             rows.value = rows.value.filter { it.id != id }
@@ -185,5 +193,65 @@ class FeedViewModelTest : MainDispatcherTest() {
             vm.recent.first { it.isNotEmpty() } shouldBe listOf("naruto")
             vm.removeRecent("naruto")
             vm.recent.first { it.isEmpty() } shouldBe emptyList()
+        }
+
+    @Test
+    fun RF116_feedOpensWithWhatItHadAndAsksAgainOnlyAfterThirtyMinutes() =
+        runTest {
+            val md = Fake(SourceId("md"), latest = listOf(manga("md", "a", 300)))
+            val repo = Feed(listOf(FeedItem(1, md.id, null)))
+            val cache = MemoryCache()
+            val registry = SourceRegistry(listOf(md))
+            track(FeedViewModel(repo, registry, TestDb().mangas, cache, cache.clock)).state.first { !it.loading && !it.refreshing }
+            md.asked shouldBe 1
+            md.latest = listOf(manga("md", "b", 400))
+            cache.now += 29 * 60 * 1_000L
+            val soon =
+                track(
+                    FeedViewModel(repo, registry, TestDb().mangas, cache, cache.clock),
+                ).state.first { !it.loading && !it.refreshing }
+            soon.entries.map { it.manga.key } shouldContainExactly listOf("a")
+            soon.updatedAtEpochMs shouldBe 1_790_000_000_000
+            md.asked shouldBe 1
+            cache.now += 2 * 60 * 1_000L
+            val later = track(FeedViewModel(repo, registry, TestDb().mangas, cache, cache.clock))
+            later.state.first {
+                !it.loading &&
+                    !it.refreshing &&
+                    it.entries
+                        .firstOrNull()
+                        ?.manga
+                        ?.key == "b"
+            }
+            md.asked shouldBe 2
+        }
+
+    @Test
+    fun RF116_aFailedItemKeepsWhatItHadAndSaysSo() =
+        runTest {
+            val md = Fake(SourceId("md"), latest = listOf(manga("md", "a", 300)))
+            val repo = Feed(listOf(FeedItem(1, md.id, null)))
+            val cache = MemoryCache()
+            val vm = track(FeedViewModel(repo, SourceRegistry(listOf(md)), TestDb().mangas, cache, cache.clock))
+            vm.state.first { !it.loading && !it.refreshing && it.entries.isNotEmpty() }
+            md.fails = true
+            vm.refresh()
+            val state = vm.state.first { !it.refreshing && it.failed.isNotEmpty() }
+            state.entries.map { it.manga.key } shouldContainExactly listOf("a")
+            state.failed shouldBe mapOf("MD" to ErrorKind.SERVER)
+        }
+
+    @Test
+    fun RF115_theStarPutsTheSourceInTheFeedAndTakesItOut() =
+        runTest {
+            val repo = Feed((1L..4L).map { FeedItem(it, SourceId("s$it"), null) })
+            val favorites =
+                com.tiagohs.hqr.presentation.feed
+                    .FavoriteSources(repo)
+            favorites.toggle(SourceId("md")) shouldBe com.tiagohs.hqr.presentation.feed.FavoriteSources.Result.ADDED
+            favorites.observe().first() shouldBe setOf(SourceId("s1"), SourceId("s2"), SourceId("s3"), SourceId("s4"), SourceId("md"))
+            favorites.toggle(SourceId("hq")) shouldBe com.tiagohs.hqr.presentation.feed.FavoriteSources.Result.FEED_FULL
+            favorites.toggle(SourceId("md")) shouldBe com.tiagohs.hqr.presentation.feed.FavoriteSources.Result.REMOVED
+            favorites.observe().first().contains(SourceId("md")) shouldBe false
         }
 }

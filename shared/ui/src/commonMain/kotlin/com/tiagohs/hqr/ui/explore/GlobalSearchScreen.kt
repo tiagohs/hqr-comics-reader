@@ -1,10 +1,8 @@
 package com.tiagohs.hqr.ui.explore
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -50,6 +48,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
@@ -58,8 +57,10 @@ import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.InLibraryBadge
 import com.tiagohs.hqr.ui.components.InlineError
+import com.tiagohs.hqr.ui.components.Skeleton
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
+import com.tiagohs.hqr.ui.components.sourceMessage
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_open_browser
@@ -79,7 +80,6 @@ import com.tiagohs.hqr.ui.resources.search_recent
 import com.tiagohs.hqr.ui.resources.search_recent_remove
 import com.tiagohs.hqr.ui.resources.search_see_sources
 import com.tiagohs.hqr.ui.theme.HqrIcons
-import com.tiagohs.hqr.ui.theme.HqrShapes
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -204,7 +204,7 @@ private fun SourceGroup(
         Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 name,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
                 modifier = Modifier.weight(1f).semantics { heading() },
             )
             if (group.state is GroupState.Results && !group.isEmpty) {
@@ -215,18 +215,11 @@ private fun SourceGroup(
             // Skeletons with the final shape (UX §8); a slow source never holds the other rows.
             GroupState.Loading ->
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    repeat(SKELETONS) {
-                        Box(
-                            Modifier
-                                .width(COVER_WIDTH.dp)
-                                .aspectRatio(COVER_RATIO)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh, HqrShapes.cover),
-                        )
-                    }
+                    repeat(SKELETONS) { Skeleton(Modifier.width(COVER_WIDTH.dp).aspectRatio(COVER_RATIO)) }
                 }
             is GroupState.Error ->
                 InlineError(
-                    message = stringResource(s.kind.message()),
+                    message = s.kind.sourceMessage(name),
                     action = stringResource(Res.string.action_retry),
                     onAction = onRetry,
                     secondary = onBrowser?.let { stringResource(Res.string.action_open_browser) },

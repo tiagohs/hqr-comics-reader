@@ -55,10 +55,10 @@ class AppScreensTest {
         Thread.sleep(if (prefix == "live") 3_000 else 0)
         screenshot("$prefix-SCR-EXP-002")
         onAllNodes(hasText(title))[0].performClick()
-        waitFor(hasText("Read"), timeout)
+        waitFor(hasText("Read ch.", substring = true), timeout)
         Thread.sleep(if (prefix == "live") 2_000 else 0)
         screenshot("$prefix-SCR-OBR-001")
-        onAllNodes(hasText("Read"))[0].performClick()
+        onAllNodes(hasText("Read ch.", substring = true))[0].performClick()
         waitFor(hasContentDescription("1 of ", substring = true), timeout)
         Thread.sleep(if (prefix == "live") 4_000 else 300)
         screenshot("$prefix-SCR-RDR-001")
@@ -74,7 +74,7 @@ class AppScreensTest {
         screenshot("$prefix-SCR-RDR-001-menu")
         onAllNodes(hasContentDescription("Back"))[0].performClick()
         // Demo: page 2 of the chapter, so "Continue"; live (webtoon, not scrolled): still "Read" (RF-31).
-        waitFor(if (prefix == "demo") hasText("Continue", substring = true) else hasText("Read"), timeout)
+        waitFor(if (prefix == "demo") hasText("Continue", substring = true) else hasText("Read ch.", substring = true), timeout)
         screenshot("$prefix-SCR-OBR-001-continue")
         // Leaving the reader saves at once (RF-43); the write runs on Room's threads.
         repeat(30) {
@@ -106,8 +106,8 @@ class AppScreensTest {
             onAllNodes(hasText("MangaDex"))[0].performClick()
             waitFor(hasText("Kaiju Express"))
             onAllNodes(hasText("Kaiju Express"))[0].performClick()
-            waitFor(hasText("Read"))
-            onAllNodes(hasText("Read"))[0].performClick()
+            waitFor(hasText("Read ch.", substring = true))
+            onAllNodes(hasText("Read ch.", substring = true))[0].performClick()
             waitFor(hasContentDescription("1 of 3"))
             onNode(hasScrollAction()).performScrollToIndex(2)
             waitFor(hasText("You finished"))

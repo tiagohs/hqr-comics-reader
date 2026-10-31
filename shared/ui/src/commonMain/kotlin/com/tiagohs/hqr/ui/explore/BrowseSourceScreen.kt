@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -64,17 +65,20 @@ import com.tiagohs.hqr.domain.repository.SavedSearch
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel.Listing
 import com.tiagohs.hqr.presentation.common.ErrorKind
+import com.tiagohs.hqr.presentation.feed.FavoriteSources
 import com.tiagohs.hqr.sources.local.ImportResult
 import com.tiagohs.hqr.sources.local.ImportedFiles
 import com.tiagohs.hqr.ui.components.Cover
+import com.tiagohs.hqr.ui.components.DotsLoader
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.ErrorState
 import com.tiagohs.hqr.ui.components.InLibraryBadge
 import com.tiagohs.hqr.ui.components.InlineError
-import com.tiagohs.hqr.ui.components.LoadingState
+import com.tiagohs.hqr.ui.components.Skeleton
 import com.tiagohs.hqr.ui.components.importMessage
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sourceDisplayName
+import com.tiagohs.hqr.ui.components.sourceMessage
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_cancel
@@ -102,6 +106,7 @@ import com.tiagohs.hqr.ui.resources.feed_add
 import com.tiagohs.hqr.ui.resources.feed_add_latest
 import com.tiagohs.hqr.ui.resources.feed_added
 import com.tiagohs.hqr.ui.resources.feed_full
+import com.tiagohs.hqr.ui.resources.feed_full_favorite
 import com.tiagohs.hqr.ui.resources.files_empty_message
 import com.tiagohs.hqr.ui.resources.files_empty_title
 import com.tiagohs.hqr.ui.resources.files_import
@@ -112,12 +117,15 @@ import com.tiagohs.hqr.ui.resources.local_no_folder
 import com.tiagohs.hqr.ui.resources.local_no_folder_message
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_remove_library
+import com.tiagohs.hqr.ui.resources.manga_searching_source
 import com.tiagohs.hqr.ui.resources.saved_delete
 import com.tiagohs.hqr.ui.resources.saved_name
 import com.tiagohs.hqr.ui.resources.saved_options
 import com.tiagohs.hqr.ui.resources.saved_rename
 import com.tiagohs.hqr.ui.resources.saved_save
 import com.tiagohs.hqr.ui.resources.saved_title
+import com.tiagohs.hqr.ui.resources.source_favorite
+import com.tiagohs.hqr.ui.resources.source_unfavorite
 import com.tiagohs.hqr.ui.settings.rememberFolderPicker
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
@@ -205,6 +213,14 @@ fun BrowseSourceScreen(
             onDismiss = { showFilters = false },
         )
     }
+    val favoriteSources =
+        org.koin.compose
+            .getKoin()
+            .getOrNull<FavoriteSources>()
+    val favorites by remember(favoriteSources) {
+        favoriteSources?.observe() ?: kotlinx.coroutines.flow.flowOf(emptySet())
+    }.collectAsStateWithLifecycle(emptySet())
+    val fullMessage = stringResource(Res.string.feed_full_favorite)
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
@@ -213,6 +229,24 @@ fun BrowseSourceScreen(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(HqrIcons.Back, stringResource(Res.string.action_back)) } },
                 actions = {
                     if (!isLocal) {
+                        // RF-115: the star puts this source's latest in the feed.
+                        val name = sourceDisplayName(SourceId(sourceId), state.sourceName)
+                        val favorite = SourceId(sourceId) in favorites
+                        IconButton(onClick = {
+                            scope.launch {
+                                if (favoriteSources?.toggle(SourceId(sourceId)) ==
+                                    FavoriteSources.Result.FEED_FULL
+                                ) {
+                                    snackbar.showSnackbar(fullMessage)
+                                }
+                            }
+                        }) {
+                            Icon(
+                                if (favorite) HqrIcons.Star else HqrIcons.StarOutline,
+                                stringResource(if (favorite) Res.string.source_unfavorite else Res.string.source_favorite, name),
+                                tint = if (favorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         Box {
                             IconButton(onClick = { menu = true }) { Icon(HqrIcons.More, stringResource(Res.string.action_more)) }
                             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -305,7 +339,8 @@ fun BrowseSourceScreen(
                 )
             }
             when {
-                state.loading -> LoadingState()
+                // RF-117's soft loading: covers in their final shape and where it is looking.
+                state.loading -> SourceSkeleton(sourceDisplayName(SourceId(sourceId), state.sourceName))
                 state.error == ErrorKind.UNAVAILABLE && imported != null ->
                     EmptyState(
                         title = stringResource(Res.string.files_empty_title),
@@ -359,7 +394,7 @@ fun BrowseSourceScreen(
                 state.error != null && state.items.isEmpty() ->
                     ErrorState(
                         title = stringResource(Res.string.error_title),
-                        message = stringResource(state.error!!.message()),
+                        message = state.error!!.sourceMessage(sourceDisplayName(SourceId(sourceId), state.sourceName)),
                         action = stringResource(Res.string.action_retry),
                         onAction = viewModel::retry,
                         // RF-05: when the source has a web page.
@@ -532,3 +567,31 @@ private fun SavedSearchesRow(
         }
     }
 }
+
+@Composable
+private fun SourceSkeleton(name: String) {
+    Column(Modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(108.dp),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            userScrollEnabled = false,
+            modifier = Modifier.weight(1f),
+        ) { items(SKELETON_COVERS) { Skeleton(Modifier.fillMaxWidth().aspectRatio(2f / 3f)) } }
+        Row(
+            Modifier.fillMaxWidth().padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            DotsLoader()
+            Text(
+                stringResource(Res.string.manga_searching_source, name),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+private const val SKELETON_COVERS = 9

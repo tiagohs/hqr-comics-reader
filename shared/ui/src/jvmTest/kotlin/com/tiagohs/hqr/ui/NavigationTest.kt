@@ -19,10 +19,10 @@ class NavigationTest {
         screenTest {
             startTestKoin(onboarded = false)
             setAppContent { HqrApp(systemDark = false) }
-            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Get started")).fetchSemanticsNodes().isNotEmpty() }
+            waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Start reading")).fetchSemanticsNodes().isNotEmpty() }
             onAllNodes(hasText("Español"))[0].performClick()
             screenshot("demo-SCR-ONB-001")
-            onAllNodes(hasText("Get started"))[0].performClick()
+            onAllNodes(hasText("Start reading"))[0].performClick()
             waitUntil(timeoutMillis = 5_000) { onAllNodes(hasText("Your library is empty")).fetchSemanticsNodes().isNotEmpty() }
             val prefs =
                 org.koin.core.context.GlobalContext

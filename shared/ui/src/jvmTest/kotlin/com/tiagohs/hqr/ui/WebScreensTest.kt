@@ -97,8 +97,8 @@ class WebScreensTest {
             onAllNodes(hasText("MangaDex"))[0].performClick()
             waitFor(hasText("Kaiju Express"))
             onAllNodes(hasText("Kaiju Express"))[0].performClick()
-            waitFor(hasText("Read"))
-            onAllNodes(hasText("Read"))[0].performClick()
+            waitFor(hasText("Read ch.", substring = true))
+            onAllNodes(hasText("Read ch.", substring = true))[0].performClick()
             waitFor(hasContentDescription("1 of 22"))
             // A manga reads right to left: Space always goes forward, and so does the left arrow here.
             repeat(2) { onRoot().performKeyInput { pressKey(Key.Spacebar) } }

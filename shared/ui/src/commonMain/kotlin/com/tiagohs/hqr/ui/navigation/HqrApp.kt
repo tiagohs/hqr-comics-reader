@@ -16,6 +16,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,6 +39,9 @@ import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.ImageBytes
 import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.domain.source.SourceRegistry
+import com.tiagohs.hqr.presentation.reader.ReaderMode
+import com.tiagohs.hqr.presentation.reader.ReaderSettings
+import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.ui.components.DroppedFilesBanner
 import com.tiagohs.hqr.ui.components.OfflineBanner
 import com.tiagohs.hqr.ui.components.hqrImageLoader
@@ -74,6 +78,7 @@ import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
 import com.tiagohs.hqr.ui.theme.LocalDynamicColor
 import com.tiagohs.hqr.ui.theme.LocalPureBlack
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
@@ -140,8 +145,12 @@ fun HqrApp(systemDark: Boolean) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     if (!onboarded) {
                         // RF-81: once, before anything else.
-                        OnboardingScreen(prefs.contentLanguages.value) { languages ->
+                        val readerSettings = getKoin().getOrNull<ReaderSettingsStore>()
+                        val onboardingScope = rememberCoroutineScope()
+                        OnboardingScreen(prefs.contentLanguages.value) { languages, webtoon ->
                             prefs.setContentLanguages(languages)
+                            // RF-81: continuous scroll becomes the reader's default; page by page is already the default.
+                            if (webtoon) onboardingScope.launch { readerSettings?.saveGlobal(ReaderSettings(mode = ReaderMode.WEBTOON)) }
                             prefs.setOnboarded()
                         }
                     } else {

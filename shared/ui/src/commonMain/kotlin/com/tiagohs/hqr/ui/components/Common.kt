@@ -29,6 +29,7 @@ import com.tiagohs.hqr.ui.resources.error_parse
 import com.tiagohs.hqr.ui.resources.error_server
 import com.tiagohs.hqr.ui.resources.error_unavailable
 import com.tiagohs.hqr.ui.resources.error_unknown
+import com.tiagohs.hqr.ui.resources.source_content_error
 import com.tiagohs.hqr.ui.resources.source_local
 import com.tiagohs.hqr.ui.resources.status_cancelled
 import com.tiagohs.hqr.ui.resources.status_completed
@@ -71,6 +72,18 @@ fun PublicationStatus.label(): StringResource? =
         PublicationStatus.CANCELLED -> Res.string.status_cancelled
         PublicationStatus.HIATUS -> Res.string.status_hiatus
         PublicationStatus.UNKNOWN -> null
+    }
+
+/** RF-05: a failure that belongs to a source names it ("Erro ao carregar o conteúdo de MangaDex…"). */
+@androidx.compose.runtime.Composable
+fun ErrorKind.sourceMessage(sourceName: String): String =
+    when (this) {
+        ErrorKind.NETWORK, ErrorKind.SERVER, ErrorKind.PARSE, ErrorKind.UNKNOWN, ErrorKind.NOT_FOUND ->
+            org.jetbrains.compose.resources
+                .stringResource(Res.string.source_content_error, sourceName)
+        else ->
+            org.jetbrains.compose.resources
+                .stringResource(message())
     }
 
 fun ErrorKind.message(): StringResource =

@@ -2378,7 +2378,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Excluir depois de ler"
+            "value": "Excluir após a leitura"
           }
         }
       }
@@ -2389,19 +2389,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A chapter's files are deleted when it's marked as read."
+            "value": "The chapter is deleted from storage after you read it."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los archivos del capítulo se eliminan al marcarlo como leído."
+            "value": "El capítulo se elimina del almacenamiento después de leerlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os arquivos do capítulo são excluídos quando ele é marcado como lido."
+            "value": "O capítulo será excluído do armazenamento após a leitura."
           }
         }
       }
@@ -2803,19 +2803,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Download over Wi-Fi only"
+            "value": "Wi-Fi only"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Descargar solo con Wi-Fi"
+            "value": "Solo con wifi"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Baixar somente por Wi-Fi"
+            "value": "Somente com Wi-Fi"
           }
         }
       }
@@ -2826,19 +2826,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Downloads wait for a network that isn't charged by data."
+            "value": "Chapters download only on a Wi-Fi network."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las descargas esperan una red que no cobre por datos."
+            "value": "Los capítulos solo se descargan con una red wifi."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os downloads aguardam uma rede sem cobrança por dados."
+            "value": "Os capítulos serão baixados somente com uma rede Wi-Fi."
           }
         }
       }
@@ -3142,6 +3142,52 @@
         }
       }
     },
+    "explore_favorites": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoritas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoritas"
+          }
+        }
+      }
+    },
+    "explore_favorites_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in the feed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "entran en el feed"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "entram no feed"
+          }
+        }
+      }
+    },
     "explore_manage_sources": {
       "extractionState": "manual",
       "localizations": {
@@ -3161,6 +3207,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gerenciar fontes e servidores"
+          }
+        }
+      }
+    },
+    "explore_other_sources": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other sources"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otras fuentes"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outras fontes"
           }
         }
       }
@@ -3395,6 +3464,29 @@
         }
       }
     },
+    "feed_full_favorite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The feed already has 5 items. Remove one in Edit feed to favorite another source."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El feed ya tiene 5 elementos. Quita uno en Editar feed para marcar otra fuente como favorita."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O feed já tem 5 itens. Remova um em Editar feed para favoritar outra fonte."
+          }
+        }
+      }
+    },
     "feed_latest_of": {
       "extractionState": "manual",
       "localizations": {
@@ -3460,6 +3552,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Feed"
+          }
+        }
+      }
+    },
+    "feed_updated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From your favorites · updated %1$@ · pull to refresh"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De tus favoritas · actualizado %1$@ · desliza para actualizar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das suas favoritas · atualizado %1$@ · puxe para atualizar"
           }
         }
       }
@@ -4574,19 +4689,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed"
+            "value": "Finished"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finalizados"
+            "value": "Finalizadas"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Concluídos"
+            "value": "Finalizadas"
           }
         }
       }
@@ -4804,19 +4919,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mark as read"
+            "value": "Read"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Marcar como leídas"
+            "value": "Leído"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Marcar como lidas"
+            "value": "Lido"
           }
         }
       }
@@ -5731,6 +5846,29 @@
         }
       }
     },
+    "manga_continue_short": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue · ch. %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar · cap. %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar · cap. %1$@"
+          }
+        }
+      }
+    },
     "manga_delete_download": {
       "extractionState": "manual",
       "localizations": {
@@ -5984,6 +6122,29 @@
         }
       }
     },
+    "manga_kept_saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapters you already read or downloaded stay saved."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los capítulos que ya leíste o descargaste siguen guardados."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os capítulos que você já leu ou baixou continuam salvos."
+          }
+        }
+      }
+    },
     "manga_mark_previous": {
       "extractionState": "manual",
       "localizations": {
@@ -6214,6 +6375,52 @@
         }
       }
     },
+    "manga_read_chapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read ch. %1$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leer cap. %1$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ler cap. %1$@"
+          }
+        }
+      }
+    },
+    "manga_refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar"
+          }
+        }
+      }
+    },
     "manga_refresh_failed": {
       "extractionState": "manual",
       "localizations": {
@@ -6283,6 +6490,29 @@
         }
       }
     },
+    "manga_searching_source": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Searching %1$@…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando en %1$@…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando no %1$@…"
+          }
+        }
+      }
+    },
     "manga_select": {
       "extractionState": "manual",
       "localizations": {
@@ -6329,6 +6559,29 @@
         }
       }
     },
+    "manga_up_to_date": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're up to date!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Al día!"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em dia!"
+          }
+        }
+      }
+    },
     "migrate_action": {
       "extractionState": "manual",
       "localizations": {
@@ -6348,6 +6601,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Migrar para outra fonte"
+          }
+        }
+      }
+    },
+    "migrate_carries": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will be migrated:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se migrará:"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Será migrado:"
+          }
+        }
+      }
+    },
+    "migrate_carries_detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "categories, read chapters (by number) and history. The old work leaves the library."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "categorías, capítulos leídos (por número) e historial. La obra antigua sale de la biblioteca."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "categorias, capítulos lidos (pelo número) e histórico. A obra antiga sai da biblioteca."
           }
         }
       }
@@ -6496,19 +6795,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Title to search"
+            "value": "Search title"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Título para buscar"
+            "value": "Buscar título"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Título para buscar"
+            "value": "Buscar Título"
           }
         }
       }
@@ -6519,19 +6818,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search in"
+            "value": "Sources"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buscar en"
+            "value": "Fuentes"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buscar em"
+            "value": "Fontes"
           }
         }
       }
@@ -6743,25 +7042,140 @@
         }
       }
     },
+    "onboarding_paged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page by page"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página por página"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página por página"
+          }
+        }
+      }
+    },
+    "onboarding_paged_tag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manga and comics"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manga y cómics"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mangá e HQ"
+          }
+        }
+      }
+    },
+    "onboarding_reading_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can change the reading direction later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes cambiar la dirección de lectura después."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "É possível você trocar a direção da leitura depois."
+          }
+        }
+      }
+    },
+    "onboarding_reading_question": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How do you like to read?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cómo te gusta leer?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Como você gosta de ler?"
+          }
+        }
+      }
+    },
+    "onboarding_select_language": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select the language"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona el idioma"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione o idioma"
+          }
+        }
+      }
+    },
     "onboarding_start": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get started"
+            "value": "Start reading"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Empezar"
+            "value": "Empezar a leer"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Começar"
+            "value": "Iniciar leitura"
           }
         }
       }
@@ -6808,6 +7222,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suas HQs e mangás em um só lugar"
+          }
+        }
+      }
+    },
+    "onboarding_webtoon": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuous scroll"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desplazamiento continuo"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rolagem contínua"
+          }
+        }
+      }
+    },
+    "onboarding_webtoon_tag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webtoon"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webtoon"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Webtoon"
           }
         }
       }
@@ -9825,6 +10285,75 @@
         }
       }
     },
+    "source_content_error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load content from %1$@. Try again later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al cargar el contenido de %1$@. Inténtalo de nuevo más tarde."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erro ao carregar o conteúdo de %1$@. Tente novamente mais tarde."
+          }
+        }
+      }
+    },
+    "source_favorite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add %1$@ to favorites"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir %1$@ a favoritas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoritar %1$@"
+          }
+        }
+      }
+    },
+    "source_favorited": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorite: its latest works are in the feed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorita: sus novedades entran en el feed"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favoritada: os recentes dela entram no feed"
+          }
+        }
+      }
+    },
     "source_local": {
       "extractionState": "manual",
       "localizations": {
@@ -10101,6 +10630,29 @@
         }
       }
     },
+    "source_unfavorite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %1$@ from favorites"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar %1$@ de favoritas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remover %1$@ das favoritas"
+          }
+        }
+      }
+    },
     "sources_add_server": {
       "extractionState": "manual",
       "localizations": {
@@ -10320,13 +10872,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelado"
+            "value": "Cancelada"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelado"
+            "value": "Cancelada"
           }
         }
       }
@@ -10337,19 +10889,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed"
+            "value": "Finished"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finalizado"
+            "value": "Finalizada"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Concluído"
+            "value": "Finalizada"
           }
         }
       }
@@ -10396,6 +10948,282 @@
           "stringUnit": {
             "state": "translated",
             "value": "Em lançamento"
+          }
+        }
+      }
+    },
+    "storage_cache": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image cache"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caché de imágenes"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cache de imagens"
+          }
+        }
+      }
+    },
+    "storage_cache_note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clearing the cache doesn't delete downloaded chapters."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar la caché no elimina los capítulos descargados."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar o cache não apaga os capítulos baixados."
+          }
+        }
+      }
+    },
+    "storage_clear_cache": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear cache"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar caché"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar cache"
+          }
+        }
+      }
+    },
+    "storage_downloads": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloaded chapters · %1$lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulos descargados · %1$lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capítulos baixados · %1$lld"
+          }
+        }
+      }
+    },
+    "storage_other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other apps"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otras apps"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outros apps"
+          }
+        }
+      }
+    },
+    "storage_see_downloads": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See downloads"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver descargas"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver baixados"
+          }
+        }
+      }
+    },
+    "storage_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Almacenamiento"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Armazenamento"
+          }
+        }
+      }
+    },
+    "storage_used": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "used by HQR · %1$@ free"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "usados por HQR · %1$@ libres"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "usados pelo HQR · %1$@ livres"
+          }
+        }
+      }
+    },
+    "time_days_ago": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld days ago"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hace %1$lld días"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "há %1$lld dias"
+          }
+        }
+      }
+    },
+    "time_hours_ago": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld h ago"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hace %1$lld h"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "há %1$lld h"
+          }
+        }
+      }
+    },
+    "time_just_now": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "just now"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ahora"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "agora"
+          }
+        }
+      }
+    },
+    "time_minutes_ago": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld min ago"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hace %1$lld min"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "há %1$lld min"
           }
         }
       }

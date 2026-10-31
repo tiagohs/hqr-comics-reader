@@ -52,16 +52,16 @@ flowchart LR
 ### UC-002 Explorar fonte e feed
 - **Ator:** Usuário · **Secundários:** MangaDex, HQ Now
 - **Fluxo principal:** 1. Usuário abre Explorar e escolhe uma fonte. 2. O sistema mostra Populares e Recentes, com carregamento contínuo. 3. Usuário abre uma obra (UC-003).
-- **Alternativos:** 1a. Usuário abre o Feed: o sistema consulta até 5 origens e mostra as obras numa lista só, por data. 1b. Usuário monta o feed escolhendo recentes de fontes e buscas salvas.
+- **Alternativos:** 1a. Usuário abre o Feed: o sistema mostra o que guardou de cada origem, com a idade, e pede de novo as de mais de 30 minutos; as obras ficam numa lista só, por data. 1b. Usuário monta o feed escolhendo recentes de fontes e buscas salvas. 1c. Usuário favorita uma fonte pela estrela: os recentes dela entram no feed e ela sobe para "Favoritas".
 - **Exceções:** 2a. Fonte fora do ar: erro com "Tentar de novo" e "Abrir no navegador".
-- **Rastreia:** RF-01, RF-05, RF-12, RF-21, RF-24, RF-25, RF-26, RF-86.
+- **Rastreia:** RF-01, RF-05, RF-12, RF-21, RF-24, RF-25, RF-26, RF-86, RF-115, RF-116.
 
 ### UC-003 Ver obra e capítulos
 - **Ator:** Usuário · **Secundário:** fonte da obra
-- **Fluxo principal:** 1. O sistema mostra na hora o que já tem (biblioteca ou resultado) e pede detalhes e capítulos à fonte. 2. Mostra capa, dados, sinopse e capítulos com grupo, data, estado e download. 3. O botão principal diz "Ler", "Continuar cap. N" ou "Ler de novo". 4. Usuário lê (UC-004), põe na biblioteca (UC-005), baixa (UC-007) ou marca capítulos.
+- **Fluxo principal:** 1. O sistema mostra na hora o que já tem (biblioteca ou resultado) e pede detalhes e capítulos à fonte ao mesmo tempo; obra atualizada há menos de 6 horas não é pedida. 2. Mostra capa, tags, sinopse e, quando chegam, os capítulos com grupo, data, estado e download; até lá, esqueletos e "Buscando no <fonte>…". 3. O botão principal diz "Ler cap. N", "Continuar · cap. N" ou "Ler de novo". 4. Usuário lê (UC-004), põe na biblioteca (UC-005), baixa (UC-007) ou marca capítulos.
 - **Alternativos:** 2a. Filtros e ordem dos capítulos; esconder grupos. 2b. Capítulo externo do MangaDex abre no navegador. 4a. Puxar para atualizar.
-- **Exceções:** 1a. Fonte falha: mostra o que já tinha, com aviso. 1b. Obra de fonte que não existe neste sabor: "Fonte indisponível", com migração (UC-010).
-- **Rastreia:** RF-07, RF-11, RF-29 a RF-35, RF-73, RNF-17, RF-90, RF-92.
+- **Exceções:** 1a. Fonte falha: mostra o que já tinha; a falha da lista fica na lista, com "Tentar novamente" e "Abrir no navegador". 1b. Obra de fonte que não existe neste sabor: "Fonte indisponível", com migração (UC-010).
+- **Rastreia:** RF-07, RF-11, RF-29 a RF-35, RF-73, RNF-17, RF-90, RF-92, RF-117.
 
 ### UC-004 Ler capítulo
 - **Ator:** Usuário · **Secundários:** fonte da obra, servidor de imagens

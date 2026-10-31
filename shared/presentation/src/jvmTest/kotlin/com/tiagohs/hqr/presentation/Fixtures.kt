@@ -78,13 +78,23 @@ class FakeSource(
         return page("s:$query:", page)
     }
 
+    /** While set, the chapter list waits for it: a slow chapter list (RF-117). */
+    var chapterGate: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+
+    /** Only the chapter list fails (RF-117). */
+    var chaptersFail: SourceException.Kind? = null
+
     override suspend fun details(manga: SourceManga): SourceManga {
         fail?.let { throw SourceException("falhou", it) }
+        requested += "d:${manga.key}"
         return manga.copy(description = "Sinopse de ${manga.title}", authors = listOf("Autora"), coverUrl = detailsCover ?: manga.coverUrl)
     }
 
     override suspend fun chapters(manga: SourceManga): List<SourceChapter> {
+        chapterGate?.await()
         fail?.let { throw SourceException("falhou", it) }
+        chaptersFail?.let { throw SourceException("falhou", it) }
+        requested += "c:${manga.key}"
         return chapterList
     }
 
@@ -99,3 +109,31 @@ suspend fun waitFor(condition: suspend () -> Boolean) =
     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
         kotlinx.coroutines.withTimeout(5_000) { while (!condition()) kotlinx.coroutines.delay(20) }
     }
+
+/** A [com.tiagohs.hqr.domain.repository.CacheStore] in memory with a clock the test moves. */
+class MemoryCache(
+    var now: Long = 1_790_000_000_000,
+) : com.tiagohs.hqr.domain.repository.CacheStore {
+    private val map = mutableMapOf<String, com.tiagohs.hqr.domain.repository.CachedText>()
+
+    override fun read(key: String) = map[key]
+
+    override fun write(
+        key: String,
+        text: String,
+    ) {
+        map[key] =
+            com.tiagohs.hqr.domain.repository
+                .CachedText(text, now)
+    }
+
+    override fun remove(key: String) {
+        map.remove(key)
+    }
+
+    val clock: kotlin.time.Clock
+        get() =
+            object : kotlin.time.Clock {
+                override fun now() = kotlin.time.Instant.fromEpochMilliseconds(this@MemoryCache.now)
+            }
+}

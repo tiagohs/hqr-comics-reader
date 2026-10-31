@@ -51,8 +51,8 @@ class ReaderScreensTest {
             onAllNodes(hasText("MangaDex"))[0].performClick()
             waitFor(hasText("Kaiju Express"))
             onAllNodes(hasText("Kaiju Express"))[0].performClick()
-            waitFor(hasText("Read"))
-            onAllNodes(hasText("Read"))[0].performClick()
+            waitFor(hasText("Read ch.", substring = true))
+            onAllNodes(hasText("Read ch.", substring = true))[0].performClick()
             waitFor(hasContentDescription("1 of 22"))
             onRoot().performKeyInput { pressKey(Key.Spacebar) }
             waitFor(hasContentDescription("3 of 22"))

@@ -47,8 +47,9 @@ class CoverCutShape(
 val BalloonShape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomEnd = 10.dp, bottomStart = 2.dp)
 
 object HqrShapes {
-    val cover = CoverCutShape()
-    val coverSmall = CoverCutShape(radius = 8.dp, cut = 10.dp)
+    // ADR-026: covers are square comic panels with an ink frame (Cover draws it).
+    val cover = RoundedCornerShape(2.dp)
+    val coverSmall = RoundedCornerShape(2.dp)
     val material =
         Shapes(
             extraSmall = RoundedCornerShape(6.dp),

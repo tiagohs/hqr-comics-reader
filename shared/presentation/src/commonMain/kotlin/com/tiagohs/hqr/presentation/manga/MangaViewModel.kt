@@ -8,6 +8,7 @@ import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadAction
 import com.tiagohs.hqr.domain.model.ReadingRules
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.repository.CacheStore
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
 import com.tiagohs.hqr.domain.repository.Connectivity
@@ -21,6 +22,7 @@ import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.common.ErrorKind
 import com.tiagohs.hqr.presentation.common.attempt
 import com.tiagohs.hqr.presentation.common.toErrorKind
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +32,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
 
 /** The work screen (SCR-OBR-001): details, chapters, the main button and the chapter actions (RF-29 to RF-33). */
 @Suppress("TooManyFunctions") // One screen, many chapter actions: read, select, download, categories.
@@ -42,6 +45,8 @@ class MangaViewModel(
     private val categories: CategoryRepository? = null,
     private val downloads: Downloads? = null,
     private val connectivity: Connectivity = Connectivity.Always,
+    private val cache: CacheStore = CacheStore.None,
+    private val clock: Clock = Clock.System,
 ) : ViewModel() {
     enum class Order { NEWEST_FIRST, OLDEST_FIRST }
 
@@ -53,6 +58,10 @@ class MangaViewModel(
         val action: ReadAction = ReadAction.Nothing,
         val refreshing: Boolean = true,
         val error: ErrorKind? = null,
+        /** RF-117: the chapter list still on its way; the rest of the screen is already usable. */
+        val chaptersLoading: Boolean = true,
+        /** RF-117: the chapter list failed; details and what was saved still show. */
+        val chaptersError: ErrorKind? = null,
         val order: Order = Order.NEWEST_FIRST,
         val filter: ChapterFilter = ChapterFilter.ALL,
         val totalChapters: Int = 0,
@@ -68,6 +77,8 @@ class MangaViewModel(
 
     private val refreshing = MutableStateFlow(true)
     private val error = MutableStateFlow<ErrorKind?>(null)
+    private val chaptersLoading = MutableStateFlow(true)
+    private val chaptersError = MutableStateFlow<ErrorKind?>(null)
     private val order = MutableStateFlow(Order.NEWEST_FIRST)
     private val filter = MutableStateFlow(ChapterFilter.ALL)
     private val group = MutableStateFlow<String?>(null)
@@ -80,9 +91,9 @@ class MangaViewModel(
             mangas.observe(mangaId),
             chapters.observe(mangaId),
             combine(refreshing, error, previousOpen, ::Triple),
-            order,
+            combine(chaptersLoading, chaptersError, order, ::Triple),
             combine(filter, group, ::Pair),
-        ) { manga, list, (busy, err, opened), ord, (fil, grp) ->
+        ) { manga, list, (busy, err, opened), (chLoading, chError, ord), (fil, grp) ->
             val visible =
                 list
                     .filter {
@@ -99,6 +110,9 @@ class MangaViewModel(
                 action = ReadingRules.readAction(list),
                 refreshing = busy,
                 error = err,
+                // Saved chapters show at once; the skeleton only covers an empty list (RF-117).
+                chaptersLoading = chLoading && list.isEmpty(),
+                chaptersError = chError,
                 order = ord,
                 filter = fil,
                 totalChapters = list.map { it.number }.distinct().size,
@@ -109,7 +123,7 @@ class MangaViewModel(
         }.stateIn(viewModelScope, SharingStarted.Eagerly, State())
 
     init {
-        refresh(markOpened = true)
+        refresh(markOpened = true, force = false)
     }
 
     /** RF-98, ADR-021: the seed is computed once per cover and saved with the work. */
@@ -123,37 +137,72 @@ class MangaViewModel(
     }
 
     /** RF-33: rereads details and chapters; on failure keeps what was there and warns. */
-    fun refresh() = refresh(markOpened = false)
+    fun refresh() = refresh(markOpened = false, force = true)
 
-    /** The opening is recorded after the first refresh, so the chapters it brings are never "new" next time. */
-    private fun refresh(markOpened: Boolean) {
+    /**
+     * RF-117: details and chapters are asked at the same time, each one showing as it arrives. Opening a work refreshed
+     * less than [FRESH_MS] ago asks nothing; pulling always asks. The opening is recorded after the first refresh, so
+     * the chapters it brings are never "new" next time.
+     */
+    private fun refresh(
+        markOpened: Boolean,
+        force: Boolean,
+    ) {
         viewModelScope.launch {
             refreshing.value = true
             error.value = null
+            chaptersError.value = null
             val manga = mangas.get(mangaId)
             if (manga == null) {
                 error.value = ErrorKind.NOT_FOUND
-                refreshing.value = false
+                finish(markOpened)
                 return@launch
             }
+            val saved = chapters.list(mangaId).isNotEmpty()
+            val fresh = saved && cache.read(freshKey)?.let { clock.now().toEpochMilliseconds() - it.savedAtEpochMs < FRESH_MS } == true
             // RF-87: offline, pulling to refresh changes nothing (files on the device still refresh).
             if (!connectivity.online.value && manga.sourceId != SourceId.LOCAL) {
-                error.value = ErrorKind.OFFLINE
-                refreshing.value = false
+                if (force || !saved) error.value = ErrorKind.OFFLINE
+                finish(markOpened)
                 return@launch
             }
-            attempt {
-                val source = registry.awaitRequire(manga.sourceId)
-                val details = source.details(manga.source)
-                mangas.upsert(details)
-                chapters.sync(mangaId, source.chapters(details))
-            }.onFailure { error.value = it.toErrorKind() }
-            if (markOpened) previousOpen.value = mangas.markOpened(mangaId)
-            refreshing.value = false
-            // After the refresh: a cover changed by it is the one that gives the color.
-            if (markOpened) colorFromCover()
+            if (fresh && !force) {
+                finish(markOpened)
+                return@launch
+            }
+            val source = attempt { registry.awaitRequire(manga.sourceId) }
+            val found = source.getOrNull()
+            if (found == null) {
+                val kind = source.exceptionOrNull()?.toErrorKind() ?: ErrorKind.UNKNOWN
+                error.value = kind
+                chaptersError.value = kind
+                finish(markOpened)
+                return@launch
+            }
+            coroutineScope {
+                launch {
+                    attempt { mangas.upsert(found.details(manga.source)) }.onFailure { error.value = it.toErrorKind() }
+                }
+                launch {
+                    attempt { chapters.sync(mangaId, found.chapters(manga.source)) }
+                        .onSuccess { cache.write(freshKey, "") }
+                        .onFailure { chaptersError.value = it.toErrorKind() }
+                    chaptersLoading.value = false
+                }
+            }
+            finish(markOpened)
         }
     }
+
+    private suspend fun finish(markOpened: Boolean) {
+        chaptersLoading.value = false
+        if (markOpened) previousOpen.value = mangas.markOpened(mangaId)
+        refreshing.value = false
+        // After the refresh: a cover changed by it is the one that gives the color.
+        if (markOpened) colorFromCover()
+    }
+
+    private val freshKey = "manga.$mangaId.refreshed"
 
     fun setCategories(ids: Set<Long>) {
         viewModelScope.launch { categories?.setCategories(mangaId, ids) }
@@ -268,5 +317,8 @@ class MangaViewModel(
 
     private companion object {
         const val STOP_MS = 5_000L
+
+        /** RF-117: a work refreshed less than 6 hours ago opens from what was saved. */
+        const val FRESH_MS = 6 * 60 * 60 * 1_000L
     }
 }

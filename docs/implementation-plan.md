@@ -15,7 +15,7 @@ O que ordena o trabalho é **tirar risco cedo**: o motor do leitor (R-02), o Man
 | 1.1 Android | FEAT-025 a FEAT-041 | Should, incluindo as fontes adicionais |
 | Web | FEAT-050 a FEAT-054 | Requisitos da §3.1.19, depois do 1.0 |
 | Depois | FEAT-042 a FEAT-049 | Could |
-| iOS | FEAT-060 a FEAT-064 | Começou com o OK do Tiago às telas do Android (C-09); mesmo núcleo, telas em SwiftUI |
+| iOS | FEAT-060 a FEAT-064, FEAT-068 | Começou com o OK do Tiago às telas do Android (C-09); mesmo núcleo, telas em SwiftUI |
 
 Dev solo (C-10), sem custo (C-01, C-08). As fases além da próxima são uma ordem viva, não um compromisso de datas.
 
@@ -172,6 +172,15 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-062 | Biblioteca, explorar, fonte, busca global, obra com a cor da capa | RF-21 a RF-35, RF-52 a RF-58, RF-98 | UC-001 a UC-005 | SCR-LIB-001 a 003, SCR-EXP-001 e 002, SCR-SRCH-001, SCR-OBR-001 | `ios/Features` | — |
 | FEAT-063 | Leitor: páginas com ImageIO, direita para esquerda, duas páginas no iPad, vertical, webtoon, fim do capítulo | RF-36 a RF-42 | UC-004 | SCR-RDR-001 a 003 | `ios/Features/Reader` | progresso |
 | FEAT-064 | Histórico, downloads, backup, fontes, servidores, migração e verificação do Cloudflare | RF-59 a RF-75, RF-106, RNF-28 | UC-006 a UC-011 | SCR-HIS-001, SCR-DL-001, SCR-SET-002 e 003, SCR-SRC-001, SCR-SRV-001 e 002, SCR-OBR-002 | `ios/Features` | — |
+
+### E17 · Linguagem de HQ, obra por partes e respostas guardadas (ADR-026)
+
+| ID | Fatia | RF | UC | Telas | Componentes | Dados |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| FEAT-065 | Papel e tinta, Bangers e título vertical, componentes de HQ (selo, explosão, retícula, linhas de velocidade, esqueleto suave) com controles do M3 | RF-29, RF-31, RF-81, RF-98 | todos | todas | `ui` (theme, components) | fonte recortada |
+| FEAT-066 | Obra abre na hora: detalhes e capítulos em paralelo, lista com esqueleto e erro próprio, validade de 6 horas | RF-117, RF-33 | UC-003 | SCR-OBR-001 | `presentation/manga`, `data/cache` | `CacheStore` |
+| FEAT-067 | Fontes favoritas e feed guardado por 30 minutos | RF-115, RF-116, RF-25 | UC-002 | SCR-EXP-001, SCR-EXP-002 | `presentation/feed`, `ui/explore` | `feed`, `CacheStore` |
+| FEAT-068 | iOS na linguagem de HQ | RF-115 a RF-117 | todos | todas | `ios/` | — |
 
 ## 4. Ordem de construção
 

@@ -52,7 +52,7 @@ class MangaScreensTest {
         onAllNodes(hasText("MangaDex"))[0].performClick()
         waitFor(hasText("Kaiju Express"))
         onAllNodes(hasText("Kaiju Express"))[0].performClick()
-        waitFor(hasText("Read"))
+        waitFor(hasText("Read ch.", substring = true))
     }
 
     @Test
@@ -60,10 +60,13 @@ class MangaScreensTest {
         screenTest {
             startTestKoin { listOf(DemoSource(externalChapter = true)) }
             openWork()
+            // The chapters start below the work's panel (ADR-026).
+            waitFor(hasText("Read ch.", substring = true))
+            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("External"))
             waitFor(hasText("External"))
             screenshot("demo-SCR-OBR-001-external")
             onAllNodes(hasText("Capítulo 16"))[0].performClick()
-            waitUntil(timeoutMillis = 5_000) { opened.isNotEmpty() }
+            waitUntil(timeoutMillis = 10_000) { opened.isNotEmpty() }
             assertEquals(listOf("https://publisher.example/c16"), opened)
         }
 
@@ -72,8 +75,10 @@ class MangaScreensTest {
         screenTest {
             startTestKoin()
             openWork()
-            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Open site", substring = true))
-            onAllNodes(hasText("Open site", substring = true))[0].performClick()
+            // RF-34: in the work's menu.
+            onAllNodes(hasContentDescription("More options"))[0].performClick()
+            waitFor(hasText("Open in browser"))
+            onAllNodes(hasText("Open in browser"))[0].performClick()
             waitUntil(timeoutMillis = 5_000) { opened.isNotEmpty() }
             assertEquals(listOf("https://example.org/m1"), opened)
         }
@@ -89,10 +94,12 @@ class MangaScreensTest {
             onAllNodes(hasText("MangaDex"))[0].performClick()
             waitFor(hasText("Kaiju Express"))
             onAllNodes(hasText("Kaiju Express"))[0].performClick()
-            waitFor(hasContentDescription("Migrate to another source"))
-            onAllNodes(hasContentDescription("Migrate to another source"))[0].performClick()
+            waitFor(hasContentDescription("More options"))
+            onAllNodes(hasContentDescription("More options"))[0].performClick()
+            waitFor(hasText("Migrate to another source"))
+            onAllNodes(hasText("Migrate to another source"))[0].performClick()
             waitFor(hasText("Migrate Kaiju Express"))
-            waitFor(hasText("Search in"))
+            waitFor(hasText("Sources"))
             waitUntil(timeoutMillis = 10_000) { onAllNodes(hasText("Kaiju Express")).fetchSemanticsNodes().isNotEmpty() }
             screenshot("demo-SCR-OBR-002")
             // The candidate, not the search field that holds the same title.
@@ -100,7 +107,7 @@ class MangaScreensTest {
             waitFor(hasText("Delete the old downloads"))
             onAllNodes(hasText("Migrate"))[0].performClick()
             // The new work opens in place of the old one.
-            waitFor(hasText("Read"))
+            waitFor(hasText("Read ch.", substring = true))
             onAllNodes(hasText("Migrate Kaiju Express")).fetchSemanticsNodes().isEmpty() shouldBe true
         }
 }

@@ -5,8 +5,8 @@ import UIKit
 /// The colors of docs/tokens.json: each one follows the light or dark appearance.
 enum Palette {
     static let background = Color(UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 0.0784, green: 0.0745, blue: 0.0941, alpha: 1)
-        : UIColor(red: 0.9882, green: 0.9725, blue: 1.0000, alpha: 1) })
+        ? UIColor(red: 0.0863, green: 0.0863, blue: 0.1020, alpha: 1)
+        : UIColor(red: 0.9647, green: 0.9451, blue: 0.9059, alpha: 1) })
     static let error = Color(UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 1.0000, green: 0.7059, blue: 0.6706, alpha: 1)
         : UIColor(red: 0.7294, green: 0.1020, blue: 0.1020, alpha: 1) })
@@ -26,17 +26,17 @@ enum Palette {
         ? UIColor(red: 0.8980, green: 0.8706, blue: 1.0000, alpha: 1)
         : UIColor(red: 0.0941, green: 0.0000, blue: 0.3922, alpha: 1) })
     static let onSurface = Color(UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 0.8980, green: 0.8824, blue: 0.9137, alpha: 1)
-        : UIColor(red: 0.1098, green: 0.1059, blue: 0.1255, alpha: 1) })
+        ? UIColor(red: 0.9647, green: 0.9451, blue: 0.9059, alpha: 1)
+        : UIColor(red: 0.0863, green: 0.0863, blue: 0.1020, alpha: 1) })
     static let onSurfaceVariant = Color(UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 0.7882, green: 0.7686, blue: 0.8275, alpha: 1)
-        : UIColor(red: 0.2784, green: 0.2706, blue: 0.3176, alpha: 1) })
+        ? UIColor(red: 0.7686, green: 0.7529, blue: 0.7843, alpha: 1)
+        : UIColor(red: 0.3333, green: 0.3294, blue: 0.3529, alpha: 1) })
     static let outline = Color(UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 0.5725, green: 0.5608, blue: 0.6118, alpha: 1)
-        : UIColor(red: 0.4706, green: 0.4588, blue: 0.5098, alpha: 1) })
+        ? UIColor(red: 0.5608, green: 0.5490, blue: 0.5804, alpha: 1)
+        : UIColor(red: 0.4667, green: 0.4588, blue: 0.4863, alpha: 1) })
     static let outlineVariant = Color(UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 0.2784, green: 0.2706, blue: 0.3176, alpha: 1)
-        : UIColor(red: 0.7882, green: 0.7686, blue: 0.8275, alpha: 1) })
+        ? UIColor(red: 0.2431, green: 0.2392, blue: 0.2627, alpha: 1)
+        : UIColor(red: 0.8118, green: 0.7843, blue: 0.7333, alpha: 1) })
     static let primary = Color(UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 0.7804, green: 0.7490, blue: 1.0000, alpha: 1)
         : UIColor(red: 0.3647, green: 0.3216, blue: 0.6627, alpha: 1) })
@@ -47,14 +47,14 @@ enum Palette {
         ? UIColor(red: 0.0000, green: 0.0000, blue: 0.0000, alpha: 1)
         : UIColor(red: 0.0000, green: 0.0000, blue: 0.0000, alpha: 1) })
     static let surface = Color(UIColor { $0.userInterfaceStyle == .dark
-        ? UIColor(red: 0.1098, green: 0.1059, blue: 0.1255, alpha: 1)
-        : UIColor(red: 0.9686, green: 0.9490, blue: 0.9804, alpha: 1) })
+        ? UIColor(red: 0.1333, green: 0.1294, blue: 0.1529, alpha: 1)
+        : UIColor(red: 1.0000, green: 0.9922, blue: 0.9686, alpha: 1) })
     static let surfaceHigh = Color(UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 0.1647, green: 0.1608, blue: 0.1843, alpha: 1)
-        : UIColor(red: 0.9451, green: 0.9255, blue: 0.9569, alpha: 1) })
+        : UIColor(red: 0.9255, green: 0.9020, blue: 0.8549, alpha: 1) })
     static let surfaceHighest = Color(UIColor { $0.userInterfaceStyle == .dark
         ? UIColor(red: 0.2078, green: 0.2039, blue: 0.2275, alpha: 1)
-        : UIColor(red: 0.8980, green: 0.8824, blue: 0.9137, alpha: 1) })
+        : UIColor(red: 0.8980, green: 0.8745, blue: 0.8235, alpha: 1) })
     static let blackModeBackground = Color(UIColor(red: 0.0000, green: 0.0000, blue: 0.0000, alpha: 1))
     static let blackModeSurface = Color(UIColor(red: 0.0431, green: 0.0431, blue: 0.0471, alpha: 1))
     static let readerBackgroundBlack = Color(UIColor(red: 0.0000, green: 0.0000, blue: 0.0000, alpha: 1))

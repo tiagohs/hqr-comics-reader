@@ -75,6 +75,9 @@ object HqrIcons {
     val Play = fill("play", "M7 4.5v15l12-7.5z")
     val Bookmark = fill("bookmark", "M6 3h12v18l-6-4-6 4z")
     val BookmarkOutline = stroke("bookmarkOutline", "M6 3h12v18l-6-4-6 4z")
+    val Star = fill("star", "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z")
+    val StarOutline = stroke("starOutline", "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z")
+    val Person = stroke("person", "M12 4a4 4 0 1 0 0 8a4 4 0 1 0 0-8z", "M4.5 20c1-4 4-6 7.5-6s6.5 2 7.5 6")
     val More =
         fill(
             "more",

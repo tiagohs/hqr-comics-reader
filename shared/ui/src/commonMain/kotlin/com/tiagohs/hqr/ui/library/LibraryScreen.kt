@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.ui.library
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,7 +57,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -65,6 +68,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,6 +81,7 @@ import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.library.LibraryDisplay
 import com.tiagohs.hqr.presentation.library.LibraryOptions
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
+import com.tiagohs.hqr.ui.components.ComicTitle
 import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.HalftoneProgress
@@ -128,6 +133,7 @@ import com.tiagohs.hqr.ui.resources.onomatopoeia_empty
 import com.tiagohs.hqr.ui.resources.source_unavailable
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrShapes
+import com.tiagohs.hqr.ui.theme.bangers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
@@ -395,7 +401,7 @@ private fun LibraryItems(
         ).then(
             if (id in picked) {
                 Modifier
-                    .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
+                    .border(4.dp, MaterialTheme.colorScheme.primary)
                     .padding(4.dp)
             } else {
                 Modifier
@@ -466,19 +472,23 @@ private fun LibraryItems(
                     ) {
                         Cover(item.manga.source) {
                             Badges(item, options)
-                            // The title sits on the cover, over a shade that keeps it readable.
+                            // ADR-026: the title in a yellow caption box, like a comic panel's narration.
                             Text(
                                 item.manga.title,
-                                style = MaterialTheme.typography.labelLarge,
-                                color = Color.White,
+                                fontFamily = bangers(),
+                                fontSize = 14.sp,
+                                lineHeight = 14.sp,
+                                letterSpacing = 0.5.sp,
+                                color = CAPTION_INK,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier =
                                     Modifier
                                         .align(Alignment.BottomStart)
-                                        .fillMaxWidth()
-                                        .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = SHADE))))
-                                        .padding(start = 8.dp, end = 12.dp, top = 16.dp, bottom = 10.dp),
+                                        .fillMaxWidth(CAPTION_WIDTH)
+                                        .background(CAPTION)
+                                        .border(2.dp, CAPTION_INK)
+                                        .padding(start = 6.dp, end = 6.dp, top = 4.dp, bottom = 2.dp),
                             )
                         }
                     }
@@ -555,8 +565,11 @@ private fun BoxScope.Badges(
 private val COMPACT_CELL = 96.dp
 private val COMFORTABLE_CELL = 108.dp
 private val LIST_COVER = 56.dp
-private const val SHADE = 0.7f
+private const val CAPTION_WIDTH = 0.88f
+private val CAPTION = Color(0xFFFFF1A8)
+private val CAPTION_INK = Color(0xFF16161A)
 
+/** "Continuar lendo" as a speech balloon: an ink-framed panel with a shadow and the tail below (ADR-026). */
 @Composable
 private fun ContinueCard(
     entry: HistoryEntry,
@@ -564,30 +577,58 @@ private fun ContinueCard(
 ) {
     val chapter = entry.chapter
     val total = chapter.pageCount ?: 0
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(20.dp))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.width(68.dp)) { Cover(entry.manga.source, shape = HqrShapes.coverSmall) }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                stringResource(Res.string.library_continue_reading),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(entry.manga.title, style = MaterialTheme.typography.titleLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(
-                stringResource(Res.string.manga_continue_chapter, chapter.number.chapterLabel(), chapter.lastPage + 1),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (total > 0) HalftoneProgress((chapter.lastPage + 1f) / total)
+    val ink = MaterialTheme.colorScheme.onSurface
+    Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .drawBehind { drawRect(ink, topLeft = Offset(4.dp.toPx(), 4.dp.toPx()), size = size) }
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                .border(3.dp, ink)
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.width(60.dp)) { Cover(entry.manga.source, shape = HqrShapes.coverSmall) }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    stringResource(Res.string.library_continue_reading),
+                    fontFamily = bangers(),
+                    fontSize = 15.sp,
+                    letterSpacing = 1.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                ComicTitle(entry.manga.title, style = MaterialTheme.typography.headlineSmall, maxLines = 2)
+                Text(
+                    stringResource(Res.string.manga_continue_chapter, chapter.number.chapterLabel(), chapter.lastPage + 1),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (total > 0) HalftoneProgress((chapter.lastPage + 1f) / total)
+            }
         }
-        Button(onClick = { onContinue(entry.manga.id, chapter.id, RESUME) }) { Text(stringResource(Res.string.action_continue)) }
+        Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 8.dp), verticalAlignment = Alignment.Top) {
+            // The balloon's tail.
+            Box(
+                Modifier
+                    .size(18.dp)
+                    .drawBehind {
+                        val path =
+                            androidx.compose.ui.graphics.Path().apply {
+                                moveTo(0f, 0f)
+                                lineTo(size.width, 0f)
+                                lineTo(0f, size.height)
+                                close()
+                            }
+                        drawPath(path, ink)
+                    },
+            )
+            Box(Modifier.weight(1f))
+            Button(
+                onClick = { onContinue(entry.manga.id, chapter.id, RESUME) },
+                modifier = Modifier.offset(y = (-20).dp),
+            ) { Text(stringResource(Res.string.action_continue)) }
+        }
     }
 }
 

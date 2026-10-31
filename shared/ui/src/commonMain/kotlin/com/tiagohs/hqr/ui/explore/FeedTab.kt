@@ -4,8 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,16 +44,22 @@ import com.tiagohs.hqr.domain.source.CatalogSource
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.feed.FeedViewModel
 import com.tiagohs.hqr.ui.components.Cover
+import com.tiagohs.hqr.ui.components.DotsLoader
 import com.tiagohs.hqr.ui.components.EmptyState
-import com.tiagohs.hqr.ui.components.LoadingState
-import com.tiagohs.hqr.ui.components.message
+import com.tiagohs.hqr.ui.components.InlineError
+import com.tiagohs.hqr.ui.components.Skeleton
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.feed_edit
 import com.tiagohs.hqr.ui.resources.feed_empty_message
 import com.tiagohs.hqr.ui.resources.feed_empty_title
-import com.tiagohs.hqr.ui.resources.feed_failed
 import com.tiagohs.hqr.ui.resources.feed_latest_of
 import com.tiagohs.hqr.ui.resources.feed_remove
+import com.tiagohs.hqr.ui.resources.feed_updated
+import com.tiagohs.hqr.ui.resources.source_content_error
+import com.tiagohs.hqr.ui.resources.time_days_ago
+import com.tiagohs.hqr.ui.resources.time_hours_ago
+import com.tiagohs.hqr.ui.resources.time_just_now
+import com.tiagohs.hqr.ui.resources.time_minutes_ago
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -68,12 +78,12 @@ fun FeedTab(
     var editing by rememberSaveable { mutableStateOf(false) }
     if (editing) FeedEditor(state.items, viewModel, onDismiss = { editing = false })
     PullToRefreshBox(
-        isRefreshing = state.loading && state.entries.isNotEmpty(),
+        isRefreshing = state.refreshing && state.entries.isNotEmpty(),
         onRefresh = viewModel::refresh,
         modifier = Modifier.fillMaxSize(),
     ) {
         when {
-            state.loading && state.entries.isEmpty() && state.items.isNotEmpty() -> LoadingState()
+            state.loading && state.entries.isEmpty() && state.items.isNotEmpty() -> FeedSkeleton()
             state.items.isEmpty() && !state.loading ->
                 EmptyState(
                     stringResource(Res.string.feed_empty_title),
@@ -89,15 +99,21 @@ fun FeedTab(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                // RF-116: how old what is on screen is, and that it is being asked again.
+                                if (state.refreshing) DotsLoader()
+                                Text(
+                                    stringResource(Res.string.feed_updated, ago(state.updatedAtEpochMs)),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
                             OutlinedButton(onClick = { editing = true }) { Text(stringResource(Res.string.feed_edit)) }
                             // RF-05: one item that failed doesn't hide the others.
-                            state.failed.forEach { (origin, kind) ->
-                                Text(
-                                    stringResource(Res.string.feed_failed, origin) + " · " + stringResource(kind.message()),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error,
-                                )
+                            state.failed.forEach { (origin, _) ->
+                                InlineError(stringResource(Res.string.source_content_error, origin))
                             }
                         }
                     }
@@ -124,6 +140,47 @@ fun FeedTab(
                     }
                 }
         }
+    }
+}
+
+/** RF-116: soft covers while the first answer of the feed comes. */
+@Composable
+private fun FeedSkeleton() {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(108.dp),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        userScrollEnabled = false,
+    ) {
+        items(SKELETON_COVERS) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Skeleton(Modifier.fillMaxWidth().aspectRatio(2f / 3f))
+                Skeleton(Modifier.fillMaxWidth(0.8f).height(10.dp))
+            }
+        }
+    }
+}
+
+private const val SKELETON_COVERS = 9
+
+/** "há 12 min", "há 3 h": the age of what the feed shows (RF-116). */
+@Composable
+fun ago(epochMs: Long?): String {
+    if (epochMs == null) return stringResource(Res.string.time_just_now)
+    val minutes =
+        (
+            (
+                kotlin.time.Clock.System
+                    .now()
+                    .toEpochMilliseconds() - epochMs
+            ) / 60_000
+        ).coerceAtLeast(0)
+    return when {
+        minutes < 1 -> stringResource(Res.string.time_just_now)
+        minutes < 60 -> stringResource(Res.string.time_minutes_ago, minutes.toInt())
+        minutes < 60 * 24 -> stringResource(Res.string.time_hours_ago, (minutes / 60).toInt())
+        else -> stringResource(Res.string.time_days_ago, (minutes / (60 * 24)).toInt())
     }
 }
 

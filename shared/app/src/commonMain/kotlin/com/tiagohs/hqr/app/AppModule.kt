@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.app
 
 import com.tiagohs.hqr.data.backup.BackupService
+import com.tiagohs.hqr.data.cache.SettingsCacheStore
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.MangaReaderSettingsEntity
 import com.tiagohs.hqr.data.download.DownloadFiles
@@ -21,6 +22,7 @@ import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.Backups
+import com.tiagohs.hqr.domain.repository.CacheStore
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
 import com.tiagohs.hqr.domain.repository.Connectivity
@@ -38,6 +40,7 @@ import com.tiagohs.hqr.domain.source.SourceSwitches
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.downloads.DownloadsViewModel
+import com.tiagohs.hqr.presentation.feed.FavoriteSources
 import com.tiagohs.hqr.presentation.feed.FeedViewModel
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
@@ -92,6 +95,8 @@ val coreModule: Module =
     module {
         single<Clock> { Clock.System }
         single { AppPreferences(get()) }
+        // RF-116, RF-117: small answers kept with the preferences.
+        single<CacheStore> { SettingsCacheStore(get()) }
         single<MangaRepository> { RoomMangaRepository(get(), get()) }
         single<ChapterRepository> { RoomChapterRepository(get(), get()) }
         single<CategoryRepository> { RoomCategoryRepository(get()) }
@@ -145,7 +150,8 @@ val coreModule: Module =
         viewModel { CategoriesViewModel(get(), get()) }
         viewModel { HistoryViewModel(get(), get()) }
         viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query, get(), get()) }
-        viewModel { FeedViewModel(get(), get(), get()) }
+        viewModel { FeedViewModel(get(), get(), get(), get()) }
+        factory { FavoriteSources(get()) }
         viewModel { GlobalSearchViewModel(get(), get(), get(), searches = get()) }
         single<PagePrefetcher> {
             val images = get<ImageBytes>()
@@ -161,6 +167,7 @@ val coreModule: Module =
                 get(),
                 getOrNull(),
                 getOrNull<Connectivity>() ?: Connectivity.Always,
+                get(),
             )
         }
         // RF-69: the downloads only where the app has them (Android).

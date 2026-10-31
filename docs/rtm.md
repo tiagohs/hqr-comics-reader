@@ -30,15 +30,18 @@
 | RF-22 | Must | UC-001 | browse | SCR-EXP-002, SCR-EXP-003 | FEAT-011 | BrowseAndMangaViewModelTest, ContractsTest, MangaDexSourceTest, SearchScreensTest, SourceRegistryTest |
 | RF-23 | Must | UC-001 | browse | SCR-SRCH-001 | FEAT-012 | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, SearchScreensTest |
 | RF-24 | Should | UC-001, UC-002 | library, browse | SCR-EXP-002, SCR-EXP-003 | FEAT-026 | BackupServiceTest, FeedScreensTest, FeedViewModelTest, ModelsTest, SearchRepositoryTest |
-| RF-25 | Should | UC-001, UC-002 | library, browse | SCR-EXP-001, SCR-EXP-004 | FEAT-026 | BackupServiceTest, FeedScreensTest, FeedViewModelTest, SearchRepositoryTest |
+| RF-25 | Should | UC-001, UC-002 | library, browse, ADR-026 | SCR-EXP-001, SCR-EXP-004 | FEAT-026, FEAT-067 | BackupServiceTest, FeedScreensTest, FeedViewModelTest, SearchRepositoryTest |
+| RF-115 | Should | UC-002 | ADR-026 | SCR-EXP-001, SCR-EXP-002 | FEAT-067, FEAT-068 | FeedViewModelTest |
+| RF-116 | Should | UC-002 | ADR-026 | SCR-EXP-001 | FEAT-067 | FeedViewModelTest |
 | RF-26 | Should | UC-001, UC-002 | browse | SCR-SRCH-001 | FEAT-026 | BrowseAndMangaViewModelTest, GlobalSearchViewModelTest, ModelsTest |
 | RF-27 | Could | UC-001 | browse | SCR-SRCH-001 | FEAT-026 | FeedScreensTest, FeedViewModelTest, SearchRepositoryTest |
 | RF-28 | Must | UC-001 | browse | SCR-SRCH-001 | FEAT-012 | GlobalSearchViewModelTest, SearchScreensTest |
-| RF-29 | Must | UC-003 | browse | SCR-OBR-001 | FEAT-001 | BrowseAndMangaViewModelTest, LibraryRepositoriesTest, MangaDexSourceTest |
+| RF-29 | Must | UC-003 | browse, ADR-026 | SCR-OBR-001 | FEAT-001, FEAT-065 | BrowseAndMangaViewModelTest, LibraryRepositoriesTest, MangaDexSourceTest |
 | RF-30 | Must | UC-003 | browse | SCR-OBR-001 | FEAT-001, FEAT-006 | BrowseAndMangaViewModelTest, MangaDexSourceTest, ReadingRulesTest, SourceRegistryTest |
-| RF-31 | Must | UC-003, UC-006 | browse | SCR-OBR-001 | FEAT-001 | BrowseAndMangaViewModelTest, ReadingRulesTest |
+| RF-31 | Must | UC-003, UC-006 | browse, ADR-026 | SCR-OBR-001 | FEAT-001, FEAT-065 | BrowseAndMangaViewModelTest, ReadingRulesTest |
 | RF-32 | Must | UC-003 | browse | SCR-OBR-001 | FEAT-006 | BrowseAndMangaViewModelTest, LibraryRepositoriesTest |
-| RF-33 | Must | UC-003 | browse | SCR-OBR-001 | FEAT-006 | BrowseAndMangaViewModelTest, LibraryRepositoriesTest |
+| RF-33 | Must | UC-003 | browse | SCR-OBR-001 | FEAT-006, FEAT-066 | BrowseAndMangaViewModelTest, LibraryRepositoriesTest |
+| RF-117 | Must | UC-003 | ADR-026 | SCR-OBR-001 | FEAT-066, FEAT-068 | BrowseAndMangaViewModelTest |
 | RF-34 | Should | UC-003 | browse | SCR-OBR-001 | FEAT-034 | MangaScreensTest |
 | RF-35 | Could | UC-003 | browse | SCR-OBR-001 | FEAT-047, FEAT-062 | — |
 | RF-36 | Must | UC-004 | reader, ADR-007 | SCR-RDR-001, SCR-RDR-002 | FEAT-001, FEAT-003, FEAT-063 | — |
@@ -58,7 +61,7 @@
 | RF-50 | Could | UC-004 | reader, ADR-007 | SCR-RDR-001, SCR-RDR-002 | FEAT-043 | — |
 | RF-51 | Must | UC-004 | reader, ADR-007 | SCR-RDR-001 | FEAT-004 | — |
 | RF-97 | Could | UC-004 | reader | SCR-RDR-001 | FEAT-044 | — |
-| RF-98 | Must | UC-004 | reader, contentcolor, ADR-021 | SCR-OBR-001, SCR-RDR-001, SCR-RDR-002, SCR-RDR-003, SCR-SET-001 | FEAT-005, FEAT-062 | BrowseAndMangaViewModelTest, CoverColorTest, LibraryRepositoriesTest |
+| RF-98 | Must | UC-004 | reader, contentcolor, ADR-021, ADR-026 | SCR-OBR-001, SCR-RDR-001, SCR-RDR-002, SCR-RDR-003, SCR-SET-001 | FEAT-005, FEAT-062, FEAT-065 | BrowseAndMangaViewModelTest, CoverColorTest, LibraryRepositoriesTest |
 | RF-52 | Must | UC-005 | library | SCR-LIB-001 | FEAT-007, FEAT-062 | BrowseAndMangaViewModelTest, ContractsTest, GlobalSearchViewModelTest, LibraryRepositoriesTest, LibraryScreensTest, LibraryViewModelTest |
 | RF-53 | Must | UC-005 | library | SCR-LIB-001, SCR-LIB-003 | FEAT-008 | ContractsTest, LibraryRepositoriesTest, LibraryScreensTest, LibraryViewModelTest |
 | RF-54 | Must | UC-005 | library | SCR-LIB-001, SCR-LIB-002 | FEAT-007 | LibraryRepositoriesTest, LibraryScreensTest, SharedGraphTest |
@@ -88,7 +91,7 @@
 | RF-78 | Must | UC-012 | app | SCR-SET-003 | FEAT-021 | SettingsScreensTest |
 | RF-79 | Could | UC-012 | app | SCR-SET-003 | FEAT-049 | — |
 | RF-80 | Must | UC-012 | app | SCR-SET-001 | FEAT-020 | NetAndCacheTest |
-| RF-81 | Should | UC-012 | app | SCR-ONB-001 | FEAT-032 | NavigationTest |
+| RF-81 | Should | UC-012 | app, ADR-026 | SCR-ONB-001 | FEAT-032, FEAT-065 | NavigationTest |
 | RF-82 | Must | UC-013 | updater, ADR-015 | SCR-SET-004 | FEAT-022 | ApkDownloaderTest, ReleaseCheckerTest |
 | RF-84 | Must | UC-013 | ADR-015, ADR-016 | SCR-SET-004 | FEAT-022 | ReleaseCheckerTest |
 | RF-85 | Could | UC-008 | app | SCR-SRC-001 | FEAT-048 | ModelsTest |
@@ -110,7 +113,7 @@
 | RF-103 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-040 | WeebCentralSourceTest |
 | RF-104 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-041 | XoxoSourceTest |
 | RF-105 | Must | UC-012 | sourceconfig, ADR-019 | SCR-SRC-001 | FEAT-024 | SourceConfigTest, SourceRegistryTest, SourcesViewModelTest |
-| RF-106 | Should | UC-001 | challenge, ADR-020, ADR-024 | SCR-STA-001 | FEAT-036, FEAT-064 | ChallengeCookiesTest, SourcesScreensTest, WeebCentralSourceTest |
+| RF-106 | Should | UC-001 | challenge, ADR-020, ADR-024 | SCR-STA-001 | FEAT-036, FEAT-064 | ChallengeCookiesTest, IosChallengeCookiesTest, SourcesScreensTest, WeebCentralSourceTest |
 | RF-107 | Should | UC-014 | ui, web, ADR-004, ADR-022 | SCR-WEB-004 | FEAT-050 | — |
 | RF-108 | Should | UC-014 | bridge, ADR-023 | SCR-WEB-001 | FEAT-051 | BridgeTest, WebScreensTest, bridge-worker/index.test.js |
 | RF-109 | Should | UC-014 | bridge-worker/, ADR-023 | SCR-WEB-001 | FEAT-051 | BridgeTest, bridge-worker/index.test.js |

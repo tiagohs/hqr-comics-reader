@@ -54,12 +54,12 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | SCR-LIB-001 | Biblioteca: abas de categoria, grade, "Continuar", seleção | RF-52 a RF-58 | UC-005 |
 | SCR-LIB-002 | Filtrar, ordenar e exibir (folha) | RF-54, RF-55 | UC-005 |
 | SCR-LIB-003 | Categorias: criar, renomear, ordenar | RF-53 | UC-005 |
-| SCR-EXP-001 | Explorar: Feed e lista de fontes | RF-03, RF-25 | UC-002 |
-| SCR-EXP-002 | Fonte: Populares, Recentes, busca com filtros, buscas salvas | RF-21, RF-22, RF-24 | UC-001, UC-002 |
+| SCR-EXP-001 | Explorar: Feed, fontes favoritas e lista de fontes | RF-03, RF-25, RF-115, RF-116 | UC-002 |
+| SCR-EXP-002 | Fonte: Populares, Recentes, busca com filtros, buscas salvas, favoritar | RF-21, RF-22, RF-24, RF-115 | UC-001, UC-002 |
 | SCR-EXP-003 | Filtros da fonte (folha) | RF-22, RF-24 | UC-001 |
 | SCR-EXP-004 | Montar o feed | RF-25 | UC-002 |
 | SCR-SRCH-001 | Busca global agrupada por fonte | RF-23, RF-26 a RF-28 | UC-001 |
-| SCR-OBR-001 | Obra: capa, dados, "Continuar", capítulos, cor da capa | RF-29 a RF-35, RF-07, RF-11, RF-12, RF-92, RF-93, RF-98 | UC-003 |
+| SCR-OBR-001 | Obra: capa, tags, "Continuar", capítulos que chegam depois, cor da capa | RF-29 a RF-35, RF-07, RF-11, RF-12, RF-92, RF-93, RF-98, RF-117 | UC-003 |
 | SCR-OBR-002 | Migrar ou juntar | RF-69 a RF-71 | UC-010 |
 | SCR-RDR-001 | Leitor: páginas, menu, barra de páginas, quadro a quadro | RF-36 a RF-41, RF-43 a RF-51, RF-97, RF-98, RF-113 | UC-004 |
 | SCR-RDR-002 | Ajustes do leitor (folha) | RF-36 a RF-39, RF-44 a RF-50, RF-98 | UC-004 |
@@ -132,7 +132,7 @@ Dobrável: postura livro = duas páginas, nada sobre a dobra; postura mesa = pá
 
 | Estado | Como aparece |
 | :-- | :-- |
-| Carregando | Esqueletos com a forma final (capas com o corte de quadro); `LoadingIndicator` do M3 em cargas longas, com a onomatopeia da vez só acima de 1,5 s |
+| Carregando | Cada parte da tela carrega sozinha e o que já se sabe aparece na hora (RF-117); esqueletos suaves com a forma final (cantos de 6, sem borda, brilho de 1,6 s) e três pontos com "Buscando no <fonte>…"; ações que dependem da parte que falta esperam desativadas |
 | Vazio | Ilustração em quadro de HQ, título em balão, uma frase e uma ação. Biblioteca: "Sua estante está vazia" + "Explorar"; Downloads: "Nada baixado" + "Ver biblioteca"; Busca: "Nada para 'x'" + "Ver fontes" |
 | Erro de fonte | No grupo ou na tela da fonte: ícone, causa em uma frase, "Tentar de novo" e "Abrir no navegador" |
 | Sem conexão | Faixa discreta no topo "Sem conexão · mostrando o que está no aparelho"; ações de rede desligadas |

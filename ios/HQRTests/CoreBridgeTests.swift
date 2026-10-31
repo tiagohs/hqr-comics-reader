@@ -18,4 +18,19 @@ final class CoreBridgeTests: XCTestCase {
         let bytes = Core.graph.bytes(data: Data([1, 2, 3, 250]))
         XCTAssertEqual(Core.graph.data(bytes: bytes), Data([1, 2, 3, 250]))
     }
+
+    func test_RF115_the_star_reaches_the_feed_and_comes_back() async throws {
+        let first = try await Core.graph.toggleFavoriteSource(sourceId: "hqnow")
+        XCTAssertTrue(["added", "removed", "full"].contains(first))
+        if first == "added" {
+            let second = try await Core.graph.toggleFavoriteSource(sourceId: "hqnow")
+            XCTAssertEqual(second, "removed")
+        }
+    }
+
+    func test_RF116_feed_age_reads_minutes() {
+        let tenMinutesAgo = Int64(Date().addingTimeInterval(-600).timeIntervalSince1970 * 1000)
+        XCTAssertEqual(ago(tenMinutesAgo), L("time_minutes_ago", 10))
+        XCTAssertEqual(ago(nil), L("time_just_now"))
+    }
 }

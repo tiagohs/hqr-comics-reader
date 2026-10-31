@@ -67,12 +67,15 @@ struct GlobalSearchScreen: View {
                     }
                 }
             } else if let error = IosBridge.shared.groupError(group: group) {
-                ErrorBox(message: error.message, action: L("action_retry")) {
+                ErrorBox(message: sourceErrorMessage(error, source: sourceDisplayName(id)), action: L("action_retry")) {
                     IosBridge.shared.retrySearch(viewModel: model.viewModel, sourceId: id)
                 }
                 .padding(.horizontal, Metrics.spaceMarginCompact)
             } else {
-                ProgressView().padding(.horizontal, Metrics.spaceMarginCompact)
+                HStack(spacing: Metrics.spaceCoverGap) {
+                    ForEach(0..<3, id: \.self) { _ in Skeleton().frame(width: 112).aspectRatio(2.0 / 3.0, contentMode: .fit) }
+                }
+                .padding(.horizontal, Metrics.spaceMarginCompact)
             }
         }
     }

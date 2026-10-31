@@ -24,7 +24,9 @@ struct CoverImage: View {
                     }
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: Metrics.shapeCoverRadius, style: .continuous))
+            .clipShape(Rectangle())
+            // ADR-026: every cover is a comic panel with an ink frame.
+            .overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
             .task(id: manga.coverUrl) { await loader.load(.cover(manga), maxPixel: 600) }
             .accessibilityHidden(true)
     }
@@ -39,12 +41,17 @@ struct CoverCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             CoverImage(manga: manga)
-                .overlay(alignment: .topLeading) {
-                    HStack(spacing: 4) {
-                        if let badge { Chip(text: badge) }
-                        if inLibrary { Chip(text: L("browse_in_library")) }
+                .overlay(alignment: .topTrailing) {
+                    // Unread count in a burst; "Na biblioteca" in an ink tag.
+                    VStack(alignment: .trailing, spacing: 4) {
+                        if let badge { Burst(text: badge, size: 34) }
+                        if inLibrary {
+                            Text(L("browse_in_library")).font(ComicFont.bangers(13, relativeTo: .caption2))
+                                .padding(.horizontal, 6).padding(.vertical, 1)
+                                .background(Palette.onSurface).foregroundStyle(Palette.background)
+                        }
                     }
-                    .padding(6)
+                    .padding(4)
                 }
             Text(manga.title)
                 .font(.subheadline.weight(.medium))
@@ -88,15 +95,23 @@ struct ErrorBox: View {
     let message: String
     var action: String? = nil
     var onAction: (() -> Void)? = nil
+    /// A second way out, such as "Abrir no navegador".
+    var secondary: (String, () -> Void)? = nil
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "exclamationmark.circle").foregroundStyle(Palette.error)
             VStack(alignment: .leading, spacing: 8) {
                 Text(message).font(.subheadline).foregroundStyle(Palette.onSurface)
-                if let action, let onAction {
-                    Button(action, action: onAction).font(.subheadline.weight(.semibold))
+                HStack(spacing: 16) {
+                    if let action, let onAction {
+                        Button(action, action: onAction).font(.subheadline.weight(.semibold))
+                    }
+                    if let secondary {
+                        Button(secondary.0, action: secondary.1).font(.subheadline.weight(.semibold))
+                    }
                 }
+                .buttonStyle(.borderless)
             }
             Spacer(minLength: 0)
         }

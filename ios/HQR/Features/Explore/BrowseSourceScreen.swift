@@ -9,6 +9,7 @@ struct BrowseSourceScreen: View {
     @StateObject private var model: ScreenModel<BrowseSourceViewModel, BrowseSourceViewModel.State>
     @State private var query: String
     @State private var verified = false
+    @StateObject private var favorites = Favorites()
 
     init(sourceId: String, query: String) {
         self.sourceId = sourceId
@@ -38,6 +39,13 @@ struct BrowseSourceScreen: View {
         .refreshable { model.viewModel.refresh() }
         .navigationTitle(sourceDisplayName(sourceId))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // RF-115: the star puts this source's latest in the feed.
+            ToolbarItem(placement: .primaryAction) {
+                FavoriteStar(name: sourceDisplayName(sourceId), on: favorites.ids.contains(sourceId)) { favorites.toggle(sourceId) }
+            }
+        }
+        .alert(L("feed_full_favorite"), isPresented: $favorites.feedFull) { Button(L("action_ok"), role: .cancel) {} }
         .modifier(SearchIf(enabled: state.canSearch, query: $query, prompt: L("search_hint")) {
             model.viewModel.search(query: query, filters: state.filters)
         })
@@ -60,10 +68,24 @@ struct BrowseSourceScreen: View {
                 }
                 .padding(.horizontal, Metrics.spaceMarginCompact)
             } else {
-                ErrorState(kind: error) { model.viewModel.retry() }.frame(minHeight: 320)
+                ErrorBox(message: sourceErrorMessage(error, source: sourceDisplayName(sourceId)), action: L("action_retry"),
+                         onAction: { model.viewModel.retry() },
+                         secondary: state.webUrl.flatMap(URL.init(string:)).map { url in (L("action_open_browser"), { UIApplication.shared.open(url) }) })
+                    .padding(.horizontal, Metrics.spaceMarginCompact)
             }
         } else if state.loading && state.items.isEmpty {
-            ProgressView().frame(maxWidth: .infinity, minHeight: 320)
+            // Soft covers in their final shape and where it is looking (ux-foundations §8).
+            VStack(spacing: 12) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: Metrics.spaceCoverGap)], spacing: 12) {
+                    ForEach(0..<9, id: \.self) { _ in Skeleton().aspectRatio(2.0 / 3.0, contentMode: .fit) }
+                }
+                HStack(spacing: 8) {
+                    DotsLoader()
+                    Text(L("manga_searching_source", sourceDisplayName(sourceId))).font(.caption.weight(.semibold))
+                        .foregroundStyle(Palette.onSurfaceVariant)
+                }
+            }
+            .padding(.horizontal, Metrics.spaceMarginCompact)
         } else if state.items.isEmpty {
             EmptyState(title: L("browse_no_results"), message: L("browse_no_results_message"), systemImage: "magnifyingglass")
                 .frame(minHeight: 320)

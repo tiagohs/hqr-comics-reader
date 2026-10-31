@@ -186,7 +186,16 @@ object IosBridge {
         mangaId: Long,
         number: Double,
         read: Boolean,
-    ): Chapter = Chapter(id, mangaId, com.tiagohs.hqr.domain.model.SourceChapter("c$id", number, "Sample"), read, 0, SAMPLE_PAGES)
+    ): Chapter =
+        Chapter(
+            id,
+            mangaId,
+            com.tiagohs.hqr.domain.model
+                .SourceChapter("c$id", number, "Sample"),
+            read,
+            0,
+            SAMPLE_PAGES,
+        )
 
     private const val SAMPLE_PAGES = 20
 }

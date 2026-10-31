@@ -104,8 +104,9 @@ struct LibraryScreen: View {
             HStack(spacing: 12) {
                 CoverImage(manga: entry.manga.source, width: 52)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(L("library_continue_reading")).font(.caption).foregroundStyle(Palette.onSurfaceVariant)
-                    Text(entry.manga.source.title).font(.headline).lineLimit(1)
+                    Text(L("library_continue_reading")).font(ComicFont.bangers(15, relativeTo: .caption))
+                        .foregroundStyle(Palette.onSurfaceVariant)
+                    ComicTitle(text: entry.manga.source.title, size: 24).lineLimit(2)
                     Text(L("manga_continue_chapter", entry.chapter.numberText, Int(entry.chapter.lastPage) + 1))
                         .font(.subheadline).foregroundStyle(Palette.onSurfaceVariant)
                 }
@@ -113,7 +114,20 @@ struct LibraryScreen: View {
                 Image(systemName: "play.fill").foregroundStyle(Palette.primary)
             }
             .padding(12)
-            .background(Palette.surfaceHigh, in: RoundedRectangle(cornerRadius: Metrics.shapeCard, style: .continuous))
+            // ADR-026: "Continuar lendo" as a speech balloon: an ink panel with its tail.
+            .inkPanel()
+            .overlay(alignment: .bottomLeading) {
+                Path { path in
+                    path.move(to: .zero)
+                    path.addLine(to: CGPoint(x: 18, y: 0))
+                    path.addLine(to: CGPoint(x: 0, y: 18))
+                    path.closeSubpath()
+                }
+                .fill(Palette.onSurface)
+                .frame(width: 18, height: 18)
+                .offset(x: 24, y: 18)
+            }
+            .padding(.bottom, 18)
         }
         .buttonStyle(.plain)
         .padding(.horizontal, Metrics.spaceMarginCompact)

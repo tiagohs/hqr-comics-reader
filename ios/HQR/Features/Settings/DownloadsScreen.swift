@@ -23,6 +23,12 @@ struct DownloadsScreen: View {
                     }
                 }
             }
+            // RF-66, RF-80: what the app takes on the device and the way to free the cache.
+            Section {
+                StoragePanel(downloadsBytes: state.usedBytes, chapters: state.done.count)
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 20))
             if !state.done.isEmpty {
                 Section(L("downloads_done")) {
                     ForEach(state.done, id: \.chapterId) { item in
@@ -116,5 +122,66 @@ struct DownloadsScreen: View {
     }
 }
 
+/// The space of the downloads and of the image cache next to what is free, as one bar with a legend (RF-66, RF-80).
+struct StoragePanel: View {
+    let downloadsBytes: Int64
+    let chapters: Int
+    @State private var cacheBytes: Int64 = 0
+    private let free = Core.graph.freeBytes()
+
+    var body: some View {
+        let total = max(1, downloadsBytes + cacheBytes + max(0, free))
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L("storage_title")).font(ComicFont.bangers(22, relativeTo: .headline))
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .lastTextBaseline, spacing: 8) {
+                    Text(bytes(downloadsBytes + cacheBytes)).font(ComicFont.bangers(34))
+                    if free >= 0 {
+                        Text(L("storage_used", bytes(free))).font(.caption.weight(.semibold)).foregroundStyle(Palette.onSurfaceVariant)
+                    }
+                }
+                GeometryReader { geo in
+                    HStack(spacing: 0) {
+                        Color.accentColor.frame(width: geo.size.width * CGFloat(downloadsBytes) / CGFloat(total))
+                        Palette.onSurface.frame(width: geo.size.width * CGFloat(cacheBytes) / CGFloat(total))
+                        Spacer(minLength: 0)
+                    }
+                }
+                .frame(height: 20)
+                .overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
+                .accessibilityHidden(true)
+                legend(Color.accentColor, L("storage_downloads", chapters), bytes(downloadsBytes))
+                legend(Palette.onSurface, L("storage_cache"), bytes(cacheBytes))
+                Button(L("storage_clear_cache")) {
+                    launch {
+                        try await Core.graph.imageCache().clear()
+                        cacheBytes = (try await Core.graph.imageCache().size()).int64Value
+                    }
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
+                Text(L("storage_cache_note")).font(.caption).foregroundStyle(Palette.onSurfaceVariant)
+            }
+            .padding(16)
+            .inkPanel()
+        }
+        .task { cacheBytes = (try? await Core.graph.imageCache().size())?.int64Value ?? 0 }
+    }
+
+    private func bytes(_ value: Int64) -> String { ByteCountFormatter.string(fromByteCount: value, countStyle: .file) }
+
+    private func legend(_ color: Color, _ label: String, _ value: String) -> some View {
+        HStack(spacing: 8) {
+            Rectangle().fill(color).frame(width: 14, height: 14).overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
+            Text(label).font(.subheadline)
+            Spacer()
+            Text(value).font(ComicFont.bangers(17, relativeTo: .body))
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+#Preview("StoragePanel · Light") { StoragePanel(downloadsBytes: 1_200_000_000, chapters: 42).padding().previewScreen().preferredColorScheme(.light) }
+#Preview("StoragePanel · Dark") { StoragePanel(downloadsBytes: 1_200_000_000, chapters: 42).padding().previewScreen().preferredColorScheme(.dark) }
 #Preview("DownloadsScreen · Light") { DownloadsScreen().previewScreen().preferredColorScheme(.light) }
 #Preview("DownloadsScreen · Dark") { DownloadsScreen().previewScreen().preferredColorScheme(.dark) }

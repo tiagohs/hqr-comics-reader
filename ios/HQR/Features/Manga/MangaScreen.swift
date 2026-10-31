@@ -32,25 +32,50 @@ struct MangaScreen: View {
                 Section { header(manga, state: state) }
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
             }
-            if let error = state.error, state.chapters.isEmpty {
+            // RF-117: a failure of the details stays here; a failure of the list stays in the list.
+            if let error = state.error, state.chaptersError == nil, state.chapters.isEmpty {
                 ErrorBox(message: error.message, action: L("action_retry")) { model.viewModel.refresh() }
                     .listRowBackground(Color.clear)
             }
             Section {
+                if state.chaptersLoading {
+                    ForEach(0..<4, id: \.self) { skeletonRow($0) }
+                }
+                if let error = state.chaptersError, let manga = state.manga {
+                    ErrorBox(message: sourceErrorMessage(error, source: sourceDisplayName(manga.source.sourceKey)),
+                             action: L("action_retry"),
+                             onAction: { model.viewModel.refresh() },
+                             secondary: manga.source.url.flatMap(URL.init(string:)).map { url in (L("action_open_browser"), { UIApplication.shared.open(url) }) })
+                        .listRowBackground(Color.clear)
+                }
                 ForEach(state.chapters, id: \.id) { chapter in row(chapter, state: state) }
             } header: {
                 HStack {
-                    Text(L("manga_chapters", Int(state.totalChapters)))
+                    Text(state.chaptersLoading ? L("manga_chapters", 0).filter { !$0.isNumber }.trimmingCharacters(in: .whitespaces)
+                                               : L("manga_chapters", Int(state.totalChapters)))
+                        .font(ComicFont.bangers(24, relativeTo: .headline))
+                        .foregroundStyle(Palette.onSurface)
                     Spacer()
-                    filterMenu(state)
+                    if state.chaptersLoading, let manga = state.manga {
+                        HStack(spacing: 8) {
+                            DotsLoader()
+                            Text(L("manga_searching_source", sourceDisplayName(manga.source.sourceKey)))
+                                .font(.caption.weight(.semibold)).foregroundStyle(Palette.onSurfaceVariant)
+                        }
+                    } else {
+                        filterMenu(state)
+                    }
                 }
+                .textCase(nil)
             }
-            if state.chapters.isEmpty && !state.refreshing && state.error == nil {
+            if state.chapters.isEmpty && !state.chaptersLoading && state.chaptersError == nil && state.error == nil {
                 Text(L("manga_no_chapters")).foregroundStyle(Palette.onSurfaceVariant)
             }
         }
         .listStyle(.plain)
+        .listRowSeparatorTint(Palette.onSurface)
         .screenBackground()
         .refreshable { model.viewModel.refresh() }
         .navigationTitle(state.manga?.source.title ?? "")
@@ -65,42 +90,112 @@ struct MangaScreen: View {
     // MARK: Header
 
     private func header(_ manga: Manga, state: MangaViewModel.State) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 16) {
-                CoverImage(manga: manga.source, width: 112)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(manga.source.title).font(.title3.weight(.bold)).lineLimit(3)
-                    if !manga.source.authors.isEmpty {
-                        Text(manga.source.authors.joined(separator: ", ")).font(.subheadline)
-                            .foregroundStyle(Palette.onSurfaceVariant)
+        let source = manga.source
+        let vertical = source.alternativeTitles.map { $0.trimmingCharacters(in: .whitespaces) }.first { $0.isJapanese }
+        return VStack(alignment: .leading, spacing: 0) {
+            // The work's panel (ADR-026): tilted cover over speed lines (manga) or Ben-Day dots (comics).
+            VStack(spacing: 16) {
+                CoverImage(manga: source, width: 140)
+                    .overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
+                    .background(Palette.onSurface.offset(x: 6, y: 6))
+                    .rotationEffect(.degrees(-2.5))
+                    .frame(maxWidth: .infinity)
+                    .overlay(alignment: .topTrailing) {
+                        if let vertical { VerticalTitle(text: vertical).padding(.trailing, 16) }
                     }
-                    Text(sourceDisplayName(manga.source.sourceKey)).font(.caption).foregroundStyle(Palette.onSurfaceVariant)
+                if !source.genres.isEmpty {
+                    FlowLayout(spacing: 8) {
+                        ForEach(Array(source.genres.prefix(4)), id: \.self) { genre in
+                            Text(genre)
+                                .font(ComicFont.bangers(15, relativeTo: .caption))
+                                .padding(.horizontal, 10).padding(.vertical, 3)
+                                .background(Palette.background)
+                                .overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
+                        }
+                    }
+                    .padding(.horizontal, 16)
                 }
             }
-            HStack(spacing: 12) {
-                readButton(state)
-                Button {
-                    model.viewModel.toggleLibrary()
-                } label: {
-                    Label(manga.inLibrary ? L("manga_in_library") : L("manga_add_library"),
-                          systemImage: manga.inLibrary ? "heart.fill" : "heart")
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+            .background {
+                ZStack {
+                    Color.accentColor.opacity(0.18)
+                    if vertical != nil { SpeedLines() } else { Halftone(color: Color.accentColor.opacity(0.4), step: 9, radius: 2.4) }
                 }
-                .buttonStyle(.bordered)
             }
-            if let description = manga.source.description_, !description.isEmpty {
-                Text(description)
-                    .font(.subheadline)
-                    .lineLimit(expanded ? nil : 3)
-                    .onTapGesture { withAnimation { expanded.toggle() } }
-                    .accessibilityHint(expanded ? L("action_less_text") : L("action_more_text"))
-            }
-            if !manga.source.genres.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack { ForEach(manga.source.genres, id: \.self) { Chip(text: $0) } }
+            Rectangle().fill(Palette.onSurface).frame(height: 3)
+            VStack(alignment: .leading, spacing: 12) {
+                ComicTitle(text: source.title)
+                let people = Array(Set(source.authors + source.artists)).sorted().prefix(2)
+                MetaTags(author: people.isEmpty ? nil : people.joined(separator: " · "),
+                         status: statusLabel(source.status),
+                         statusColor: statusColor(source.status),
+                         source: sourceDisplayName(source.sourceKey),
+                         extra: [source.language?.uppercased()].compactMap { $0 })
+                if let description = source.description_, !description.isEmpty {
+                    let long = description.count > 600
+                    Text(description)
+                        .font(.subheadline)
+                        .lineLimit(expanded || !long ? nil : 8)
+                        .onTapGesture { if long { withAnimation { expanded.toggle() } } }
+                        .accessibilityHint(long ? (expanded ? L("action_less_text") : L("action_more_text")) : "")
                 }
+                HStack(spacing: 12) {
+                    readButton(state)
+                    if manga.inLibrary {
+                        Button { model.viewModel.toggleLibrary() } label: {
+                            Image(systemName: "bookmark.fill").frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.circle)
+                        .accessibilityLabel(L("manga_in_library"))
+                    }
+                }
+                if !manga.inLibrary {
+                    Button { model.viewModel.toggleLibrary() } label: {
+                        Label(L("manga_add_library"), systemImage: "plus").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.large)
+                }
+            }
+            .padding(Metrics.spaceMarginCompact)
+        }
+    }
+
+    private func statusLabel(_ status: PublicationStatus) -> String? {
+        switch status {
+        case .ongoing: L("status_ongoing")
+        case .completed: L("status_completed")
+        case .cancelled: L("status_cancelled")
+        case .hiatus: L("status_hiatus")
+        default: nil
+        }
+    }
+
+    private func statusColor(_ status: PublicationStatus) -> Color {
+        switch status {
+        case .ongoing: Color(red: 0.18, green: 0.49, blue: 0.20)
+        case .completed: .accentColor
+        case .hiatus: Color(red: 0.70, green: 0.42, blue: 0)
+        case .cancelled: Palette.error
+        default: Palette.outline
+        }
+    }
+
+    /// RF-117: a soft row where a chapter is still on its way.
+    private func skeletonRow(_ index: Int) -> some View {
+        HStack(spacing: 14) {
+            Skeleton().frame(width: 40, height: 28)
+            VStack(alignment: .leading, spacing: 8) {
+                Skeleton().frame(width: CGFloat(200 - index * 24), height: 14)
+                Skeleton().frame(width: 110, height: 10)
             }
         }
-        .padding(Metrics.spaceMarginCompact)
+        .padding(.vertical, 8)
+        .listRowBackground(Color.clear)
     }
 
     @ViewBuilder
@@ -114,14 +209,19 @@ struct MangaScreen: View {
             } label: {
                 Group {
                     switch kind {
-                    case "continue": Text(L("manga_continue_chapter", chapter.numberText, Int(page) + 1))
+                    case "continue": Text(L("manga_continue_short", chapter.numberText))
                     case "again": Text(L("action_read_again"))
-                    default: Text(L("action_read"))
+                    default: Text(L("manga_read_chapter", chapter.numberText))
                     }
                 }
+                .font(.headline)
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .controlSize(.large)
+            // RF-117: the button waits for the chapters.
+            .disabled(state.chaptersLoading)
         }
     }
 
@@ -143,10 +243,14 @@ struct MangaScreen: View {
                 if !selected.isEmpty {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle").foregroundStyle(.tint)
                 }
+                Text(chapter.numberText)
+                    .font(ComicFont.bangers(26, relativeTo: .title2))
+                    .foregroundStyle(chapter.read ? AnyShapeStyle(Palette.onSurfaceVariant) : AnyShapeStyle(.tint))
+                    .frame(minWidth: 44)
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text(chapter.label).font(.body.weight(chapter.read ? .regular : .semibold)).lineLimit(1)
-                        if state.newChapterIds.contains(KotlinLong(value: chapter.id)) { Chip(text: L("manga_new")) }
+                        if state.newChapterIds.contains(KotlinLong(value: chapter.id)) { Stamp(text: L("manga_new")) }
                     }
                     .foregroundStyle(chapter.read ? Palette.onSurfaceVariant : Palette.onSurface)
                     subtitle(chapter).font(.caption).foregroundStyle(Palette.onSurfaceVariant)
@@ -264,11 +368,14 @@ struct MangaScreen: View {
                         Label(L("manga_download_unread"), systemImage: "arrow.down.circle")
                     }
                 }
+                Button { model.viewModel.refresh() } label: {
+                    Label(L("manga_refresh"), systemImage: "arrow.clockwise")
+                }
                 Button { navigator.open(.migrate(mangaId)) } label: {
                     Label(L("migrate_action"), systemImage: "arrow.left.arrow.right")
                 }
                 if let link = state.manga?.source.url, let url = URL(string: link) {
-                    Link(destination: url) { Label(L("manga_open_site"), systemImage: "safari") }
+                    Link(destination: url) { Label(L("action_open_browser"), systemImage: "safari") }
                     ShareLink(item: url)
                 }
             } label: {

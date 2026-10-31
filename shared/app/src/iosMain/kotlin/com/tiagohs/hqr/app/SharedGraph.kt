@@ -32,6 +32,7 @@ import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.downloads.DownloadsViewModel
+import com.tiagohs.hqr.presentation.feed.FavoriteSources
 import com.tiagohs.hqr.presentation.feed.FeedViewModel
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
@@ -62,6 +63,9 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -141,6 +145,27 @@ object SharedGraph {
 
     fun backupViewModel(): BackupViewModel = koin.screenViewModel()
 
+    /** RF-115: the favorite sources' ids, as they change. */
+    fun favoriteSourceIds(): Observer<List<String>> =
+        Observer(
+            koin
+                .get<FavoriteSources>()
+                .observe()
+                .map { ids -> ids.map { it.value }.sorted() }
+                .stateIn(MainScope(), SharingStarted.Eagerly, emptyList()),
+        )
+
+    /** RF-115: "added", "removed" or "full" (the feed already has 5 items). */
+    suspend fun toggleFavoriteSource(sourceId: String): String =
+        when (koin.get<FavoriteSources>().toggle(SourceId(sourceId))) {
+            FavoriteSources.Result.ADDED -> "added"
+            FavoriteSources.Result.REMOVED -> "removed"
+            FavoriteSources.Result.FEED_FULL -> "full"
+        }
+
+    /** RF-66: free bytes where the downloads go; -1 when the system does not say. */
+    fun freeBytes(): Long = koin.getOrNull<com.tiagohs.hqr.data.download.FreeSpace>()?.bytes() ?: -1L
+
     fun preferences(): AppPreferences = koin.get()
 
     fun sources(): SourceRegistry = koin.get()
@@ -185,7 +210,14 @@ private fun iosModule(
     uiTest: Boolean,
 ): Module =
     module {
-        single<HqrDatabase> { if (uiTest) com.tiagohs.hqr.data.db.inMemoryDatabase() else iosDatabase() }
+        single<HqrDatabase> {
+            if (uiTest) {
+                com.tiagohs.hqr.data.db
+                    .inMemoryDatabase()
+            } else {
+                iosDatabase()
+            }
+        }
         single<Settings> {
             if (uiTest) {
                 NSUserDefaultsSettings(NSUserDefaults(suiteName = "hqr.uitests").apply { removePersistentDomainForName("hqr.uitests") })

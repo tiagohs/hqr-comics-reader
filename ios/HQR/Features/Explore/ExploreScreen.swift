@@ -9,6 +9,7 @@ struct ExploreScreen: View {
     @StateObject private var sources = ScreenModel(Core.graph.sourcesViewModel()) {
         Screen<SourcesViewModel.State>(viewModel: $0, flow: $0.state)
     }
+    @StateObject private var favorites = Favorites()
     @State private var tab: Tab = .sources
     @State private var query = ""
 
@@ -28,6 +29,7 @@ struct ExploreScreen: View {
         }
         .background(Palette.background)
         .navigationTitle(L("nav_explore"))
+        .alert(L("feed_full_favorite"), isPresented: $favorites.feedFull) { Button(L("action_ok"), role: .cancel) {} }
         .searchable(text: $query, prompt: L("explore_search_all"))
         .onSubmit(of: .search) {
             let text = query.trimmingCharacters(in: .whitespaces)
@@ -45,14 +47,28 @@ struct ExploreScreen: View {
     private var sourceList: some View {
         let state = sources.state
         return List {
-            Section(L("sources_online")) {
-                ForEach(state.online.filter { $0.status == .on }, id: \.name) { row in
-                    sourceRow(id: IosBridge.shared.sourceOfRow(row: row), name: row.name, languages: row.languages)
+            // RF-115: favorites first; they are the ones in the feed.
+            let online = state.online.filter { $0.status == .on }
+            let favored = online.filter { favorites.ids.contains(IosBridge.shared.sourceOfRow(row: $0)) }
+            if !favored.isEmpty {
+                Section {
+                    ForEach(favored, id: \.name) { row in
+                        sourceRow(id: IosBridge.shared.sourceOfRow(row: row), name: row.name, languages: row.languages, favorite: true)
+                    }
+                } header: {
+                    sectionTitle(L("explore_favorites"), hint: L("explore_favorites_hint"))
                 }
+            }
+            Section {
+                ForEach(online.filter { !favorites.ids.contains(IosBridge.shared.sourceOfRow(row: $0)) }, id: \.name) { row in
+                    sourceRow(id: IosBridge.shared.sourceOfRow(row: row), name: row.name, languages: row.languages, favorite: false)
+                }
+            } header: {
+                sectionTitle(favored.isEmpty ? L("sources_online") : L("explore_other_sources"), hint: nil)
             }
             if let local = state.local {
                 Section(L("sources_local")) {
-                    sourceRow(id: IosBridge.shared.sourceOfRow(row: local), name: L("source_local"), languages: [])
+                    sourceRow(id: IosBridge.shared.sourceOfRow(row: local), name: L("source_local"), languages: [], favorite: nil)
                 }
             }
             if !state.servers.isEmpty {
@@ -70,17 +86,38 @@ struct ExploreScreen: View {
         .screenBackground()
     }
 
-    private func sourceRow(id: String, name: String, languages: [String]) -> some View {
-        Button { navigator.open(.browse(sourceId: id, query: "")) } label: {
-            HStack {
-                Text(name).foregroundStyle(Palette.onSurface)
-                Spacer()
-                if !languages.isEmpty {
-                    Text(languages.prefix(3).joined(separator: " · ").uppercased())
-                        .font(.caption)
-                        .foregroundStyle(Palette.onSurfaceVariant)
+    private func sectionTitle(_ title: String, hint: String?) -> some View {
+        HStack(alignment: .lastTextBaseline, spacing: 8) {
+            Text(title).font(ComicFont.bangers(22, relativeTo: .headline)).foregroundStyle(Palette.onSurface)
+            if let hint { Text(hint).font(.caption.weight(.semibold)).foregroundStyle(Palette.onSurfaceVariant) }
+        }
+        .textCase(nil)
+    }
+
+    /// A source with its monogram panel and, for online sources, the favorite star (RF-115).
+    private func sourceRow(id: String, name: String, languages: [String], favorite: Bool?) -> some View {
+        HStack(spacing: 12) {
+            Button { navigator.open(.browse(sourceId: id, query: "")) } label: {
+                HStack(spacing: 12) {
+                    Text(String(name.prefix(2)).uppercased())
+                        .font(ComicFont.bangers(20, relativeTo: .headline))
+                        .frame(width: 44, height: 44)
+                        .background(favorite == true ? AnyShapeStyle(.tint) : AnyShapeStyle(Palette.surface))
+                        .foregroundStyle(favorite == true ? AnyShapeStyle(Color.white) : AnyShapeStyle(Palette.onSurface))
+                        .overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(name).font(ComicFont.bangers(20, relativeTo: .headline)).foregroundStyle(Palette.onSurface)
+                        if !languages.isEmpty {
+                            Text(languages.prefix(3).joined(separator: " · ").uppercased())
+                                .font(.caption)
+                                .foregroundStyle(Palette.onSurfaceVariant)
+                        }
+                    }
+                    Spacer()
                 }
             }
+            .buttonStyle(.plain)
+            if let favorite { FavoriteStar(name: name, on: favorite) { favorites.toggle(id) } }
         }
     }
 }
@@ -99,14 +136,31 @@ struct FeedView: View {
         }
         Group {
             if state.loading && state.entries.isEmpty {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                // RF-116: soft covers while the first answer comes.
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: Metrics.spaceCoverGap)], spacing: 16) {
+                        ForEach(0..<9, id: \.self) { _ in Skeleton().aspectRatio(2.0 / 3.0, contentMode: .fit) }
+                    }
+                    .padding(Metrics.spaceMarginCompact)
+                }
+                .scrollDisabled(true)
             } else if state.entries.isEmpty {
                 EmptyState(title: L("feed_empty_title"), message: L("feed_empty_message"), systemImage: "newspaper")
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 20) {
+                        // RF-116: how old what is on screen is, and that it is being asked again.
+                        HStack(spacing: 8) {
+                            if state.refreshing { DotsLoader() }
+                            Text(L("feed_updated", ago(state.updatedAtEpochMs?.int64Value)))
+                                .font(.caption.weight(.semibold)).foregroundStyle(Palette.onSurfaceVariant)
+                        }
+                        .padding(.horizontal, Metrics.spaceMarginCompact)
+                        ForEach(Array(state.failed.keys), id: \.self) { origin in
+                            ErrorBox(message: L("source_content_error", origin)).padding(.horizontal, Metrics.spaceMarginCompact)
+                        }
                         ForEach(origins, id: \.self) { origin in
-                            Text(origin).font(.headline).padding(.horizontal, Metrics.spaceMarginCompact)
+                            Text(origin).font(ComicFont.bangers(22, relativeTo: .headline)).padding(.horizontal, Metrics.spaceMarginCompact)
                             ScrollView(.horizontal, showsIndicators: false) {
                                 LazyHStack(alignment: .top, spacing: Metrics.spaceCoverGap) {
                                     ForEach(state.entries.filter { $0.origin == origin }, id: \.manga.listId) { entry in

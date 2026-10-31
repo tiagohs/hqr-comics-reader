@@ -208,6 +208,29 @@
         }
       }
     },
+    "about_privacy_text_ios": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your library, progress and files stay on this device. HQR has no account, no analytics and no crash reports on iPhone and iPad. The sources you open see your requests, as any website would."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu biblioteca, tu progreso y tus archivos se quedan en este dispositivo. HQR no tiene cuenta, analíticas ni informes de fallos en iPhone y iPad. Las fuentes que abres ven tus solicitudes, como cualquier sitio web."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua biblioteca, seu progresso e seus arquivos ficam neste aparelho. O HQR não tem conta, analytics nem relatórios de falha no iPhone e no iPad. As fontes que você abre veem seus pedidos, como qualquer site."
+          }
+        }
+      }
+    },
     "about_source_code": {
       "extractionState": "manual",
       "localizations": {
@@ -250,6 +273,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versão %1$@ · sabor GitHub"
+          }
+        }
+      }
+    },
+    "about_version_ios": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %1$@ · iPhone and iPad"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versión %1$@ · iPhone y iPad"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versão %1$@ · iPhone e iPad"
           }
         }
       }
@@ -2563,6 +2609,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desligado: os capítulos ficam só no app. Com uma pasta, cada um também é salvo lá em .cbz, para outros leitores."
+          }
+        }
+      }
+    },
+    "downloads_ios_background": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On iPhone and iPad the queue runs while HQR is open and for the time the system gives it in the background."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En iPhone y iPad la cola avanza con HQR abierto y durante el tiempo que el sistema da en segundo plano."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No iPhone e no iPad a fila anda com o HQR aberto e pelo tempo que o sistema der em segundo plano."
           }
         }
       }
@@ -9430,6 +9499,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arquivos locais"
+          }
+        }
+      }
+    },
+    "settings_local_folder_ios": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put CBZ, PDF or folders of images in Files › On My iPhone › HQR to read them here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pon CBZ, PDF o carpetas de imágenes en Archivos › En mi iPhone › HQR para leerlos aquí."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coloque CBZ, PDF ou pastas de imagens em Arquivos › No Meu iPhone › HQR para ler aqui."
           }
         }
       }

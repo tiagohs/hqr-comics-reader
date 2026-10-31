@@ -464,4 +464,8 @@
     <string name="challenge_hint">Complete the check on the source's page. HQR goes back on its own when it passes.</string>
     <string name="challenge_unavailable">The verification opens only in the phone app. Open the source's site in your browser and try again.</string>
     <string name="bridge_outdated">The bridge works, but it is from an older version: publish it again to reach the newer sources.</string>
+    <string name="about_version_ios">Version %1$s · iPhone and iPad</string>
+    <string name="about_privacy_text_ios">Your library, progress and files stay on this device. HQR has no account, no analytics and no crash reports on iPhone and iPad. The sources you open see your requests, as any website would.</string>
+    <string name="settings_local_folder_ios">Put CBZ, PDF or folders of images in Files › On My iPhone › HQR to read them here.</string>
+    <string name="downloads_ios_background">On iPhone and iPad the queue runs while HQR is open and for the time the system gives it in the background.</string>
 </resources>

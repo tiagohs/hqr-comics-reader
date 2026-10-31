@@ -13,27 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.tiagohs.hqr.presentation.settings.CONTENT_LANGUAGES
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.onboarding_languages_group
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import org.jetbrains.compose.resources.stringResource
-
-/** A content language as people know it, and the codes the sources use for it (MangaDex: "es" and "es-la"). */
-data class ContentLanguage(
-    val label: String,
-    val codes: Set<String>,
-)
-
-/** Each one in its own name (RF-81), like the app language (RF-77). */
-val CONTENT_LANGUAGES =
-    listOf(
-        ContentLanguage("Português (BR)", setOf("pt-br")),
-        ContentLanguage("English", setOf("en")),
-        ContentLanguage("Español", setOf("es", "es-la")),
-        ContentLanguage("Français", setOf("fr")),
-        ContentLanguage("Italiano", setOf("it")),
-        ContentLanguage("日本語", setOf("ja")),
-    )
 
 /** The chips of the content languages; at least one stays on. */
 @OptIn(ExperimentalLayoutApi::class)

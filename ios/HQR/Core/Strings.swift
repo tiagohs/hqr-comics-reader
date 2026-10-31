@@ -12,3 +12,8 @@ func L(_ key: String) -> String {
 func L(_ key: String, _ args: CVarArg...) -> String {
     String(format: NSLocalizedString(key, comment: ""), arguments: args)
 }
+
+/// A plural text (Android `plurals`): the variation follows [count], also the first argument.
+func P(_ key: String, _ count: Int) -> String {
+    String.localizedStringWithFormat(NSLocalizedString(key, comment: ""), count)
+}

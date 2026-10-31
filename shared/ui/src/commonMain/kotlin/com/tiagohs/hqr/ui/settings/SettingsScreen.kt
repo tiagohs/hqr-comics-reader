@@ -37,6 +37,7 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.Updates
+import com.tiagohs.hqr.presentation.settings.CONTENT_LANGUAGES
 import com.tiagohs.hqr.ui.di.CrashReports
 import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.resources.Res

@@ -464,4 +464,8 @@
     <string name="challenge_hint">Haz la verificación en la página de la fuente. HQR vuelve solo cuando pase.</string>
     <string name="challenge_unavailable">La verificación solo se abre en la app del móvil. Abre el sitio de la fuente en el navegador y vuelve a intentarlo.</string>
     <string name="bridge_outdated">El puente funciona, pero es de una versión antigua: publícalo de nuevo para llegar a las fuentes nuevas.</string>
+    <string name="about_version_ios">Versión %1$s · iPhone y iPad</string>
+    <string name="about_privacy_text_ios">Tu biblioteca, tu progreso y tus archivos se quedan en este dispositivo. HQR no tiene cuenta, analíticas ni informes de fallos en iPhone y iPad. Las fuentes que abres ven tus solicitudes, como cualquier sitio web.</string>
+    <string name="settings_local_folder_ios">Pon CBZ, PDF o carpetas de imágenes en Archivos › En mi iPhone › HQR para leerlos aquí.</string>
+    <string name="downloads_ios_background">En iPhone y iPad la cola avanza con HQR abierto y durante el tiempo que el sistema da en segundo plano.</string>
 </resources>

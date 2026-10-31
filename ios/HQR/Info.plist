@@ -24,6 +24,27 @@
 	<array>
 		<string>com.tiagohs.hqr.reader.downloads</string>
 	</array>
+	<!-- RF-72: the .hqrbackup file, the same as on Android (gzip with JSON inside). -->
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.tiagohs.hqr.backup</string>
+			<key>UTTypeDescription</key>
+			<string>HQR backup</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>org.gnu.gnu-zip-archive</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>hqrbackup</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

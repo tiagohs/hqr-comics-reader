@@ -58,4 +58,27 @@ final class CoreBridgeTests: XCTestCase {
         XCTAssertEqual(excluded.excluded, ["r"])
         XCTAssertEqual(SourceFilterCompanion.shared.replace(filters: [tags], changed: excluded).count, 1)
     }
+
+    func test_RF45_white_margins_are_cut_with_the_shared_rule() throws {
+        // A 200x300 page: white all round, an ink block from (40, 60) to (160, 240).
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 300), format: {
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            return format
+        }())
+        let page = renderer.image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 200, height: 300))
+            UIColor.black.setFill()
+            context.fill(CGRect(x: 40, y: 60, width: 120, height: 180))
+        }
+        let cropped = ImageStore.cropBorders(try XCTUnwrap(page.cgImage))
+        XCTAssertEqual(cropped.width, 120, accuracy: 8)
+        XCTAssertEqual(cropped.height, 180, accuracy: 8)
+    }
+
+    func test_RF58_no_update_running_reads_as_no_item() {
+        let viewModel = Core.graph.libraryViewModel()
+        XCTAssertEqual(IosBridge.shared.libraryUpdate(viewModel: viewModel).current.count, 0)
+    }
 }

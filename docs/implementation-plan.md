@@ -180,7 +180,7 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-065 | Papel e tinta, Bangers e título vertical, componentes de HQ (selo, explosão, retícula, linhas de velocidade, esqueleto suave) com controles do M3 | RF-29, RF-31, RF-81, RF-98 | todos | todas | `ui` (theme, components) | fonte recortada |
 | FEAT-066 | Obra abre na hora: detalhes e capítulos em paralelo, lista com esqueleto e erro próprio, validade de 6 horas | RF-117, RF-33 | UC-003 | SCR-OBR-001 | `presentation/manga`, `data/cache` | `CacheStore` |
 | FEAT-067 | Fontes favoritas e feed guardado por 30 minutos | RF-115, RF-116, RF-25 | UC-002 | SCR-EXP-001, SCR-EXP-002 | `presentation/feed`, `ui/explore` | `feed`, `CacheStore` |
-| FEAT-068 | iOS na linguagem de HQ, com o onboarding, opções da biblioteca, categorias, filtros da fonte e ajustes do MangaDex | RF-06, RF-08, RF-22, RF-53 a RF-57, RF-81, RF-115 a RF-117 | todos | todas | `ios/` | — |
+| FEAT-068 | iOS completo na linguagem de HQ: onboarding, opções e seleção da biblioteca, atualização com novidades, categorias, filtros, buscas salvas e recentes, editor do feed, ajustes do MangaDex, corte de bordas e página dividida no leitor | RF-06, RF-08, RF-22, RF-24, RF-25, RF-27, RF-44, RF-45, RF-51, RF-53 a RF-58, RF-73, RF-81, RF-115 a RF-117 | todos | todas | `ios/` | — |
 | FEAT-069 | Movimento de HQ: capa que voa até a obra, linhas de velocidade, título que se escreve, carimbo, cascata, primeiro acesso desenhado a traço; "reduzir movimento" | RF-118 | todos | SCR-OBR-001, SCR-LIB-001, SCR-ONB-001 | `ui/components` (ComicMotion), `ios/DesignSystem` | — |
 
 ## 4. Ordem de construção

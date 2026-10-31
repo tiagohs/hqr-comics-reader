@@ -183,8 +183,13 @@ struct ServerCatalogScreen: View {
                             }
                         } icon: {
                             Image(systemName: entry.isBook ? "book.closed" : "folder")
+                                .accessibilityLabel(entry.isBook ? L("catalog_book") : L("catalog_folder"))
                         }
                     }
+                }
+                if page.entries.isEmpty && !state.loading {
+                    EmptyState(title: L("catalog_empty"), message: L("catalog_empty_message"), systemImage: "folder")
+                        .listRowBackground(Color.clear)
                 }
                 if page.nextUrl != nil {
                     Button(L("catalog_more")) { model.viewModel.loadMore() }.disabled(state.loadingMore)
@@ -202,7 +207,7 @@ struct ServerCatalogScreen: View {
                 }
             }
         }
-        .modifier(SearchIf(enabled: state.page?.canSearch ?? false, query: $query, prompt: L("search_hint")) {
+        .modifier(SearchIf(enabled: state.page?.canSearch ?? false, query: $query, prompt: L("catalog_search", state.serverName)) {
             model.viewModel.search(query: query)
         })
     }

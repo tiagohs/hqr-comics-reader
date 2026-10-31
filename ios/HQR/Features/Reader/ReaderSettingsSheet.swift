@@ -36,6 +36,21 @@ struct ReaderSettingsSheet: View {
                     Text(L("reader_bg_black")).tag(ReaderBackground.black)
                     Text(L("reader_bg_gray")).tag(ReaderBackground.gray)
                     Text(L("reader_bg_white")).tag(ReaderBackground.white)
+                    Text(L("reader_bg_auto")).tag(ReaderBackground.auto_)
+                }
+                Section {
+                    Toggle(isOn: flag(\.cropBorders) { bridge.changePageOptions(settings: settings, cropBorders: KotlinBoolean(value: $0), splitWide: nil, invertPages: nil) }) {
+                        Text(L("reader_crop"))
+                        Text(L("reader_crop_hint"))
+                    }
+                    Toggle(isOn: flag(\.splitWide) { bridge.changePageOptions(settings: settings, cropBorders: nil, splitWide: KotlinBoolean(value: $0), invertPages: nil) }) {
+                        Text(L("reader_split"))
+                        Text(L("reader_split_hint"))
+                    }
+                    Toggle(isOn: flag(\.invertPages) { bridge.changePageOptions(settings: settings, cropBorders: nil, splitWide: nil, invertPages: KotlinBoolean(value: $0)) }) {
+                        Text(L("reader_invert_pages"))
+                        Text(L("reader_invert_pages_hint"))
+                    }
                 }
                 Section {
                     Toggle(isOn: flag(\.doublePage) { bridge.changeReaderSettings(settings: settings, mode: nil, scale: nil, background: nil, tapZones: nil, doublePage: KotlinBoolean(value: $0), keepScreenOn: nil, showPageNumber: nil) }) {

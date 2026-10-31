@@ -182,6 +182,17 @@ object SharedGraph {
         prefs.setOnboarded()
     }
 
+    /**
+     * RF-73: the name of a work's source when this app doesn't have it (taken out, or only in another build), as kept
+     * from the backup; null when the source works or the list is still loading.
+     */
+    suspend fun unavailableSourceName(sourceId: String): String? {
+        val registry = sources()
+        val id = SourceId(sourceId)
+        if (id == SourceId.LOCAL || !registry.isReady.value || registry[id] != null) return null
+        return koin.getOrNull<com.tiagohs.hqr.domain.source.SourceSwitches>()?.savedName(id) ?: sourceId
+    }
+
     /** RF-66: free bytes where the downloads go; -1 when the system does not say. */
     fun freeBytes(): Long = koin.getOrNull<com.tiagohs.hqr.data.download.FreeSpace>()?.bytes() ?: -1L
 

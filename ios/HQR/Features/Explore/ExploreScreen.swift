@@ -128,6 +128,7 @@ struct FeedView: View {
     @StateObject private var model = ScreenModel(Core.graph.feedViewModel()) {
         Screen<FeedViewModel.State>(viewModel: $0, flow: $0.state)
     }
+    @State private var editing = false
 
     var body: some View {
         let state = model.state
@@ -145,7 +146,10 @@ struct FeedView: View {
                 }
                 .scrollDisabled(true)
             } else if state.entries.isEmpty {
-                EmptyState(title: L("feed_empty_title"), message: L("feed_empty_message"), systemImage: "newspaper")
+                VStack {
+                    EmptyState(title: L("feed_empty_title"), message: L("feed_empty_message"), systemImage: "newspaper")
+                    Button(L("feed_edit")) { editing = true }.buttonStyle(.borderedProminent).padding(.bottom, 32)
+                }
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 20) {
@@ -154,6 +158,8 @@ struct FeedView: View {
                             if state.refreshing { DotsLoader() }
                             Text(L("feed_updated", ago(state.updatedAtEpochMs?.int64Value)))
                                 .font(.caption.weight(.semibold)).foregroundStyle(Palette.onSurfaceVariant)
+                            Spacer()
+                            Button(L("feed_edit")) { editing = true }.buttonStyle(.bordered).controlSize(.small)
                         }
                         .padding(.horizontal, Metrics.spaceMarginCompact)
                         ForEach(Array(state.failed.keys), id: \.self) { origin in
@@ -177,6 +183,7 @@ struct FeedView: View {
                 .refreshable { model.viewModel.refresh() }
             }
         }
+        .sheet(isPresented: $editing) { FeedEditor(viewModel: model.viewModel, items: state.items) }
     }
 
     private func open(_ manga: SourceManga) {
@@ -187,6 +194,73 @@ struct FeedView: View {
     }
 }
 
+/// SCR-EXP-004: what is in the feed (remove) and what can go in (a source's latest, a saved search), up to 5.
+struct FeedEditor: View {
+    let viewModel: FeedViewModel
+    let items: [FeedItem]
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var saved: FlowModel<NSArray>
+
+    init(viewModel: FeedViewModel, items: [FeedItem]) {
+        self.viewModel = viewModel
+        self.items = items
+        _saved = StateObject(wrappedValue: FlowModel(observer: IosBridge.shared.feedSavedSearches(viewModel: viewModel)))
+    }
+
+    private var full: Bool { items.count >= 5 }
+
+    private func name(_ item: FeedItem) -> String {
+        item.savedSearch?.name ?? L("feed_latest_of", sourceDisplayName(IosBridge.shared.feedItemSource(item: item)))
+    }
+
+    private func inFeed(_ sourceId: String, _ savedId: Int64?) -> Bool {
+        items.contains { IosBridge.shared.feedItemSource(item: $0) == sourceId && $0.savedSearch?.id == savedId }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section(L("feed_edit") + " (\(items.count)/5)") {
+                    ForEach(items, id: \.id) { item in
+                        HStack {
+                            Text(name(item))
+                            Spacer()
+                            Button { viewModel.remove(item: item) } label: { Image(systemName: "minus.circle.fill").foregroundStyle(Palette.error) }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel(L("feed_remove", name(item)))
+                        }
+                    }
+                }
+                Section {
+                    ForEach(IosBridge.shared.catalogSourceIds().filter { !inFeed($0, nil) }, id: \.self) { id in
+                        addRow(L("feed_latest_of", sourceDisplayName(id))) { IosBridge.shared.addToFeed(viewModel: viewModel, sourceId: id, savedSearchId: nil) }
+                    }
+                    ForEach(((saved.value as? [SavedSearch]) ?? []).filter { !inFeed(IosBridge.shared.savedSearchSource(search: $0), $0.id) }, id: \.id) { search in
+                        addRow(search.name) {
+                            IosBridge.shared.addToFeed(viewModel: viewModel, sourceId: IosBridge.shared.savedSearchSource(search: search),
+                                                       savedSearchId: KotlinLong(value: search.id))
+                        }
+                    }
+                }
+            }
+            .navigationTitle(L("feed_edit"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("action_ok")) { dismiss() } } }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func addRow(_ text: String, add: @escaping () -> Void) -> some View {
+        Button(action: add) { Label(text, systemImage: "plus.circle") }.disabled(full)
+    }
+}
+
+#Preview("FeedEditor · Light") {
+    FeedEditor(viewModel: Core.graph.feedViewModel(), items: []).preferredColorScheme(.light)
+}
+#Preview("FeedEditor · Dark") {
+    FeedEditor(viewModel: Core.graph.feedViewModel(), items: []).preferredColorScheme(.dark)
+}
 #Preview("ExploreScreen · Light") { ExploreScreen().previewScreen().preferredColorScheme(.light) }
 #Preview("ExploreScreen · Dark") { ExploreScreen().previewScreen().preferredColorScheme(.dark) }
 #Preview("FeedView · Light") { FeedView().previewScreen().preferredColorScheme(.light) }

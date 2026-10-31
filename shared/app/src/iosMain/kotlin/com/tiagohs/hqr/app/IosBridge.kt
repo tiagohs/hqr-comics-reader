@@ -1,5 +1,9 @@
 package com.tiagohs.hqr.app
 
+import kotlinx.coroutines.flow.stateIn
+
+import kotlinx.coroutines.flow.map
+
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.SourceId
@@ -93,6 +97,42 @@ object IosBridge {
         categoryIds: List<Long>,
     ) = viewModel.moveSelected(categoryIds.toSet())
 
+    /** RF-58: the running update as zero or one item (Swift's observer takes no null). */
+    fun libraryUpdate(viewModel: com.tiagohs.hqr.presentation.library.LibraryViewModel) = oneOrNone(viewModel.update)
+
+    /** RF-58: the last finished update, for "N capítulos novos", as zero or one item. */
+    fun libraryUpdated(viewModel: com.tiagohs.hqr.presentation.library.LibraryViewModel) = oneOrNone(viewModel.updated)
+
+    private fun <T : Any> oneOrNone(flow: kotlinx.coroutines.flow.StateFlow<T?>): Observer<List<T>> =
+        Observer(
+            flow
+                .map { listOfNotNull(it) }
+                .stateIn(kotlinx.coroutines.MainScope(), kotlinx.coroutines.flow.SharingStarted.Eagerly, listOfNotNull(flow.value)),
+        )
+
+    /** SCR-EXP-004: every saved search, to put in the feed. */
+    fun feedSavedSearches(viewModel: com.tiagohs.hqr.presentation.feed.FeedViewModel) =
+        Observer(viewModel.allSaved.stateIn(kotlinx.coroutines.MainScope(), kotlinx.coroutines.flow.SharingStarted.Eagerly, emptyList()))
+
+    /** SCR-EXP-004: the active sources that have a "latest" list. */
+    fun catalogSourceIds(): List<String> =
+        SharedGraph
+            .sources()
+            .active.value
+            .filterIsInstance<com.tiagohs.hqr.domain.source.CatalogSource>()
+            .map { it.id.value }
+
+    fun feedItemSource(item: com.tiagohs.hqr.domain.repository.FeedItem): String = item.sourceId.value
+
+    fun savedSearchSource(search: com.tiagohs.hqr.domain.repository.SavedSearch): String = search.sourceId.value
+
+    /** RF-25: a source's latest ([savedSearchId] null) or a saved search into the feed. */
+    fun addToFeed(
+        viewModel: com.tiagohs.hqr.presentation.feed.FeedViewModel,
+        sourceId: String,
+        savedSearchId: Long?,
+    ) = viewModel.add(SourceId(sourceId), savedSearchId)
+
     /** RF-53: every category, for the picker. */
     fun categoriesOf(choice: Pair<List<com.tiagohs.hqr.domain.model.Category>, Set<Long>>): List<com.tiagohs.hqr.domain.model.Category> =
         choice.first
@@ -173,6 +213,19 @@ object IosBridge {
             doublePage = doublePage ?: settings.doublePage,
             keepScreenOn = keepScreenOn ?: settings.keepScreenOn,
             showPageNumber = showPageNumber ?: settings.showPageNumber,
+        )
+
+    /** RF-44, RF-45: cut margins, split wide pages in portrait, the other page first. */
+    fun changePageOptions(
+        settings: com.tiagohs.hqr.presentation.reader.ReaderSettings,
+        cropBorders: Boolean?,
+        splitWide: Boolean?,
+        invertPages: Boolean?,
+    ): com.tiagohs.hqr.presentation.reader.ReaderSettings =
+        settings.copy(
+            cropBorders = cropBorders ?: settings.cropBorders,
+            splitWide = splitWide ?: settings.splitWide,
+            invertPages = invertPages ?: settings.invertPages,
         )
 
     /** Fixed works and chapters for the SwiftUI previews (no network, no database). */

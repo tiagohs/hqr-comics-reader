@@ -53,8 +53,14 @@ struct ReaderScreen: View {
 
     @ViewBuilder
     private func content(_ state: ReaderViewModel.State) -> some View {
-        if let error = state.error, state.pages.isEmpty {
+        if state.error != nil, let url = state.chapter?.source.externalUrl.flatMap(URL.init(string:)) {
+            // RF-11: a chapter only on the publisher's site opens there.
+            unavailable(L("manga_external"), url: url)
+        } else if let error = state.error, state.pages.isEmpty {
             ErrorState(kind: error) { model.viewModel.retry() }.environment(\.colorScheme, .dark)
+        } else if state.isEmptyChapter {
+            // RF-51: the chapter's own page, else the work's.
+            unavailable("", url: (state.chapter?.source.externalUrl ?? state.manga?.source.url).flatMap(URL.init(string:)))
         } else if state.loading && state.pages.isEmpty {
             ProgressView().tint(.white)
         } else if let manga = state.manga {
@@ -65,6 +71,19 @@ struct ReaderScreen: View {
                 PagedPages(manga: manga, state: state, viewModel: model.viewModel, spread: sizeClass == .regular)
             }
         }
+    }
+
+    private func unavailable(_ message: String, url: URL?) -> some View {
+        VStack(spacing: 16) {
+            Text(L("reader_chapter_unavailable")).font(.title3.weight(.semibold)).multilineTextAlignment(.center)
+            if !message.isEmpty { Text(message).foregroundStyle(.gray) }
+            if let url {
+                Button(L("action_open_browser")) { UIApplication.shared.open(url) }.buttonStyle(.borderedProminent)
+            }
+            Button(L("reader_back_to_work")) { dismiss() }.buttonStyle(.bordered)
+        }
+        .padding(32)
+        .foregroundStyle(.white)
     }
 
     private func menu(_ state: ReaderViewModel.State) -> some View {
@@ -128,7 +147,9 @@ private struct PagedPages: View {
     var body: some View {
         GeometryReader { geometry in
             let twoUp = spread && state.settings.doublePage && geometry.size.width > geometry.size.height
-            let views = ReaderLayout.shared.views(count: Int32(state.pages.count), wide: state.wide, double: twoUp, split: false)
+            // RF-44: in portrait, a wide page can show as two screens.
+            let split = state.settings.splitWide && geometry.size.width <= geometry.size.height
+            let views = ReaderLayout.shared.views(count: Int32(state.pages.count), wide: state.wide, double: twoUp, split: split)
             TabView(selection: $selection) {
                 ForEach(0..<views.count, id: \.self) { index in
                     screen(views[index], size: geometry.size)
@@ -185,12 +206,21 @@ private struct PagedPages: View {
             let ordered = ReaderLayout.shared.firstOnLeft(mode: state.settings.mode, invert: state.settings.invertPages) ? pages : pages.reversed()
             HStack(spacing: 0) {
                 ForEach(ordered, id: \.self) { index in
-                    PageImage(manga: manga, page: state.pages[index], maxPixel: size.height * 2)
+                    PageImage(manga: manga, page: state.pages[index], maxPixel: size.height * 2, crop: state.settings.cropBorders)
                 }
             }
             .environment(\.layoutDirection, .leftToRight)
+        } else if let half = view as? PageViewHalf {
+            // One half of a wide page, the half read first on the side the reading starts (RF-44).
+            let leftFirst = ReaderLayout.shared.firstOnLeft(mode: state.settings.mode, invert: state.settings.invertPages)
+            let showsLeft = (half.part == 0) == leftFirst
+            PageImage(manga: manga, page: state.pages[Int(half.index)], maxPixel: size.height * 2, crop: state.settings.cropBorders)
+                .frame(width: size.width * 2, height: size.height)
+                .frame(width: size.width, height: size.height, alignment: showsLeft ? .leading : .trailing)
+                .clipped()
+                .environment(\.layoutDirection, .leftToRight)
         } else if let index = pages.first {
-            ZoomablePage(manga: manga, page: state.pages[index], maxPixel: max(size.width, size.height) * 2)
+            ZoomablePage(manga: manga, page: state.pages[index], maxPixel: max(size.width, size.height) * 2, crop: state.settings.cropBorders)
                 .environment(\.layoutDirection, .leftToRight)
         }
     }
@@ -209,7 +239,7 @@ private struct VerticalPages: View {
             ScrollView {
                 LazyVStack(spacing: state.settings.mode == .webtoon ? 0 : 8) {
                     ForEach(0..<state.pages.count, id: \.self) { index in
-                        PageImage(manga: manga, page: state.pages[index], maxPixel: 0, fitWidth: geometry.size.width * 2)
+                        PageImage(manga: manga, page: state.pages[index], maxPixel: 0, fitWidth: geometry.size.width * 2, crop: state.settings.cropBorders)
                             .id(index)
                     }
                     ChapterEnd(state: state, viewModel: viewModel)
@@ -241,6 +271,8 @@ private struct PageImage: View {
     let maxPixel: CGFloat
     /// For a strip shown at a width: the decode keeps that width, however tall the page is.
     var fitWidth: CGFloat? = nil
+    /// RF-45: uniform margins cut before the page is drawn.
+    var crop = false
     @StateObject private var loader = ImageLoader()
     @State private var attempt = 0
 
@@ -259,7 +291,7 @@ private struct PageImage: View {
                 .frame(maxWidth: .infinity, minHeight: 320)
             }
         }
-        .task(id: "\(page.imageUrl)#\(attempt)") { await loader.load(.page(manga, page), maxPixel: maxPixel, fitWidth: fitWidth) }
+        .task(id: "\(page.imageUrl)#\(attempt)#\(crop)") { await loader.load(.page(manga, page), maxPixel: maxPixel, fitWidth: fitWidth, crop: crop) }
         
     }
 }
@@ -269,13 +301,14 @@ private struct ZoomablePage: View {
     let manga: Manga
     let page: SourcePage
     let maxPixel: CGFloat
+    var crop = false
     @State private var scale: CGFloat = 1
     @State private var lastScale: CGFloat = 1
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
 
     var body: some View {
-        PageImage(manga: manga, page: page, maxPixel: maxPixel)
+        PageImage(manga: manga, page: page, maxPixel: maxPixel, crop: crop)
             .scaleEffect(scale)
             .offset(offset)
             .gesture(

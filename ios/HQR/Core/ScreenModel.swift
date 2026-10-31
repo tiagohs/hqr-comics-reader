@@ -33,8 +33,12 @@ final class FlowModel<Value: AnyObject>: ObservableObject {
     @Published private(set) var value: Value
     private var subscription: Shared.Subscription?
 
-    init(_ flow: any Kotlinx_coroutines_coreStateFlow) {
-        let observer = Observer<Value>(flow: flow)
+    convenience init(_ flow: any Kotlinx_coroutines_coreStateFlow) {
+        self.init(observer: Observer<Value>(flow: flow))
+    }
+
+    /// A flow the core already wrapped (a nullable one, as zero or one item).
+    init(observer: Observer<Value>) {
         value = observer.current
         subscription = observer.observe { [weak self] newValue in
             MainActor.assumeIsolated { self?.value = newValue }

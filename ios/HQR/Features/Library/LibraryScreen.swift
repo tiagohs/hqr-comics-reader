@@ -12,6 +12,8 @@ struct LibraryScreen: View {
     @State private var removedMany: [LibraryRemoval] = []
     @State private var showOptions = false
     @State private var moving = false
+    @State private var updateNotice: String?
+    @Environment(\.scenePhase) private var scenePhase
 
     private var model: ScreenModel<LibraryViewModel, LibraryViewModel.State> { models.screen }
     private var picked: Set<Int64> { Set(models.picked.value.compactMap { ($0 as? KotlinLong)?.int64Value }) }
@@ -20,6 +22,7 @@ struct LibraryScreen: View {
         let state = model.state
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                if let progress = models.update.value.firstObject as? UpdateProgress { updating(progress) }
                 if state.tabs.count > 1 { tabs(state) }
                 if let entry = state.continueReading, query.isEmpty, picked.isEmpty { continueCard(entry) }
                 if !state.loading && state.items.isEmpty {
@@ -54,6 +57,18 @@ struct LibraryScreen: View {
         .refreshable { model.viewModel.updateLibrary() }
         .toolbar {
             if picked.isEmpty { mainToolbar } else { pickedToolbar(state) }
+        }
+        // RF-58: leaving the app stops the update; what arrived stays.
+        .onChange(of: scenePhase) { _, phase in if phase == .background { model.viewModel.stopUpdate() } }
+        .onChange(of: models.updated.value.count) { _, _ in
+            guard let result = models.updated.value.firstObject as? UpdateProgress else { return }
+            model.viewModel.updateShown()
+            let found = result.newChapters == 0 ? L("library_new_none")
+                : result.newChapters == 1 ? L("library_new_one") : L("library_new_many", Int(result.newChapters))
+            updateNotice = result.failed > 0 ? found + " · " + L("library_update_failed", Int(result.failed)) : found
+        }
+        .alert(updateNotice ?? "", isPresented: Binding(get: { updateNotice != nil }, set: { if !$0 { updateNotice = nil } })) {
+            Button(L("action_ok"), role: .cancel) {}
         }
         .sheet(isPresented: $showOptions) {
             LibraryOptionsSheet(state: model.state) { model.viewModel.setOptions(value: $0) }
@@ -225,6 +240,17 @@ struct LibraryScreen: View {
     private static let caption = Color(red: 1, green: 0xF1 / 255, blue: 0xA8 / 255)
     private static let captionInk = Color(red: 0x16 / 255, green: 0x16 / 255, blue: 0x1A / 255)
 
+    /// RF-58: which work is being asked, out of how many.
+    private func updating(_ progress: UpdateProgress) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            ProgressView(value: Double(progress.done), total: Double(max(progress.total, 1)))
+            Text(L("library_updating", min(Int(progress.done) + 1, Int(progress.total)), Int(progress.total), progress.current ?? ""))
+                .font(.caption).foregroundStyle(Palette.onSurfaceVariant).lineLimit(1)
+        }
+        .padding(.horizontal, Metrics.spaceMarginCompact)
+        .accessibilityElement(children: .combine)
+    }
+
     private func tabs(_ state: LibraryViewModel.State) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -294,6 +320,9 @@ struct LibraryScreen: View {
 final class LibraryModels: ObservableObject {
     let screen: ScreenModel<LibraryViewModel, LibraryViewModel.State>
     let picked: FlowModel<NSSet>
+    /// RF-58: the running update and the last finished one, as zero or one item.
+    let update: FlowModel<NSArray>
+    let updated: FlowModel<NSArray>
     /// RF-118: the works cascade in as the library opens.
     let opened = Date()
     private var changes: [AnyCancellable] = []
@@ -302,7 +331,11 @@ final class LibraryModels: ObservableObject {
         let viewModel = Core.graph.libraryViewModel()
         screen = ScreenModel(viewModel) { Screen<LibraryViewModel.State>(viewModel: $0, flow: $0.state) }
         picked = FlowModel(viewModel.picked)
+        update = FlowModel(observer: IosBridge.shared.libraryUpdate(viewModel: viewModel))
+        updated = FlowModel(observer: IosBridge.shared.libraryUpdated(viewModel: viewModel))
         changes = [
+            update.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
+            updated.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             screen.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             picked.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
         ]

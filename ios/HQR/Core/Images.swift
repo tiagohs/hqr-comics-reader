@@ -23,7 +23,7 @@ final class ImageStore {
 
     /// Decodes [data] no larger than [maxPixel] on its longest side (0 keeps the original size); with [fitWidth], the
     /// limit follows the page's proportion so a tall strip keeps that width.
-    nonisolated static func decode(_ data: Data, maxPixel: CGFloat, fitWidth: CGFloat? = nil) -> UIImage? {
+    nonisolated static func decode(_ data: Data, maxPixel: CGFloat, fitWidth: CGFloat? = nil, crop: Bool = false) -> UIImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else {
             return nil
         }
@@ -41,7 +41,28 @@ final class ImageStore {
         ]
         if maxPixel > 0 { options[kCGImageSourceThumbnailMaxPixelSize] = maxPixel }
         guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
-        return UIImage(cgImage: image)
+        return UIImage(cgImage: crop ? cropBorders(image) : image)
+    }
+
+    /// RF-45: cuts uniform white or black margins, by the core's BorderCrop (the same rule as Android).
+    nonisolated static func cropBorders(_ image: CGImage) -> CGImage {
+        let width = image.width
+        let height = image.height
+        guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue),
+              width > 1, height > 1 else { return image }
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        guard let data = context.data else { return image }
+        let pixels = data.bindMemory(to: UInt8.self, capacity: width * height * 4)
+        // The bitmap's rows go from the top of the page down, as BorderCrop reads them.
+        guard let area = BorderCrop.shared.area(width: Int32(width), height: Int32(height), pixel: { x, y in
+            let i = (Int(truncating: y) * width + Int(truncating: x)) * 4
+            let argb = UInt32(0xFF) << 24 | UInt32(pixels[i]) << 16 | UInt32(pixels[i + 1]) << 8 | UInt32(pixels[i + 2])
+            return KotlinInt(value: Int32(bitPattern: argb))
+        }) else { return image }
+        let rect = CGRect(x: Int(area.left), y: Int(area.top), width: Int(area.width), height: Int(area.height))
+        return image.cropping(to: rect) ?? image
     }
 }
 
@@ -74,8 +95,8 @@ final class ImageLoader: ObservableObject {
     @Published private(set) var phase: Phase = .loading
     private var current: String?
 
-    func load(_ request: ImageRequest, maxPixel: CGFloat, fitWidth: CGFloat? = nil) async {
-        let key = request.key + "@\(Int(maxPixel))w\(Int(fitWidth ?? 0))"
+    func load(_ request: ImageRequest, maxPixel: CGFloat, fitWidth: CGFloat? = nil, crop: Bool = false) async {
+        let key = request.key + "@\(Int(maxPixel))w\(Int(fitWidth ?? 0))" + (crop ? "c" : "")
         if let image = ImageStore.shared.cached(key) {
             phase = .done(image)
             current = key
@@ -88,7 +109,7 @@ final class ImageLoader: ObservableObject {
                 phase = .failed
                 return
             }
-            let image = await Task.detached(priority: .userInitiated) { ImageStore.decode(data, maxPixel: maxPixel, fitWidth: fitWidth) }.value
+            let image = await Task.detached(priority: .userInitiated) { ImageStore.decode(data, maxPixel: maxPixel, fitWidth: fitWidth, crop: crop) }.value
             guard current == key else { return }
             if let image {
                 ImageStore.shared.store(image, for: key)

@@ -38,7 +38,7 @@ struct DownloadsScreen: View {
                         }
                         .swipeActions {
                             Button(role: .destructive) { model.viewModel.remove(chapterId: item.chapterId) } label: {
-                                Label(L("manga_delete_download"), systemImage: "trash")
+                                Label(L("download_delete", item.chapterLabel), systemImage: "trash")
                             }
                         }
                         .contextMenu {
@@ -103,7 +103,9 @@ struct DownloadsScreen: View {
             }
         }
         .swipeActions {
-            Button(role: .destructive) { model.viewModel.remove(chapterId: item.chapterId) } label: { Image(systemName: "xmark") }
+            Button(role: .destructive) { model.viewModel.remove(chapterId: item.chapterId) } label: {
+                Label(L("download_cancel", item.chapterLabel), systemImage: "xmark")
+            }
         }
         .contextMenu {
             if !first { Button(L("action_move_up", item.chapterLabel)) { model.viewModel.move(chapterId: item.chapterId, by: -1) } }
@@ -113,10 +115,12 @@ struct DownloadsScreen: View {
 
     private func stateText(_ item: DownloadItem) -> String {
         switch item.state {
-        case .running: "\(item.pagesDone)/\(item.pagesTotal)"
-        case .paused: "⏸"
-        case .waitingWifi: L("downloads_wifi_only")
-        case .error: item.error ?? L("error_unknown")
+        case .queued: L("download_state_queued")
+        case .running: L("download_state_running", Int(item.pagesDone), Int(item.pagesTotal))
+        case .paused: item.lowSpace ? L("download_state_low_space") : L("download_state_paused")
+        // Waiting for Wi-Fi under "só no Wi-Fi" (RF-64), or for any network after losing it.
+        case .waitingWifi: model.state.wifiOnly ? L("download_state_wifi") : L("download_state_network")
+        case .error: L("download_state_error", item.error ?? L("error_unknown"))
         default: ""
         }
     }

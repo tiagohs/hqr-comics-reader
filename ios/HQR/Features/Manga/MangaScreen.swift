@@ -12,6 +12,8 @@ struct MangaScreen: View {
     @State private var expanded = false
     /// The bar shows the work's name only after its title scrolled under it; over the panel it stays clear.
     @State private var titleUnderBar = false
+    /// RF-73: the source this work came from, when this app doesn't have it.
+    @State private var missingSource: String?
     /// RF-53: choosing the work's categories.
     @State private var picking = false
     /// RF-118: the panel draws itself in as the work opens.
@@ -44,8 +46,11 @@ struct MangaScreen: View {
                     .listRowSeparator(.hidden)
             }
             // RF-117: a failure of the details stays here; a failure of the list stays in the list.
-            if let error = state.error, state.chaptersError == nil, state.chapters.isEmpty {
-                ErrorBox(message: error.message, action: L("action_retry")) { model.viewModel.refresh() }
+            if let error = state.error, state.chaptersError == nil {
+                // What was saved stays on screen; only the refresh failed.
+                ErrorBox(message: state.manga == nil ? error.message : L("manga_refresh_failed"), action: L("action_retry")) {
+                    model.viewModel.refresh()
+                }
                     .listRowBackground(Color.clear)
             }
             Section {
@@ -94,6 +99,9 @@ struct MangaScreen: View {
         .tint(tint(state.manga))
         .toolbar { toolbar(state) }
         .zoomFromCover(navigator.coverIds[mangaId])
+        .task(id: state.manga?.source.sourceKey) {
+            if let id = state.manga?.source.sourceKey { missingSource = try? await Core.graph.unavailableSourceName(sourceId: id) }
+        }
         .sheet(isPresented: $picking) {
             CategoryPicker(categories: categories,
                            assigned: Set(IosBridge.shared.assignedOf(choice: models.categories.value).map { $0.int64Value })) { ids in
@@ -159,6 +167,9 @@ struct MangaScreen: View {
                 ComicTitle(text: source.title)
                     .onGeometryChange(for: Bool.self) { $0.frame(in: .scrollView).maxY < Self.barHeight } action: { titleUnderBar = $0 }
                 let people = Array(Set(source.authors + source.artists)).sorted().prefix(2)
+                if let missingSource {
+                    Text(L("source_unavailable", missingSource)).font(.subheadline.weight(.semibold)).foregroundStyle(Palette.error)
+                }
                 MetaTags(author: people.isEmpty ? nil : people.joined(separator: " · "),
                          status: statusLabel(source.status),
                          statusColor: statusColor(source.status),
@@ -313,6 +324,7 @@ struct MangaScreen: View {
             parts.append(L("manga_page_of", Int(chapter.lastPage) + 1, count))
         }
         if chapter.source.externalUrl != nil { parts.append(L("manga_external")) }
+        if chapter.removedAtSource { parts.append(L("manga_removed_from_source")) }
         return Text(parts.joined(separator: " · "))
     }
 

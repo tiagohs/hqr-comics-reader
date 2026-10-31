@@ -14,7 +14,7 @@ struct LibraryScreen: View {
         let state = model.state
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if state.tabs.count > 2 { tabs(state) }
+                if state.tabs.count > 1 { tabs(state) }
                 if let entry = state.continueReading, query.isEmpty { continueCard(entry) }
                 if !state.loading && state.items.isEmpty {
                     if query.isEmpty {
@@ -53,7 +53,7 @@ struct LibraryScreen: View {
                 Menu {
                     Button { navigator.open(.categories) } label: { Label(L("library_categories"), systemImage: "folder") }
                     Button { model.viewModel.updateLibrary() } label: {
-                        Label(L("library_updating"), systemImage: "arrow.clockwise")
+                        Label(L("library_update"), systemImage: "arrow.clockwise")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle").accessibilityLabel(L("action_more"))
@@ -66,6 +66,7 @@ struct LibraryScreen: View {
                     model.viewModel.undoRemove(removal: removal)
                     removed = nil
                 } dismiss: { removed = nil }
+                .id(ObjectIdentifier(removal))
             }
         }
     }

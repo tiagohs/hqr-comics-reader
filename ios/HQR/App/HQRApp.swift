@@ -31,14 +31,15 @@ enum BackgroundDownloads {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: identifier, using: nil) { task in
             guard let task = task as? BGProcessingTask else { return }
             schedule()
+            let finish = Once { task.setTaskCompleted(success: $0) }
+            task.expirationHandler = { finish.run(false) }
             Task { @MainActor in
                 Core.graph.downloadScheduler().schedule(restart: false)
-                while Core.graph.downloadScheduler().isRunning {
+                while Core.graph.downloadScheduler().isRunning && !finish.done {
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
                 }
-                task.setTaskCompleted(success: true)
+                finish.run(true)
             }
-            task.expirationHandler = { task.setTaskCompleted(success: false) }
         }
     }
 
@@ -46,13 +47,11 @@ enum BackgroundDownloads {
     static func keepGoing() {
         let scheduler = Core.graph.downloadScheduler()
         guard scheduler.isRunning else { return }
-        var id = UIBackgroundTaskIdentifier.invalid
-        id = UIApplication.shared.beginBackgroundTask(withName: identifier) {
-            UIApplication.shared.endBackgroundTask(id)
-        }
+        let task = BackgroundTask()
+        task.begin(name: identifier)
         Task { @MainActor in
-            while scheduler.isRunning { try? await Task.sleep(nanoseconds: 1_000_000_000) }
-            UIApplication.shared.endBackgroundTask(id)
+            while scheduler.isRunning && task.active { try? await Task.sleep(nanoseconds: 1_000_000_000) }
+            task.end()
         }
         schedule()
     }
@@ -61,5 +60,41 @@ enum BackgroundDownloads {
         let request = BGProcessingTaskRequest(identifier: identifier)
         request.requiresNetworkConnectivity = true
         try? BGTaskScheduler.shared.submit(request)
+    }
+}
+
+/// Runs its action once, whoever calls first (the system's expiration or the end of the queue).
+final class Once: @unchecked Sendable {
+    private let lock = NSLock()
+    private let action: (Bool) -> Void
+    private(set) var done = false
+
+    init(_ action: @escaping (Bool) -> Void) { self.action = action }
+
+    func run(_ value: Bool) {
+        lock.lock()
+        let first = !done
+        done = true
+        lock.unlock()
+        if first { action(value) }
+    }
+}
+
+/// The extra time iOS gives after the app leaves the screen, ended exactly once.
+@MainActor
+final class BackgroundTask {
+    private var id = UIBackgroundTaskIdentifier.invalid
+    var active: Bool { id != .invalid }
+
+    func begin(name: String) {
+        id = UIApplication.shared.beginBackgroundTask(withName: name) { [weak self] in
+            MainActor.assumeIsolated { self?.end() }
+        }
+    }
+
+    func end() {
+        guard id != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(id)
+        id = .invalid
     }
 }

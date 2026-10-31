@@ -468,4 +468,5 @@
     <string name="about_privacy_text_ios">Sua biblioteca, seu progresso e seus arquivos ficam neste aparelho. O HQR não tem conta, analytics nem relatórios de falha no iPhone e no iPad. As fontes que você abre veem seus pedidos, como qualquer site.</string>
     <string name="settings_local_folder_ios">Coloque CBZ, PDF ou pastas de imagens em Arquivos › No Meu iPhone › HQR para ler aqui.</string>
     <string name="downloads_ios_background">No iPhone e no iPad a fila anda com o HQR aberto e pelo tempo que o sistema der em segundo plano.</string>
+    <string name="library_update">Atualizar a biblioteca</string>
 </resources>

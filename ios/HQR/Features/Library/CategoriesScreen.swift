@@ -33,10 +33,10 @@ struct CategoriesScreen: View {
                         Spacer()
                         Button { model.viewModel.move(id: category.id, by: -1) } label: { Image(systemName: "chevron.up") }
                             .disabled(index == 0)
-                            .accessibilityLabel(L("action_move_up"))
+                            .accessibilityLabel(L("action_move_up", category.name))
                         Button { model.viewModel.move(id: category.id, by: 1) } label: { Image(systemName: "chevron.down") }
                             .disabled(index == state.categories.count - 1)
-                            .accessibilityLabel(L("action_move_down"))
+                            .accessibilityLabel(L("action_move_down", category.name))
                     }
                     .buttonStyle(.borderless)
                     .contentShape(Rectangle())
@@ -47,7 +47,7 @@ struct CategoriesScreen: View {
                     .swipeActions {
                         Button(role: .destructive) {
                             model.viewModel.delete(id: category.id) { _ in }
-                        } label: { Label(L("history_remove"), systemImage: "trash") }
+                        } label: { Label(L("categories_delete"), systemImage: "trash") }
                     }
                 }
             }

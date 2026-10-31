@@ -468,4 +468,5 @@
     <string name="about_privacy_text_ios">Your library, progress and files stay on this device. HQR has no account, no analytics and no crash reports on iPhone and iPad. The sources you open see your requests, as any website would.</string>
     <string name="settings_local_folder_ios">Put CBZ, PDF or folders of images in Files › On My iPhone › HQR to read them here.</string>
     <string name="downloads_ios_background">On iPhone and iPad the queue runs while HQR is open and for the time the system gives it in the background.</string>
+    <string name="library_update">Update library</string>
 </resources>

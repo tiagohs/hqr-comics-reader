@@ -10,7 +10,7 @@ final class CoreBridgeTests: XCTestCase {
     }
 
     func test_FEAT060_library_view_model_starts_loading() {
-        let model = ScreenModel(Core.graph.libraryViewModel()) { Screen(viewModel: $0, flow: $0.state) }
+        let model = ScreenModel(Core.graph.libraryViewModel()) { Screen<LibraryViewModel.State>(viewModel: $0, flow: $0.state) }
         XCTAssertNotNil(model.state)
     }
 

@@ -8,6 +8,7 @@ struct MigrationScreen: View {
     @EnvironmentObject private var navigator: Navigator
     @StateObject private var model: ScreenModel<MigrationViewModel, MigrationViewModel.State>
     @State private var deleteDownloads = false
+    @State private var query = ""
 
     init(mangaId: Int64) {
         self.mangaId = mangaId
@@ -20,9 +21,10 @@ struct MigrationScreen: View {
         let state = model.state
         List {
             Section(L("migrate_query")) {
-                TextField(L("migrate_query"), text: Binding(get: { model.state.query }, set: { model.viewModel.setQuery(query: $0) }))
+                TextField(L("migrate_query"), text: $query)
                     .submitLabel(.search)
                     .onSubmit { model.viewModel.search() }
+                    .onChange(of: query) { _, text in model.viewModel.setQuery(query: text) }
             }
             Section(L("migrate_sources")) {
                 if state.sources.isEmpty {
@@ -67,7 +69,11 @@ struct MigrationScreen: View {
                 navigator.open(.manga(done.mangaId))
             }
         }
-        .onAppear { if state.results.isEmpty { model.viewModel.search() } }
+        .onAppear {
+            query = model.state.query
+            if state.results.isEmpty { model.viewModel.search() }
+        }
+        .onChange(of: state.title) { _, _ in if query.isEmpty { query = model.state.query } }
     }
 
     @ViewBuilder

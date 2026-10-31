@@ -80,6 +80,7 @@ APP_SETTINGS = {
 }
 TEST_SETTINGS = {
     "BUNDLE_LOADER": "$(TEST_HOST)",
+    "FRAMEWORK_SEARCH_PATHS": "$(SRCROOT)/../shared/app/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
     "CODE_SIGN_STYLE": "Automatic",
     "GENERATE_INFOPLIST_FILE": "YES",
     "PRODUCT_BUNDLE_IDENTIFIER": BUNDLE_ID + ".tests",

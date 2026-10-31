@@ -61,8 +61,9 @@ struct ChallengeWebView: UIViewRepresentable {
             // The clearance kept from an earlier visit does not count: only a new value means the check passed.
             view.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
                 MainActor.assumeIsolated {
-                    self.before = Self.clearance(in: cookies, host: self.url.host ?? "")
+                    self.before = Self.clearanceCookie(in: cookies, host: self.url.host ?? "")?.value
                     view.load(URLRequest(url: self.url))
+                    self.poll()
                 }
             }
         }
@@ -71,23 +72,30 @@ struct ChallengeWebView: UIViewRepresentable {
             check()
         }
 
+        /// Looks once now and then every second until the view goes away (some checks pass without a page load).
+        private func poll() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                guard let self, !self.done, self.view != nil else { return }
+                self.check()
+                self.poll()
+            }
+        }
+
         private func check() {
             guard !done, let view, let host = url.host else { return }
             view.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
                 MainActor.assumeIsolated {
-                    guard let value = Self.clearance(in: cookies, host: host), value != self.before, !self.done else {
-                        // Some checks finish without a new page load: look again shortly.
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.check() }
-                        return
-                    }
+                    guard !self.done, let cookie = Self.clearanceCookie(in: cookies, host: host), cookie.value != self.before else { return }
                     self.done = true
+                    // Saved under the cookie's domain, so api. or www. of the same site use it too.
+                    let domain = cookie.domain.trimmingCharacters(in: CharacterSet(charactersIn: "."))
                     let header = cookies
                         .filter { host.hasSuffix($0.domain.trimmingCharacters(in: CharacterSet(charactersIn: "."))) }
                         .map { "\($0.name)=\($0.value)" }
                         .joined(separator: "; ")
                     view.evaluateJavaScript("navigator.userAgent") { agent, _ in
                         MainActor.assumeIsolated {
-                            Core.graph.challengeCookies().save(host: host, header: header, browserUserAgent: agent as? String ?? "")
+                            Core.graph.challengeCookies().save(host: domain, header: header, browserUserAgent: agent as? String ?? "")
                             self.passed()
                         }
                     }
@@ -95,8 +103,8 @@ struct ChallengeWebView: UIViewRepresentable {
             }
         }
 
-        private static func clearance(in cookies: [HTTPCookie], host: String) -> String? {
-            cookies.first { $0.name == "cf_clearance" && host.hasSuffix($0.domain.trimmingCharacters(in: CharacterSet(charactersIn: "."))) }?.value
+        private static func clearanceCookie(in cookies: [HTTPCookie], host: String) -> HTTPCookie? {
+            cookies.first { $0.name == "cf_clearance" && host.hasSuffix($0.domain.trimmingCharacters(in: CharacterSet(charactersIn: "."))) }
         }
     }
 }

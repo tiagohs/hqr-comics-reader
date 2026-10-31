@@ -5478,6 +5478,29 @@
         }
       }
     },
+    "library_update": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update library"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar la biblioteca"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar a biblioteca"
+          }
+        }
+      }
+    },
     "library_update_failed": {
       "extractionState": "manual",
       "localizations": {

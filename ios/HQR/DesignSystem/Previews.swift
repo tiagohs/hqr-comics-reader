@@ -1,4 +1,3 @@
-#if DEBUG
 import Shared
 import SwiftUI
 
@@ -24,4 +23,3 @@ enum PreviewData {
     static let work = IosBridge.shared.sampleWork(id: 1, title: "Steel Ball Run")
     static let chapters = (1...5).map { IosBridge.shared.sampleChapter(id: Int64($0), mangaId: 1, number: Double($0), read: $0 < 3) }
 }
-#endif

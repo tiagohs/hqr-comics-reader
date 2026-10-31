@@ -22,9 +22,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import platform.CoreGraphics.CGContextConcatCTM
 import platform.CoreGraphics.CGContextDrawPDFPage
 import platform.CoreGraphics.CGContextScaleCTM
 import platform.CoreGraphics.CGContextTranslateCTM
@@ -36,6 +38,8 @@ import platform.CoreGraphics.CGPDFDocumentGetPage
 import platform.CoreGraphics.CGPDFDocumentRef
 import platform.CoreGraphics.CGPDFDocumentRelease
 import platform.CoreGraphics.CGPDFPageGetBoxRect
+import platform.CoreGraphics.CGPDFPageGetDrawingTransform
+import platform.CoreGraphics.CGPDFPageGetRotationAngle
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
 import platform.CoreGraphics.kCGPDFCropBox
@@ -64,8 +68,10 @@ class IosConnectivity : Connectivity {
     private val unmetered = MutableStateFlow(true)
     override val online: StateFlow<Boolean> = state
 
+    // Kept by the object: a monitor nobody holds stops sending updates.
+    private val monitor = nw_path_monitor_create()
+
     init {
-        val monitor = nw_path_monitor_create()
         nw_path_monitor_set_update_handler(monitor) { path ->
             state.value = nw_path_get_status(path) == nw_path_status_satisfied
             unmetered.value = !nw_path_is_expensive(path) && !nw_path_is_constrained(path)
@@ -77,8 +83,9 @@ class IosConnectivity : Connectivity {
     /** Downloads may run now: online, and on Wi-Fi when the user asked for it (RF-64). */
     fun allowed(wifiOnly: Boolean): Boolean = state.value && (!wifiOnly || unmetered.value)
 
+    /** Waits for the network the queue may use; cellular to Wi-Fi counts too (online does not change then). */
     suspend fun awaitAllowed(wifiOnly: () -> Boolean) {
-        state.first { allowed(wifiOnly()) }
+        combine(state, unmetered) { _, _ -> allowed(wifiOnly()) }.first { it }
     }
 }
 
@@ -105,6 +112,7 @@ class IosDownloadScheduler(
                     waiting =
                         scope.launch {
                             connectivity.awaitAllowed(wifiOnly)
+                            waiting = null
                             schedule(restart = false)
                         }
                 }
@@ -136,17 +144,24 @@ class IosPdfPages(
     ): ByteArray =
         withDocument(path) { document ->
             val pdfPage = CGPDFDocumentGetPage(document, (page + 1).convert()) ?: error("Página $page ausente")
-            val (width, height) = CGPDFPageGetBoxRect(pdfPage, kCGPDFCropBox).useContents { size.width to size.height }
-            val scale = WIDTH / width
+            val (boxWidth, boxHeight) = CGPDFPageGetBoxRect(pdfPage, kCGPDFCropBox).useContents { size.width to size.height }
+            // A page turned 90° is drawn upright: its width is the box's height.
+            val turned = CGPDFPageGetRotationAngle(pdfPage) % HALF_TURN != 0
+            val width = (if (turned) boxHeight else boxWidth).takeIf { it > 0 } ?: WIDTH
+            val height = (if (turned) boxWidth else boxHeight).takeIf { it > 0 } ?: WIDTH
+            val outHeight = height * WIDTH / width
             val format = UIGraphicsImageRendererFormat().apply { setScale(1.0) }
-            val renderer = UIGraphicsImageRenderer(CGSizeMake(WIDTH, height * scale), format)
+            val renderer = UIGraphicsImageRenderer(CGSizeMake(WIDTH, outHeight), format)
             val image =
                 renderer.imageWithActions { context ->
                     UIColor.whiteColor.setFill()
-                    UIRectFill(CGRectMake(0.0, 0.0, WIDTH, height * scale))
+                    UIRectFill(CGRectMake(0.0, 0.0, WIDTH, outHeight))
                     val cg = context?.CGContext
-                    CGContextTranslateCTM(cg, 0.0, height * scale)
-                    CGContextScaleCTM(cg, scale, -scale)
+                    CGContextTranslateCTM(cg, 0.0, outHeight)
+                    CGContextScaleCTM(cg, 1.0, -1.0)
+                    // The system's transform places the crop box (origin and rotation) in the rectangle.
+                    val transform = CGPDFPageGetDrawingTransform(pdfPage, kCGPDFCropBox, CGRectMake(0.0, 0.0, WIDTH, outHeight), 0, true)
+                    CGContextConcatCTM(cg, transform)
                     CGContextDrawPDFPage(cg, pdfPage)
                 }
             val data = UIImageJPEGRepresentation(image, QUALITY) ?: error("Página $page sem imagem")
@@ -174,6 +189,7 @@ class IosPdfPages(
     private companion object {
         const val WIDTH = 1600.0
         const val QUALITY = 0.9
+        const val HALF_TURN = 180
     }
 }
 
@@ -186,9 +202,15 @@ class IosChallengeCookies(
 ) : ChallengeCookies {
     override val userAgent: String get() = settings.getString(USER_AGENT, "")
 
+    /** The clearance of [url]'s host or of a domain above it ("api.site.com" uses what "site.com" got). */
     override fun cookies(url: String): String? {
         val host = runCatching { Url(url).host }.getOrNull() ?: return null
-        return settings.getStringOrNull(PREFIX + host)?.takeIf { ChallengeCookies.CLEARANCE in it }
+        val labels = host.split('.')
+        return (0 until (labels.size - 1).coerceAtLeast(1))
+            .asSequence()
+            .map { labels.drop(it).joinToString(".") }
+            .firstNotNullOfOrNull { settings.getStringOrNull(PREFIX + it) }
+            ?.takeIf { ChallengeCookies.CLEARANCE in it }
     }
 
     /** [header] is "name=value; name2=value2" for [host]; empty clears it. */

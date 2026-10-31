@@ -9,7 +9,7 @@ final class ScreenModel<ViewModel: AnyObject, State: AnyObject>: ObservableObjec
     @Published private(set) var state: State
 
     private let screen: Screen<State>
-    private var subscription: Subscription?
+    private var subscription: Shared.Subscription?
 
     init(_ viewModel: ViewModel, flow: (ViewModel) -> Screen<State>) {
         self.viewModel = viewModel
@@ -31,7 +31,7 @@ final class ScreenModel<ViewModel: AnyObject, State: AnyObject>: ObservableObjec
 @MainActor
 final class FlowModel<Value: AnyObject>: ObservableObject {
     @Published private(set) var value: Value
-    private var subscription: Subscription?
+    private var subscription: Shared.Subscription?
 
     init(_ flow: any Kotlinx_coroutines_coreStateFlow) {
         let observer = Observer<Value>(flow: flow)

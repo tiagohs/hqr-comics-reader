@@ -21,10 +21,18 @@ final class ImageStore {
         cache.setObject(image, forKey: key as NSString, cost: cost)
     }
 
-    /// Decodes [data] no larger than [maxPixel] on its longest side (0 keeps the original size).
-    nonisolated static func decode(_ data: Data, maxPixel: CGFloat) -> UIImage? {
+    /// Decodes [data] no larger than [maxPixel] on its longest side (0 keeps the original size); with [fitWidth], the
+    /// limit follows the page's proportion so a tall strip keeps that width.
+    nonisolated static func decode(_ data: Data, maxPixel: CGFloat, fitWidth: CGFloat? = nil) -> UIImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else {
             return nil
+        }
+        var maxPixel = maxPixel
+        if let fitWidth,
+           let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+           let width = properties[kCGImagePropertyPixelWidth] as? CGFloat,
+           let height = properties[kCGImagePropertyPixelHeight] as? CGFloat, width > 0 {
+            maxPixel = width <= fitWidth ? 0 : fitWidth * max(1, height / width)
         }
         var options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
@@ -66,8 +74,8 @@ final class ImageLoader: ObservableObject {
     @Published private(set) var phase: Phase = .loading
     private var current: String?
 
-    func load(_ request: ImageRequest, maxPixel: CGFloat) async {
-        let key = request.key + "@\(Int(maxPixel))"
+    func load(_ request: ImageRequest, maxPixel: CGFloat, fitWidth: CGFloat? = nil) async {
+        let key = request.key + "@\(Int(maxPixel))w\(Int(fitWidth ?? 0))"
         if let image = ImageStore.shared.cached(key) {
             phase = .done(image)
             current = key
@@ -80,7 +88,7 @@ final class ImageLoader: ObservableObject {
                 phase = .failed
                 return
             }
-            let image = await Task.detached(priority: .userInitiated) { ImageStore.decode(data, maxPixel: maxPixel) }.value
+            let image = await Task.detached(priority: .userInitiated) { ImageStore.decode(data, maxPixel: maxPixel, fitWidth: fitWidth) }.value
             guard current == key else { return }
             if let image {
                 ImageStore.shared.store(image, for: key)

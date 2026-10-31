@@ -1,3 +1,4 @@
+import Combine
 import Shared
 import SwiftUI
 
@@ -7,18 +8,18 @@ struct MangaScreen: View {
     let mangaId: Int64
     @EnvironmentObject private var navigator: Navigator
     @Environment(\.colorScheme) private var scheme
-    @StateObject private var model: ScreenModel<MangaViewModel, MangaViewModel.State>
-    @StateObject private var downloads: FlowModel<NSDictionary>
-    @StateObject private var selection: FlowModel<NSSet>
+    @StateObject private var models: MangaModels
     @State private var expanded = false
 
     init(mangaId: Int64) {
         self.mangaId = mangaId
-        let viewModel = Core.graph.mangaViewModel(mangaId: mangaId)
-        _model = StateObject(wrappedValue: ScreenModel(viewModel) { Screen<MangaViewModel.State>(viewModel: $0, flow: $0.state) })
-        _downloads = StateObject(wrappedValue: FlowModel(viewModel.downloadStates))
-        _selection = StateObject(wrappedValue: FlowModel(viewModel.selected))
+        // One ViewModel per screen, made once: the autoclosure runs only when SwiftUI first creates the state.
+        _models = StateObject(wrappedValue: MangaModels(mangaId: mangaId))
     }
+
+    private var model: ScreenModel<MangaViewModel, MangaViewModel.State> { models.screen }
+    private var downloads: FlowModel<NSDictionary> { models.downloads }
+    private var selection: FlowModel<NSSet> { models.selection }
 
     private var selected: Set<Int64> {
         Set(selection.value.compactMap { ($0 as? KotlinLong)?.int64Value })
@@ -257,7 +258,7 @@ struct MangaScreen: View {
             Menu {
                 if model.viewModel.canDownload {
                     Button { model.viewModel.downloadUnread(count: KotlinInt(value: 1)) } label: {
-                        Label(L("manga_download_next"), systemImage: "arrow.down")
+                        Label(L("manga_download_next", 1), systemImage: "arrow.down")
                     }
                     Button { model.viewModel.downloadUnread(count: nil) } label: {
                         Label(L("manga_download_unread"), systemImage: "arrow.down.circle")
@@ -286,6 +287,27 @@ struct MangaScreen: View {
         }
         let roles = CoverColor.shared.roles(seed: seed, dark: scheme == .dark)
         return Color(argb: roles.primary)
+    }
+}
+
+/// The work's ViewModel and the two other flows it shows (download marks, selection), alive while the screen is.
+@MainActor
+final class MangaModels: ObservableObject {
+    let screen: ScreenModel<MangaViewModel, MangaViewModel.State>
+    let downloads: FlowModel<NSDictionary>
+    let selection: FlowModel<NSSet>
+    private var changes: [AnyCancellable] = []
+
+    init(mangaId: Int64) {
+        let viewModel = Core.graph.mangaViewModel(mangaId: mangaId)
+        screen = ScreenModel(viewModel) { Screen<MangaViewModel.State>(viewModel: $0, flow: $0.state) }
+        downloads = FlowModel(viewModel.downloadStates)
+        selection = FlowModel(viewModel.selected)
+        changes = [
+            screen.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
+            downloads.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
+            selection.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
+        ]
     }
 }
 

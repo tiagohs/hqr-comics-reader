@@ -44,6 +44,7 @@ struct HistoryScreen: View {
                     model.viewModel.undoRemove(entry: entry)
                     removed = nil
                 } dismiss: { removed = nil }
+                .id(ObjectIdentifier(entry))
             }
         }
     }
@@ -73,7 +74,7 @@ struct HistoryScreen: View {
             Button(role: .destructive) {
                 model.viewModel.remove(entry: entry)
                 removed = entry
-            } label: { Label(L("history_remove"), systemImage: "trash") }
+            } label: { Label(L("history_remove", entry.manga.source.title), systemImage: "trash") }
         }
         .contextMenu {
             Button { navigator.open(.manga(entry.manga.id)) } label: { Label(L("manga_details"), systemImage: "book") }

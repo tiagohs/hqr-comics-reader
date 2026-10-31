@@ -49,7 +49,7 @@ struct SourcesScreen: View {
                     }
                     .swipeActions {
                         Button(role: .destructive) { IosBridge.shared.deleteServer(viewModel: model.viewModel, sourceId: id) } label: {
-                            Label(L("server_delete"), systemImage: "trash")
+                            Label(L("server_delete", server.name), systemImage: "trash")
                         }
                         Button { navigator.open(.addServer(serverId: id)) } label: { Label(L("server_edit_title"), systemImage: "pencil") }
                     }
@@ -75,22 +75,28 @@ struct AddServerScreen: View {
         })
     }
 
+    // Typed here and sent to the ViewModel: a field bound to the core's state would lose fast keystrokes.
+    @State private var name = ""
+    @State private var url = ""
+    @State private var username = ""
+    @State private var password = ""
+    @State private var typed = false
+
     var body: some View {
         let state = model.state
-        let input = state.input
         Form {
             Section {
-                TextField(L("server_name"), text: field(input.name) { ServerInput(name: $0, url: input.url, username: input.username, password: input.password) })
-                TextField(L("server_url"), text: field(input.url) { ServerInput(name: input.name, url: $0, username: input.username, password: input.password) })
+                TextField(L("server_name"), text: $name)
+                TextField(L("server_url"), text: $url)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             } footer: { Text(L("server_url_hint")) }
             Section {
-                TextField(L("server_username"), text: field(input.username) { ServerInput(name: input.name, url: input.url, username: $0, password: input.password) })
+                TextField(L("server_username"), text: $username)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-                SecureField(L("server_password"), text: field(input.password) { ServerInput(name: input.name, url: input.url, username: input.username, password: $0) })
+                SecureField(L("server_password"), text: $password)
             } footer: { Text(L("server_saved_secure")) }
             Section {
                 Button(L("server_test")) { model.viewModel.test() }.disabled(state.busy)
@@ -108,11 +114,21 @@ struct AddServerScreen: View {
             }
         }
         .overlay { if state.busy { ProgressView() } }
+        .onAppear { load(model.state.input) }
+        // Editing a saved server: its data arrives after the screen opens.
+        .onChange(of: state.input) { _, input in if !typed { load(input) } }
+        .onChange(of: [name, url, username, password]) { _, _ in
+            typed = true
+            model.viewModel.edit(input: ServerInput(name: name, url: url, username: username, password: password))
+        }
         .onChange(of: state.saved) { _, saved in if saved { navigator.back() } }
     }
 
-    private func field(_ value: String, _ change: @escaping (String) -> ServerInput) -> Binding<String> {
-        Binding(get: { value }, set: { model.viewModel.edit(input: change($0)) })
+    private func load(_ input: ServerInput) {
+        name = input.name
+        url = input.url
+        username = input.username
+        typed = false
     }
 
     private func problemText(_ problem: ServerProblem) -> String {
@@ -165,7 +181,7 @@ struct ServerCatalogScreen: View {
                     }
                 }
                 if page.nextUrl != nil {
-                    Button(L("search_more")) { model.viewModel.loadMore() }.disabled(state.loadingMore)
+                    Button(L("catalog_more")) { model.viewModel.loadMore() }.disabled(state.loadingMore)
                 }
             }
         }

@@ -37,7 +37,7 @@ struct DownloadsScreen: View {
                         }
                         .contextMenu {
                             Button(role: .destructive) { model.viewModel.removeWork(mangaId: item.mangaId) } label: {
-                                Label(L("downloads_delete_work"), systemImage: "trash")
+                                Label(L("downloads_delete_work", item.mangaTitle), systemImage: "trash")
                             }
                         }
                     }
@@ -100,8 +100,8 @@ struct DownloadsScreen: View {
             Button(role: .destructive) { model.viewModel.remove(chapterId: item.chapterId) } label: { Image(systemName: "xmark") }
         }
         .contextMenu {
-            if !first { Button(L("action_move_up")) { model.viewModel.move(chapterId: item.chapterId, by: -1) } }
-            if !last { Button(L("action_move_down")) { model.viewModel.move(chapterId: item.chapterId, by: 1) } }
+            if !first { Button(L("action_move_up", item.chapterLabel)) { model.viewModel.move(chapterId: item.chapterId, by: -1) } }
+            if !last { Button(L("action_move_down", item.chapterLabel)) { model.viewModel.move(chapterId: item.chapterId, by: 1) } }
         }
     }
 

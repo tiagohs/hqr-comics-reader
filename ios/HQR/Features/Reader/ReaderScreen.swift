@@ -22,7 +22,20 @@ struct ReaderScreen: View {
         ZStack {
             background(state.settings).ignoresSafeArea()
             content(state)
-            if state.menuVisible { menu(state) }
+            if state.menuVisible {
+                menu(state)
+            } else if state.settings.showPageNumber && !state.pages.isEmpty {
+                // RF-48: the page number at the bottom while reading.
+                Text(L("reader_page_of", Int(state.page) + 1, state.pages.count))
+                    .font(.caption.monospacedDigit())
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(.black.opacity(0.5), in: Capsule())
+                    .foregroundStyle(.white)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 8)
+                    .allowsHitTesting(false)
+            }
         }
         .statusBarHidden(!state.menuVisible)
         .persistentSystemOverlays(state.menuVisible ? .automatic : .hidden)
@@ -103,99 +116,119 @@ struct ReaderScreen: View {
     }
 }
 
-/// Left to right and right to left, one page per screen (two on a wide iPad screen in landscape), swiped like a book.
-/// The page after the last is the end of the chapter (SCR-RDR-003).
+/// Left to right and right to left, one screen at a time: a page, or two side by side on a wide iPad screen (RF-44,
+/// laid out by the core's ReaderLayout), swiped like a book. The screen after the last is the end of the chapter.
 private struct PagedPages: View {
     let manga: Manga
     let state: ReaderViewModel.State
     let viewModel: ReaderViewModel
     let spread: Bool
+    @State private var selection = 0
 
     var body: some View {
-        let count = state.pages.count
         GeometryReader { geometry in
             let twoUp = spread && state.settings.doublePage && geometry.size.width > geometry.size.height
-            TabView(selection: Binding(
-                get: { Int(state.page) },
-                set: { index in
-                    if index >= count {
-                        viewModel.onReachedEnd()
-                    } else {
-                        viewModel.onPageChanged(page: Int32(index))
-                    }
-                }
-            )) {
-                ForEach(0..<count, id: \.self) { index in
-                    page(index, twoUp: twoUp, size: geometry.size)
+            let views = ReaderLayout.shared.views(count: Int32(state.pages.count), wide: state.wide, double: twoUp, split: false)
+            TabView(selection: $selection) {
+                ForEach(0..<views.count, id: \.self) { index in
+                    screen(views[index], size: geometry.size)
                         .contentShape(Rectangle())
-                        .onTapGesture(coordinateSpace: .local) { point in tap(point, width: geometry.size.width, count: count) }
+                        .onTapGesture(coordinateSpace: .global) { point in tap(point, size: geometry.size, views: views) }
                         .tag(index)
                 }
-                ChapterEnd(state: state, viewModel: viewModel).tag(count)
+                ChapterEnd(state: state, viewModel: viewModel).tag(views.count)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .environment(\.layoutDirection, state.settings.mode == .rightToLeft ? .rightToLeft : .leftToRight)
+            .onAppear { selection = screenOf(page: state.page, views: views) }
+            .onChange(of: state.page) { _, page in
+                // The core moved the page (slider, another chapter): follow it, unless the end is showing.
+                if selection < views.count { selection = screenOf(page: page, views: views) }
+            }
+            .onChange(of: twoUp) { _, _ in selection = screenOf(page: state.page, views: views) }
+            .onChange(of: selection) { _, index in
+                if index >= views.count {
+                    viewModel.onReachedEnd()
+                } else if let first = views[index].pages.first?.int32Value, first != state.page {
+                    viewModel.onPageChanged(page: first)
+                }
+            }
         }
         .ignoresSafeArea()
     }
 
-    /// RF-38: taps on the sides turn the page, in the middle show the menu; zones follow the reading direction.
-    private func tap(_ point: CGPoint, width: CGFloat, count: Int) {
-        let third = width / 3
-        guard state.settings.tapZones != .off, point.x < third || point.x > third * 2 else {
-            withAnimation { viewModel.toggleMenu() }
-            return
-        }
-        var forward = point.x > third * 2
-        if state.settings.mode == .rightToLeft { forward.toggle() }
-        if state.settings.invertZones { forward.toggle() }
-        let page = Int(state.page) + (forward ? 1 : -1)
-        if page >= count {
-            viewModel.onReachedEnd()
-        } else if page >= 0 {
-            viewModel.onPageChanged(page: Int32(page))
+    private func screenOf(page: Int32, views: [PageView]) -> Int {
+        Int(ReaderLayout.shared.viewOf(views: views, page: page))
+    }
+
+    /// RF-38: the zones of the chosen layout, following the reading direction (TapZoneMap of the core).
+    private func tap(_ point: CGPoint, size: CGSize, views: [PageView]) {
+        let action = TapZoneMap.shared.action(
+            zones: state.settings.tapZones,
+            mode: state.settings.mode,
+            invert: state.settings.invertZones,
+            x: Float(point.x / max(size.width, 1)),
+            y: Float(point.y / max(size.height, 1))
+        )
+        switch action {
+        case .next: selection = min(selection + 1, views.count)
+        case .previous: selection = max(selection - 1, 0)
+        default: withAnimation { viewModel.toggleMenu() }
         }
     }
 
     @ViewBuilder
-    private func page(_ index: Int, twoUp: Bool, size: CGSize) -> some View {
-        if twoUp && index + 1 < state.pages.count && index % 2 == 0 {
+    private func screen(_ view: PageView, size: CGSize) -> some View {
+        let pages = view.pages.map { Int($0.int32Value) }
+        if pages.count == 2 {
+            // The first page in reading order goes on the right when reading right to left.
+            let ordered = ReaderLayout.shared.firstOnLeft(mode: state.settings.mode, invert: state.settings.invertPages) ? pages : pages.reversed()
             HStack(spacing: 0) {
-                PageImage(manga: manga, page: state.pages[index + (state.settings.mode == .rightToLeft ? 1 : 0)], maxPixel: size.height * 2)
-                PageImage(manga: manga, page: state.pages[index + (state.settings.mode == .rightToLeft ? 0 : 1)], maxPixel: size.height * 2)
+                ForEach(ordered, id: \.self) { index in
+                    PageImage(manga: manga, page: state.pages[index], maxPixel: size.height * 2)
+                }
             }
             .environment(\.layoutDirection, .leftToRight)
-        } else {
+        } else if let index = pages.first {
             ZoomablePage(manga: manga, page: state.pages[index], maxPixel: max(size.width, size.height) * 2)
                 .environment(\.layoutDirection, .leftToRight)
         }
     }
 }
 
-/// Vertical and webtoon (RF-36): one long strip; webtoon without gaps.
+/// Vertical and webtoon (RF-36): one long strip; webtoon without gaps. The page at the top of the screen is the
+/// current one, and the strip opens at the saved page.
 private struct VerticalPages: View {
     let manga: Manga
     let state: ReaderViewModel.State
     let viewModel: ReaderViewModel
+    @State private var visible: Int?
 
     var body: some View {
         GeometryReader { geometry in
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: state.settings.mode == .webtoon ? 0 : 8) {
-                        ForEach(0..<state.pages.count, id: \.self) { index in
-                            PageImage(manga: manga, page: state.pages[index], maxPixel: geometry.size.width * 3)
-                                .id(index)
-                                .onAppear { viewModel.onPageChanged(page: Int32(index)) }
-                        }
-                        ChapterEnd(state: state, viewModel: viewModel)
-                            .frame(minHeight: geometry.size.height * 0.8)
-                            .onAppear { viewModel.onReachedEnd() }
+            ScrollView {
+                LazyVStack(spacing: state.settings.mode == .webtoon ? 0 : 8) {
+                    ForEach(0..<state.pages.count, id: \.self) { index in
+                        PageImage(manga: manga, page: state.pages[index], maxPixel: 0, fitWidth: geometry.size.width * 2)
+                            .id(index)
                     }
+                    ChapterEnd(state: state, viewModel: viewModel)
+                        .frame(minHeight: geometry.size.height * 0.8)
+                        .id(state.pages.count)
                 }
-                .onAppear { proxy.scrollTo(Int(state.page), anchor: .top) }
-                .onTapGesture { withAnimation { viewModel.toggleMenu() } }
+                .scrollTargetLayout()
             }
+            .scrollPosition(id: $visible, anchor: .top)
+            .onAppear { visible = Int(state.page) }
+            .onChange(of: visible) { _, index in
+                guard let index else { return }
+                if index >= state.pages.count {
+                    viewModel.onReachedEnd()
+                } else if index != Int(state.page) {
+                    viewModel.onPageChanged(page: Int32(index))
+                }
+            }
+            .onTapGesture { withAnimation { viewModel.toggleMenu() } }
         }
         .ignoresSafeArea()
     }
@@ -206,6 +239,8 @@ private struct PageImage: View {
     let manga: Manga
     let page: SourcePage
     let maxPixel: CGFloat
+    /// For a strip shown at a width: the decode keeps that width, however tall the page is.
+    var fitWidth: CGFloat? = nil
     @StateObject private var loader = ImageLoader()
     @State private var attempt = 0
 
@@ -224,8 +259,8 @@ private struct PageImage: View {
                 .frame(maxWidth: .infinity, minHeight: 320)
             }
         }
-        .task(id: "\(page.imageUrl)#\(attempt)") { await loader.load(.page(manga, page), maxPixel: maxPixel) }
-        .accessibilityLabel(L("reader_page_of", Int(page.index) + 1, 0))
+        .task(id: "\(page.imageUrl)#\(attempt)") { await loader.load(.page(manga, page), maxPixel: maxPixel, fitWidth: fitWidth) }
+        
     }
 }
 

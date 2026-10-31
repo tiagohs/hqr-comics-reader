@@ -3,6 +3,10 @@ package com.tiagohs.hqr.android
 import android.app.Application
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.SharedPreferencesSettings
+import com.tiagohs.hqr.app.AppVersion
+import com.tiagohs.hqr.app.BuiltInSources
+import com.tiagohs.hqr.app.coreModule
+import com.tiagohs.hqr.app.downloadModule
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.androidDatabase
 import com.tiagohs.hqr.data.download.DownloadExport
@@ -39,11 +43,8 @@ import com.tiagohs.hqr.sources.opds.DiskBookStore
 import com.tiagohs.hqr.sources.weebcentral.WeebCentralSource
 import com.tiagohs.hqr.sources.xoxo.XoxoSource
 import com.tiagohs.hqr.sources.yomu.YomuSource
-import com.tiagohs.hqr.ui.di.AppVersion
-import com.tiagohs.hqr.ui.di.BuiltInSources
 import com.tiagohs.hqr.ui.di.CrashReports
-import com.tiagohs.hqr.ui.di.coreModule
-import com.tiagohs.hqr.ui.di.downloadModule
+import com.tiagohs.hqr.ui.di.uiModule
 import io.ktor.client.HttpClient
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
@@ -57,7 +58,7 @@ class HqrApplication : Application() {
         CrashReporting.init(this)
         startKoin {
             androidContext(this@HqrApplication)
-            modules(platformModule(), coreModule, downloadModule)
+            modules(platformModule(), coreModule, downloadModule, uiModule)
         }
     }
 

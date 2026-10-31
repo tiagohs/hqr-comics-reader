@@ -108,15 +108,16 @@ Regra: `domain` não conhece rede, banco nem plataforma. O que muda por platafor
 | `sourceconfig` | data | Lê `sources.json` 1x por dia, guarda a última versão, aplica ligar/desligar e endereço | RF-105 |
 | `challenge` | android / ios | Navegador embutido para a verificação do Cloudflare e cookies compartilhados com o Ktor | RF-106 |
 | `updater` | android (github) | Releases, download, verificação, instalador | RF-82 |
+| `app` | shared | Montagem do Koin (repositórios, fontes, ViewModels) e início comum (`AppStartup`); no iOS vira o framework `Shared` | RNF-15 |
 | `ui` | shared (Android e web) | Telas, componentes, tema (violeta base) e leitor em Compose Multiplatform | RNF-11, RNF-12, RF-107 |
 | `contentcolor` | presentation | Extrai a cor da capa (MaterialKolor), aplica a regra do erro, monta o esquema claro e escuro e guarda por obra | RF-98 |
 | `web` | web | PWA, rotas por URL, importação para o OPFS, cota, atalhos, avisos do que não roda no navegador | RF-107, RF-110 a RF-114 |
 | `bridge` | data | Na web, reescreve os pedidos das fontes online para a ponte com o token; testa a ponte | RF-108 |
 | `bridge-worker/` | fora do app | Código da ponte (Cloudflare Worker) e passo a passo para o usuário publicar | RF-109 |
 
-### 3.1 App iOS (depois)
+### 3.1 App iOS
 
-Mesmo desenho do Script Reader: `ios/HQR.xcodeproj` com pastas sincronizadas, framework `Shared` de `shared/presentation`, ponte `Screen<T>`/`ScreenModel` sem SKIE, uma pasta por área em `Features/`, prévias claras e escuras. O leitor usa o motor de `presentation` e desenha com SwiftUI e ImageIO. CBR e CB7 ficam fora no iOS (ADR-011). A cor da capa vem pronta de `contentcolor` e entra como tint do SwiftUI.
+Mesmo desenho do Script Reader: `ios/HQR.xcodeproj` gerado por `scripts/ios/generate_xcodeproj.py` com pastas sincronizadas, framework `Shared` de `shared/app` (exporta `domain`, `data` e `presentation`; `SharedGraph` entrega um ViewModel por tela), ponte `Screen<T>`/`ScreenModel` sem SKIE, uma pasta por área em `Features/`, prévias claras e escuras. Diferenças por interface: `FileTree` sobre a pasta Documentos do app (aparece como "HQR" no app Arquivos), `PdfPages` pelo Core Graphics, zlib do sistema para CBZ e backup, segredos no Keychain, banco em Application Support, rede pelo Network framework, cookies da verificação entregues pelo WKWebView. O leitor usa o motor de `presentation` e desenha com SwiftUI e ImageIO. CBR e CB7 ficam fora no iOS (ADR-011). A cor da capa vem pronta de `contentcolor` e entra como tint do SwiftUI.
 
 ### 3.2 App web (marco Web)
 

@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.tiagohs.hqr.ui.di.AppVersion
+import com.tiagohs.hqr.app.AppVersion
 import com.tiagohs.hqr.ui.di.CrashReports
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.about_based_on

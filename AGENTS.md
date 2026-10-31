@@ -39,7 +39,7 @@ commit.
 ## Módulos
 
 `shared/domain` (modelos, regras, contratos) · `shared/data` (Room 3, Ktor, cache, preferências) ·
-`shared/presentation` (ViewModels, cor da capa, leitor) · `shared/ui` (telas, tema, navegação, Koin) ·
+`shared/presentation` (ViewModels, cor da capa, leitor) · `shared/app` (Koin; framework `Shared` do iOS) · `shared/ui` (telas, tema, navegação) ·
 `sources/local` (pasta, CBZ, PDF) · `android` (app) · `web` (wasmJs, SQLite em OPFS).
 
 ## Antes de dizer que terminou

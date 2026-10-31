@@ -51,6 +51,7 @@ rootProject.name = "hqr-comics-reader"
 include(":shared:domain")
 include(":shared:data")
 include(":shared:presentation")
+include(":shared:app")
 include(":shared:ui")
 include(":sources:local")
 include(":sources:mangadex")

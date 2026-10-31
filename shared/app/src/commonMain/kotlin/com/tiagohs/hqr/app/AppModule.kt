@@ -1,4 +1,4 @@
-package com.tiagohs.hqr.ui.di
+package com.tiagohs.hqr.app
 
 import com.tiagohs.hqr.data.backup.BackupService
 import com.tiagohs.hqr.data.db.HqrDatabase
@@ -37,7 +37,6 @@ import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.domain.source.SourceSwitches
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
-import com.tiagohs.hqr.presentation.color.CoverPixels
 import com.tiagohs.hqr.presentation.downloads.DownloadsViewModel
 import com.tiagohs.hqr.presentation.feed.FeedViewModel
 import com.tiagohs.hqr.presentation.history.HistoryViewModel
@@ -68,7 +67,6 @@ import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.opds.BookStore
 import com.tiagohs.hqr.sources.opds.MemoryBookStore
 import com.tiagohs.hqr.sources.opds.OpdsServers
-import com.tiagohs.hqr.ui.color.ImageCoverPixels
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -103,6 +101,7 @@ val coreModule: Module =
         single { SourceRegistry(get<List<Source>>(BuiltInSources), ready = false) }
         single { SourceConfig(get(), get(), get(), get(), get(AppVersion)) }
         single<SourceSwitches> { get<SourceConfig>() }
+        factory { AppStartup(get(), get(), get(), getOrNull()) }
         viewModel { SourcesViewModel(get(), get(), get()) }
         single<Backups> {
             val registry = get<SourceRegistry>()
@@ -148,7 +147,6 @@ val coreModule: Module =
         viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query, get(), get()) }
         viewModel { FeedViewModel(get(), get(), get()) }
         viewModel { GlobalSearchViewModel(get(), get(), get(), searches = get()) }
-        single<CoverPixels> { ImageCoverPixels(get()) }
         single<PagePrefetcher> {
             val images = get<ImageBytes>()
             PagePrefetcher { manga, page -> images.load(manga.sourceId, page.imageUrl, page.headers) }

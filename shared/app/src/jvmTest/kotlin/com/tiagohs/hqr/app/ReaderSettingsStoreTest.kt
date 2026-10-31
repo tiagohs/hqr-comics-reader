@@ -1,6 +1,7 @@
-package com.tiagohs.hqr.ui
+package com.tiagohs.hqr.app
 
 import com.russhwolf.settings.PropertiesSettings
+import com.tiagohs.hqr.app.DbReaderSettingsStore
 import com.tiagohs.hqr.data.db.inMemoryDatabase
 import com.tiagohs.hqr.data.repository.RoomMangaRepository
 import com.tiagohs.hqr.data.settings.AppPreferences
@@ -8,7 +9,6 @@ import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.presentation.reader.ReaderMode
-import com.tiagohs.hqr.ui.di.DbReaderSettingsStore
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals

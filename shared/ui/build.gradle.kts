@@ -11,7 +11,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
-            api(project(":shared:presentation"))
+            api(project(":shared:app"))
             implementation(project(":shared:data"))
             implementation(project(":sources:local"))
             implementation(project(":sources:opds"))

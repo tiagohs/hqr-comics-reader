@@ -9,6 +9,10 @@ import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import com.russhwolf.settings.PropertiesSettings
 import com.russhwolf.settings.Settings
+import com.tiagohs.hqr.app.AppVersion
+import com.tiagohs.hqr.app.BuiltInSources
+import com.tiagohs.hqr.app.coreModule
+import com.tiagohs.hqr.app.downloadModule
 import com.tiagohs.hqr.data.db.HqrDatabase
 import com.tiagohs.hqr.data.db.inMemoryDatabase
 import com.tiagohs.hqr.data.download.DownloadFiles
@@ -22,10 +26,6 @@ import com.tiagohs.hqr.data.sources.SourceListFetcher
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
-import com.tiagohs.hqr.ui.di.AppVersion
-import com.tiagohs.hqr.ui.di.BuiltInSources
-import com.tiagohs.hqr.ui.di.coreModule
-import com.tiagohs.hqr.ui.di.downloadModule
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +70,7 @@ fun startTestKoin(
             },
             coreModule,
             downloadModule,
+            com.tiagohs.hqr.ui.di.uiModule,
             extra,
         )
     }

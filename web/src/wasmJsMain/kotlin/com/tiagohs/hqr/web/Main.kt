@@ -3,7 +3,7 @@ package com.tiagohs.hqr.web
 import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.data.settings.SettingsSecretStore
 import com.tiagohs.hqr.domain.source.SecretStore
-import com.tiagohs.hqr.ui.di.AppVersion
+import com.tiagohs.hqr.app.AppVersion
 import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
 import com.tiagohs.hqr.data.sources.SourceListFetcher
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -25,8 +25,9 @@ import com.tiagohs.hqr.sources.local.ImportedFiles
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.data.settings.AppPreferences
-import com.tiagohs.hqr.ui.di.BuiltInSources
-import com.tiagohs.hqr.ui.di.coreModule
+import com.tiagohs.hqr.app.BuiltInSources
+import com.tiagohs.hqr.app.coreModule
+import com.tiagohs.hqr.ui.di.uiModule
 import com.tiagohs.hqr.ui.navigation.HqrApp
 import io.ktor.client.HttpClient
 import com.tiagohs.hqr.data.bridge.PersonalBridge
@@ -115,6 +116,7 @@ fun main() {
                 single(AppVersion) { "1.0.0" }
             },
             coreModule,
+            uiModule,
         )
     }
     ComposeViewport(document.body!!) { HqrApp(systemDark = isSystemInDarkTheme()) }

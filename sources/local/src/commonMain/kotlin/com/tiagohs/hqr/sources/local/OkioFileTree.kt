@@ -2,8 +2,9 @@ package com.tiagohs.hqr.sources.local
 
 import okio.FileSystem
 import okio.Path
+import okio.use
 
-/** FileTree over an okio file system: the real disk or a fake one in tests. */
+/** FileTree over an okio file system: the iOS app folder (Files › HQR), the real disk or a fake one in tests. */
 class OkioFileTree(
     private val fs: FileSystem,
     private val root: Path,

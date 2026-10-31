@@ -24,6 +24,13 @@ kotlin {
             implementation(libs.sqlite.bundled)
             implementation(libs.ktor.client.okhttp)
         }
+        // iOS only when the targets exist (-Phqr.ios=true).
+        matching { it.name == "iosMain" }.configureEach {
+            dependencies {
+                implementation(libs.sqlite.bundled)
+                implementation(libs.ktor.client.darwin)
+            }
+        }
         wasmJsMain.dependencies {
             implementation(libs.sqlite.web)
             implementation(libs.ktor.client.js)
@@ -38,7 +45,9 @@ kotlin {
 }
 
 dependencies {
-    listOf("kspAndroid", "kspJvm", "kspWasmJs").forEach { add(it, libs.room3.compiler) }
+    listOf("kspAndroid", "kspJvm", "kspWasmJs", "kspIosArm64", "kspIosSimulatorArm64")
+        .filter { configurations.findByName(it) != null }
+        .forEach { add(it, libs.room3.compiler) }
 }
 
 room3 {

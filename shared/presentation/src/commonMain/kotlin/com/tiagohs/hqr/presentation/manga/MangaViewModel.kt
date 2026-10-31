@@ -122,6 +122,9 @@ class MangaViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, State())
 
+    // Before init: the opening may run inline, still inside the constructor (Main.immediate).
+    private val freshKey = "manga.$mangaId.refreshed"
+
     init {
         refresh(markOpened = true, force = false)
     }
@@ -201,8 +204,6 @@ class MangaViewModel(
         // After the refresh: a cover changed by it is the one that gives the color.
         if (markOpened) colorFromCover()
     }
-
-    private val freshKey = "manga.$mangaId.refreshed"
 
     fun setCategories(ids: Set<Long>) {
         viewModelScope.launch { categories?.setCategories(mangaId, ids) }

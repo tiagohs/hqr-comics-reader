@@ -19,6 +19,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -63,9 +64,9 @@ class FeedViewModel(
     private var job: Job? = null
 
     init {
-        load(force = false)
-        // Items added or removed elsewhere (a source's screen) show at the next load, and the list of items at once.
-        viewModelScope.launch { searches.observeFeed().collect { items -> _state.update { it.copy(items = items) } } }
+        // Each change of the items loads again: one added elsewhere (a source's screen) is asked at once, the others
+        // come from the cache (RF-25, RF-116).
+        viewModelScope.launch { searches.observeFeed().distinctUntilChanged().collect { load(force = false) } }
     }
 
     /** Pulling: every item asked again. */
@@ -167,14 +168,12 @@ class FeedViewModel(
         viewModelScope.launch {
             val added = searches.addToFeed(sourceId, savedSearchId)
             onDone(added)
-            if (added) refresh()
         }
     }
 
     fun remove(item: FeedItem) {
         viewModelScope.launch {
             searches.removeFromFeed(item.id)
-            refresh()
         }
     }
 

@@ -196,6 +196,25 @@ class FeedViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF25_anItemAddedFromASourceScreenBringsItsWorksToAFeedAlreadyOpen() =
+        runTest {
+            val md = Fake(SourceId("md"), latest = listOf(manga("md", "a", 300)))
+            val hq = Fake(SourceId("hq"), latest = listOf(manga("hq", "k", 500)))
+            val repo = Feed(listOf(FeedItem(1, md.id, null)))
+            val vm = track(FeedViewModel(repo, SourceRegistry(listOf(md, hq)), TestDb().mangas))
+            vm.state
+                .first { !it.loading }
+                .entries
+                .map { it.manga.key } shouldContainExactly listOf("a")
+            // Added elsewhere (the source's screen), not through this ViewModel.
+            repo.addToFeed(hq.id, null)
+            vm.state
+                .first { s -> !s.loading && !s.refreshing && s.entries.any { it.manga.key == "k" } }
+                .entries
+                .map { it.manga.key } shouldContainExactly listOf("k", "a")
+        }
+
+    @Test
     fun RF116_feedOpensWithWhatItHadAndAsksAgainOnlyAfterThirtyMinutes() =
         runTest {
             val md = Fake(SourceId("md"), latest = listOf(manga("md", "a", 300)))

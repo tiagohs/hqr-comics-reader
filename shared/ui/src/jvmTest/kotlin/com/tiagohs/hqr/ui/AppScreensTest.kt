@@ -91,7 +91,13 @@ class AppScreensTest {
             val db = startTestKoin()
             assertEquals(1, readFlow(db, "demo", { "Kaiju Express" }, 5_000))
             // RF-98: the green cover gave the work its own color (decoded on the JVM like on the devices).
-            val color = runBlocking { db.mangaDao().get(1)?.coverColor }
+            // The color is read from the cover after the work's first refresh, on Room's threads.
+            var color: Int? = null
+            repeat(50) {
+                color = runBlocking { db.mangaDao().get(1)?.coverColor }
+                if (color != null) return@repeat
+                Thread.sleep(100)
+            }
             assertTrue(color != null && color != CoverColor.VIOLET, "cover color: $color")
         }
 

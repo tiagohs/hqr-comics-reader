@@ -3,6 +3,7 @@ package com.tiagohs.hqr.ui
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
@@ -14,6 +15,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.printToLog
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.ui.navigation.HqrApp
@@ -65,7 +67,8 @@ class MangaScreensTest {
             onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("External"))
             waitFor(hasText("External"))
             screenshot("demo-SCR-OBR-001-external")
-            onAllNodes(hasText("Capítulo 16"))[0].performClick()
+            // Scrolled to the top edge, the row sits under the bar: tap it through its click action.
+            onAllNodes(hasText("Capítulo 16") and hasClickAction())[0].performSemanticsAction(SemanticsActions.OnClick)
             waitUntil(timeoutMillis = 10_000) { opened.isNotEmpty() }
             assertEquals(listOf("https://publisher.example/c16"), opened)
         }

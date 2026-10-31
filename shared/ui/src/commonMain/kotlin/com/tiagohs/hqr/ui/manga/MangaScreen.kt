@@ -43,7 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -214,12 +214,8 @@ private fun MangaContent(
             picking = false
         }
     }
-    // The bar takes the hero's tint at the top and the paper once the list scrolls under it.
+    // The bar is transparent over the work's panel and takes the paper once the list scrolls under it.
     val bar = TopAppBarDefaults.pinnedScrollBehavior()
-    val heroColor =
-        MaterialTheme.colorScheme.primaryContainer
-            .copy(alpha = HERO_TINT)
-            .compositeOver(MaterialTheme.colorScheme.background)
     Scaffold(
         modifier = Modifier.nestedScroll(bar.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
@@ -322,7 +318,7 @@ private fun MangaContent(
                     },
                     colors =
                         TopAppBarDefaults.topAppBarColors(
-                            containerColor = heroColor,
+                            containerColor = Color.Transparent,
                             scrolledContainerColor = MaterialTheme.colorScheme.background,
                         ),
                     scrollBehavior = bar,
@@ -336,8 +332,9 @@ private fun MangaContent(
             modifier = Modifier.fillMaxSize(),
         ) {
             val sourceLabel = sourceName(manga)
-            LazyColumn(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
-                item { Hero(manga, topPadding = 0.dp) }
+            LazyColumn(Modifier.fillMaxSize()) {
+                // The panel starts under the bar, so its halftone or speed lines fill the top of the screen.
+                item { Hero(manga, topPadding = padding.calculateTopPadding()) }
                 item { Header(manga, sourceLabel) }
                 item {
                     Actions(

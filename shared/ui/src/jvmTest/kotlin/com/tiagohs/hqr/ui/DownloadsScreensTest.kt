@@ -1,17 +1,18 @@
 package com.tiagohs.hqr.ui
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.printToLog
 import com.tiagohs.hqr.data.download.FreeSpace
 import com.tiagohs.hqr.data.settings.AppPreferences
@@ -57,7 +58,8 @@ class DownloadsScreensTest {
             onAllNodes(hasText("Next 5 unread"))[0].performClick()
             // RF-32, RF-62: a long press selects; the selection downloads together.
             onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Capítulo 15"))
-            onAllNodes(hasText("Capítulo 15"))[0].performTouchInput { longClick() }
+            // At the top edge the row sits under the bar: long-press it through its action.
+            onAllNodes(hasText("Capítulo 15") and hasClickAction())[0].performSemanticsAction(SemanticsActions.OnLongClick)
             waitFor(hasText("1 selected"))
             screenshot("demo-SCR-OBR-001-selection")
             onAllNodes(hasContentDescription("Download"))[0].performClick()

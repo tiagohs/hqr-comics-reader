@@ -83,7 +83,7 @@ struct GlobalSearchScreen: View {
     private func open(_ manga: SourceManga) {
         launch {
             let id = try await model.viewModel.open(manga: manga)
-            navigator.open(.manga(id.int64Value))
+            navigator.openWork(id.int64Value, from: manga)
         }
     }
 }

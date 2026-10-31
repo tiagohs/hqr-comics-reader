@@ -1,22 +1,30 @@
+import Combine
 import Shared
 import SwiftUI
 
-/// SCR-EXP-002: a source's popular, latest and search lists, page by page (RF-21, RF-22), with the Cloudflare
-/// verification when the source asks for it (RF-106).
+/// SCR-EXP-002: a source's popular, latest and search lists, page by page (RF-21), its filters (RF-22), saved
+/// searches (RF-24) and feed (RF-25), with the Cloudflare verification when the source asks for it (RF-106).
 struct BrowseSourceScreen: View {
     let sourceId: String
     @EnvironmentObject private var navigator: Navigator
-    @StateObject private var model: ScreenModel<BrowseSourceViewModel, BrowseSourceViewModel.State>
+    @StateObject private var models: BrowseModels
     @State private var query: String
     @State private var verified = false
     @StateObject private var favorites = Favorites()
+    @State private var showFilters = false
+    /// The saved search being named: a new one (nil inside) or one being renamed.
+    @State private var naming: SavedSearch??
+    @State private var name = ""
+    @State private var notice: String?
+
+    private var model: ScreenModel<BrowseSourceViewModel, BrowseSourceViewModel.State> { models.screen }
+    private var savedSearches: [SavedSearch] { (models.saved.value as? [SavedSearch]) ?? [] }
 
     init(sourceId: String, query: String) {
         self.sourceId = sourceId
         _query = State(initialValue: query)
-        _model = StateObject(wrappedValue: ScreenModel(Core.graph.browseSourceViewModel(sourceId: sourceId, query: query)) {
-            Screen<BrowseSourceViewModel.State>(viewModel: $0, flow: $0.state)
-        })
+        // One ViewModel per screen, made once: the autoclosure runs only when SwiftUI first creates the state.
+        _models = StateObject(wrappedValue: BrowseModels(sourceId: sourceId, query: query))
     }
 
     var body: some View {
@@ -31,6 +39,7 @@ struct BrowseSourceScreen: View {
                     .pickerStyle(.segmented)
                     .padding(.horizontal, Metrics.spaceMarginCompact)
                 }
+                if !savedSearches.isEmpty { savedRow }
                 content(state)
             }
             .padding(.vertical, 8)
@@ -41,9 +50,39 @@ struct BrowseSourceScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             // RF-115: the star puts this source's latest in the feed.
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItemGroup(placement: .primaryAction) {
                 FavoriteStar(name: sourceDisplayName(sourceId), on: favorites.ids.contains(sourceId)) { favorites.toggle(sourceId) }
+                // RF-22: the source's filters, with how many are on.
+                if !state.filters.isEmpty {
+                    Button { showFilters = true } label: {
+                        Image(systemName: state.activeFilters > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                    }
+                    .accessibilityLabel(state.activeFilters > 0 ? L("filter_active", Int(state.activeFilters)) : L("filter_title"))
+                }
+                Menu {
+                    // RF-24: what is on screen, kept by name.
+                    if state.listing == .search && state.canSearch {
+                        Button { startNaming(nil, state.query) } label: { Label(L("saved_save"), systemImage: "bookmark") }
+                    }
+                    // RF-25: this source's latest in the feed.
+                    Button { addToFeed(nil) } label: { Label(L("feed_add_latest"), systemImage: "newspaper") }
+                } label: {
+                    Image(systemName: "ellipsis.circle").accessibilityLabel(L("action_more"))
+                }
             }
+        }
+        .sheet(isPresented: $showFilters) {
+            SourceFiltersSheet(filters: state.filters, defaults: model.viewModel.defaultFilters()) { filters in
+                model.viewModel.applyFilters(filters: filters)
+            }
+        }
+        .alert(L("saved_title"), isPresented: Binding(get: { naming != nil }, set: { if !$0 { naming = nil } })) {
+            TextField(L("saved_name"), text: $name)
+            Button(L("action_cancel"), role: .cancel) { naming = nil }
+            Button(L("action_save")) { saveName() }
+        }
+        .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) {
+            Button(L("action_ok"), role: .cancel) {}
         }
         .alert(L("feed_full_favorite"), isPresented: $favorites.feedFull) { Button(L("action_ok"), role: .cancel) {} }
         .modifier(SearchIf(enabled: state.canSearch, query: $query, prompt: L("search_hint")) {
@@ -120,12 +159,81 @@ struct BrowseSourceScreen: View {
     private func open(_ manga: SourceManga) {
         launch {
             let id = try await model.viewModel.open(manga: manga)
-            navigator.open(.manga(id.int64Value))
+            navigator.openWork(id.int64Value, from: manga)
+        }
+    }
+
+    // MARK: Saved searches (RF-24)
+
+    private var savedRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(savedSearches, id: \.id) { search in
+                    Menu {
+                        Button { addToFeed(search) } label: { Label(L("feed_add"), systemImage: "newspaper") }
+                        Button { startNaming(search, search.name) } label: { Label(L("saved_rename"), systemImage: "pencil") }
+                        Button(role: .destructive) { model.viewModel.deleteSaved(search: search) } label: {
+                            Label(L("saved_delete"), systemImage: "trash")
+                        }
+                    } label: {
+                        Label(search.name, systemImage: "bookmark")
+                            .font(.subheadline)
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .overlay(Capsule().stroke(Palette.outline, lineWidth: 1))
+                    } primaryAction: {
+                        query = search.query
+                        model.viewModel.applySaved(search: search)
+                    }
+                    .accessibilityHint(L("saved_options", search.name))
+                }
+            }
+            .padding(.horizontal, Metrics.spaceMarginCompact)
+        }
+    }
+
+    private func startNaming(_ search: SavedSearch?, _ text: String) {
+        name = text
+        naming = .some(search)
+    }
+
+    private func saveName() {
+        let text = name.trimmingCharacters(in: .whitespaces)
+        defer { naming = nil }
+        guard !text.isEmpty, let target = naming else { return }
+        if let search = target {
+            model.viewModel.renameSaved(search: search, name: text)
+        } else {
+            model.viewModel.saveSearch(name: text)
+        }
+    }
+
+    private func addToFeed(_ search: SavedSearch?) {
+        launch {
+            let added = try await model.viewModel.addToFeed(search: search)
+            notice = added.boolValue ? L("feed_added") : L("feed_full")
         }
     }
 
     private func toggle(_ manga: SourceManga) {
         launch { _ = try await model.viewModel.toggleLibrary(manga: manga) }
+    }
+}
+
+/// The source's ViewModel with its saved searches (RF-24).
+@MainActor
+final class BrowseModels: ObservableObject {
+    let screen: ScreenModel<BrowseSourceViewModel, BrowseSourceViewModel.State>
+    let saved: FlowModel<NSArray>
+    private var changes: [AnyCancellable] = []
+
+    init(sourceId: String, query: String) {
+        let viewModel = Core.graph.browseSourceViewModel(sourceId: sourceId, query: query)
+        screen = ScreenModel(viewModel) { Screen<BrowseSourceViewModel.State>(viewModel: $0, flow: $0.state) }
+        saved = FlowModel(viewModel.savedSearches)
+        changes = [
+            screen.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
+            saved.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
+        ]
     }
 }
 

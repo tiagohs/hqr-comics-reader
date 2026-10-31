@@ -27,6 +27,12 @@ struct SourcesScreen: View {
                         }
                     }
                     .disabled(row.status == .offByList)
+                    // RF-06: MangaDex has its own settings (SCR-SRC-002).
+                    if id == "mangadex" {
+                        NavigationLink(value: Route.sourceSettings) {
+                            Label(L("source_settings_open", row.name), systemImage: "slider.horizontal.3")
+                        }
+                    }
                 }
             }
             Section {

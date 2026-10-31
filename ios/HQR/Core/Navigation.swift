@@ -10,6 +10,7 @@ enum Route: Hashable {
     case categories
     case downloads
     case sources
+    case sourceSettings
     case addServer(serverId: String)
     case serverCatalog(serverId: String)
     case backup
@@ -43,6 +44,15 @@ final class Navigator: ObservableObject {
 
     func open(_ route: Route) { path.append(route) }
 
+    /// The cover each opened work came from, for the zoom into it (RF-118).
+    private(set) var coverIds: [Int64: String] = [:]
+
+    /// Opens a work from its cover in a list.
+    func openWork(_ id: Int64, from manga: SourceManga) {
+        coverIds[id] = coverTransitionId(sourceId: manga.sourceKey, key: manga.key)
+        path.append(Route.manga(id))
+    }
+
     func back() {
         if !path.isEmpty { path.removeLast() }
     }
@@ -55,6 +65,7 @@ final class Navigator: ObservableObject {
 /// One tab's navigation stack, with its own Navigator.
 struct TabStack<Root: View>: View {
     @StateObject private var navigator: Navigator
+    @Namespace private var covers
     private let root: Root
 
     init(presenter: ReaderPresenter, @ViewBuilder root: () -> Root) {
@@ -66,6 +77,7 @@ struct TabStack<Root: View>: View {
         NavigationStack(path: $navigator.path) {
             root.routes()
         }
+        .environment(\.coverNamespace, covers)
         .environmentObject(navigator)
     }
 }
@@ -82,6 +94,7 @@ extension View {
             case .categories: CategoriesScreen()
             case .downloads: DownloadsScreen()
             case .sources: SourcesScreen()
+            case .sourceSettings: SourceSettingsScreen()
             case .addServer(let id): AddServerScreen(serverId: id)
             case .serverCatalog(let id): ServerCatalogScreen(serverId: id)
             case .backup: BackupScreen()

@@ -41,4 +41,21 @@ final class CoreBridgeTests: XCTestCase {
         let saved = (value as? Set<String>) ?? Set((value as? NSSet)?.compactMap { $0 as? String } ?? [])
         XCTAssertEqual(saved, ["en", "pt-br"])
     }
+
+    func test_RF55_library_options_change_through_the_shared_rules() {
+        let state = Core.graph.libraryViewModel().state.value as! LibraryViewModel.State
+        let options = state.options.withSort(value: .unread).toggle(filter: .completed).withDisplay(value: .list)
+        XCTAssertEqual(options.sort, .unread)
+        XCTAssertFalse(options.ascending)
+        XCTAssertTrue(options.isOn(filter: .completed))
+        XCTAssertEqual(options.display, .list)
+        XCTAssertTrue(options.hasFilters)
+    }
+
+    func test_RF22_a_tag_cycles_through_the_shared_rules() {
+        let tags = SourceFilterTags(key: "tags", options: [SourceFilterOption(value: "r", label: "Romance")], included: [], excluded: [])
+        let excluded = tags.cycle(value: "r").cycle(value: "r")
+        XCTAssertEqual(excluded.excluded, ["r"])
+        XCTAssertEqual(SourceFilterCompanion.shared.replace(filters: [tags], changed: excluded).count, 1)
+    }
 }

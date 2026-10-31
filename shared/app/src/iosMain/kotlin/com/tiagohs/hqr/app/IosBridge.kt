@@ -87,6 +87,19 @@ object IosBridge {
         categoryIds: List<Long>,
     ) = viewModel.setCategories(categoryIds.toSet())
 
+    /** RF-57: the picked works go to exactly these categories. */
+    fun moveSelected(
+        viewModel: com.tiagohs.hqr.presentation.library.LibraryViewModel,
+        categoryIds: List<Long>,
+    ) = viewModel.moveSelected(categoryIds.toSet())
+
+    /** RF-53: every category, for the picker. */
+    fun categoriesOf(choice: Pair<List<com.tiagohs.hqr.domain.model.Category>, Set<Long>>): List<com.tiagohs.hqr.domain.model.Category> =
+        choice.first
+
+    /** RF-53: the categories the work is in. */
+    fun assignedOf(choice: Pair<List<com.tiagohs.hqr.domain.model.Category>, Set<Long>>): List<Long> = choice.second.toList()
+
     /** A cover or any image of a source, from the cache or the network (ADR-006). */
     suspend fun image(
         sourceId: String,

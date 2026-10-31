@@ -41,6 +41,8 @@ struct Stamp: View {
             .background(.tint)
             .foregroundStyle(.white)
             .rotationEffect(.degrees(-4))
+            // RF-118: it lands like a rubber stamp.
+            .stampIn()
     }
 }
 
@@ -78,16 +80,23 @@ struct Burst: View {
 }
 
 /// Halftone (Ben-Day) dots.
-struct Halftone: View {
+struct Halftone: View, Animatable {
     var color: Color = Palette.onSurface.opacity(0.22)
     var step: CGFloat = 6
     var radius: CGFloat = 1.1
+    /// RF-118: the dots come down the panel like ink being printed.
+    var progress: Double = 1
+
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
 
     var body: some View {
-        Canvas { context, size in
+        Canvas { [progress] context, size in
             var row = 0
             var y = step / 2
-            while y < size.height {
+            while y < size.height * min(max(progress, 0), 1) {
                 var x = row.isMultiple(of: 2) ? step / 2 : step
                 while x < size.width {
                     context.fill(Path(ellipseIn: CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)), with: .color(color))
@@ -101,22 +110,38 @@ struct Halftone: View {
     }
 }
 
-/// Manga speed lines from the center, every 7 degrees.
-struct SpeedLines: View {
-    var color: Color = Palette.onSurface.opacity(0.3)
+/// Manga speed lines (design.md §4): hairlines kept to the edges of the panel, uneven like ink, leaving the middle
+/// clear for the cover. `progress` (0 to 1) draws them in from the edges toward the center (RF-118).
+struct SpeedLines: View, Animatable {
+    var color: Color = Palette.onSurface.opacity(0.22)
+    var progress: Double = 1
+
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    private static let jitter: [Double] = [0, 1.6, -1.1, 2.3, -0.4, 0.9, -2]
+    private static let length: [Double] = [0, 0.55, 0.2, 0.9, 0.35, 0.7, 0.1, 0.45]
 
     var body: some View {
-        Canvas { context, size in
+        Canvas { [progress] context, size in
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
-            let reach = max(size.width, size.height)
+            let reach = hypot(size.width / 2, size.height / 2)
+            let p = min(max(progress, 0), 1)
             var angle = 0.0
+            var i = 0
             while angle < 360 {
-                let rad = angle * .pi / 180
+                let rad = (angle + Self.jitter[i % Self.jitter.count]) * .pi / 180
+                // Uneven lengths, as drawn by hand; none closer to the center than 62 % of the way.
+                let rest = reach * (0.62 + 0.22 * Self.length[i % Self.length.count])
+                let inner = reach - (reach - rest) * p
                 var line = Path()
-                line.move(to: CGPoint(x: center.x + reach * 0.34 * cos(rad), y: center.y + reach * 0.34 * sin(rad)))
+                line.move(to: CGPoint(x: center.x + inner * cos(rad), y: center.y + inner * sin(rad)))
                 line.addLine(to: CGPoint(x: center.x + reach * cos(rad), y: center.y + reach * sin(rad)))
-                context.stroke(line, with: .color(color), lineWidth: 1.2)
-                angle += 7
+                context.stroke(line, with: .color(color), lineWidth: i % 3 == 0 ? 1 : 0.6)
+                angle += 6
+                i += 1
             }
         }
         .accessibilityHidden(true)
@@ -240,10 +265,13 @@ struct DotsLoader: View {
 struct VerticalTitle: View {
     let text: String
     var size: CGFloat = 30
+    @Environment(\.accessibilityReduceMotion) private var reduce
+    @State private var written = 0.0
 
     var body: some View {
+        let letters = Array(text.prefix(7))
         VStack(spacing: 0) {
-            ForEach(Array(text.prefix(7).enumerated()), id: \.offset) { _, char in
+            ForEach(Array(letters.enumerated()), id: \.offset) { index, char in
                 ZStack {
                     ForEach(0..<4, id: \.self) { i in
                         let offsets: [(CGFloat, CGFloat)] = [(-1.5, 0), (1.5, 0), (0, -1.5), (0, 1.5)]
@@ -252,9 +280,30 @@ struct VerticalTitle: View {
                     }
                     Text(String(char)).font(ComicFont.japanese(size)).foregroundStyle(Palette.background)
                 }
+                // RF-118: written from top to bottom, one letter after the other.
+                .modifier(LetterIn(index: index, count: letters.count, progress: written, reduce: reduce))
             }
         }
         .accessibilityHidden(true)
+        .modifier(Entrance(duration: ComicMotion.writeSeconds(letters.count), delay: ComicMotion.panel / 2, progress: $written))
+    }
+}
+
+/// One letter of the vertical title, shown as the writing reaches it.
+private struct LetterIn: ViewModifier, Animatable {
+    let index: Int
+    let count: Int
+    var progress: Double
+    let reduce: Bool
+
+    var animatableData: Double {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let shown = ComicMotion.letterAlpha(index: index, count: count, progress: progress, reduce: reduce)
+        content.opacity(shown).offset(y: (1 - shown) * -6)
     }
 }
 

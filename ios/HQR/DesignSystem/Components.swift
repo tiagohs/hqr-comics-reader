@@ -41,6 +41,8 @@ struct CoverCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             CoverImage(manga: manga)
+                // RF-118: the work screen zooms out of this cover.
+                .coverSource(coverTransitionId(sourceId: manga.sourceKey, key: manga.key))
                 .overlay(alignment: .topTrailing) {
                     // Unread count in a burst; "Na biblioteca" in an ink tag.
                     VStack(alignment: .trailing, spacing: 4) {
@@ -80,11 +82,13 @@ struct Chip: View {
 struct CoverGrid<Item: Hashable, Cell: View>: View {
     let items: [Item]
     @ViewBuilder let cell: (Item) -> Cell
+    /// RF-118: the covers cascade in as the list opens.
+    @State private var opened = Date()
 
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 104, maximum: 180), spacing: Metrics.spaceCoverGap, alignment: .top)],
                   spacing: Metrics.spaceCoverGap * 1.5) {
-            ForEach(items, id: \.self) { item in cell(item) }
+            ForEach(Array(items.enumerated()), id: \.element) { index, item in cell(item).cascadeIn(index, since: opened) }
         }
         .padding(.horizontal, Metrics.spaceMarginCompact)
     }

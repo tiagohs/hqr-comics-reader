@@ -43,6 +43,8 @@ struct SettingsScreen: View {
                         }
                     ))
                 }
+                // RF-08: only after the 18+ confirmation.
+                SuggestiveToggle(title: L("settings_mangadex_suggestive"))
             }
             Section {
                 NavigationLink(value: Route.sources) { Label(L("settings_manage_sources"), systemImage: "square.stack.3d.up") }

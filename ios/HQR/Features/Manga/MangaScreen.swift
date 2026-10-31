@@ -12,6 +12,12 @@ struct MangaScreen: View {
     @State private var expanded = false
     /// The bar shows the work's name only after its title scrolled under it; over the panel it stays clear.
     @State private var titleUnderBar = false
+    /// RF-53: choosing the work's categories.
+    @State private var picking = false
+    /// RF-118: the panel draws itself in as the work opens.
+    @State private var heroIn = 0.0
+    /// RF-118: the chapters cascade in once, as the work opens.
+    @State private var opened = Date()
 
     init(mangaId: Int64) {
         self.mangaId = mangaId
@@ -22,6 +28,7 @@ struct MangaScreen: View {
     private var model: ScreenModel<MangaViewModel, MangaViewModel.State> { models.screen }
     private var downloads: FlowModel<NSDictionary> { models.downloads }
     private var selection: FlowModel<NSSet> { models.selection }
+    private var categories: [Shared.Category] { IosBridge.shared.categoriesOf(choice: models.categories.value) }
 
     private var selected: Set<Int64> {
         Set(selection.value.compactMap { ($0 as? KotlinLong)?.int64Value })
@@ -52,7 +59,9 @@ struct MangaScreen: View {
                              secondary: manga.source.url.flatMap(URL.init(string:)).map { url in (L("action_open_browser"), { UIApplication.shared.open(url) }) })
                         .listRowBackground(Color.clear)
                 }
-                ForEach(state.chapters, id: \.id) { chapter in row(chapter, state: state) }
+                ForEach(Array(state.chapters.enumerated()), id: \.element.id) { index, chapter in
+                    row(chapter, state: state).cascadeIn(index, since: opened)
+                }
             } header: {
                 HStack {
                     Text(state.chaptersLoading ? L("manga_chapters", 0).filter { !$0.isNumber }.trimmingCharacters(in: .whitespaces)
@@ -84,6 +93,13 @@ struct MangaScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .tint(tint(state.manga))
         .toolbar { toolbar(state) }
+        .zoomFromCover(navigator.coverIds[mangaId])
+        .sheet(isPresented: $picking) {
+            CategoryPicker(categories: categories,
+                           assigned: Set(IosBridge.shared.assignedOf(choice: models.categories.value).map { $0.int64Value })) { ids in
+                IosBridge.shared.setCategories(viewModel: model.viewModel, categoryIds: ids.map { KotlinLong(value: $0) })
+            }
+        }
         .overlay {
             if state.manga == nil && state.refreshing { ProgressView() }
         }
@@ -104,7 +120,7 @@ struct MangaScreen: View {
                 CoverImage(manga: source, width: 140)
                     .overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
                     .background(Palette.onSurface.offset(x: 6, y: 6))
-                    .rotationEffect(.degrees(-2.5))
+                    .rotationEffect(.degrees(-2.5 * heroIn))
                     .frame(maxWidth: .infinity)
                     .overlay(alignment: .topTrailing) {
                         if let vertical { VerticalTitle(text: vertical).padding(.trailing, 16) }
@@ -126,12 +142,18 @@ struct MangaScreen: View {
             .frame(maxWidth: .infinity)
             .background {
                 ZStack {
-                    Color.accentColor.opacity(0.18)
-                    if vertical != nil { SpeedLines() } else { Halftone(color: Color.accentColor.opacity(0.4), step: 9, radius: 2.4) }
+                    // The panel goes on under the clear bar (and the pull to refresh), up to the top of the screen.
+                    Color.accentColor.opacity(0.18).padding(.top, -Self.panelReach)
+                    if vertical != nil {
+                        // Centered on the cover, kept inside the panel.
+                        SpeedLines(progress: heroIn).clipped()
+                    } else {
+                        Halftone(color: Color.accentColor.opacity(0.4), step: 9, radius: 2.4, progress: heroIn)
+                            .padding(.top, -Self.panelReach)
+                    }
                 }
-                // The panel goes on under the clear bar (and the pull to refresh), up to the top of the screen.
-                .padding(.top, -Self.panelReach)
             }
+            .modifier(Entrance(progress: $heroIn))
             Rectangle().fill(Palette.onSurface).frame(height: 3)
             VStack(alignment: .leading, spacing: 12) {
                 ComicTitle(text: source.title)
@@ -162,7 +184,11 @@ struct MangaScreen: View {
                     }
                 }
                 if !manga.inLibrary {
-                    Button { model.viewModel.toggleLibrary() } label: {
+                    Button {
+                        model.viewModel.toggleLibrary()
+                        // RF-53: putting it in asks for the categories when there are any.
+                        if !categories.isEmpty { picking = true }
+                    } label: {
                         Label(L("manga_add_library"), systemImage: "plus").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
@@ -380,6 +406,9 @@ struct MangaScreen: View {
                 Button { model.viewModel.refresh() } label: {
                     Label(L("manga_refresh"), systemImage: "arrow.clockwise")
                 }
+                if state.manga?.inLibrary == true && !categories.isEmpty {
+                    Button { picking = true } label: { Label(L("manga_edit_categories"), systemImage: "folder") }
+                }
                 Button { navigator.open(.migrate(mangaId)) } label: {
                     Label(L("migrate_action"), systemImage: "arrow.left.arrow.right")
                 }
@@ -412,6 +441,7 @@ final class MangaModels: ObservableObject {
     let screen: ScreenModel<MangaViewModel, MangaViewModel.State>
     let downloads: FlowModel<NSDictionary>
     let selection: FlowModel<NSSet>
+    let categories: FlowModel<KotlinPair<NSArray, NSSet>>
     private var changes: [AnyCancellable] = []
 
     init(mangaId: Int64) {
@@ -419,7 +449,9 @@ final class MangaModels: ObservableObject {
         screen = ScreenModel(viewModel) { Screen<MangaViewModel.State>(viewModel: $0, flow: $0.state) }
         downloads = FlowModel(viewModel.downloadStates)
         selection = FlowModel(viewModel.selected)
+        categories = FlowModel(viewModel.categoryChoice)
         changes = [
+            categories.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             screen.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             downloads.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             selection.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },

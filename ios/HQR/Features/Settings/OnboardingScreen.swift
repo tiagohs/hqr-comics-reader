@@ -8,6 +8,10 @@ struct OnboardingScreen: View {
     @State private var languages = Set(["pt-br"])
     @State private var webtoon = false
     @State private var starting = false
+    // RF-118: the dots are printed down the page, then each card is drawn by hand.
+    @State private var printed = 0.0
+    @State private var pagedDrawn = 0.0
+    @State private var webtoonDrawn = 0.0
 
     private static let ink = Color(red: 0x16 / 255, green: 0x16 / 255, blue: 0x1A / 255)
     private static let paper = Color(red: 0xF6 / 255, green: 0xF1 / 255, blue: 0xE7 / 255)
@@ -28,8 +32,10 @@ struct OnboardingScreen: View {
                         .foregroundStyle(Self.paper)
                         .multilineTextAlignment(.center)
                     VStack(spacing: 16) {
-                        card(L("onboarding_paged"), tag: L("onboarding_paged_tag"), selected: !webtoon, tilt: -2) { webtoon = false }
-                        card(L("onboarding_webtoon"), tag: L("onboarding_webtoon_tag"), selected: webtoon, tilt: 1.5) { webtoon = true }
+                        card(L("onboarding_paged"), tag: L("onboarding_paged_tag"), selected: !webtoon, tilt: -2, drawn: pagedDrawn) { webtoon = false }
+                            .modifier(Entrance(duration: ComicMotion.sketch, delay: ComicMotion.panel / 2, progress: $pagedDrawn))
+                        card(L("onboarding_webtoon"), tag: L("onboarding_webtoon_tag"), selected: webtoon, tilt: 1.5, drawn: webtoonDrawn) { webtoon = true }
+                            .modifier(Entrance(duration: ComicMotion.sketch, delay: ComicMotion.panel, progress: $webtoonDrawn))
                     }
                     Text(L("onboarding_select_language"))
                         .font(ComicFont.bangers(22, relativeTo: .title3))
@@ -88,19 +94,23 @@ struct OnboardingScreen: View {
                                        .init(color: Palette.background, location: 0.48)],
                                startPoint: .top, endPoint: .bottom)
                 GeometryReader { proxy in
-                    Halftone(color: Self.ink.opacity(0.25), step: 6, radius: 1.4)
+                    Halftone(color: Self.ink.opacity(0.25), step: 6, radius: 1.4, progress: printed)
                         .frame(height: proxy.size.height * 0.42)
                         .mask(LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom))
                 }
             }
             .ignoresSafeArea()
         }
+        .modifier(Entrance(progress: $printed))
         .onAppear { languages = Self.saved() }
     }
 
     /// One reading mode as a hand-drawn card with its tag; a radio button for assistive technology.
-    private func card(_ title: String, tag: String, selected: Bool, tilt: Double, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func card(_ title: String, tag: String, selected: Bool, tilt: Double, drawn: Double,
+                      action: @escaping () -> Void) -> some View {
+        let stroke = selected ? Palette.primary : Self.ink
+        let width: CGFloat = selected ? 4 : 2
+        return Button(action: action) {
             Text(title)
                 .font(ComicFont.bangers(24, relativeTo: .title2))
                 .foregroundStyle(Self.ink)
@@ -108,8 +118,16 @@ struct OnboardingScreen: View {
                 .frame(width: 220)
                 .padding(.vertical, 20).padding(.horizontal, 16)
                 .background(Color(red: 1, green: 0xFD / 255, blue: 0xF7 / 255))
-                .overlay(Rectangle().stroke(selected ? Palette.primary : Self.ink, lineWidth: selected ? 4 : 2))
-                .background(Self.ink.offset(x: 5, y: 5))
+                .overlay {
+                    // Two loose strokes, the second a little behind the first.
+                    ZStack {
+                        SketchFrame().trim(from: 0, to: drawn)
+                            .stroke(stroke, style: StrokeStyle(lineWidth: width, lineCap: .round))
+                        SketchFrame(wobble: 1.5).trim(from: 0, to: max(0, (drawn - 0.25) / 0.75))
+                            .stroke(stroke.opacity(0.55), style: StrokeStyle(lineWidth: width * 0.6, lineCap: .round))
+                    }
+                }
+                .background(Self.ink.opacity(drawn).offset(x: 5, y: 5))
                 .overlay(alignment: .topTrailing) {
                     Text(tag)
                         .font(ComicFont.bangers(15, relativeTo: .caption))

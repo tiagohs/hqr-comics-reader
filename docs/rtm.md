@@ -91,7 +91,7 @@
 | RF-78 | Must | UC-012 | app | SCR-SET-003 | FEAT-021 | SettingsScreensTest |
 | RF-79 | Could | UC-012 | app | SCR-SET-003 | FEAT-049 | — |
 | RF-80 | Must | UC-012 | app | SCR-SET-001 | FEAT-020 | NetAndCacheTest |
-| RF-81 | Should | UC-012 | app, ADR-026 | SCR-ONB-001 | FEAT-032, FEAT-065 | NavigationTest |
+| RF-81 | Should | UC-012 | app, ADR-026 | SCR-ONB-001 | FEAT-032, FEAT-065, FEAT-068 | NavigationTest |
 | RF-82 | Must | UC-013 | updater, ADR-015 | SCR-SET-004 | FEAT-022 | ApkDownloaderTest, ReleaseCheckerTest |
 | RF-84 | Must | UC-013 | ADR-015, ADR-016 | SCR-SET-004 | FEAT-022 | ReleaseCheckerTest |
 | RF-85 | Could | UC-008 | app | SCR-SRC-001 | FEAT-048 | ModelsTest |

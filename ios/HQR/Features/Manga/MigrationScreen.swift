@@ -20,6 +20,15 @@ struct MigrationScreen: View {
     var body: some View {
         let state = model.state
         List {
+            // RF-70: what goes with the work, before the person picks a candidate.
+            (Text(L("migrate_carries") + " ").bold() + Text(L("migrate_carries_detail")))
+                .font(.footnote)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Palette.surface)
+                .overlay(Rectangle().stroke(Palette.onSurface, lineWidth: 2))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             Section(L("migrate_query")) {
                 TextField(L("migrate_query"), text: $query)
                     .submitLabel(.search)

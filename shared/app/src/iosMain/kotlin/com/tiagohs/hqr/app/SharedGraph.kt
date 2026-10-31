@@ -163,6 +163,25 @@ object SharedGraph {
             FavoriteSources.Result.FEED_FULL -> "full"
         }
 
+    /**
+     * RF-81: the onboarding's answers, once. Continuous scroll becomes the reader's default (page by page already is);
+     * the screen does not come back.
+     */
+    suspend fun finishOnboarding(
+        languages: List<String>,
+        webtoon: Boolean,
+    ) {
+        val prefs = preferences()
+        prefs.setContentLanguages(languages.toSet())
+        if (webtoon) {
+            koin.get<com.tiagohs.hqr.presentation.reader.ReaderSettingsStore>().saveGlobal(
+                com.tiagohs.hqr.presentation.reader
+                    .ReaderSettings(mode = com.tiagohs.hqr.presentation.reader.ReaderMode.WEBTOON),
+            )
+        }
+        prefs.setOnboarded()
+    }
+
     /** RF-66: free bytes where the downloads go; -1 when the system does not say. */
     fun freeBytes(): Long = koin.getOrNull<com.tiagohs.hqr.data.download.FreeSpace>()?.bytes() ?: -1L
 

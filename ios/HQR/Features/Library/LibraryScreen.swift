@@ -18,7 +18,7 @@ struct LibraryScreen: View {
                 if let entry = state.continueReading, query.isEmpty { continueCard(entry) }
                 if !state.loading && state.items.isEmpty {
                     if query.isEmpty {
-                        EmptyState(title: L("library_empty_title"), message: L("library_empty_message"))
+                        EmptyState(title: L("library_empty_title"), message: L("library_empty_message"), onomatopoeia: L("onomatopoeia_empty"))
                             .frame(minHeight: 360)
                     } else {
                         EmptyState(title: L("library_filtered_title"), message: L("library_filtered_message"),

@@ -127,28 +127,58 @@ struct ErrorBox: View {
     }
 }
 
-/// A whole screen with nothing to show yet: the system's empty state with the app's words.
+/// A whole screen with nothing to show yet: the system's empty state with the app's words. With an onomatopoeia, a
+/// tilted comic panel with halftone takes the symbol's place (ADR-026).
 struct EmptyState: View {
     let title: String
     let message: String
     var systemImage: String = "books.vertical"
+    var onomatopoeia: String? = nil
 
     var body: some View {
-        ContentUnavailableView(title, systemImage: systemImage, description: Text(message))
+        if let onomatopoeia {
+            VStack(spacing: 16) {
+                ZStack {
+                    Halftone()
+                    Text(onomatopoeia)
+                        .font(ComicFont.bangers(30))
+                        .foregroundStyle(Palette.onSurface)
+                        .padding(.horizontal, 6)
+                        .background(Palette.surface)
+                        .rotationEffect(.degrees(-4))
+                }
+                .frame(width: 150, height: 110)
+                .inkPanel(border: 3, shadow: 5)
+                .rotationEffect(.degrees(-3))
+                .accessibilityHidden(true)
+                Text(title).font(.title2.weight(.semibold)).multilineTextAlignment(.center)
+                Text(message).foregroundStyle(Palette.onSurfaceVariant).multilineTextAlignment(.center)
+            }
+            .padding(32)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            ContentUnavailableView(title, systemImage: systemImage, description: Text(message))
+        }
     }
 }
 
-/// The error that blocks a whole screen, with "Try again".
+/// The error that blocks a whole screen: the "OPS!" burst, the message and "Try again".
 struct ErrorState: View {
     let kind: ErrorKind
     let retry: () -> Void
 
     var body: some View {
-        ContentUnavailableView {
+        VStack(spacing: 16) {
+            Burst(text: "OPS!", size: 112, color: Palette.error, textColor: Palette.onError)
+                .accessibilityHidden(true)
             Label(kind.message, systemImage: kind == .offline ? "wifi.slash" : "exclamationmark.triangle")
-        } actions: {
+                .labelStyle(.titleOnly)
+                .font(.title3.weight(.semibold))
+                .multilineTextAlignment(.center)
             Button(L("action_retry"), action: retry).buttonStyle(.borderedProminent)
         }
+        .padding(32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -169,6 +199,12 @@ extension View {
 }
 #Preview("EmptyState · Light") { EmptyState(title: L("library_empty_title"), message: L("library_empty_message")).preferredColorScheme(.light) }
 #Preview("EmptyState · Dark") { EmptyState(title: L("library_empty_title"), message: L("library_empty_message")).preferredColorScheme(.dark) }
+#Preview("EmptyState panel · Light") {
+    EmptyState(title: L("library_empty_title"), message: L("library_empty_message"), onomatopoeia: L("onomatopoeia_empty")).preferredColorScheme(.light)
+}
+#Preview("EmptyState panel · Dark") {
+    EmptyState(title: L("library_empty_title"), message: L("library_empty_message"), onomatopoeia: L("onomatopoeia_empty")).preferredColorScheme(.dark)
+}
 #Preview("ErrorState · Light") { ErrorState(kind: .offline, retry: {}).preferredColorScheme(.light) }
 #Preview("ErrorState · Dark") { ErrorState(kind: .offline, retry: {}).preferredColorScheme(.dark) }
 #Preview("CoverImage · Light") { CoverImage(manga: PreviewData.manga, width: 120).padding().preferredColorScheme(.light) }

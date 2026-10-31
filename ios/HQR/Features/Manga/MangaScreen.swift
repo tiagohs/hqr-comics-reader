@@ -10,6 +10,8 @@ struct MangaScreen: View {
     @Environment(\.colorScheme) private var scheme
     @StateObject private var models: MangaModels
     @State private var expanded = false
+    /// The bar shows the work's name only after its title scrolled under it; over the panel it stays clear.
+    @State private var titleUnderBar = false
 
     init(mangaId: Int64) {
         self.mangaId = mangaId
@@ -78,7 +80,7 @@ struct MangaScreen: View {
         .listRowSeparatorTint(Palette.onSurface)
         .screenBackground()
         .refreshable { model.viewModel.refresh() }
-        .navigationTitle(state.manga?.source.title ?? "")
+        .navigationTitle(titleUnderBar ? (state.manga?.source.title ?? "") : "")
         .navigationBarTitleDisplayMode(.inline)
         .tint(tint(state.manga))
         .toolbar { toolbar(state) }
@@ -88,6 +90,10 @@ struct MangaScreen: View {
     }
 
     // MARK: Header
+
+    private static let panelReach: CGFloat = 600
+    /// Status bar plus the inline navigation bar, where the list scrolls under.
+    private static let barHeight: CGFloat = 100
 
     private func header(_ manga: Manga, state: MangaViewModel.State) -> some View {
         let source = manga.source
@@ -123,10 +129,13 @@ struct MangaScreen: View {
                     Color.accentColor.opacity(0.18)
                     if vertical != nil { SpeedLines() } else { Halftone(color: Color.accentColor.opacity(0.4), step: 9, radius: 2.4) }
                 }
+                // The panel goes on under the clear bar (and the pull to refresh), up to the top of the screen.
+                .padding(.top, -Self.panelReach)
             }
             Rectangle().fill(Palette.onSurface).frame(height: 3)
             VStack(alignment: .leading, spacing: 12) {
                 ComicTitle(text: source.title)
+                    .onGeometryChange(for: Bool.self) { $0.frame(in: .scrollView).maxY < Self.barHeight } action: { titleUnderBar = $0 }
                 let people = Array(Set(source.authors + source.artists)).sorted().prefix(2)
                 MetaTags(author: people.isEmpty ? nil : people.joined(separator: " · "),
                          status: statusLabel(source.status),

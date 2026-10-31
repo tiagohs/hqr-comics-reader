@@ -33,4 +33,12 @@ final class CoreBridgeTests: XCTestCase {
         XCTAssertEqual(ago(tenMinutesAgo), L("time_minutes_ago", 10))
         XCTAssertEqual(ago(nil), L("time_just_now"))
     }
+
+    func test_RF81_onboarding_saves_the_languages_and_does_not_come_back() async throws {
+        try await Core.graph.finishOnboarding(languages: ["en", "pt-br"], webtoon: false)
+        XCTAssertEqual((Core.graph.preferences().onboarded.value as? KotlinBoolean)?.boolValue, true)
+        let value = Core.graph.preferences().contentLanguages.value
+        let saved = (value as? Set<String>) ?? Set((value as? NSSet)?.compactMap { $0 as? String } ?? [])
+        XCTAssertEqual(saved, ["en", "pt-br"])
+    }
 }

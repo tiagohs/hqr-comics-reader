@@ -180,7 +180,7 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-065 | Papel e tinta, Bangers e título vertical, componentes de HQ (selo, explosão, retícula, linhas de velocidade, esqueleto suave) com controles do M3 | RF-29, RF-31, RF-81, RF-98 | todos | todas | `ui` (theme, components) | fonte recortada |
 | FEAT-066 | Obra abre na hora: detalhes e capítulos em paralelo, lista com esqueleto e erro próprio, validade de 6 horas | RF-117, RF-33 | UC-003 | SCR-OBR-001 | `presentation/manga`, `data/cache` | `CacheStore` |
 | FEAT-067 | Fontes favoritas e feed guardado por 30 minutos | RF-115, RF-116, RF-25 | UC-002 | SCR-EXP-001, SCR-EXP-002 | `presentation/feed`, `ui/explore` | `feed`, `CacheStore` |
-| FEAT-068 | iOS na linguagem de HQ | RF-115 a RF-117 | todos | todas | `ios/` | — |
+| FEAT-068 | iOS na linguagem de HQ, com o onboarding | RF-81, RF-115 a RF-117 | todos | todas | `ios/` | — |
 
 ## 4. Ordem de construção
 

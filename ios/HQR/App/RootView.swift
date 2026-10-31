@@ -39,10 +39,14 @@ struct RootView: View {
     @StateObject private var presenter = ReaderPresenter()
     @StateObject private var appearance = Appearance()
     @State private var selection: Destination = .library
+    /// RF-81: the onboarding comes once, before anything else.
+    @State private var onboarded = (Core.graph.preferences().onboarded.value as? KotlinBoolean)?.boolValue ?? false
 
     var body: some View {
         Group {
-            if sizeClass == .regular {
+            if !onboarded {
+                OnboardingScreen { withAnimation { onboarded = true } }
+            } else if sizeClass == .regular {
                 NavigationSplitView {
                     List(Destination.allCases, selection: Binding($selection)) { destination in
                         Label(destination.title, systemImage: destination.systemImage).tag(destination)
@@ -78,12 +82,12 @@ struct OfflineBanner: View {
 
     var body: some View {
         if !online.value.boolValue {
-            Text(L("error_offline_banner"))
+            Label(L("error_offline_banner"), systemImage: "wifi.slash")
                 .font(.footnote.weight(.medium))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Palette.surfaceHighest, in: Capsule())
-                .foregroundStyle(Palette.onSurface)
+                .background(Palette.onSurface, in: Capsule())
+                .foregroundStyle(Palette.surface)
                 .padding(.top, 4)
                 .transition(.move(edge: .top).combined(with: .opacity))
         }

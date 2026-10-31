@@ -11,6 +11,7 @@ Leia nesta ordem. Cada documento cita os IDs do anterior.
 | [use-cases.md](use-cases.md) | 14 casos de uso (UC) e diagrama |
 | [architecture.md](architecture.md) | Contexto, containers e módulos, execução, dados, segurança, distribuição, riscos e 23 decisões (ADR) |
 | [ux-foundations.md](ux-foundations.md) | Princípios, navegação, 29 telas (SCR) e variações por superfície (Android, web, iPhone, iPad), fluxos, tamanhos de tela, leitor, estados, acessibilidade |
+| [ux-writing.md](ux-writing.md) | Guia de textos de tela: voz, glossário de verbos (pt/en/es), maiúsculas, erros, estados vazios, acessibilidade |
 | [design.md](design.md) e [tokens.json](tokens.json) | Marca, cores (violeta base e cor da capa), tipografia, formas, componentes |
 | [implementation-plan.md](implementation-plan.md) | Fases, FEATs e o que entra em cada versão |
 | [scaffold-notes.md](scaffold-notes.md) | Como a estrutura do código foi montada e decisões de implementação |

@@ -30,7 +30,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Brazilian comics from HQ Now (hq-now.com)."
+            "value": "Comics in Portuguese from HQ Now (hq-now.com)."
           }
         },
         "es": {
@@ -76,19 +76,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sources"
+            "value": "Credits"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fuentes"
+            "value": "Créditos"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fontes"
+            "value": "Créditos"
           }
         }
       }
@@ -191,19 +191,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your library, progress and files stay on this device. HQR has no account and no analytics; Android sends only crash reports (stack, device model, install id). The sources you open see your requests, as any website would."
+            "value": "Your library, progress and files stay on this device. HQR has no account and no analytics; on Android it sends only crash reports (stack trace, device model, install ID). The sources you open see your requests, as any website would."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu biblioteca, progreso y archivos quedan en este dispositivo. HQR no tiene cuenta ni analytics; en Android solo envía informes de fallos (traza, modelo del dispositivo, id de instalación). Las fuentes que abres ven tus solicitudes, como cualquier sitio."
+            "value": "Tu biblioteca, tu progreso y tus archivos se quedan en este dispositivo. HQR no tiene cuenta ni analíticas; en Android solo envía informes de fallos (seguimiento de pila, modelo del dispositivo, ID de instalación). Las fuentes que abres ven tus solicitudes, como cualquier sitio web."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sua biblioteca, progresso e arquivos ficam neste aparelho. O HQR não tem conta nem analytics; no Android, só envia relatórios de falha (rastro, modelo do aparelho, id de instalação). As fontes que você abre veem os seus pedidos, como qualquer site."
+            "value": "Sua biblioteca, seu progresso e seus arquivos ficam neste aparelho. O HQR não tem conta nem analytics; no Android, envia só relatórios de falha (stack trace, modelo do aparelho, ID de instalação). As fontes que você abre veem suas solicitações, como qualquer site."
           }
         }
       }
@@ -243,13 +243,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Código en GitHub"
+            "value": "Código fuente en GitHub"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Código no GitHub"
+            "value": "Código-fonte no GitHub"
           }
         }
       }
@@ -260,19 +260,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Version %1$@ · GitHub flavor"
+            "value": "Version %1$@ · GitHub edition"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Versión %1$@ · sabor GitHub"
+            "value": "Versión %1$@ · edición GitHub"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Versão %1$@ · sabor GitHub"
+            "value": "Versão %1$@ · edição GitHub"
           }
         }
       }
@@ -398,19 +398,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Less"
+            "value": "Show less"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Menos"
+            "value": "Mostrar menos"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Menos"
+            "value": "Mostrar menos"
           }
         }
       }
@@ -444,19 +444,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More"
+            "value": "Show more"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Más"
+            "value": "Mostrar más"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mais"
+            "value": "Mostrar mais"
           }
         }
       }
@@ -588,13 +588,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leer de nuevo"
+            "value": "Volver a leer"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ler de novo"
+            "value": "Ler novamente"
           }
         }
       }
@@ -611,13 +611,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Intentar de nuevo"
+            "value": "Reintentar"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tentar de novo"
+            "value": "Tentar novamente"
           }
         }
       }
@@ -726,7 +726,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Crear copia"
+            "value": "Crear copia de seguridad"
           }
         },
         "pt-BR": {
@@ -766,19 +766,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This backup comes from a newer HQR. Update the app to restore it."
+            "value": "This backup is from a newer version of HQR. Update the app to restore it."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta copia viene de un HQR más nuevo. Actualiza la app para restaurarla."
+            "value": "Esta copia de seguridad es de una versión más nueva de HQR. Actualiza la app para restaurarla."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este backup veio de um HQR mais novo. Atualize o app para restaurar."
+            "value": "Este backup é de uma versão mais nova do HQR. Atualize o app para restaurá-lo."
           }
         }
       }
@@ -789,19 +789,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This file is not an HQR backup."
+            "value": "This file isn't an HQR backup. Choose another file."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este archivo no es una copia de HQR."
+            "value": "Este archivo no es una copia de seguridad de HQR. Elige otro archivo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este arquivo não é um backup do HQR."
+            "value": "Este arquivo não é um backup do HQR. Escolha outro arquivo."
           }
         }
       }
@@ -812,19 +812,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The backup was not saved."
+            "value": "The backup wasn't saved. Try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La copia no se guardó."
+            "value": "No se guardó la copia de seguridad. Vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O backup não foi salvo."
+            "value": "O backup não foi salvo. Tente novamente."
           }
         }
       }
@@ -841,7 +841,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restaurar copia"
+            "value": "Restaurar copia de seguridad"
           }
         },
         "pt-BR": {
@@ -858,19 +858,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adds what the file has; nothing here is deleted."
+            "value": "Adds the file's content to what's here; nothing is deleted."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suma lo que tiene el archivo; no se borra nada de aquí."
+            "value": "Agrega el contenido del archivo a lo que ya tienes; no se elimina nada."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Soma o que o arquivo tem; nada daqui é apagado."
+            "value": "Adiciona o conteúdo do arquivo ao que já existe; nada é excluído."
           }
         }
       }
@@ -904,19 +904,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Type the server passwords again: they are never in a backup."
+            "value": "Type the server passwords again: they're never in a backup."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escribe de nuevo las contraseñas de los servidores: nunca van en la copia."
+            "value": "Vuelve a escribir las contraseñas de los servidores: nunca se incluyen en la copia de seguridad."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Digite de novo as senhas dos servidores: elas nunca vão no backup."
+            "value": "Digite novamente as senhas dos servidores: elas nunca vão no backup."
           }
         }
       }
@@ -933,7 +933,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copia restaurada"
+            "value": "Copia de seguridad restaurada"
           }
         },
         "pt-BR": {
@@ -956,7 +956,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copia guardada."
+            "value": "Copia de seguridad guardada."
           }
         },
         "pt-BR": {
@@ -979,7 +979,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copia y restauración"
+            "value": "Copia de seguridad y restauración"
           }
         },
         "pt-BR": {
@@ -1088,7 +1088,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bridge on: %1$@"
+            "value": "Bridge active: %1$@"
           }
         },
         "es": {
@@ -1100,7 +1100,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ponte ligada: %1$@"
+            "value": "Ponte ativa: %1$@"
           }
         }
       }
@@ -1157,19 +1157,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use the https address of your Worker, with no login in it."
+            "value": "Use your Worker's https address, with no username or password in it."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usa la dirección https de tu Worker, sin usuario dentro."
+            "value": "Usa la dirección https de tu Worker, sin usuario ni contraseña."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use o endereço https do seu Worker, sem login dentro."
+            "value": "Use o endereço https do seu Worker, sem usuário nem senha."
           }
         }
       }
@@ -1226,19 +1226,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The bridge works, but it is from an older version: publish it again to reach the newer sources."
+            "value": "The bridge works, but it's from an older version: publish it again to reach the newer sources."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El puente funciona, pero es de una versión antigua: publícalo de nuevo para llegar a las fuentes nuevas."
+            "value": "El puente funciona, pero es de una versión antigua: vuelve a publicarlo para acceder a las fuentes nuevas."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A ponte funciona, mas é de uma versão antiga: publique de novo para chegar às fontes novas."
+            "value": "A ponte funciona, mas é de uma versão antiga: publique-a novamente para acessar as fontes novas."
           }
         }
       }
@@ -1341,19 +1341,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token refused by the bridge"
+            "value": "The bridge refused the token. Check it and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token rechazado por el puente"
+            "value": "El puente rechazó el token. Revísalo y vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token recusado pela ponte"
+            "value": "A ponte recusou o token. Confira e tente novamente."
           }
         }
       }
@@ -1393,13 +1393,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadida a la biblioteca"
+            "value": "Se agregó a la biblioteca"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adicionada à biblioteca"
+            "value": "Obra adicionada à biblioteca"
           }
         }
       }
@@ -1491,7 +1491,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tente outro termo ou confira as fontes ligadas."
+            "value": "Tente outro termo ou confira as fontes ativadas."
           }
         }
       }
@@ -1686,19 +1686,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "“%1$@” deleted · %2$lld works left it"
+            "value": "“%1$@” deleted · %2$lld works removed from it"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "“%1$@” eliminada · %2$lld obras salieron de ella"
+            "value": "“%1$@” eliminada · %2$lld obras quitadas de ella"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "“%1$@” excluída · %2$lld obras saíram dela"
+            "value": "“%1$@” excluída · %2$lld obras removidas dela"
           }
         }
       }
@@ -1778,19 +1778,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Give it a name"
+            "value": "Enter a name"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ponle un nombre"
+            "value": "Escribe un nombre"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dê um nome"
+            "value": "Digite um nome"
           }
         }
       }
@@ -1801,19 +1801,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There is already a category with this name"
+            "value": "A category with this name already exists. Choose another name."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ya existe una categoría con ese nombre"
+            "value": "Ya existe una categoría con ese nombre. Elige otro."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Já existe uma categoria com esse nome"
+            "value": "Já existe uma categoria com esse nome. Escolha outro."
           }
         }
       }
@@ -1870,19 +1870,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "“No category” keeps what is in no category and leaves the Library when it is empty."
+            "value": "“No category” holds works without a category and is hidden from the Library when empty."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "“Sin categoría” guarda lo que no está en ninguna categoría y sale de la Biblioteca cuando queda vacía."
+            "value": "“Sin categoría” reúne las obras sin categoría y no aparece en la Biblioteca cuando está vacía."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "“Sem categoria” guarda o que não está em nenhuma categoria e some da Biblioteca quando fica vazia."
+            "value": "“Sem categoria” reúne as obras sem categoria e não aparece na Biblioteca quando está vazia."
           }
         }
       }
@@ -1952,19 +1952,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete the check on the source's page. HQR goes back on its own when it passes."
+            "value": "Complete the check on the source's page. HQR returns automatically when it passes."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Haz la verificación en la página de la fuente. HQR vuelve solo cuando pase."
+            "value": "Completa la verificación en la página de la fuente. HQR vuelve automáticamente cuando se apruebe."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Faça a verificação na página da fonte. O HQR volta sozinho quando ela passar."
+            "value": "Conclua a verificação na página da fonte. O HQR volta automaticamente quando ela for aprovada."
           }
         }
       }
@@ -2004,13 +2004,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La verificación solo se abre en la app del móvil. Abre el sitio de la fuente en el navegador y vuelve a intentarlo."
+            "value": "La verificación solo se abre en la app del celular. Abre el sitio web de la fuente en el navegador y vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A verificação só abre no app do celular. Abra o site da fonte no navegador e tente de novo."
+            "value": "A verificação só abre no app do celular. Abra o site da fonte no navegador e tente novamente."
           }
         }
       }
@@ -2142,13 +2142,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar descarga de %1$@"
+            "value": "Eliminar la descarga de %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar download de %1$@"
+            "value": "Excluir download de %1$@"
           }
         }
       }
@@ -2165,13 +2165,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Falló: %1$@"
+            "value": "Error: %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Falhou: %1$@"
+            "value": "Falha: %1$@"
           }
         }
       }
@@ -2251,7 +2251,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting"
+            "value": "Queued"
           }
         },
         "es": {
@@ -2372,13 +2372,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar después de leer"
+            "value": "Eliminar después de leer"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar depois de ler"
+            "value": "Excluir depois de ler"
           }
         }
       }
@@ -2389,19 +2389,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A chapter's files go when it is marked as read."
+            "value": "A chapter's files are deleted when it's marked as read."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los archivos del capítulo se borran al marcarlo como leído."
+            "value": "Los archivos del capítulo se eliminan al marcarlo como leído."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os arquivos do capítulo saem quando ele é marcado como lido."
+            "value": "Os arquivos do capítulo são excluídos quando ele é marcado como lido."
           }
         }
       }
@@ -2418,13 +2418,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar todas las descargas"
+            "value": "Eliminar todas las descargas"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar todos os baixados"
+            "value": "Excluir todos os downloads"
           }
         }
       }
@@ -2435,19 +2435,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete every downloaded chapter? Reading them will need internet again."
+            "value": "Delete every downloaded chapter? You'll need internet to read them again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "¿Borrar todos los capítulos descargados? Para leerlos de nuevo necesitarás internet."
+            "value": "¿Eliminar todos los capítulos descargados? Para volver a leerlos, necesitarás internet."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar todos os capítulos baixados? Para ler de novo, vai precisar de internet."
+            "value": "Excluir todos os capítulos baixados? Para lê-los novamente, você vai precisar de internet."
           }
         }
       }
@@ -2464,13 +2464,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar las descargas de %1$@"
+            "value": "Eliminar las descargas de %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar os baixados de %1$@"
+            "value": "Excluir os downloads de %1$@"
           }
         }
       }
@@ -2608,7 +2608,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desligado: os capítulos ficam só no app. Com uma pasta, cada um também é salvo lá em .cbz, para outros leitores."
+            "value": "Desativado: os capítulos ficam só no app. Com uma pasta, cada um também é salvo nela em .cbz, para outros leitores."
           }
         }
       }
@@ -2619,19 +2619,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "On iPhone and iPad the queue runs while HQR is open and for the time the system gives it in the background."
+            "value": "On iPhone and iPad, the queue runs while HQR is open and for as long as the system allows in the background."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "En iPhone y iPad la cola avanza con HQR abierto y durante el tiempo que el sistema da en segundo plano."
+            "value": "En iPhone y iPad, la cola avanza mientras HQR está abierto y durante el tiempo que el sistema permita en segundo plano."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "No iPhone e no iPad a fila anda com o HQR aberto e pelo tempo que o sistema der em segundo plano."
+            "value": "No iPhone e no iPad, a fila avança enquanto o HQR está aberto e pelo tempo que o sistema permitir em segundo plano."
           }
         }
       }
@@ -2803,19 +2803,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only on Wi-Fi"
+            "value": "Download over Wi-Fi only"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo con Wi-Fi"
+            "value": "Descargar solo con Wi-Fi"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Só no Wi-Fi"
+            "value": "Baixar somente por Wi-Fi"
           }
         }
       }
@@ -2838,7 +2838,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os downloads esperam uma rede que não cobra por dados."
+            "value": "Os downloads aguardam uma rede sem cobrança por dados."
           }
         }
       }
@@ -2849,19 +2849,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Username or password refused"
+            "value": "Incorrect username or password. Check them and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usuario o contraseña rechazados"
+            "value": "Usuario o contraseña incorrectos. Revísalos y vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Usuário ou senha recusados"
+            "value": "Usuário ou senha incorretos. Confira e tente novamente."
           }
         }
       }
@@ -2895,19 +2895,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server's certificate is not valid."
+            "value": "The server's certificate isn't valid. Check the server's HTTPS setup."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El certificado del servidor no es válido."
+            "value": "El certificado del servidor no es válido. Revisa la configuración HTTPS del servidor."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O certificado do servidor não é válido."
+            "value": "O certificado do servidor não é válido. Confira a configuração HTTPS do servidor."
           }
         }
       }
@@ -2930,7 +2930,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A fonte pede verificação"
+            "value": "A fonte pede uma verificação"
           }
         }
       }
@@ -2941,19 +2941,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source didn't answer. Check the internet and try again."
+            "value": "The source didn't respond. Check your connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La fuente no respondió. Revisa internet e inténtalo de nuevo."
+            "value": "La fuente no respondió. Revisa tu conexión y vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A fonte não respondeu. Confira a internet e tente de novo."
+            "value": "A fonte não respondeu. Verifique a conexão e tente novamente."
           }
         }
       }
@@ -2964,19 +2964,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not found at the source."
+            "value": "Not found in this source."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se encontró en la fuente."
+            "value": "No se encontró en esta fuente."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não encontrado na fonte."
+            "value": "Não encontrado nesta fonte."
           }
         }
       }
@@ -3033,19 +3033,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source changed and this page can't be read."
+            "value": "The source changed and this page can't be read. Update the app or try another source."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La fuente cambió y esta página no se puede leer."
+            "value": "La fuente cambió y no se puede leer esta página. Actualiza la app o prueba otra fuente."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A fonte mudou e esta página não pode ser lida."
+            "value": "A fonte mudou e não é possível ler esta página. Atualize o app ou tente outra fonte."
           }
         }
       }
@@ -3056,19 +3056,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The source is having problems right now."
+            "value": "The source is having problems right now. Try again later."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La fuente tiene problemas ahora."
+            "value": "La fuente tiene problemas en este momento. Vuelve a intentarlo más tarde."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A fonte está com problemas agora."
+            "value": "A fonte está com problemas no momento. Tente novamente mais tarde."
           }
         }
       }
@@ -3091,7 +3091,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não deu para carregar"
+            "value": "Não foi possível carregar"
           }
         }
       }
@@ -3125,19 +3125,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Something went wrong."
+            "value": "Something went wrong. Try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Algo salió mal."
+            "value": "Algo salió mal. Vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Algo deu errado."
+            "value": "Algo deu errado. Tente novamente."
           }
         }
       }
@@ -3154,7 +3154,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gestionar fuentes y servidores"
+            "value": "Administrar fuentes y servidores"
           }
         },
         "pt-BR": {
@@ -3223,7 +3223,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadir al feed"
+            "value": "Agregar al feed"
           }
         },
         "pt-BR": {
@@ -3246,13 +3246,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadir lo reciente al feed"
+            "value": "Agregar lo reciente al feed"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pôr os recentes no feed"
+            "value": "Adicionar recentes ao feed"
           }
         }
       }
@@ -3269,7 +3269,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadido al feed"
+            "value": "Se agregó al feed"
           }
         },
         "pt-BR": {
@@ -3292,13 +3292,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Armar el feed"
+            "value": "Editar feed"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Montar o feed"
+            "value": "Editar feed"
           }
         }
       }
@@ -3309,19 +3309,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Put up to 5 things here: a source's latest or a saved search. Their newest works show together."
+            "value": "Add up to 5 items: a source's latest or a saved search. Their newest works appear here together."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pon hasta 5 cosas aquí: lo reciente de una fuente o una búsqueda guardada. Sus obras más nuevas aparecen juntas."
+            "value": "Agrega hasta 5 elementos: lo reciente de una fuente o una búsqueda guardada. Sus obras más nuevas aparecen juntas aquí."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coloque até 5 coisas aqui: os recentes de uma fonte ou uma busca salva. As obras mais novas aparecem juntas."
+            "value": "Adicione até 5 itens: os recentes de uma fonte ou uma busca salva. As obras mais novas deles aparecem juntas aqui."
           }
         }
       }
@@ -3361,13 +3361,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No cargó: %1$@"
+            "value": "No se pudo cargar: %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não carregou: %1$@"
+            "value": "Não foi possível carregar: %1$@"
           }
         }
       }
@@ -3378,19 +3378,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The feed is full (5 items) or already has this"
+            "value": "The feed is full (5 items) or already has this. Remove an item to add another."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El feed ya está lleno (5 elementos) o ya tiene este"
+            "value": "El feed ya está lleno (5 elementos) o ya tiene este. Quita uno para agregar otro."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O feed já está cheio (5 itens) ou já tem este"
+            "value": "O feed já está cheio (5 itens) ou já tem este item. Remova um item para adicionar outro."
           }
         }
       }
@@ -3436,7 +3436,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tirar %1$@ do feed"
+            "value": "Remover %1$@ do feed"
           }
         }
       }
@@ -3476,13 +3476,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "CBR y CB7 aún no abren en el navegador; conviértelos a CBZ: %1$@"
+            "value": "CBR y CB7 aún no se abren en el navegador; conviértelos a CBZ: %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "CBR e CB7 ainda não abrem no navegador; converta para CBZ: %1$@"
+            "value": "CBR e CB7 ainda não abrem no navegador; converta-os para CBZ: %1$@"
           }
         }
       }
@@ -3493,19 +3493,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import CBZ, CB7 or PDF, or drop the files on this window. They stay in this browser."
+            "value": "Import CBZ or PDF files, or drop them on this window. They stay in this browser."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Importa CBZ, CB7 o PDF, o suelta los archivos en esta ventana. Se quedan en este navegador."
+            "value": "Importa archivos CBZ o PDF, o suéltalos en esta ventana. Se quedan en este navegador."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Importe CBZ, CB7 ou PDF, ou solte os arquivos nesta janela. Eles ficam neste navegador."
+            "value": "Importe arquivos CBZ ou PDF ou solte-os nesta janela. Eles ficam neste navegador."
           }
         }
       }
@@ -3522,13 +3522,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ningún archivo importado"
+            "value": "Todavía no hay archivos importados"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nenhum arquivo importado"
+            "value": "Nenhum arquivo importado ainda"
           }
         }
       }
@@ -3539,19 +3539,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save in the browser (is it out of space?): %1$@"
+            "value": "Couldn't save in the browser. Free up space and try again: %1$@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo guardar en el navegador (¿falta espacio?): %1$@"
+            "value": "No se pudo guardar en el navegador. Libera espacio y vuelve a intentarlo: %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não deu para guardar no navegador (falta espaço?): %1$@"
+            "value": "Não foi possível salvar no navegador. Libere espaço e tente novamente: %1$@"
           }
         }
       }
@@ -3677,7 +3677,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Filters, %1$lld on"
+            "value": "Filters, %1$lld active"
           }
         },
         "es": {
@@ -3689,7 +3689,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Filtros, %1$lld ligados"
+            "value": "Filtros, %1$lld ativos"
           }
         }
       }
@@ -3821,13 +3821,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limpiar"
+            "value": "Restablecer"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limpar"
+            "value": "Redefinir"
           }
         }
       }
@@ -3999,19 +3999,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Every reading leaves the history. Read chapters stay read."
+            "value": "All readings will be removed from history. Chapters stay marked as read."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Todas las lecturas salen del historial. Los capítulos leídos siguen leídos."
+            "value": "Se quitarán todas las lecturas del historial. Los capítulos seguirán marcados como leídos."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Todas as leituras saem do histórico. Os capítulos lidos continuam lidos."
+            "value": "Todas as leituras serão removidas do histórico. Os capítulos continuam marcados como lidos."
           }
         }
       }
@@ -4080,7 +4080,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tirar %1$@ do histórico"
+            "value": "Remover %1$@ do histórico"
           }
         }
       }
@@ -4097,13 +4097,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitada del historial"
+            "value": "Se quitó del historial"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removida do histórico"
+            "value": "Removido do histórico"
           }
         }
       }
@@ -4396,7 +4396,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limpiar selección"
+            "value": "Borrar selección"
           }
         },
         "pt-BR": {
@@ -4580,13 +4580,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completado"
+            "value": "Finalizados"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Concluído"
+            "value": "Concluídos"
           }
         }
       }
@@ -4689,19 +4689,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Change or clear the filters to see your works again."
+            "value": "Change or clear the filters to see your works."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cambia o borra los filtros para ver tus obras de nuevo."
+            "value": "Cambia o borra los filtros para ver tus obras."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mude ou limpe os filtros para ver suas obras de novo."
+            "value": "Altere ou limpe os filtros para ver suas obras."
           }
         }
       }
@@ -4781,7 +4781,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "State"
+            "value": "Status"
           }
         },
         "es": {
@@ -4977,7 +4977,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tirar da biblioteca"
+            "value": "Remover da biblioteca"
           }
         }
       }
@@ -4988,19 +4988,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removed from the library"
+            "value": "Removed from library"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitada de la biblioteca"
+            "value": "Se quitó de la biblioteca"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Removida da biblioteca"
+            "value": "Obra removida da biblioteca"
           }
         }
       }
@@ -5017,7 +5017,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld obras quitadas"
+            "value": "Se quitaron %1$lld obras"
           }
         },
         "pt-BR": {
@@ -5109,13 +5109,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fecha de entrada"
+            "value": "Fecha de adición"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Data de entrada"
+            "value": "Data de adição"
           }
         }
       }
@@ -5507,19 +5507,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld works couldn't be updated"
+            "value": "Couldn't update %1$lld works"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld obras no se actualizaron"
+            "value": "No se pudieron actualizar %1$lld obras"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld obras não atualizaram"
+            "value": "Não foi possível atualizar %1$lld obras"
           }
         }
       }
@@ -5582,13 +5582,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "HQR solo lee los archivos: nunca los cambia, mueve ni borra."
+            "value": "HQR solo lee los archivos: nunca los cambia, mueve ni elimina."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O HQR só lê os arquivos: nunca altera, move ou apaga."
+            "value": "O HQR só lê os arquivos: nunca os altera, move nem exclui."
           }
         }
       }
@@ -5605,13 +5605,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadir a la biblioteca"
+            "value": "Agregar a la biblioteca"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pôr na biblioteca"
+            "value": "Adicionar à biblioteca"
           }
         }
       }
@@ -5697,7 +5697,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quitar selección"
+            "value": "Borrar selección"
           }
         },
         "pt-BR": {
@@ -5743,13 +5743,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar descarga"
+            "value": "Eliminar descarga"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar download"
+            "value": "Excluir download"
           }
         }
       }
@@ -6082,19 +6082,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No chapters in your languages at this source. Change the content languages in Settings or open the work on the site."
+            "value": "This source has no chapters in your languages. Change the content languages in Settings or open the work on the site."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ningún capítulo en tus idiomas en esta fuente. Cambia los idiomas de contenido en Ajustes o abre la obra en el sitio."
+            "value": "Esta fuente no tiene capítulos en tus idiomas. Cambia los idiomas del contenido en Ajustes o abre la obra en el sitio web."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nenhum capítulo nos seus idiomas nesta fonte. Mude os idiomas de conteúdo em Ajustes ou abra a obra no site."
+            "value": "Esta fonte não tem capítulos nos seus idiomas. Altere os idiomas de conteúdo em Ajustes ou abra a obra no site."
           }
         }
       }
@@ -6134,7 +6134,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir sitio"
+            "value": "Abrir sitio web"
           }
         },
         "pt-BR": {
@@ -6220,19 +6220,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't update the chapters. Check the internet and try again."
+            "value": "Couldn't update the chapters. Check your connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudieron actualizar los capítulos. Revisa internet e inténtalo de nuevo."
+            "value": "No se pudieron actualizar los capítulos. Revisa tu conexión y vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não deu para atualizar os capítulos. Confira a internet e tente de novo."
+            "value": "Não foi possível atualizar os capítulos. Verifique a conexão e tente novamente."
           }
         }
       }
@@ -6255,7 +6255,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tirar da biblioteca"
+            "value": "Remover da biblioteca"
           }
         }
       }
@@ -6381,19 +6381,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "\"%1$@\" takes the categories, the chapters read (by number) and the history. The old one leaves the library."
+            "value": "“%1$@” gets the categories, the chapters read (matched by number) and the history. The old one leaves the library."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "\"%1$@\" lleva las categorías, los capítulos leídos (por número) y el historial. La antigua sale de la biblioteca."
+            "value": "“%1$@” recibe las categorías, los capítulos leídos (por número) y el historial. La obra anterior sale de la biblioteca."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "\"%1$@\" leva as categorias, os capítulos lidos (pelo número) e o histórico. A antiga sai da biblioteca."
+            "value": "“%1$@” recebe as categorias, os capítulos lidos (pelo número) e o histórico. A obra antiga sai da biblioteca."
           }
         }
       }
@@ -6433,13 +6433,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar las descargas antiguas"
+            "value": "Eliminar las descargas antiguas"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar os baixados antigos"
+            "value": "Excluir os downloads antigos"
           }
         }
       }
@@ -6450,19 +6450,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No other source searches. Turn one on in Sources."
+            "value": "No other source with search is on. Turn one on in Sources."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ninguna otra fuente busca. Activa una en Fuentes."
+            "value": "Ninguna otra fuente con búsqueda está activada. Activa una en Fuentes."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nenhuma outra fonte busca. Ligue uma em Fontes."
+            "value": "Nenhuma outra fonte com busca está ativada. Ative uma em Fontes."
           }
         }
       }
@@ -6703,19 +6703,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can change the languages later, in Settings"
+            "value": "You can change the languages later in Settings"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Puedes cambiar los idiomas después, en Ajustes"
+            "value": "Puedes cambiar los idiomas después en Ajustes"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dá para mudar os idiomas depois, em Ajustes"
+            "value": "Você pode mudar os idiomas depois em Ajustes"
           }
         }
       }
@@ -6772,19 +6772,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suggestive content stays off. To turn it on, confirm you are 18 or older in each source's settings."
+            "value": "Suggestive content stays off. To turn it on, confirm you're 18 or older in each source's settings."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El contenido sugestivo queda desactivado. Para activarlo, confirma que tienes 18 años o más en los ajustes de cada fuente."
+            "value": "El contenido sugerente queda desactivado. Para activarlo, confirma que tienes 18 años o más en los ajustes de cada fuente."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conteúdo sugestivo fica desligado. Para ligar, confirme que tem 18 anos ou mais nos ajustes de cada fonte."
+            "value": "O conteúdo sugestivo fica desativado. Para ativá-lo, confirme que você tem 18 anos ou mais nos ajustes de cada fonte."
           }
         }
       }
@@ -6795,19 +6795,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your comics, manga and HQs in one place"
+            "value": "Your comics and manga in one place"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tus cómics, mangas e historietas en un solo lugar"
+            "value": "Tus cómics y mangas en un solo lugar"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suas HQs, mangás e comics num lugar só"
+            "value": "Suas HQs e mangás em um só lugar"
           }
         }
       }
@@ -7198,7 +7198,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tira margens brancas ou pretas"
+            "value": "Remove margens brancas ou pretas"
           }
         }
       }
@@ -7278,19 +7278,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Missing chapter(s) %1$@ in this language."
+            "value": "Missing in this language: ch. %1$@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Falta(n) el/los cap. %1$@ en este idioma."
+            "value": "Faltan en este idioma: cap. %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Falta(m) o(s) cap. %1$@ neste idioma."
+            "value": "Faltam neste idioma: cap. %1$@"
           }
         }
       }
@@ -7353,13 +7353,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pantalla siempre encendida"
+            "value": "Mantener la pantalla encendida"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tela sempre ligada"
+            "value": "Manter a tela ligada"
           }
         }
       }
@@ -7577,19 +7577,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only this work"
+            "value": "This work only"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo esta obra"
+            "value": "Solo en esta obra"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Só nesta obra"
+            "value": "Somente nesta obra"
           }
         }
       }
@@ -7600,19 +7600,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This page didn't load"
+            "value": "Couldn't load this page"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta página no cargó"
+            "value": "No se pudo cargar esta página"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta página não carregou"
+            "value": "Não foi possível carregar esta página"
           }
         }
       }
@@ -7974,7 +7974,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rueda del ratón: desplazar el webtoon"
+            "value": "Rueda del mouse: desplazar el webtoon"
           }
         },
         "pt-BR": {
@@ -8043,13 +8043,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Una doble página aparece una mitad a la vez"
+            "value": "Las páginas dobles aparecen una mitad a la vez"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uma página dupla aparece metade por vez"
+            "value": "Páginas duplas aparecem uma metade de cada vez"
           }
         }
       }
@@ -8089,13 +8089,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pasar página con las teclas de volumen"
+            "value": "Pasar páginas con las teclas de volumen"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Virar com as teclas de volume"
+            "value": "Virar páginas com as teclas de volume"
           }
         }
       }
@@ -8112,13 +8112,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bajar volumen avanza"
+            "value": "Bajar el volumen avanza la página"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Volume para baixo avança"
+            "value": "Diminuir o volume avança a página"
           }
         }
       }
@@ -8256,7 +8256,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desligado"
+            "value": "Desativado"
           }
         }
       }
@@ -8296,13 +8296,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Borrar"
+            "value": "Eliminar"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apagar"
+            "value": "Excluir"
           }
         }
       }
@@ -8480,13 +8480,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Más en %1$@"
+            "value": "Ver más en %1$@"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mais em %1$@"
+            "value": "Ver mais em %1$@"
           }
         }
       }
@@ -8595,7 +8595,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadir servidor"
+            "value": "Agregar servidor"
           }
         },
         "pt-BR": {
@@ -8750,19 +8750,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server's certificate is not valid."
+            "value": "The server's certificate isn't valid. Check the server's HTTPS setup."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El certificado del servidor no es válido."
+            "value": "El certificado del servidor no es válido. Revisa la configuración HTTPS del servidor."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O certificado do servidor não é válido."
+            "value": "O certificado do servidor não é válido. Confira a configuração HTTPS do servidor."
           }
         }
       }
@@ -8773,19 +8773,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Outside your home network, use an https:// address: with http the password would travel unprotected."
+            "value": "Outside your home network, use an https:// address: with http, the password would be sent unprotected."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fuera de tu red de casa, usa una dirección https://: con http la contraseña viajaría sin protección."
+            "value": "Fuera de la red de tu casa, usa una dirección https://: con http, la contraseña se enviaría sin protección."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fora da sua rede de casa, use um endereço https://: com http a senha viajaria sem proteção."
+            "value": "Fora da sua rede de casa, use um endereço https://: com http, a senha seria enviada sem proteção."
           }
         }
       }
@@ -8802,13 +8802,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El servidor no permitió esta dirección. En Komga o Kavita, agrega %1$@ a los orígenes permitidos (CORS) y prueba de nuevo."
+            "value": "El servidor no permitió esta dirección. En Komga o Kavita, agrega %1$@ a los orígenes permitidos (CORS) y vuelve a probar."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O servidor não liberou este endereço. No Komga ou no Kavita, adicione %1$@ às origens permitidas (CORS) e teste de novo."
+            "value": "O servidor não liberou este endereço. No Komga ou no Kavita, adicione %1$@ às origens permitidas (CORS) e teste novamente."
           }
         }
       }
@@ -8825,13 +8825,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pon el usuario y la contraseña en sus campos, no en la dirección."
+            "value": "Escribe el usuario y la contraseña en sus campos, no en la dirección."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coloque usuário e senha nos campos próprios, não no endereço."
+            "value": "Informe usuário e senha nos campos próprios, não no endereço."
           }
         }
       }
@@ -8911,19 +8911,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't reach this address. Check it and your connection."
+            "value": "Couldn't reach this address. Check the address and your connection."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo llegar a esta dirección. Revisa la dirección y la conexión."
+            "value": "No se pudo acceder a esta dirección. Revisa la dirección y tu conexión."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível alcançar esse endereço. Confira o endereço e a conexão."
+            "value": "Não foi possível acessar este endereço. Confira o endereço e a conexão."
           }
         }
       }
@@ -8934,7 +8934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wrong user or password."
+            "value": "Incorrect username or password."
           }
         },
         "es": {
@@ -8963,13 +8963,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La contraseña queda en el almacenamiento seguro del dispositivo, nunca en la copia."
+            "value": "La contraseña queda en el almacenamiento seguro del dispositivo, nunca en las copias de seguridad."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A senha fica no armazenamento seguro do aparelho, nunca no backup."
+            "value": "A senha fica no armazenamento seguro do aparelho, nunca nos backups."
           }
         }
       }
@@ -9049,7 +9049,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "User (optional)"
+            "value": "Username (optional)"
           }
         },
         "es": {
@@ -9193,7 +9193,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copia y restauración"
+            "value": "Copia de seguridad y restauración"
           }
         },
         "pt-BR": {
@@ -9239,7 +9239,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limpiar caché"
+            "value": "Borrar caché"
           }
         },
         "pt-BR": {
@@ -9256,19 +9256,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · downloads are not touched"
+            "value": "%1$@ · downloads aren't affected"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · las descargas no se tocan"
+            "value": "%1$@ · no afecta las descargas"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · os baixados não são tocados"
+            "value": "%1$@ · os downloads não são afetados"
           }
         }
       }
@@ -9285,13 +9285,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Idiomas de las obras"
+            "value": "Idiomas del contenido"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Idiomas das obras"
+            "value": "Idiomas de conteúdo"
           }
         }
       }
@@ -9325,19 +9325,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The work and the reader take the colors of the cover"
+            "value": "The work page and the reader use the cover's colors"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La obra y el lector toman los colores de la portada"
+            "value": "La página de la obra y el lector usan los colores de la portada"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A obra e o leitor ganham as cores da capa"
+            "value": "A página da obra e o leitor usam as cores da capa"
           }
         }
       }
@@ -9371,19 +9371,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the error trace, the device model and an install id; never what you read"
+            "value": "Only the error's stack trace, the device model and an install ID; never what you read"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Solo el rastro del error, el modelo del dispositivo y un id de instalación; nunca lo que lees"
+            "value": "Solo el seguimiento de pila del error, el modelo del dispositivo y un ID de instalación; nunca lo que lees"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Só o rastro do erro, o modelo do aparelho e um id da instalação; nunca o que você lê"
+            "value": "Só o stack trace do erro, o modelo do aparelho e um ID de instalação; nunca o que você lê"
           }
         }
       }
@@ -9607,13 +9607,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desactivado por defecto. El contenido erótico y pornográfico nunca aparece."
+            "value": "Desactivado de forma predeterminada. El contenido erótico y pornográfico nunca se muestra."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desligado por padrão. Conteúdo erótico e pornográfico nunca aparece."
+            "value": "Desativado por padrão. Conteúdo erótico e pornográfico nunca é exibido."
           }
         }
       }
@@ -9820,7 +9820,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Procurar atualização"
+            "value": "Verificar atualizações"
           }
         }
       }
@@ -9883,13 +9883,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los mismos de los idiomas de contenido"
+            "value": "Iguales a los idiomas del contenido"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os mesmos dos idiomas de conteúdo"
+            "value": "Iguais aos idiomas de conteúdo"
           }
         }
       }
@@ -9912,7 +9912,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desligue para escolher outros só para esta fonte."
+            "value": "Desative para escolher outros só para esta fonte."
           }
         }
       }
@@ -9998,13 +9998,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El ahorro de datos carga páginas más pequeñas y comprimidas: más rápido y gasta menos datos móviles."
+            "value": "El ahorro de datos carga páginas más pequeñas y comprimidas: más rápido y con menos uso de datos móviles."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A econômica carrega páginas menores e comprimidas: mais rápido e gasta menos dados móveis."
+            "value": "A economia de dados carrega páginas menores e comprimidas: mais rápidas e com menos uso de dados móveis."
           }
         }
       }
@@ -10050,7 +10050,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Econômica"
+            "value": "Economia de dados"
           }
         }
       }
@@ -10113,7 +10113,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadir servidor"
+            "value": "Agregar servidor"
           }
         },
         "pt-BR": {
@@ -10165,7 +10165,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desligada pela lista de fontes"
+            "value": "Desativada pela lista de fontes"
           }
         }
       }
@@ -10222,19 +10222,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Komga, Kavita or any OPDS server you run."
+            "value": "Add a Komga, Kavita or any other OPDS server you run."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Komga, Kavita o cualquier servidor OPDS tuyo."
+            "value": "Agrega un servidor Komga, Kavita u otro OPDS que tengas."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Komga, Kavita ou qualquer servidor OPDS seu."
+            "value": "Adicione um servidor Komga, Kavita ou outro OPDS que você mantém."
           }
         }
       }
@@ -10303,7 +10303,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ligar %1$@"
+            "value": "Ativar %1$@"
           }
         }
       }
@@ -10360,19 +10360,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hiatus"
+            "value": "On hiatus"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pausa"
+            "value": "En pausa"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hiato"
+            "value": "Em hiato"
           }
         }
       }
@@ -10429,19 +10429,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't check for updates now."
+            "value": "Couldn't check for updates. Try again later."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo buscar actualizaciones ahora."
+            "value": "No se pudo buscar actualizaciones. Vuelve a intentarlo más tarde."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível procurar atualização agora."
+            "value": "Não foi possível verificar atualizações. Tente novamente mais tarde."
           }
         }
       }
@@ -10544,19 +10544,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The downloaded file doesn't match the published one. Nothing was installed."
+            "value": "The downloaded file doesn't match the published one. Nothing was installed. Try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El archivo descargado no coincide con el publicado. No se instaló nada."
+            "value": "El archivo descargado no coincide con el publicado. No se instaló nada. Vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O arquivo baixado não confere com o publicado. Nada foi instalado."
+            "value": "O arquivo baixado não confere com o publicado. Nada foi instalado. Tente novamente."
           }
         }
       }
@@ -10567,19 +10567,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The download didn't finish. Check the connection and try again."
+            "value": "The download didn't finish. Check your connection and try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La descarga no terminó. Revisa la conexión e inténtalo de nuevo."
+            "value": "La descarga no terminó. Revisa tu conexión y vuelve a intentarlo."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O download não terminou. Confira a conexão e tente de novo."
+            "value": "O download não terminou. Verifique a conexão e tente novamente."
           }
         }
       }
@@ -10590,19 +10590,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This version didn't publish its SHA-256, so it can't be checked. Try again later."
+            "value": "This version didn't publish its SHA-256, so the file can't be checked. Try again later."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta versión no publicó su SHA-256, así que no se puede comprobar. Inténtalo más tarde."
+            "value": "Esta versión no publicó su SHA-256, así que no se puede comprobar el archivo. Vuelve a intentarlo más tarde."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta versão não publicou o SHA-256, então não dá para conferir o arquivo. Tente mais tarde."
+            "value": "Esta versão não publicou o SHA-256, então não é possível conferir o arquivo. Tente novamente mais tarde."
           }
         }
       }
@@ -10619,13 +10619,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Permite que HQR instale apps y toca Actualizar otra vez."
+            "value": "Permite que HQR instale apps y vuelve a tocar Actualizar."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Permita que o HQR instale apps e toque em Atualizar de novo."
+            "value": "Permita que o HQR instale apps e toque em Atualizar novamente."
           }
         }
       }
@@ -10682,19 +10682,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Downloads for offline reading need the phone app for now."
+            "value": "For now, downloading for offline reading only works in the phone app."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Descargar para leer sin internet necesita la app del celular, por ahora."
+            "value": "Por ahora, descargar para leer sin conexión solo funciona en la app del celular."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Baixar para ler sem internet precisa do app do celular, por enquanto."
+            "value": "Por enquanto, baixar para ler sem internet só funciona no app do celular."
           }
         }
       }

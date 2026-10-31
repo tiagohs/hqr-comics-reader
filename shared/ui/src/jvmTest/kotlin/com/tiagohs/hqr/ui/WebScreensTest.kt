@@ -77,7 +77,7 @@ class WebScreensTest {
             onAllNodes(hasSetTextAction())[0].performTextInput("https://hqr.tiago.workers.dev")
             onAllNodes(hasSetTextAction())[1].performTextInput("errado")
             onAllNodes(hasText("Test"))[0].performClick()
-            waitFor(hasText("Token refused by the bridge"))
+            waitFor(hasText("The bridge refused the token. Check it and try again."))
             screenshot("demo-SCR-WEB-001")
             onAllNodes(hasSetTextAction())[1].performTextReplacement("certo")
             onAllNodes(hasText("Test"))[0].performClick()

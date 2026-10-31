@@ -16,9 +16,7 @@ GoogleService-Info.plist
 Secrets.xcconfig
 *.env
 
-# Xcode (the project is generated from ios/project.yml)
-ios/*.xcodeproj
-ios/*.xcworkspace
+# Xcode (ios/HQR.xcodeproj is written by scripts/ios/generate_xcodeproj.py and committed)
 ios/build/
 DerivedData/
 xcuserdata/

@@ -1,0 +1,478 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+		0158D4C43FB853AFD50866EF = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tiagohs.hqr.reader.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = HQR;
+			};
+			name = Release;
+		};
+		01740DF500F77D6ACFF66A20 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4A655983556A67E278368B05,
+				096C04A81F1DAB9FFDCA91A0,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		06CF9B5775BCF621072FED01 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xcconfig;
+			path = App.xcconfig;
+			sourceTree = "<group>";
+		};
+		096C04A81F1DAB9FFDCA91A0 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tiagohs.hqr.reader.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HQR.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HQR";
+			};
+			name = Release;
+		};
+		0B9F8A7E855084BCC6B45EE6 = {
+			isa = PBXTargetDependency;
+			target = E996164984C4A32401960523;
+			targetProxy = 5E0B602F59A9406DDF71C47E;
+		};
+		119CC6E2C16C29268CA3D7F5 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		16450871925BE1D238FBB8A1 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		17B7A73A1E4FB8F16F7059AD = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC2255E92D22D7C105D73B4D,
+				0158D4C43FB853AFD50866EF,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1BC65167C5FCDCD85B5EB990 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8ADE7A7A616A193946B11F4,
+				92A2BB37759132F5F90217E3,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1E2EF4F27A9C5D42CF8A02FE = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3275739E32A681412BBA4663,
+				93DAFC5BFCB3BC6979961A7B,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1F49EE906DFEE5798BCE06B9 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595;
+			proxyType = 1;
+			remoteGlobalIDString = E996164984C4A32401960523;
+			remoteInfo = HQR;
+		};
+		23096D5C3EA568FE86A76E61 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		31A3EB6B20F76B216C309D1C = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E996164984C4A32401960523;
+		};
+		3275739E32A681412BBA4663 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		393D07DC7CF33B9703BB46DE = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46F86FAA6BBF9AC94A7E4595 = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+			};
+			buildConfigurationList = 1E2EF4F27A9C5D42CF8A02FE;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"pt-BR",
+				es,
+			);
+			mainGroup = FAD58DE7366495DB4650CFEF;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 86024CAD1E83101D97359D73;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E996164984C4A32401960523,
+				EC7BC71AFAF7FB2DDCFAF066,
+				A5ADD85DAB67347039A89AD2,
+			);
+		};
+		475298E08D37EC9010A30EE8 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = HQRUITests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		4A655983556A67E278368B05 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tiagohs.hqr.reader.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HQR.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HQR";
+			};
+			name = Debug;
+		};
+		5386A2EAF0036C0154CF9012 = {
+			isa = PBXGroup;
+			children = (
+				06CF9B5775BCF621072FED01,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		5E0B602F59A9406DDF71C47E = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595;
+			proxyType = 1;
+			remoteGlobalIDString = E996164984C4A32401960523;
+			remoteInfo = HQR;
+		};
+		86024CAD1E83101D97359D73 = {
+			isa = PBXGroup;
+			children = (
+				EE5FD32CD70161048499175B,
+				EA1513A053BE8B7C6F9F9001,
+				475298E08D37EC9010A30EE8,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		883FB585BA899366941C3669 = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Kotlin core (Shared framework)";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/..\"\nif [ \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" = \"YES\" ]; then exit 0; fi\n./gradlew :shared:app:embedAndSignAppleFrameworkForXcode -Phqr.ios=true\n";
+		};
+		92A2BB37759132F5F90217E3 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(HQR_BUILD)";
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../shared/app/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HQR/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HQR;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_UIFileSharingEnabled = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "HQR reads the comic servers you add on your network (OPDS, Komga, Kavita).";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "$(HQR_VERSION)";
+				OTHER_LDFLAGS = "$(inherited) -framework Shared -lz";
+				PRODUCT_BUNDLE_IDENTIFIER = com.tiagohs.hqr.reader;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = NO;
+			};
+			name = Release;
+			baseConfigurationReference = 06CF9B5775BCF621072FED01;
+		};
+		93DAFC5BFCB3BC6979961A7B = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		951BED8E2C045F0795B789F5 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A02726870959CF1FC2D9B46E = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HQRTests;
+			sourceTree = "<group>";
+		};
+		A5ADD85DAB67347039A89AD2 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 17B7A73A1E4FB8F16F7059AD;
+			buildPhases = (
+				16450871925BE1D238FBB8A1,
+				23096D5C3EA568FE86A76E61,
+				AB4CA14524D20F616308598E,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0B9F8A7E855084BCC6B45EE6,
+			);
+			fileSystemSynchronizedGroups = (
+				D5DE3B18DF0EB65F8C5B34BF,
+			);
+			name = HQRUITests;
+			packageProductDependencies = (
+			);
+			productName = HQRUITests;
+			productReference = 475298E08D37EC9010A30EE8;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		AB4CA14524D20F616308598E = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AC2255E92D22D7C105D73B4D = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tiagohs.hqr.reader.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = HQR;
+			};
+			name = Debug;
+		};
+		B85D618872AF41937A971BB3 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5DE3B18DF0EB65F8C5B34BF = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HQRUITests;
+			sourceTree = "<group>";
+		};
+		D8ADE7A7A616A193946B11F4 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(HQR_BUILD)";
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../shared/app/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HQR/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = HQR;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_UIFileSharingEnabled = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "HQR reads the comic servers you add on your network (OPDS, Komga, Kavita).";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "$(HQR_VERSION)";
+				OTHER_LDFLAGS = "$(inherited) -framework Shared -lz";
+				PRODUCT_BUNDLE_IDENTIFIER = com.tiagohs.hqr.reader;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = NO;
+			};
+			name = Debug;
+			baseConfigurationReference = 06CF9B5775BCF621072FED01;
+		};
+		DA1109B950F9CE6737A10471 = {
+			isa = PBXTargetDependency;
+			target = E996164984C4A32401960523;
+			targetProxy = 1F49EE906DFEE5798BCE06B9;
+		};
+		E1605FC78178167296EFA4D8 = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HQR;
+			sourceTree = "<group>";
+			exceptions = (
+				31A3EB6B20F76B216C309D1C,
+			);
+		};
+		E731217A53FDCA27538B5B20 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E996164984C4A32401960523 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BC65167C5FCDCD85B5EB990;
+			buildPhases = (
+				883FB585BA899366941C3669,
+				B85D618872AF41937A971BB3,
+				951BED8E2C045F0795B789F5,
+				E731217A53FDCA27538B5B20,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E1605FC78178167296EFA4D8,
+			);
+			name = HQR;
+			packageProductDependencies = (
+			);
+			productName = HQR;
+			productReference = EE5FD32CD70161048499175B;
+			productType = "com.apple.product-type.application";
+		};
+		EA1513A053BE8B7C6F9F9001 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = HQRTests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		EC7BC71AFAF7FB2DDCFAF066 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 01740DF500F77D6ACFF66A20;
+			buildPhases = (
+				F42BDFB111F707D66F73CD58,
+				393D07DC7CF33B9703BB46DE,
+				119CC6E2C16C29268CA3D7F5,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DA1109B950F9CE6737A10471,
+			);
+			fileSystemSynchronizedGroups = (
+				A02726870959CF1FC2D9B46E,
+			);
+			name = HQRTests;
+			packageProductDependencies = (
+			);
+			productName = HQRTests;
+			productReference = EA1513A053BE8B7C6F9F9001;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		EE5FD32CD70161048499175B = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = HQR.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F42BDFB111F707D66F73CD58 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FAD58DE7366495DB4650CFEF = {
+			isa = PBXGroup;
+			children = (
+				E1605FC78178167296EFA4D8,
+				A02726870959CF1FC2D9B46E,
+				D5DE3B18DF0EB65F8C5B34BF,
+				5386A2EAF0036C0154CF9012,
+				86024CAD1E83101D97359D73,
+			);
+			sourceTree = "<group>";
+		};
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595;
+}

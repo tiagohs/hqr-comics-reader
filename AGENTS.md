@@ -5,6 +5,10 @@
 
 ## Documentos
 
+`.claude/` guarda a memória do trabalho: `project.md` (o HQR em uma página), `workflow.md` (o processo, modelo para
+outros apps), `lessons.md` (armadilhas e soluções) e a skill `ios-on-mac`.
+
+
 `docs/README.md` é o índice: `benchmark.md`, `srs.md` (RF e RNF), `use-cases.md`, `architecture.md` (C4 e ADRs),
 `ux-foundations.md` (telas SCR, estados, mensagens), `design.md` e `tokens.json` (design system),
 `implementation-plan.md` (fases e FEATs), `rtm.md` (rastreabilidade, `scripts/docs/build_rtm.py`), `scaffold-notes.md`

@@ -1,0 +1,9 @@
+{
+  "name": "HQR",
+  "short_name": "HQR",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#141318",
+  "theme_color": "#141318",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

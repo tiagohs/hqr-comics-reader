@@ -118,7 +118,7 @@ Regra: `domain` não conhece rede, banco nem plataforma. O que muda por platafor
 | `web` | web | PWA, rotas por URL, importação para o OPFS, cota, atalhos, avisos do que não roda no navegador | RF-107, RF-110 a RF-114 |
 | `bridge` | data | Na web, reescreve os pedidos das fontes online para a ponte do Worker com a sessão | RF-108 |
 | `account` | domain + data + presentation | Login (ID token por plataforma via `GoogleSignIn`), sessão no `SecretStore`, estado da conta | RF-119, RF-120 |
-| `sync` | domain + data | Fila de mudanças (`sync_outbox`), base da conta (`sync_state`), cursor, regras de junção puras, cliente `POST /api/v1/sync`, ciclos por plataforma | RF-121 a RF-125 |
+| `sync` | domain + data | Fila de mudanças (`sync_outbox`), base da conta (`sync_state`), cursor (`sync_meta`), regras de junção puras, cliente `POST /api/v1/sync`, ciclos por plataforma | RF-121 a RF-125 |
 | `hub-worker/` | fora do app | Worker pessoal: `/api/v1/auth`, `/api/v1/sync`, `/bridge`, assets da web; D1 com migrações; vitest | RF-107 a RF-109, RF-119 a RF-125 |
 
 ### 3.1 App iOS
@@ -213,7 +213,7 @@ erDiagram
 
 Regra de identidade (RF-90): obra = `(sourceId, key)`, capítulo = `(mangaId, key)`. `sourceId` é fixo no código de cada fonte; na local, `key` é o caminho relativo.
 
-Sincronização (ADR-029), no aparelho: `sync_state` guarda, por item (`kind`, `key`), o `payload` que a conta tem; um ciclo compara o banco com essa base e põe o que mudou em `sync_outbox` (`kind`, `key`, `payload` JSON, `changedAt`, `deleted`), também sem internet. Com rede, o ciclo traz primeiro o que mudou desde o cursor e junta (capítulos campo a campo, o resto pela versão mais nova), registra o que a junção mudou e só então envia a fila. O cursor e a hora do último ciclo ficam nas preferências; a sessão, no `SecretStore`. No Worker, o D1 tem:
+Sincronização (ADR-029), no aparelho: `sync_state` guarda, por item (`kind`, `key`), o `payload` que a conta tem; um ciclo compara o banco com essa base e põe o que mudou em `sync_outbox` (`kind`, `key`, `payload` JSON, `changedAt`, `deleted`), também sem internet. Com rede, o ciclo traz primeiro o que mudou desde o cursor e junta (capítulos campo a campo, o resto pela versão mais nova), registra o que a junção mudou e só então envia a fila. O cursor fica no próprio banco (`sync_meta`), gravado na mesma transação do que chegou: um banco novo, como o de uma segunda aba do navegador, começa do zero mesmo com as preferências compartilhadas. A hora do último ciclo fica nas preferências; a sessão, no `SecretStore`. No Worker, o D1 tem:
 
 | Tabela | Campos principais |
 | :-- | :-- |
@@ -276,7 +276,7 @@ Contexto: o `source-api` do Mihon é só Android (RxJava, jsoup). Decisão: cont
 Decisão: cada fonte é um módulo Gradle e um módulo Koin a registra; a 1.0 tem só o sabor `github`, com todas as fontes e o `updater`. Consequência: um sabor de loja, se vier, é só outra lista de módulos, e o teste de RNF-16 garante que compila sem as fontes de terceiros. Requisitos: RF-02, RNF-16, C-03.
 
 ### ADR-004 Persistência: Room 3 e DataStore
-Contexto: a web precisa do mesmo banco (RF-107). Decisão: Room 3 (`androidx.room3`, só APIs `suspend` e Flow) em todas as plataformas; na web, o driver `sqlite-web` roda num Web Worker e grava no OPFS. Um banco `library.db` em WAL, migrações testadas a cada esquema; DataStore para preferências; "baixado" só depois do `rename` atômico. Opções descartadas: Room 2 KMP (sem web), SQLDelight (o Script Reader já usa Room). Consequências: Room 3 está em alpha (R-09). Requisitos: RNF-18, RNF-25, RF-88, RF-107.
+Contexto: a web precisa do mesmo banco (RF-107). Decisão: Room 3 (`androidx.room3`, só APIs `suspend` e Flow) em todas as plataformas; na web, o driver `sqlite-web` roda num Web Worker e grava no OPFS, que só uma aba abre por vez (uma trava Web Locks espera a aba que está fechando; com outra aberta, a nova usa memória). Um banco `library.db` em WAL, migrações testadas a cada esquema; DataStore para preferências; "baixado" só depois do `rename` atômico. Opções descartadas: Room 2 KMP (sem web), SQLDelight (o Script Reader já usa Room). Consequências: Room 3 está em alpha (R-09). Requisitos: RNF-18, RNF-25, RF-88, RF-107.
 
 ### ADR-005 Rede: Ktor com limitador por fonte
 Decisão: Ktor (OkHttp no Android, Darwin no iOS); cada fonte declara seu limite e todos os usos (leitor, busca, downloads, atualização) passam pelo mesmo limitador; 3 tentativas só em GET, com espera crescente; GraphQL do HQ Now por POST simples, sem Apollo. Requisitos: RF-04, RNF-24, RF-09.

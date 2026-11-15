@@ -2,6 +2,7 @@ package com.tiagohs.hqr.data.db
 
 import androidx.room3.Dao
 import androidx.room3.Entity
+import androidx.room3.PrimaryKey
 import androidx.room3.Query
 import androidx.room3.Upsert
 
@@ -21,6 +22,16 @@ data class SyncStateEntity(
     val kind: String,
     val key: String,
     val payload: String,
+)
+
+/**
+ * Sync values that belong to this database, like the cursor: kept here and not in the settings, which the browser's
+ * tabs share while each tab may open a database of its own.
+ */
+@Entity(tableName = "sync_meta")
+data class SyncMetaEntity(
+    @PrimaryKey val name: String,
+    val number: Long,
 )
 
 @Dao
@@ -55,4 +66,13 @@ interface SyncDao {
 
     @Query("DELETE FROM sync_outbox")
     suspend fun clearOutbox()
+
+    @Query("SELECT number FROM sync_meta WHERE name = :name")
+    suspend fun meta(name: String): Long?
+
+    @Upsert
+    suspend fun putMeta(meta: SyncMetaEntity)
+
+    @Query("DELETE FROM sync_meta")
+    suspend fun clearMeta()
 }

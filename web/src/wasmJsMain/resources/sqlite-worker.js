@@ -9,14 +9,32 @@ const stmts = new Map();
 let nextDb = 1;
 let nextStmt = 1;
 
+// Only one tab at a time can open the stored library. A lock held for this worker's life waits for a tab that is
+// closing (a reload, the Google sign-in coming back) instead of falling straight back to memory.
+const LOCK_WAIT_MS = 3000;
+
+function holdLibraryLock() {
+  if (!self.navigator || !navigator.locks) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    navigator.locks
+      .request('hqr-library', { signal: AbortSignal.timeout(LOCK_WAIT_MS) }, () => {
+        resolve(true);
+        return new Promise(() => {});
+      })
+      .catch(() => resolve(false));
+  });
+}
+
 const ready = sqlite3InitModule().then(async (s) => {
   sqlite3 = s;
   try {
+    if (!(await holdLibraryLock())) throw new Error('the library is open in another tab');
     pool = await s.installOpfsSAHPoolVfs({ name: 'hqr-pool' });
     console.info('HQR: library stored in OPFS');
   } catch (e) {
     console.warn('HQR: OPFS unavailable, the library lives in memory for this tab', e);
-    // Without OPFS (private window, old browser) the data lives in memory for this tab only.
+    // Without OPFS (private window, old browser, another tab open) the data lives in memory for this tab only; signed
+    // in, the sync still brings the library (the cursor lives in the database, so a fresh one starts from zero).
     pool = null;
   }
 });

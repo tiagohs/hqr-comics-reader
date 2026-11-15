@@ -13,6 +13,12 @@ struct SettingsScreen: View {
 
     var body: some View {
         List {
+            // RF-119: the account first, where this build knows the Worker.
+            if GoogleSignIn.available {
+                Section(L("settings_account")) {
+                    NavigationLink(value: Route.account) { Label(L("account_title"), systemImage: "person.crop.circle") }
+                }
+            }
             Section(L("settings_appearance")) {
                 Picker(L("settings_appearance"), selection: Binding(get: { appearance.theme }, set: { appearance.set($0) })) {
                     Text(L("settings_theme_system")).tag(ThemeMode.system)

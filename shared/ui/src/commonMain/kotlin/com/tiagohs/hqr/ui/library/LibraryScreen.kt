@@ -155,10 +155,15 @@ fun LibraryScreen(
     onExplore: () -> Unit,
     onCategories: () -> Unit = {},
     onDownloads: () -> Unit = {},
+    onAccount: () -> Unit = {},
     viewModel: LibraryViewModel = koinViewModel(),
     registry: SourceRegistry = koinInject(),
+    account: com.tiagohs.hqr.presentation.account.AccountViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val accountState by account.state.collectAsStateWithLifecycle()
+    // RF-125: only a failure that lasts more than a day shows here.
+    val staleDays = account.staleDays(accountState)
     // Downloads have a shortcut here, with a badge while the queue runs (UX §4); only where downloads exist.
     val downloads = getKoin().getOrNull<Downloads>()
     val queue by (downloads?.observe() ?: flowOf(emptyList())).collectAsStateWithLifecycle(emptyList())
@@ -305,10 +310,21 @@ fun LibraryScreen(
             else ->
                 PullToRefreshBox(
                     isRefreshing = update != null,
-                    onRefresh = viewModel::updateLibrary,
+                    onRefresh = {
+                        viewModel.updateLibrary()
+                        // RF-122: pulling also syncs the account.
+                        account.syncNow()
+                    },
                     modifier = Modifier.padding(padding).fillMaxSize(),
                 ) {
                     Column(Modifier.fillMaxSize()) {
+                        if (staleDays != null) {
+                            com.tiagohs.hqr.ui.settings.SyncStaleNotice(
+                                staleDays,
+                                onOpen = onAccount,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            )
+                        }
                         // RF-58: where the update is, work by work.
                         update?.let { progress ->
                             Text(

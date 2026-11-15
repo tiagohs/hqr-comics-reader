@@ -153,12 +153,12 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-040 | Weeb Central | RF-103 | UC-001 | SCR-EXP-002, SCR-STA-001 | `sources/weebcentral`, `challenge` | — |
 | FEAT-041 | XOXO Comics | RF-104 | UC-001 | SCR-EXP-002 | `sources/xoxo` | — |
 
-### E15 · Web (`web`, `bridge`, `bridge-worker/`)
+### E15 · Web (`web`, `bridge`, `hub-worker/`)
 
 | ID | Fatia | RF | UC | Telas | Componentes | Dados |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
 | FEAT-050 | App web: PWA, endereço por tela e navegador sem suporte | RF-107, RF-113, RF-114 | UC-014 | SCR-WEB-004, SCR-LIB-001, SCR-OBR-001 | `web`, `ui` (ADR-022) | Room 3 no OPFS |
-| FEAT-051 | Ponte pessoal: Worker e configuração | RF-108, RF-109 | UC-014 | SCR-WEB-001, SCR-SRC-001 | `bridge`, `bridge-worker/` (ADR-023) | token no navegador |
+| FEAT-051 | Ponte das fontes online, hoje no Worker pessoal com a sessão da conta | RF-108, RF-109 | UC-014 | SCR-SET-005, SCR-SRC-001 | `bridge`, `hub-worker/` (ADR-023, ADR-027) | sessão no navegador |
 | FEAT-052 | Importar arquivos no navegador | RF-110 | UC-014, UC-008 | SCR-WEB-002 | `web`, `FileTree` sobre OPFS | — |
 | FEAT-053 | Servidores na web | RF-111 | UC-014, UC-009 | SCR-SRV-001 | `sources/opds`, `web` | `server` |
 | FEAT-054 | Leitor por teclado e mouse | RF-112 | UC-014, UC-004 | SCR-WEB-003, SCR-RDR-001 | `reader`, `web` | — |

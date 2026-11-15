@@ -57,6 +57,6 @@ enum Core {
 
     static func start() {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
-        _ = SharedGraph.shared.start(version: version, uiTest: isUITest)
+        _ = SharedGraph.shared.start(version: version, uiTest: isUITest, hubUrl: GoogleSignIn.hubURL)
     }
 }

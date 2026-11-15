@@ -17,10 +17,14 @@ import com.tiagohs.hqr.data.repository.RoomSearchRepository
 import com.tiagohs.hqr.data.repository.RoomTransactor
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.sources.SourceConfig
+import com.tiagohs.hqr.data.sync.HubClient
+import com.tiagohs.hqr.data.sync.SyncAccount
+import com.tiagohs.hqr.data.sync.SyncLocalData
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.repository.AccountRepository
 import com.tiagohs.hqr.domain.repository.Backups
 import com.tiagohs.hqr.domain.repository.CacheStore
 import com.tiagohs.hqr.domain.repository.CategoryRepository
@@ -28,6 +32,7 @@ import com.tiagohs.hqr.domain.repository.ChapterRepository
 import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.DownloadSettings
 import com.tiagohs.hqr.domain.repository.Downloads
+import com.tiagohs.hqr.domain.repository.GoogleIdTokens
 import com.tiagohs.hqr.domain.repository.HistoryRepository
 import com.tiagohs.hqr.domain.repository.MangaRepository
 import com.tiagohs.hqr.domain.repository.SearchRepository
@@ -37,6 +42,7 @@ import com.tiagohs.hqr.domain.source.ServerManager
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.domain.source.SourceSwitches
+import com.tiagohs.hqr.presentation.account.AccountViewModel
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.downloads.DownloadsViewModel
@@ -63,7 +69,6 @@ import com.tiagohs.hqr.presentation.reader.TapZones
 import com.tiagohs.hqr.presentation.settings.BackupViewModel
 import com.tiagohs.hqr.presentation.settings.UpdateViewModel
 import com.tiagohs.hqr.presentation.sources.AddServerViewModel
-import com.tiagohs.hqr.presentation.sources.BridgeViewModel
 import com.tiagohs.hqr.presentation.sources.ServerCatalogViewModel
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
 import com.tiagohs.hqr.sources.local.LocalSource
@@ -86,6 +91,9 @@ import kotlin.time.Clock
 
 /** Qualifier of the list of built-in sources each platform provides (ADR-003). */
 val BuiltInSources = named("builtInSources")
+
+/** Qualifier of the device kind kept with the session ("Android", "iPhone", "Web"). */
+val DeviceName = named("deviceName")
 
 /** Qualifier of the app version string ("1.0.0"), for the minimum version in `sources.json` (RF-105). */
 val AppVersion = named("appVersion")
@@ -120,7 +128,11 @@ val coreModule: Module =
         }
         viewModel { BackupViewModel(get()) }
         viewModel { UpdateViewModel(get()) }
-        viewModel { BridgeViewModel(get()) }
+        // RF-119 to RF-125: the account on the personal Worker; the platform gives the Worker and the Google token.
+        single { SyncLocalData(get(), get(), get()) }
+        single { SyncAccount(get(), get(), getOrNull<HubClient>(), get(), get(), getOrNull<String>(DeviceName) ?: "unknown", get()) }
+        single<AccountRepository> { get<SyncAccount>() }
+        viewModel { AccountViewModel(get(), getOrNull<GoogleIdTokens>(), get()) }
         single<ServerManager> { OpdsServers(get(), get(), get(), get(), getOrNull<BookStore>() ?: MemoryBookStore()) }
         viewModel { (id: SourceId?) -> AddServerViewModel(get(), id, get()) }
         viewModel { (id: SourceId) -> ServerCatalogViewModel(id, get(), get(), get()) }

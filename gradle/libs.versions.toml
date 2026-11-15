@@ -28,6 +28,8 @@ commonsCompress = "1.28.0"
 xz = "1.10"
 activity-compose = "1.13.0"
 work = "2.11.0"
+credentials = "1.5.0"
+googleid = "1.1.1"
 documentfile = "1.1.0"
 firebase-bom = "35.0.2"
 google-services = "4.5.0"
@@ -94,6 +96,9 @@ jb-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:li
 jb-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jb-lifecycle" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+androidx-credentials-play = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
 androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version = "1.4.1" }
 androidx-test-runner = { module = "androidx.test:runner", version = "1.6.2" }

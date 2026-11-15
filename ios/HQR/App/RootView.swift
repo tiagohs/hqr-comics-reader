@@ -41,11 +41,20 @@ struct RootView: View {
     @State private var selection: Destination = .library
     /// RF-81: the onboarding comes once, before anything else.
     @State private var onboarded = (Core.graph.preferences().onboarded.value as? KotlinBoolean)?.boolValue ?? false
+    /// RF-119: the optional account step, right after the first opening.
+    @State private var accountStep = false
 
     var body: some View {
         Group {
             if !onboarded {
-                OnboardingScreen { withAnimation { onboarded = true } }
+                OnboardingScreen {
+                    withAnimation {
+                        onboarded = true
+                        accountStep = GoogleSignIn.available
+                    }
+                }
+            } else if accountStep {
+                OnboardingAccountStep { withAnimation { accountStep = false } }
             } else if sizeClass == .regular {
                 NavigationSplitView {
                     List(Destination.allCases, selection: Binding($selection)) { destination in

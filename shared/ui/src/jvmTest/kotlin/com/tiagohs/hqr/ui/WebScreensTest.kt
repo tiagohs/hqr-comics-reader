@@ -5,19 +5,17 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
-import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollToNode
-import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.printToLog
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.repository.AccountRepository
+import com.tiagohs.hqr.domain.repository.GoogleIdTokens
 import com.tiagohs.hqr.domain.source.Bridge
-import com.tiagohs.hqr.domain.source.BridgeCheck
 import com.tiagohs.hqr.ui.navigation.HqrApp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -39,51 +37,38 @@ class WebScreensTest {
             }
     }
 
-    /** A bridge that accepts only the token "certo". */
+    /** The Worker's bridge: ready once the browser is signed in. */
     private class FakeBridge : Bridge {
-        override val address = MutableStateFlow<String?>(null)
+        override val ready = MutableStateFlow(false)
 
         override fun needs(id: SourceId) = id.value == "demo"
-
-        override suspend fun test(
-            address: String,
-            token: String,
-        ) = if (token == "certo") BridgeCheck.OK else BridgeCheck.TOKEN_REFUSED
-
-        override suspend fun save(
-            address: String,
-            token: String,
-        ) {
-            this.address.value = address
-        }
-
-        override suspend fun clear() {
-            address.value = null
-        }
     }
 
     @Test
-    fun RF108_withoutABridgeTheSourceAsksForItAndTheTestSaysTheCause() =
+    fun RF108_signedOutTheOnlineSourceAsksToSignIn() =
         screenTest {
             val bridge = FakeBridge()
-            startTestKoin(extra = module { single<Bridge> { bridge } })
+            val account = FakeAccount()
+            startTestKoin(
+                extra =
+                    module {
+                        single<Bridge> { bridge }
+                        single<AccountRepository> { account }
+                        single<GoogleIdTokens> { GoogleIdTokens { "tiago@example.com" } }
+                    },
+            )
             setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
-            waitFor(hasText("Needs the bridge"))
-            screenshot("demo-SCR-EXP-001-needs-bridge")
+            waitFor(hasText("Sign in to read online"))
+            screenshot("demo-SCR-EXP-001-sign-in")
             onAllNodes(hasText("MangaDex"))[0].performClick()
-            waitFor(hasText("Bridge address"))
-            onAllNodes(hasSetTextAction())[0].performTextInput("https://hqr.tiago.workers.dev")
-            onAllNodes(hasSetTextAction())[1].performTextInput("errado")
-            onAllNodes(hasText("Test"))[0].performClick()
-            waitFor(hasText("The bridge refused the token. Check it and try again."))
-            screenshot("demo-SCR-WEB-001")
-            onAllNodes(hasSetTextAction())[1].performTextReplacement("certo")
-            onAllNodes(hasText("Test"))[0].performClick()
-            waitFor(hasText("The bridge answered. Online sources are ready."))
+            waitFor(hasText("Sign in with Google"))
+            onAllNodes(hasText("Sign in with Google"))[0].performClick()
+            waitFor(hasText("tiago@example.com"))
+            bridge.ready.value = true
             onAllNodes(hasContentDescription("Back"))[0].performClick()
-            waitUntil(timeoutMillis = 10_000) { onAllNodes(hasText("Needs the bridge")).fetchSemanticsNodes().isEmpty() }
+            waitUntil(timeoutMillis = 10_000) { onAllNodes(hasText("Sign in to read online")).fetchSemanticsNodes().isEmpty() }
         }
 
     @Test

@@ -55,6 +55,27 @@ object HqrIcons {
                 "2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4z",
         )
     val Minus = stroke("minus", "M6 12h12")
+    val Sync = stroke("sync", "M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9", "M18.5 3v4.2h-4.2M5.5 21v-4.2h4.2")
+    val CloudOff = stroke("cloud-off", "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6 9.5 4.3 4.3 0 0 0 7 18z", "M4 4l16 16")
+    val Lock = stroke("lock", "M6 11h12v9H6z", "M8.5 11V8a3.5 3.5 0 0 1 7 0v3")
+    val Phone = stroke("phone", "M7 2.5h10v19H7z", "M11 18.5h2")
+
+    /** Google's "G", in its colors, as its sign-in button guidelines ask (a mark, not an app icon). */
+    val GoogleMark: ImageVector =
+        ImageVector
+            .Builder("google", 24.dp, 24.dp, 48f, 48f)
+            .apply {
+                listOf(
+                    0xFFEA4335 to
+                        "M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 " +
+                        "13.6 17.8 9.5 24 9.5z",
+                    0xFF4285F4 to "M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 7l7.5 5.8c4.4-4 6.8-10 6.8-17.3z",
+                    0xFFFBBC05 to "M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6.1z",
+                    0xFF34A853 to
+                        "M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 " +
+                        "6.1C6.6 42.6 14.6 48 24 48z",
+                ).forEach { (color, path) -> addPath(pathData = addPathNodes(path), fill = SolidColor(Color(color))) }
+            }.build()
     val Swap = stroke("swap", "M5 8h13l-3-3", "M19 16H6l3 3")
     val Search = stroke("search", "M11 4.5a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13z", "M16 16l4.5 4.5")
     val Download = stroke("download", "M12 4v11M7 10l5 5 5-5M5 20h14")

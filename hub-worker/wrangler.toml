@@ -1,0 +1,26 @@
+# HQR personal Worker (ADR-027). Published by the Mac CI (`npm run deploy`); secrets set once with
+# `npx wrangler secret put ALLOWED_EMAILS` and `npx wrangler secret put GOOGLE_CLIENT_IDS` (never in this file).
+name = "hqr"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+# No request logs: the bridge records no addresses (RNF-32).
+[observability]
+enabled = false
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hqr"
+database_id = "REPLACE_WITH_D1_ID"
+migrations_dir = "migrations"
+
+# The web app (web/ build). The Worker runs first only for the API and the bridge.
+[assets]
+directory = "../web/build/dist/wasmJs/productionExecutable"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*", "/bridge/*"]
+
+[vars]
+HOSTS = "api.mangadex.org,uploads.mangadex.org,*.mangadex.network,api.mangadex.network,admin.hq-now.com,www.hq-now.com,*.hq-now.com,archive.org,api.namicomi.com,uploads.namicomi.com,yomumangas.com,api.yomumangas.com,b2.yomumangas.com,weebcentral.com,temp.compsci88.com,*.planeptune.us,xoxocomic.com,*.bp.blogspot.com"

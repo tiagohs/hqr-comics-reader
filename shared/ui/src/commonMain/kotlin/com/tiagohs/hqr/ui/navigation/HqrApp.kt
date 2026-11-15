@@ -18,7 +18,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,6 +68,7 @@ import com.tiagohs.hqr.ui.resources.nav_history
 import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.settings.AboutScreen
+import com.tiagohs.hqr.ui.settings.AccountScreen
 import com.tiagohs.hqr.ui.settings.BackupScreen
 import com.tiagohs.hqr.ui.settings.LocalAppLocale
 import com.tiagohs.hqr.ui.settings.OnboardingScreen
@@ -72,7 +76,6 @@ import com.tiagohs.hqr.ui.settings.SettingsScreen
 import com.tiagohs.hqr.ui.settings.UpdateNotice
 import com.tiagohs.hqr.ui.settings.UpdateScreen
 import com.tiagohs.hqr.ui.sources.AddServerScreen
-import com.tiagohs.hqr.ui.sources.BridgeScreen
 import com.tiagohs.hqr.ui.sources.ChallengeScreen
 import com.tiagohs.hqr.ui.sources.ServerCatalogScreen
 import com.tiagohs.hqr.ui.sources.SourceSettingsScreen
@@ -120,6 +123,9 @@ fun HqrApp(systemDark: Boolean) {
         // RF-105: the remote list may take a while; nothing waits for it.
         sourceConfig.refreshIfStale()
     }
+    // RF-122: the account syncs at start and 5 s after each change, while the app runs.
+    val account = koinInject<com.tiagohs.hqr.domain.repository.AccountRepository>()
+    LaunchedEffect(account) { account.run() }
     val downloads = getKoin().getOrNull<Downloads>()
     if (downloads != null) {
         // RF-63: a queue left with work (app closed, phone restarted) starts again.
@@ -155,6 +161,8 @@ fun HqrApp(systemDark: Boolean) {
         key(language) {
             HqrTheme(dark = dark) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    // The optional account step comes right after the first opening, only where signing in exists.
+                    var accountStep by rememberSaveable { mutableStateOf(false) }
                     if (!onboarded) {
                         // RF-81: once, before anything else.
                         val readerSettings = getKoin().getOrNull<ReaderSettingsStore>()
@@ -164,7 +172,11 @@ fun HqrApp(systemDark: Boolean) {
                             // RF-81: continuous scroll becomes the reader's default; page by page is already the default.
                             if (webtoon) onboardingScope.launch { readerSettings?.saveGlobal(ReaderSettings(mode = ReaderMode.WEBTOON)) }
                             prefs.setOnboarded()
+                            accountStep = true
                         }
+                    } else if (accountStep) {
+                        com.tiagohs.hqr.ui.settings
+                            .OnboardingAccountStep(onDone = { accountStep = false })
                     } else {
                         Column(Modifier.fillMaxSize()) {
                             if (!online) {
@@ -227,6 +239,7 @@ private fun AppNavigation(dark: Boolean) {
                             onExplore = { nav.navigateTopLevel(Route.Explore) },
                             onCategories = { nav.navigate(Route.Categories) },
                             onDownloads = { nav.navigate(Route.Downloads) },
+                            onAccount = { nav.navigate(Route.Account) },
                         )
                     }
                     screen<Route.Downloads> {
@@ -238,7 +251,7 @@ private fun AppNavigation(dark: Boolean) {
                             onOpenSource = { nav.navigate(Route.BrowseSource(it)) },
                             onSearch = { nav.navigate(Route.Search) },
                             onManageSources = { nav.navigate(Route.Sources) },
-                            onBridge = { nav.navigate(Route.Bridge) },
+                            onBridge = { nav.navigate(Route.Account) },
                             onOpenManga = { nav.navigate(Route.Manga(it)) },
                         )
                     }
@@ -257,12 +270,12 @@ private fun AppNavigation(dark: Boolean) {
                             onAddServer = { nav.navigate(Route.AddServer()) },
                             onEditServer = { nav.navigate(Route.AddServer(it)) },
                             onOpenServer = { nav.navigate(Route.ServerCatalog(it)) },
-                            onBridge = { nav.navigate(Route.Bridge) },
+                            onBridge = { nav.navigate(Route.Account) },
                             onSourceSettings = { nav.navigate(Route.SourceSettings) },
                         )
                     }
                     screen<Route.SourceSettings> { SourceSettingsScreen(onBack = { nav.popBackStack() }) }
-                    screen<Route.Bridge> { BridgeScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.Account> { AccountScreen(onBack = { nav.popBackStack() }) }
                     screen<Route.AddServer> { back -> AddServerScreen(back.toRoute<Route.AddServer>().id, onDone = { nav.popBackStack() }) }
                     screen<Route.ServerCatalog> { back ->
                         ServerCatalogScreen(
@@ -276,6 +289,7 @@ private fun AppNavigation(dark: Boolean) {
                     }
                     screen<Route.Settings> {
                         SettingsScreen(
+                            onAccount = { nav.navigate(Route.Account) },
                             onSources = { nav.navigate(Route.Sources) },
                             onDownloads = { nav.navigate(Route.Downloads) },
                             onBackup = { nav.navigate(Route.Backup) },
@@ -293,7 +307,7 @@ private fun AppNavigation(dark: Boolean) {
                             initialQuery = route.query,
                             onBack = { nav.popBackStack() },
                             onOpenManga = { nav.navigate(Route.Manga(it)) },
-                            onBridge = { nav.navigate(Route.Bridge) },
+                            onBridge = { nav.navigate(Route.Account) },
                             onChallenge = { nav.navigate(Route.Challenge(it)) },
                         )
                     }

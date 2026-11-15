@@ -16,6 +16,7 @@ enum Route: Hashable {
     case backup
     case about
     case challenge(url: String)
+    case account
 }
 
 /// The reader opens over everything (full screen), from any tab.
@@ -100,6 +101,7 @@ extension View {
             case .backup: BackupScreen()
             case .about: AboutScreen()
             case .challenge(let url): ChallengeScreen(url: url)
+            case .account: AccountScreen()
             }
         }
     }

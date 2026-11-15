@@ -369,7 +369,7 @@ fun BrowseSourceScreen(
                         action = stringResource(Res.string.action_choose_folder),
                         onAction = pickFolder,
                     )
-                // RF-108: in the browser, an online source without a bridge asks for one.
+                // RF-108: in the browser, an online source signed out asks to sign in.
                 // RF-106: Cloudflare wants to check the user, in the source's page.
                 state.error == ErrorKind.CHALLENGE && state.webUrl != null ->
                     ErrorState(

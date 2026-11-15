@@ -115,21 +115,21 @@
 | RF-104 | Should | UC-001 | ADR-024 | SCR-SRC-001 | FEAT-041 | XoxoSourceTest |
 | RF-105 | Must | UC-012 | sourceconfig, ADR-019 | SCR-SRC-001 | FEAT-024 | SourceConfigTest, SourceRegistryTest, SourcesViewModelTest |
 | RF-106 | Should | UC-001 | challenge, ADR-020, ADR-024 | SCR-STA-001 | FEAT-036, FEAT-064 | ChallengeCookiesTest, IosChallengeCookiesTest, SourcesScreensTest, WeebCentralSourceTest |
-| RF-107 | Should | UC-014 | ui, web, hub-worker/, ADR-004, ADR-022, ADR-027 | SCR-WEB-004 | FEAT-050, FEAT-070 | — |
-| RF-108 | Should | UC-014 | bridge, hub-worker/, ADR-023, ADR-027 | — | FEAT-051 | BridgeTest, WebScreensTest, bridge-worker/index.test.js |
-| RF-109 | Should | UC-014 | hub-worker/, ADR-023, ADR-027 | — | FEAT-051, FEAT-070 | BridgeTest, bridge-worker/index.test.js |
+| RF-107 | Should | UC-014 | ui, web, hub-worker/, ADR-004, ADR-022, ADR-027 | SCR-WEB-004 | FEAT-050, FEAT-070 | hub-worker/hub.test.ts |
+| RF-108 | Should | UC-014 | bridge, hub-worker/, ADR-023, ADR-027 | — | FEAT-051 | BridgeTest, WebScreensTest, hub-worker/hub.test.ts |
+| RF-109 | Should | UC-014 | hub-worker/, ADR-023, ADR-027 | — | FEAT-051, FEAT-070 | BridgeTest, hub-worker/hub.test.ts |
 | RF-110 | Should | UC-014 | web | SCR-WEB-002 | FEAT-052 | WebMessagesTest |
 | RF-111 | Should | UC-014 | web, ADR-023 | SCR-SRV-001 | FEAT-053 | BridgeTest, WebMessagesTest |
 | RF-112 | Should | UC-014 | web, ADR-022 | SCR-WEB-003 | FEAT-054 | ReaderAndHistoryViewModelTest, WebScreensTest |
 | RF-113 | Should | UC-014 | web, ADR-022 | SCR-RDR-001 | FEAT-050 | — |
 | RF-114 | Should | UC-014 | web, ADR-023 | SCR-SRC-001, SCR-WEB-004 | FEAT-050 | WebScreensTest |
-| RF-119 | Should | UC-015 | account, hub-worker/, ADR-027, ADR-028 | SCR-SET-005 | FEAT-070, FEAT-072, FEAT-073 | — |
-| RF-120 | Should | UC-015 | account, hub-worker/, ADR-027, ADR-028 | SCR-SET-005 | FEAT-070 | — |
-| RF-121 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | — |
-| RF-122 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-072, FEAT-073 | — |
-| RF-123 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | — |
-| RF-124 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | — |
-| RF-125 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-072, FEAT-073 | — |
+| RF-119 | Should | UC-015 | account, hub-worker/, ADR-027, ADR-028 | SCR-SET-005 | FEAT-070, FEAT-072, FEAT-073 | AccountScreensTest, AccountViewModelTest, SyncAccountTest, SyncRecordsTest, hub-worker/hub.test.ts |
+| RF-120 | Should | UC-015 | account, hub-worker/, ADR-027, ADR-028 | SCR-SET-005 | FEAT-070 | AccountScreensTest, AccountViewModelTest, SyncAccountTest, hub-worker/hub.test.ts |
+| RF-121 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | SyncAccountTest, SyncRecordsTest, SyncRulesTest, hub-worker/hub.test.ts |
+| RF-122 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-072, FEAT-073 | AccountViewModelTest, SyncAccountTest |
+| RF-123 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | SyncAccountTest, SyncRulesTest, hub-worker/hub.test.ts |
+| RF-124 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | AccountScreensTest, AccountViewModelTest, SyncAccountTest, SyncRulesTest |
+| RF-125 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-072, FEAT-073 | AccountScreensTest, AccountViewModelTest, SyncAccountTest, SyncRulesTest |
 
 ## Requisitos não funcionais
 

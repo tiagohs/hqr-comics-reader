@@ -23,7 +23,7 @@ commit.
 - Nenhum token, chave ou senha no código: `local.properties` e os secrets do GitHub.
 - **CI no Mac do Tiago** (`.github/workflows/ci.yml`, runner `[self-hosted, macOS]`, sem custo): roda a cada push em
   `rewrite/**` e à mão. Nada de runner hospedado nem artifact do Actions; APKs e web vão para a release rascunho
-  `ci-<branch>`, a web para a branch `gh-pages`.
+  `ci-<branch>`; o Worker pessoal com a web vai ao Cloudflare quando os secrets existem (`hub-worker/README.md`).
 - Cores e medidas de `docs/tokens.json`; o canvas é a referência de aparência e textos, o comportamento segue os
   requisitos.
 - Textos de tela em `shared/ui/src/commonMain/composeResources/values{,-pt,-es}/strings.xml`, sempre nas três línguas:
@@ -44,13 +44,15 @@ commit.
 
 `shared/domain` (modelos, regras, contratos) · `shared/data` (Room 3, Ktor, cache, preferências) ·
 `shared/presentation` (ViewModels, cor da capa, leitor) · `shared/app` (Koin; framework `Shared` do iOS) · `shared/ui` (telas, tema, navegação) ·
-`sources/local` (pasta, CBZ, PDF) · `android` (app) · `web` (wasmJs, SQLite em OPFS).
+`sources/local` (pasta, CBZ, PDF) · `android` (app) · `web` (wasmJs, SQLite em OPFS) · `hub-worker` (Worker pessoal:
+login Google, sincronização, ponte e a web; TypeScript e D1).
 
 ## Antes de dizer que terminou
 
 ```bash
 ./gradlew check detekt          # testes JVM e Android, telas (Compose no JVM), Kover, ktlint, detekt, lint
 python3 scripts/strings/check_strings.py
+(cd hub-worker && npm ci && npm run typecheck && npm test)
 ./gradlew :android:assembleRelease :web:wasmJsBrowserDistribution
 python3 scripts/release/check_apk.py android/build/outputs/apk/release/android-universal-release.apk
 ```

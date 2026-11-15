@@ -98,10 +98,10 @@ fun ExploreScreen(
         }
     // RF-03: only the sources that are on.
     val active by registry.active.collectAsStateWithLifecycle()
-    // RF-108: in the browser, online sources stay listed and say they need the bridge.
+    // RF-108: in the browser, online sources stay listed and ask to sign in.
     val bridge = getKoin().getOrNull<Bridge>()
     // The bridge exists or not for the whole run: the condition never changes between compositions.
-    val bridgeAddress = bridge?.address?.collectAsStateWithLifecycle()?.value
+    val bridgeReady = bridge?.ready?.collectAsStateWithLifecycle()?.value ?: true
     val favoriteSources = getKoin().getOrNull<FavoriteSources>()
     val favorites by remember(favoriteSources) { favoriteSources?.observe() ?: flowOf(emptySet()) }.collectAsStateWithLifecycle(emptySet())
     val snackbar = remember { SnackbarHostState() }
@@ -127,7 +127,7 @@ fun ExploreScreen(
             if (tab == FEED) {
                 FeedTab(onOpenManga = onOpenManga)
             } else {
-                SourcesList(active, favorites, toggleFavorite, bridge, bridgeAddress, onSearch, onOpenSource, onBridge, onManageSources)
+                SourcesList(active, favorites, toggleFavorite, bridge, bridgeReady, onSearch, onOpenSource, onBridge, onManageSources)
             }
         }
     }
@@ -139,7 +139,7 @@ private fun SourcesList(
     favorites: Set<SourceId>,
     onToggleFavorite: (Source) -> Unit,
     bridge: Bridge?,
-    bridgeAddress: String?,
+    bridgeReady: Boolean,
     onSearch: () -> Unit,
     onOpenSource: (String) -> Unit,
     onBridge: () -> Unit,
@@ -171,14 +171,14 @@ private fun SourcesList(
             if (favored.isNotEmpty()) {
                 item { SectionTitle(stringResource(Res.string.explore_favorites), stringResource(Res.string.explore_favorites_hint)) }
                 items(favored, key = { "f" + it.id.value }) { source ->
-                    SourceRow(source, true, bridge, bridgeAddress, onOpenSource, onBridge, onToggleFavorite)
+                    SourceRow(source, true, bridge, bridgeReady, onOpenSource, onBridge, onToggleFavorite)
                 }
             }
             item {
                 SectionTitle(stringResource(if (favored.isEmpty()) Res.string.explore_sources else Res.string.explore_other_sources), null)
             }
             items(others, key = { it.id.value }) { source ->
-                SourceRow(source, false, bridge, bridgeAddress, onOpenSource, onBridge, onToggleFavorite)
+                SourceRow(source, false, bridge, bridgeReady, onOpenSource, onBridge, onToggleFavorite)
             }
             // SCR-SRC-001: switches, the local folder and the servers.
             item {
@@ -215,12 +215,12 @@ private fun SourceRow(
     source: Source,
     favorite: Boolean,
     bridge: Bridge?,
-    bridgeAddress: String?,
+    bridgeReady: Boolean,
     onOpenSource: (String) -> Unit,
     onBridge: () -> Unit,
     onToggleFavorite: (Source) -> Unit,
 ) {
-    val needsBridge = bridge != null && bridgeAddress == null && bridge.needs(source.id)
+    val needsBridge = bridge != null && !bridgeReady && bridge.needs(source.id)
     val name = sourceDisplayName(source.id, source.name)
     ListItem(
         headlineContent = { Text(name, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp)) },

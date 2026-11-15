@@ -5,6 +5,7 @@ import com.russhwolf.settings.Settings
 import com.russhwolf.settings.SharedPreferencesSettings
 import com.tiagohs.hqr.app.AppVersion
 import com.tiagohs.hqr.app.BuiltInSources
+import com.tiagohs.hqr.app.DeviceName
 import com.tiagohs.hqr.app.coreModule
 import com.tiagohs.hqr.app.downloadModule
 import com.tiagohs.hqr.data.db.HqrDatabase
@@ -16,15 +17,18 @@ import com.tiagohs.hqr.data.net.ChallengeCookies
 import com.tiagohs.hqr.data.net.DiskImageCache
 import com.tiagohs.hqr.data.net.ImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
+import com.tiagohs.hqr.data.net.httpClient
 import com.tiagohs.hqr.data.net.useChallengeCookies
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.data.sources.SourceListFetcher
+import com.tiagohs.hqr.data.sync.HubClient
 import com.tiagohs.hqr.data.update.ReleaseChecker
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
+import com.tiagohs.hqr.domain.repository.GoogleIdTokens
 import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
@@ -53,14 +57,28 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
 class HqrApplication : Application() {
+    private val currentActivity = CurrentActivity()
+
     override fun onCreate() {
         super.onCreate()
         CrashReporting.init(this)
+        registerActivityLifecycleCallbacks(currentActivity)
         startKoin {
             androidContext(this@HqrApplication)
-            modules(platformModule(), coreModule, downloadModule, uiModule)
+            modules(platformModule(), accountModule(), coreModule, downloadModule, uiModule)
         }
+        if (BuildConfig.HUB_URL.isNotBlank()) SyncWorker.schedule(this)
     }
+
+    /** ADR-027, ADR-028: the account exists only in builds that know the Worker and the Google web client. */
+    private fun accountModule() =
+        module {
+            single(DeviceName) { "Android" }
+            if (BuildConfig.HUB_URL.isNotBlank()) single { HubClient(httpClient(), BuildConfig.HUB_URL.trimEnd('/')) }
+            if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
+                single<GoogleIdTokens> { CredentialManagerSignIn(BuildConfig.GOOGLE_WEB_CLIENT_ID, currentActivity::get) }
+            }
+        }
 
     @Suppress("LongMethod") // One registration per line: the app's whole wiring in one place.
     private fun platformModule() =

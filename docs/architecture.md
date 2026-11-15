@@ -118,7 +118,7 @@ Regra: `domain` não conhece rede, banco nem plataforma. O que muda por platafor
 | `web` | web | PWA, rotas por URL, importação para o OPFS, cota, atalhos, avisos do que não roda no navegador | RF-107, RF-110 a RF-114 |
 | `bridge` | data | Na web, reescreve os pedidos das fontes online para a ponte do Worker com a sessão | RF-108 |
 | `account` | domain + data + presentation | Login (ID token por plataforma via `GoogleSignIn`), sessão no `SecretStore`, estado da conta | RF-119, RF-120 |
-| `sync` | domain + data | Fila de mudanças (`sync_outbox`), cursor, regras de junção puras, cliente `POST /api/v1/sync`, agendamento por plataforma | RF-121 a RF-125 |
+| `sync` | domain + data | Fila de mudanças (`sync_outbox`), base da conta (`sync_state`), cursor, regras de junção puras, cliente `POST /api/v1/sync`, ciclos por plataforma | RF-121 a RF-125 |
 | `hub-worker/` | fora do app | Worker pessoal: `/api/v1/auth`, `/api/v1/sync`, `/bridge`, assets da web; D1 com migrações; vitest | RF-107 a RF-109, RF-119 a RF-125 |
 
 ### 3.1 App iOS
@@ -213,13 +213,13 @@ erDiagram
 
 Regra de identidade (RF-90): obra = `(sourceId, key)`, capítulo = `(mangaId, key)`. `sourceId` é fixo no código de cada fonte; na local, `key` é o caminho relativo.
 
-Sincronização (ADR-029), no aparelho: `sync_outbox` (`kind`, `key`, `payload` JSON no formato do backup, `changedAt`, `deleted`) recebe cada mudança dos dados da conta; `sync_state` guarda o cursor do servidor e a hora do último ciclo. No Worker, o D1 tem:
+Sincronização (ADR-029), no aparelho: `sync_state` guarda, por item (`kind`, `key`), o `payload` que a conta tem; um ciclo compara o banco com essa base e põe o que mudou em `sync_outbox` (`kind`, `key`, `payload` JSON, `changedAt`, `deleted`), também sem internet. Com rede, o ciclo traz primeiro o que mudou desde o cursor e junta (capítulos campo a campo, o resto pela versão mais nova), registra o que a junção mudou e só então envia a fila. O cursor e a hora do último ciclo ficam nas preferências; a sessão, no `SecretStore`. No Worker, o D1 tem:
 
 | Tabela | Campos principais |
 | :-- | :-- |
-| `account` | `id`, `email`, `createdAt` |
+| `account` | `id`, `email`, `seq` (o último número dado a uma mudança), `createdAt` |
 | `session` | `tokenHash` (SHA-256), `accountId`, `device`, `expiresAt`, `lastUsedAt` |
-| `record` | `accountId`, `kind` (`manga`, `chapter`, `category`, `history`, `reader`, `saved_search`, `feed`, `favorite`, `server`, `setting`), `key`, `payload` JSON, `changedAt`, `deleted`, `seq` (crescente por conta); único em `(accountId, kind, key)`, índice em `(accountId, seq)` |
+| `record` | `accountId`, `kind` (`manga` com categorias e ajustes do leitor, `chapter` com progresso e histórico, `category`, `saved_search`, `feed` com as fontes favoritas, `server`, `setting`), `key`, `payload` JSON, `changedAt`, `deleted`, `seq` (crescente por conta); único em `(accountId, kind, key)`, índice em `(accountId, seq)` |
 
 ## 6. Privacidade e segurança
 
@@ -247,7 +247,7 @@ A web (`web/` compilado, com service worker para o PWA) vai nos assets do Worker
 | Telas | Roborazzi claro e escuro nos tamanhos de RNF-12; prévias obrigatórias |
 | Desempenho | Macrobenchmark de abertura e de troca de página; perfil de base (baseline profile) |
 | Estilo | ktlint, detekt, lint |
-| CI | GitHub Actions no runner do Mac do Tiago (`[self-hosted, macOS]`, sem custo): a cada push em `rewrite/**` e à mão; APKs e web numa release rascunho, web publicada na `gh-pages` (C-08, C-12) |
+| CI | GitHub Actions no runner do Mac do Tiago (`[self-hosted, macOS]`, sem custo): a cada push em `rewrite/**` e à mão; APKs e web numa release rascunho, Worker com a web publicado no Cloudflare quando os secrets existem (C-08, C-12) |
 
 ## 9. Riscos
 

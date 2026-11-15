@@ -72,6 +72,12 @@ import okio.Path.Companion.toPath
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
+import com.tiagohs.hqr.data.sync.HubClient
+import com.tiagohs.hqr.domain.repository.AccountRepository
+import com.tiagohs.hqr.domain.repository.GoogleIdTokens
+import com.tiagohs.hqr.presentation.account.AccountViewModel
+import platform.UIKit.UIDevice
+import platform.UIKit.UIUserInterfaceIdiomPad
 import org.koin.dsl.module
 import platform.Foundation.NSCachesDirectory
 import platform.Foundation.NSData
@@ -91,21 +97,33 @@ import platform.posix.memcpy
 object SharedGraph {
     private var started: Koin? = null
 
-    private val koin: Koin get() = started ?: start("1.0.0", false)
+    private val koin: Koin get() = started ?: start("1.0.0", false, "")
 
     /**
-     * Called once by the app at launch with its version (RF-105) and whether it runs in the UI tests (an in-memory
-     * library, no remote source list); later calls return the graph already running.
+     * Called once by the app at launch with its version (RF-105), whether it runs in the UI tests (an in-memory
+     * library, no remote source list) and the personal Worker's address ("" for none, ADR-027); later calls return the
+     * graph already running.
      */
     fun start(
         version: String,
         uiTest: Boolean,
+        hubUrl: String,
     ): Koin {
         started?.let { return it }
-        val graph = startKoin { modules(iosModule(version, uiTest), coreModule, downloadModule) }.koin
+        val account = accountModule(hubUrl.takeUnless { uiTest }.orEmpty())
+        val graph = startKoin { modules(iosModule(version, uiTest), account, coreModule, downloadModule) }.koin
         started = graph
         MainScope().launch { graph.get<AppStartup>().run() }
+        // RF-122: a cycle at start and 5 s after each change, while the app runs.
+        MainScope().launch { graph.get<AccountRepository>().run() }
         return graph
+    }
+
+    fun accountViewModel(): AccountViewModel = koin.screenViewModel()
+
+    /** RF-122: coming back to the app syncs. */
+    fun syncAccount() {
+        MainScope().launch { koin.get<AccountRepository>().syncNow() }
     }
 
     fun libraryViewModel(): LibraryViewModel = koin.screenViewModel()
@@ -233,6 +251,16 @@ object SharedGraph {
 }
 
 private fun userAgent(version: String) = "HQR/$version (https://github.com/tiagohs/hqr-comics-reader)"
+
+/** The account exists where the app knows a Worker; the iOS app gets the Google token itself (ASWebAuthenticationSession). */
+private fun accountModule(hubUrl: String): Module =
+    module {
+        single(DeviceName) { if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) "iPad" else "iPhone" }
+        if (hubUrl.isNotBlank()) {
+            single { HubClient(com.tiagohs.hqr.data.net.httpClient(), hubUrl.trimEnd('/')) }
+            single<GoogleIdTokens> { GoogleIdTokens { null } }
+        }
+    }
 
 @Suppress("LongMethod") // One registration per line: the iOS app's whole wiring in one place.
 private fun iosModule(

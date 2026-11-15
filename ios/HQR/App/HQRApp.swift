@@ -18,6 +18,8 @@ struct HQRApp: App {
         .onChange(of: phase) { _, now in
             // RNF-28: the queue keeps going for the time the system gives, then asks for a processing task.
             if now == .background { BackgroundDownloads.keepGoing() }
+            // RF-122: coming back to the app syncs the account.
+            if now == .active { Core.graph.syncAccount() }
         }
     }
 }

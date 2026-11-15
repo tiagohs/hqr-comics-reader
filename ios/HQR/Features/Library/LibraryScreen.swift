@@ -22,6 +22,9 @@ struct LibraryScreen: View {
         let state = model.state
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                if let days = models.account.viewModel.staleDays(state: models.account.state)?.intValue {
+                    SyncStaleNotice(days: days).padding(.horizontal, Metrics.spaceMarginCompact)
+                }
                 if let progress = models.update.value.firstObject as? UpdateProgress { updating(progress) }
                 if state.tabs.count > 1 { tabs(state) }
                 if let entry = state.continueReading, query.isEmpty, picked.isEmpty { continueCard(entry) }
@@ -54,7 +57,11 @@ struct LibraryScreen: View {
         .navigationTitle(picked.isEmpty ? L("nav_library") : L("library_picked", picked.count))
         .searchable(text: $query, prompt: L("library_search_hint"))
         .onChange(of: query) { _, text in model.viewModel.search(text: text) }
-        .refreshable { model.viewModel.updateLibrary() }
+        .refreshable {
+            model.viewModel.updateLibrary()
+            // RF-122: pulling also syncs the account.
+            models.account.viewModel.syncNow()
+        }
         .toolbar {
             if picked.isEmpty { mainToolbar } else { pickedToolbar(state) }
         }
@@ -323,6 +330,8 @@ final class LibraryModels: ObservableObject {
     /// RF-58: the running update and the last finished one, as zero or one item.
     let update: FlowModel<NSArray>
     let updated: FlowModel<NSArray>
+    /// RF-125: the account, for the notice of a sync failing for more than a day.
+    let account: ScreenModel<AccountViewModel, AccountViewModel.State>
     /// RF-118: the works cascade in as the library opens.
     let opened = Date()
     private var changes: [AnyCancellable] = []
@@ -333,7 +342,9 @@ final class LibraryModels: ObservableObject {
         picked = FlowModel(viewModel.picked)
         update = FlowModel(observer: IosBridge.shared.libraryUpdate(viewModel: viewModel))
         updated = FlowModel(observer: IosBridge.shared.libraryUpdated(viewModel: viewModel))
+        account = ScreenModel(Core.graph.accountViewModel()) { Screen<AccountViewModel.State>(viewModel: $0, flow: $0.state) }
         changes = [
+            account.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             update.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             updated.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },
             screen.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() },

@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.aspectRatio
@@ -18,10 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.tiagohs.hqr.domain.model.SourceManga
-import com.tiagohs.hqr.ui.theme.BalloonShape
 import com.tiagohs.hqr.ui.theme.HqrShapes
+import com.tiagohs.hqr.ui.theme.bangers
 
 /** Halftone dots (design.md §4): 2 px dots every 6 px. */
 fun Modifier.halftone(
@@ -54,7 +56,9 @@ fun Cover(
         modifier
             .aspectRatio(2f / 3f)
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            // ADR-026: every cover is a comic panel with an ink frame.
+            .border(2.dp, MaterialTheme.colorScheme.onSurface, shape),
     ) {
         val url = manga.coverUrl
         if (url != null) {
@@ -86,21 +90,11 @@ private fun CoverFallback(title: String) {
     }
 }
 
-/** Unread count in a balloon (design.md §5), top start of the cover. */
+/** Unread count in a comic burst (ADR-026), top end of the cover. */
 @Composable
 fun BoxScope.UnreadBalloon(count: Int) {
     if (count <= 0) return
-    Text(
-        text = count.toString(),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onPrimary,
-        modifier =
-            Modifier
-                .align(Alignment.TopStart)
-                .padding(6.dp)
-                .background(MaterialTheme.colorScheme.primary, BalloonShape)
-                .padding(horizontal = 7.dp, vertical = 2.dp),
-    )
+    Burst(if (count > 99) "99+" else count.toString(), Modifier.align(Alignment.TopEnd).padding(2.dp), size = 34.dp)
 }
 
 /** "Na biblioteca" badge, one style everywhere (design.md §5). */
@@ -108,13 +102,15 @@ fun BoxScope.UnreadBalloon(count: Int) {
 fun BoxScope.InLibraryBadge(label: String) {
     Text(
         text = label,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onPrimaryContainer,
+        fontFamily = bangers(),
+        fontSize = 13.sp,
+        letterSpacing = 1.sp,
+        color = MaterialTheme.colorScheme.inverseOnSurface,
         modifier =
             Modifier
-                .align(Alignment.TopStart)
+                .align(Alignment.TopEnd)
                 .padding(6.dp)
-                .background(MaterialTheme.colorScheme.primaryContainer, BalloonShape)
-                .padding(horizontal = 8.dp, vertical = 2.dp),
+                .background(MaterialTheme.colorScheme.inverseSurface)
+                .padding(horizontal = 6.dp, vertical = 1.dp),
     )
 }

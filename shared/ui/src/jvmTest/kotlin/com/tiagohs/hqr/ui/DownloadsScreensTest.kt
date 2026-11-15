@@ -1,15 +1,18 @@
 package com.tiagohs.hqr.ui
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.printToLog
 import com.tiagohs.hqr.data.download.FreeSpace
 import com.tiagohs.hqr.data.settings.AppPreferences
@@ -48,13 +51,15 @@ class DownloadsScreensTest {
             onAllNodes(hasText("MangaDex"))[0].performClick()
             waitFor(hasText("Kaiju Express"))
             onAllNodes(hasText("Kaiju Express"))[0].performClick()
-            waitFor(hasText("Read"))
-            // RF-62: the next 5 unread from the top bar.
-            onAllNodes(hasContentDescription("Download"))[0].performClick()
+            waitFor(hasText("Read ch.", substring = true))
+            // RF-62: the next 5 unread from the work's menu.
+            onAllNodes(hasContentDescription("More options"))[0].performClick()
             waitFor(hasText("Next 5 unread"))
             onAllNodes(hasText("Next 5 unread"))[0].performClick()
             // RF-32, RF-62: a long press selects; the selection downloads together.
-            onAllNodes(hasText("Capítulo 15"))[0].performTouchInput { longClick() }
+            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Capítulo 15"))
+            // At the top edge the row sits under the bar: long-press it through its action.
+            onAllNodes(hasText("Capítulo 15") and hasClickAction())[0].performSemanticsAction(SemanticsActions.OnLongClick)
             waitFor(hasText("1 selected"))
             screenshot("demo-SCR-OBR-001-selection")
             onAllNodes(hasContentDescription("Download"))[0].performClick()
@@ -64,7 +69,9 @@ class DownloadsScreensTest {
             onAllNodes(hasContentDescription("Back"))[0].performClick()
             waitFor(hasText("Popular"))
             onAllNodes(hasContentDescription("Back"))[0].performClick()
-            waitFor(hasText("Manage sources and servers"))
+            // The way to the settings sits under the sources list.
+            waitFor(hasScrollAction())
+            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Manage sources and servers"))
             onAllNodes(hasText("Library"))[0].performClick()
             waitFor(hasContentDescription("Downloads"))
             onAllNodes(hasContentDescription("Downloads"))[0].performClick()
@@ -89,14 +96,16 @@ class DownloadsScreensTest {
             onAllNodes(hasText("MangaDex"))[0].performClick()
             waitFor(hasText("Kaiju Express"))
             onAllNodes(hasText("Kaiju Express"))[0].performClick()
-            waitFor(hasText("Read"))
-            onAllNodes(hasContentDescription("Download"))[0].performClick()
+            waitFor(hasText("Read ch.", substring = true))
+            onAllNodes(hasContentDescription("More options"))[0].performClick()
             waitFor(hasText("Next 5 unread"))
             onAllNodes(hasText("Next 5 unread"))[0].performClick()
             onAllNodes(hasContentDescription("Back"))[0].performClick()
             waitFor(hasText("Popular"))
             onAllNodes(hasContentDescription("Back"))[0].performClick()
-            waitFor(hasText("Manage sources and servers"))
+            // The way to the settings sits under the sources list.
+            waitFor(hasScrollAction())
+            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Manage sources and servers"))
             onAllNodes(hasText("Library"))[0].performClick()
             waitFor(hasContentDescription("Downloads"))
             onAllNodes(hasContentDescription("Downloads"))[0].performClick()

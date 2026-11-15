@@ -159,4 +159,41 @@ class MigrationViewModelTest : MainDispatcherTest() {
                 .single()
                 .manga.id shouldBe id
         }
+
+    @Test
+    fun RF69_aWriteThatFailsHalfwayLeavesBothWorksAsTheyWere() =
+        runTest {
+            val id = oldWork()
+            yomu.chapterList = (1..20).map { SourceChapter("y$it", it.toDouble()) }
+            // The categories fail after the new work went into the library and chapters were marked.
+            val broken =
+                object : com.tiagohs.hqr.domain.repository.CategoryRepository by db.categories {
+                    override suspend fun setCategories(
+                        mangaId: Long,
+                        categoryIds: Set<Long>,
+                    ) = error("disco cheio")
+                }
+            val atomic =
+                WorkMigration(
+                    registry,
+                    db.mangas,
+                    db.chapters,
+                    db.history,
+                    broken,
+                    downloads,
+                    com.tiagohs.hqr.data.repository
+                        .RoomTransactor(db.db),
+                )
+            runCatching { atomic.migrate(id, SourceManga(yomu.id, "novo", "Solo Leveling"), deleteDownloads = false) }.isFailure shouldBe
+                true
+            db.mangas.get(id)!!.inLibrary shouldBe true
+            val new = db.mangas.find(yomu.id, "novo")!!
+            new.inLibrary shouldBe false
+            db.chapters.list(new.id).none { it.read } shouldBe true
+            db.history
+                .observe()
+                .first()
+                .single()
+                .manga.id shouldBe id
+        }
 }

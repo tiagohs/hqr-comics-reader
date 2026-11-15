@@ -14,6 +14,7 @@ import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.model.SourcePage
 import com.tiagohs.hqr.domain.model.isoEpochMs
+import com.tiagohs.hqr.domain.model.numberUnnumbered
 import com.tiagohs.hqr.domain.source.CatalogSource
 import com.tiagohs.hqr.domain.source.SearchSource
 import com.tiagohs.hqr.domain.source.SourceException
@@ -179,7 +180,7 @@ class WeebCentralSource(
                     group = if (link.selectFirst("img[src*=official]") != null) OFFICIAL else null,
                     uploadedAtEpochMs = isoEpochMs(link.selectFirst("time[datetime]")?.attr("datetime")),
                 )
-            }
+            }.numberUnnumbered()
 
     override suspend fun pages(
         manga: SourceManga,

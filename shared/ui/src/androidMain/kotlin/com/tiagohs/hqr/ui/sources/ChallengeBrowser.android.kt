@@ -37,12 +37,15 @@ actual fun ChallengeBrowser(
     )
     // The clearance arrives as a cookie of the source's host: then the app's requests can carry it. One left from an
     // earlier verification may be expired on the server, so only a new value counts.
+    // Kept across a rotation: read again after a new cookie arrived, it would wait for ever.
+    val before =
+        androidx.compose.runtime.saveable
+            .rememberSaveable(url) { clearance(url).orEmpty() }
     LaunchedEffect(url) {
-        val before = clearance(url)
         while (true) {
             delay(POLL_MS)
             val now = clearance(url)
-            if (now != null && now != before) {
+            if (now != null && now != before.ifEmpty { null }) {
                 CookieManager.getInstance().flush()
                 passed()
                 break

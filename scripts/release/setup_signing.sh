@@ -16,17 +16,19 @@ command -v gh >/dev/null || { echo "gh não encontrado: brew install gh && gh au
 
 mkdir -p keystore
 if [ -f "$KEY" ]; then
-  PASS=$(grep '^HQR_KEYSTORE_PASSWORD=' "$PROPS" | cut -d= -f2-)
+  PASS=$(grep '^HQR_KEYSTORE_PASSWORD=' "$PROPS" 2>/dev/null | cut -d= -f2- || true)
   [ -n "$PASS" ] || { echo "$KEY existe, mas a senha não está em $PROPS"; exit 1; }
   echo "Usando a chave que já existe: $KEY"
 else
   PASS=$(openssl rand -hex 24)
-  keytool -genkeypair -keystore "$KEY" -storetype PKCS12 -alias hqr -keyalg RSA -keysize 4096 \
-    -validity 10000 -storepass "$PASS" -dname "CN=Tiago Silva, O=HQR Comics Reader, C=BR" >/dev/null
+  # Through the environment: never on the command line, where other processes can read it.
+  HQR_PASS="$PASS" keytool -genkeypair -keystore "$KEY" -storetype PKCS12 -alias hqr -keyalg RSA -keysize 4096 \
+    -validity 10000 -storepass:env HQR_PASS -dname "CN=Tiago Silva, O=HQR Comics Reader, C=BR" >/dev/null
   touch "$PROPS"
   grep -v '^HQR_KEYSTORE_PATH=\|^HQR_KEYSTORE_PASSWORD=' "$PROPS" > "$PROPS.tmp" || true
   printf 'HQR_KEYSTORE_PATH=%s\nHQR_KEYSTORE_PASSWORD=%s\n' "$KEY" "$PASS" >> "$PROPS.tmp"
   mv "$PROPS.tmp" "$PROPS"
+  chmod 600 "$PROPS" "$KEY"
   echo "Chave nova criada: $KEY (senha em $PROPS)"
 fi
 

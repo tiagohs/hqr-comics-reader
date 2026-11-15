@@ -1,6 +1,6 @@
 # Casos de uso: HQR
 
-> Versão 1.0 · 2026-10-29 · Deriva de `docs/srs.md` · 14 casos de uso
+> Versão 1.0 · 2026-10-29 · Deriva de `docs/srs.md` · 15 casos de uso
 
 ## Diagrama
 
@@ -12,7 +12,8 @@ flowchart LR
   O([Servidor OPDS · Komga, Kavita])
   F([Pastas do aparelho])
   G([GitHub Releases])
-  P([Ponte do usuário])
+  P([Worker pessoal])
+  GO([Google])
 
   subgraph Sistema[HQR]
     UC001(UC-001 Buscar obra)
@@ -29,15 +30,17 @@ flowchart LR
     UC012(UC-012 Configurar fontes e app)
     UC013(UC-013 Atualizar o app)
     UC014(UC-014 Ler no navegador)
+    UC015(UC-015 Sincronizar entre aparelhos)
   end
 
-  U --- UC001 & UC002 & UC003 & UC004 & UC005 & UC006 & UC007 & UC008 & UC009 & UC010 & UC011 & UC012 & UC013 & UC014
+  U --- UC001 & UC002 & UC003 & UC004 & UC005 & UC006 & UC007 & UC008 & UC009 & UC010 & UC011 & UC012 & UC013 & UC014 & UC015
   UC001 & UC002 & UC003 & UC004 & UC007 --- M
   UC001 & UC002 & UC003 & UC004 & UC007 --- H
   UC009 & UC004 --- O
   UC008 & UC011 --- F
   UC013 --- G
   UC014 --- P
+  UC015 --- P & GO
 ```
 
 ## Especificações
@@ -52,16 +55,16 @@ flowchart LR
 ### UC-002 Explorar fonte e feed
 - **Ator:** Usuário · **Secundários:** MangaDex, HQ Now
 - **Fluxo principal:** 1. Usuário abre Explorar e escolhe uma fonte. 2. O sistema mostra Populares e Recentes, com carregamento contínuo. 3. Usuário abre uma obra (UC-003).
-- **Alternativos:** 1a. Usuário abre o Feed: o sistema consulta até 5 origens e mostra as obras numa lista só, por data. 1b. Usuário monta o feed escolhendo recentes de fontes e buscas salvas.
+- **Alternativos:** 1a. Usuário abre o Feed: o sistema mostra o que guardou de cada origem, com a idade, e pede de novo as de mais de 30 minutos; as obras ficam numa lista só, por data. 1b. Usuário monta o feed escolhendo recentes de fontes e buscas salvas. 1c. Usuário favorita uma fonte pela estrela: os recentes dela entram no feed e ela sobe para "Favoritas".
 - **Exceções:** 2a. Fonte fora do ar: erro com "Tentar de novo" e "Abrir no navegador".
-- **Rastreia:** RF-01, RF-05, RF-12, RF-21, RF-24, RF-25, RF-26, RF-86.
+- **Rastreia:** RF-01, RF-05, RF-12, RF-21, RF-24, RF-25, RF-26, RF-86, RF-115, RF-116.
 
 ### UC-003 Ver obra e capítulos
 - **Ator:** Usuário · **Secundário:** fonte da obra
-- **Fluxo principal:** 1. O sistema mostra na hora o que já tem (biblioteca ou resultado) e pede detalhes e capítulos à fonte. 2. Mostra capa, dados, sinopse e capítulos com grupo, data, estado e download. 3. O botão principal diz "Ler", "Continuar cap. N" ou "Ler de novo". 4. Usuário lê (UC-004), põe na biblioteca (UC-005), baixa (UC-007) ou marca capítulos.
+- **Fluxo principal:** 1. O sistema mostra na hora o que já tem (biblioteca ou resultado) e pede detalhes e capítulos à fonte ao mesmo tempo; obra atualizada há menos de 6 horas não é pedida. 2. Mostra capa, tags, sinopse e, quando chegam, os capítulos com grupo, data, estado e download; até lá, esqueletos e "Buscando no <fonte>…". 3. O botão principal diz "Ler cap. N", "Continuar · cap. N" ou "Ler de novo". 4. Usuário lê (UC-004), põe na biblioteca (UC-005), baixa (UC-007) ou marca capítulos.
 - **Alternativos:** 2a. Filtros e ordem dos capítulos; esconder grupos. 2b. Capítulo externo do MangaDex abre no navegador. 4a. Puxar para atualizar.
-- **Exceções:** 1a. Fonte falha: mostra o que já tinha, com aviso. 1b. Obra de fonte que não existe neste sabor: "Fonte indisponível", com migração (UC-010).
-- **Rastreia:** RF-07, RF-11, RF-29 a RF-35, RF-73, RNF-17, RF-90, RF-92.
+- **Exceções:** 1a. Fonte falha: mostra o que já tinha; a falha da lista fica na lista, com "Tentar novamente" e "Abrir no navegador". 1b. Obra de fonte que não existe neste sabor: "Fonte indisponível", com migração (UC-010).
+- **Rastreia:** RF-07, RF-11, RF-29 a RF-35, RF-73, RNF-17, RF-90, RF-92, RF-117.
 
 ### UC-004 Ler capítulo
 - **Ator:** Usuário · **Secundários:** fonte da obra, servidor de imagens
@@ -133,8 +136,15 @@ flowchart LR
 - **Rastreia:** RF-82 a RF-84.
 
 ### UC-014 Ler no navegador
-- **Ator:** Usuário · **Secundário:** Ponte do usuário
-- **Fluxo principal:** 1. Usuário abre o endereço do app no navegador e, se quiser, instala como PWA. 2. Em Ajustes › Ponte, informa endereço e token da ponte que publicou e toca "Testar". 3. Explora e busca nas fontes online, que passam pela ponte. 4. Lê com teclado e mouse; o endereço guarda obra, capítulo e página.
-- **Alternativos:** 2a. Sem ponte: importa CBZ, CB7 ou PDF arrastando para a janela, ou conecta um servidor com a origem liberada.
-- **Exceções:** 2b. Token recusado ou ponte fora do ar: mensagem no teste e fontes online com "Precisa da ponte". 3a. Fonte com verificação do Cloudflare: aparece desativada com o motivo.
+- **Ator:** Usuário · **Secundário:** Worker pessoal
+- **Fluxo principal:** 1. Usuário abre o endereço do Worker no navegador e, se quiser, instala como PWA. 2. Entra com Google (UC-015). 3. Explora e busca nas fontes online, que passam pela ponte do Worker. 4. Lê com teclado e mouse; o endereço guarda obra, capítulo e página.
+- **Alternativos:** 2a. Sem login: importa CBZ, CB7 ou PDF arrastando para a janela, ou conecta um servidor com a origem liberada.
+- **Exceções:** 2b. Worker fora do ar: fontes online com o motivo e "Tentar de novo". 3a. Fonte com verificação do Cloudflare: aparece desativada com o motivo.
 - **Rastreia:** RF-107 a RF-114, RNF-30 a RNF-33.
+
+### UC-015 Sincronizar entre aparelhos
+- **Ator:** Usuário · **Secundários:** Worker pessoal, Google
+- **Fluxo principal:** 1. Em Ajustes › Conta e sincronização, usuário toca "Entrar com Google". 2. O Worker confere o token e o e-mail na lista permitida e devolve a sessão. 3. O app junta o que tem com o que está na conta e diz quanto entrou. 4. Daí em diante, cada mudança vai para a fila e sai sozinha; os outros aparelhos recebem ao abrir ou voltar.
+- **Alternativos:** 4a. Sem internet: a fila espera e sai quando a rede volta. 4b. "Sincronizar agora" força um ciclo.
+- **Exceções:** 2a. E-mail fora da lista: "Esta conta não tem acesso a este HQR", nada guardado. 4c. Sessão vencida ou recusada: o app pede para entrar de novo e mantém os dados. 4d. Worker fora do ar: estado com o motivo e "Tentar de novo".
+- **Rastreia:** RF-119 a RF-125, RNF-34, RNF-35.

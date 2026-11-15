@@ -37,13 +37,17 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.Updates
+import com.tiagohs.hqr.presentation.settings.CONTENT_LANGUAGES
 import com.tiagohs.hqr.ui.di.CrashReports
 import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.resources.Res
+import com.tiagohs.hqr.ui.resources.account_signed_out
+import com.tiagohs.hqr.ui.resources.account_title
 import com.tiagohs.hqr.ui.resources.action_cancel
 import com.tiagohs.hqr.ui.resources.action_ok
 import com.tiagohs.hqr.ui.resources.nav_settings
 import com.tiagohs.hqr.ui.resources.settings_about
+import com.tiagohs.hqr.ui.resources.settings_account
 import com.tiagohs.hqr.ui.resources.settings_appearance
 import com.tiagohs.hqr.ui.resources.settings_backup
 import com.tiagohs.hqr.ui.resources.settings_cache
@@ -71,6 +75,8 @@ import com.tiagohs.hqr.ui.resources.settings_theme_dark
 import com.tiagohs.hqr.ui.resources.settings_theme_light
 import com.tiagohs.hqr.ui.resources.settings_theme_system
 import com.tiagohs.hqr.ui.resources.settings_updates
+import com.tiagohs.hqr.ui.resources.sync_failed
+import com.tiagohs.hqr.ui.resources.sync_running
 import com.tiagohs.hqr.ui.resources.web_crash_reason
 import com.tiagohs.hqr.ui.resources.web_downloads_reason
 import com.tiagohs.hqr.ui.resources.web_only_phone
@@ -86,6 +92,7 @@ import org.koin.compose.koinInject
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    onAccount: () -> Unit = {},
     onSources: () -> Unit = {},
     onDownloads: () -> Unit = {},
     onBackup: () -> Unit = {},
@@ -93,7 +100,11 @@ fun SettingsScreen(
     onUpdates: () -> Unit = {},
     prefs: AppPreferences = koinInject(),
     cache: ImageCache = koinInject(),
+    account: com.tiagohs.hqr.presentation.account.AccountViewModel =
+        org.koin.compose.viewmodel
+            .koinViewModel(),
 ) {
+    val accountState by account.state.collectAsStateWithLifecycle()
     val hasDownloads = getKoin().getOrNull<Downloads>() != null
     val hasUpdates = getKoin().getOrNull<Updates>() != null
     val crashReports = getKoin().getOrNull<CrashReports>()
@@ -131,6 +142,11 @@ fun SettingsScreen(
         TopAppBar(title = { Text(stringResource(Res.string.nav_settings), style = MaterialTheme.typography.headlineLarge) })
     }) { padding ->
         LazyColumn(Modifier.padding(padding).fillMaxSize()) {
+            // RF-119: the account first, where this build can sign in.
+            if (account.available) {
+                item { Section(Res.string.settings_account) }
+                item { AccountRow(accountState, onAccount) }
+            }
             item { Section(Res.string.settings_appearance) }
             item {
                 SingleChoiceSegmentedButtonRow(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -291,6 +307,29 @@ fun SettingsScreen(
             }
         }
     }
+}
+
+@Composable
+private fun AccountRow(
+    state: com.tiagohs.hqr.presentation.account.AccountViewModel.State,
+    onClick: () -> Unit,
+) {
+    val signedIn = state.account as? com.tiagohs.hqr.domain.repository.AccountState.SignedIn
+    ListItem(
+        headlineContent = { Text(stringResource(Res.string.account_title)) },
+        supportingContent = {
+            Text(
+                when {
+                    signedIn == null -> stringResource(Res.string.account_signed_out)
+                    state.status.running -> stringResource(Res.string.sync_running)
+                    state.status.error != null -> stringResource(Res.string.sync_failed)
+                    else -> signedIn.email
+                },
+            )
+        },
+        leadingContent = { Icon(HqrIcons.Person, null) },
+        modifier = Modifier.clickable(onClick = onClick),
+    )
 }
 
 @Composable

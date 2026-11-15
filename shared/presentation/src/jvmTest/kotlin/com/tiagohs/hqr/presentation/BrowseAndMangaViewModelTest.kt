@@ -460,4 +460,57 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
             state.tabs.first().count shouldBe 1
             state.continueReading?.chapter?.lastPage shouldBe 4
         }
+
+    @Test
+    fun RF117_detailsShowWhileTheChapterListIsStillComing() =
+        runTest {
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+            source.chapterGate = gate
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters))
+            val waiting = vm.state.first { it.manga?.source?.description != null }
+            waiting.chaptersLoading shouldBe true
+            waiting.chapters shouldBe emptyList()
+            gate.complete(Unit)
+            val done = vm.state.first { !it.refreshing && it.chapters.size == 3 }
+            done.chaptersLoading shouldBe false
+            done.action.shouldBeInstanceOf<ReadAction.Start>()
+        }
+
+    @Test
+    fun RF117_chapterFailureStaysInTheListAndKeepsTheDetails() =
+        runTest {
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            source.chaptersFail = SourceException.Kind.NETWORK
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters))
+            val state = vm.state.first { !it.refreshing && it.chaptersError != null && it.manga?.source?.description != null }
+            state.chaptersError shouldBe ErrorKind.NETWORK
+            state.error shouldBe null
+            state.chaptersLoading shouldBe false
+            state.manga?.source?.description shouldBe "Sinopse de Obra p1-1"
+        }
+
+    @Test
+    fun RF117_aWorkRefreshedLessThanSixHoursAgoOpensWithoutAsking() =
+        runTest {
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            val cache = MemoryCache()
+            track(MangaViewModel(id, registry, db.mangas, db.chapters, cache = cache, clock = cache.clock)).state.first {
+                !it.refreshing && it.chapters.size == 3
+            }
+            source.requested.clear()
+            cache.now += 5 * 60 * 60 * 1_000L
+            val again = track(MangaViewModel(id, registry, db.mangas, db.chapters, cache = cache, clock = cache.clock))
+            again.state
+                .first { !it.refreshing }
+                .chapters.size shouldBe 3
+            source.requested shouldBe emptyList()
+            // Pulling always asks.
+            again.refresh()
+            waitFor { source.requested.any { it.startsWith("c:") } }
+            source.requested.clear()
+            cache.now += 7 * 60 * 60 * 1_000L
+            track(MangaViewModel(id, registry, db.mangas, db.chapters, cache = cache, clock = cache.clock))
+            waitFor { source.requested.any { it.startsWith("c:") } }
+        }
 }

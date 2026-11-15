@@ -96,7 +96,7 @@ fun SourceFiltersSheet(
     var draft by remember(filters) { mutableStateOf(filters) }
 
     fun change(filter: SourceFilter) {
-        draft = draft.map { if (it.key == filter.key) filter else it }
+        draft = SourceFilter.replace(draft, filter)
     }
     // Fully open: the long tag list scrolls and "Ver resultados" stays on screen (design.md "Filtros").
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
@@ -159,15 +159,7 @@ private fun TagsGroup(
             val label = if (excluded) stringResource(Res.string.filter_without, option.label) else option.label
             FilterChip(
                 selected = included || excluded,
-                onClick = {
-                    onChange(
-                        when {
-                            included -> filter.copy(included = filter.included - option.value, excluded = filter.excluded + option.value)
-                            excluded -> filter.copy(excluded = filter.excluded - option.value)
-                            else -> filter.copy(included = filter.included + option.value)
-                        },
-                    )
-                },
+                onClick = { onChange(filter.cycle(option.value)) },
                 label = { Text(label) },
                 leadingIcon =
                     when {
@@ -201,15 +193,7 @@ private fun ChoiceGroup(
             val on = option.value in filter.selected
             FilterChip(
                 selected = on,
-                onClick = {
-                    val next =
-                        when {
-                            on -> filter.selected - option.value
-                            filter.multiple -> filter.selected + option.value
-                            else -> setOf(option.value)
-                        }
-                    onChange(filter.copy(selected = next))
-                },
+                onClick = { onChange(filter.toggle(option.value)) },
                 label = { Text(optionLabel(option)) },
                 leadingIcon = if (on) ({ Icon(HqrIcons.Check, null) }) else null,
             )
@@ -225,7 +209,7 @@ private fun TextGroup(
     Group(filter.key) {
         OutlinedTextField(
             value = filter.value,
-            onValueChange = { text -> onChange(filter.copy(value = text.filter { it.isDigit() }.take(YEAR_DIGITS))) },
+            onValueChange = { text -> onChange(filter.typed(text)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             label = { Text(groupTitle(filter.key)) },
@@ -251,7 +235,7 @@ private fun SortGroup(
             ListItem(
                 headlineContent = { Text(optionLabel(option)) },
                 leadingContent = { RadioButton(selected = on, onClick = null) },
-                modifier = Modifier.selectable(selected = on, role = Role.RadioButton) { onChange(filter.copy(selected = option.value)) },
+                modifier = Modifier.selectable(selected = on, role = Role.RadioButton) { onChange(filter.select(option.value)) },
             )
         }
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
@@ -261,7 +245,7 @@ private fun SortGroup(
                 ->
                 SegmentedButton(
                     selected = filter.ascending == up,
-                    onClick = { onChange(filter.copy(ascending = up)) },
+                    onClick = { onChange(filter.direction(up)) },
                     shape = SegmentedButtonDefaults.itemShape(i, 2),
                 ) { Text(stringResource(label)) }
             }
@@ -307,5 +291,3 @@ private fun groupTitle(key: String): String = groupTitles[key]?.let { stringReso
 @Composable
 private fun optionLabel(option: SourceFilter.Option): String =
     optionLabels[option.value]?.let { stringResource(it) } ?: option.label.replaceFirstChar { it.uppercase() }
-
-private const val YEAR_DIGITS = 4

@@ -45,10 +45,9 @@ import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.downloads.formatBytes
 import com.tiagohs.hqr.ui.explore.SourceMonogram
 import com.tiagohs.hqr.ui.resources.Res
+import com.tiagohs.hqr.ui.resources.account_title
 import com.tiagohs.hqr.ui.resources.action_back
-import com.tiagohs.hqr.ui.resources.bridge_configured
 import com.tiagohs.hqr.ui.resources.bridge_needed
-import com.tiagohs.hqr.ui.resources.bridge_title
 import com.tiagohs.hqr.ui.resources.files_import
 import com.tiagohs.hqr.ui.resources.files_title
 import com.tiagohs.hqr.ui.resources.files_usage
@@ -92,7 +91,7 @@ fun SourcesScreen(
     val bridge = getKoin().getOrNull<Bridge>()
     val imported = getKoin().getOrNull<ImportedFiles>()
     // The bridge exists or not for the whole run: the condition never changes between compositions.
-    val bridgeAddress = bridge?.address?.collectAsStateWithLifecycle()?.value
+    val bridgeReady = bridge?.ready?.collectAsStateWithLifecycle()?.value ?: true
     val pick = rememberFolderPicker { }
     Scaffold(topBar = {
         TopAppBar(
@@ -102,18 +101,13 @@ fun SourcesScreen(
     }) { padding ->
         LazyColumn(Modifier.padding(padding).fillMaxSize()) {
             item { Section(Res.string.sources_online) }
-            // RF-108: the bridge, where the online sources need one (the browser).
-            if (bridge != null) {
+            // RF-108: in the browser, the online sources open with the account.
+            if (!bridgeReady) {
                 item {
                     ListItem(
-                        headlineContent = { Text(stringResource(Res.string.bridge_title)) },
-                        supportingContent = {
-                            Text(
-                                bridgeAddress?.let { stringResource(Res.string.bridge_configured, it) }
-                                    ?: stringResource(Res.string.bridge_needed),
-                            )
-                        },
-                        leadingContent = { Icon(HqrIcons.Server, null) },
+                        headlineContent = { Text(stringResource(Res.string.account_title)) },
+                        supportingContent = { Text(stringResource(Res.string.bridge_needed)) },
+                        leadingContent = { Icon(HqrIcons.Person, null) },
                         trailingContent = { Icon(HqrIcons.Expand, null) },
                         modifier = Modifier.clickable(onClick = onBridge),
                     )

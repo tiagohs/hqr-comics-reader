@@ -57,7 +57,8 @@ class WorkMigration(
         transactor.write {
             chapters.setRead(toRead, read = true)
             // The history keeps when each chapter was read; it moves only where the new source has that chapter.
-            readings.forEach { entry ->
+            // Oldest first: when two old chapters land on the same new one, the latest reading is the one kept.
+            readings.sortedBy { it.readAtEpochMs }.forEach { entry ->
                 byNumber[entry.chapter.number]?.firstOrNull()?.let {
                     history.record(it.id, entry.readAtEpochMs)
                     history.remove(entry.chapter.id)

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -40,7 +43,6 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.tiagohs.hqr.ui.theme.BalloonShape
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.bangers
 import kotlinx.coroutines.delay
@@ -48,9 +50,12 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** Loading (RF-86): the burst indicator; the onomatopoeia joins only after 1.5 s (design.md §5). */
+/** Loading (RF-86): three soft dots; after 1.5 s a line says it is still coming (ux-foundations §8). */
 @Composable
-fun LoadingState(modifier: Modifier = Modifier) {
+fun LoadingState(
+    modifier: Modifier = Modifier,
+    message: String? = null,
+) {
     var slow by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(1_500)
@@ -61,14 +66,9 @@ fun LoadingState(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        BurstIndicator()
-        if (slow) {
-            Text(
-                "VRUUUM!",
-                fontFamily = bangers(),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        DotsLoader()
+        if (slow && message != null) {
+            Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -113,17 +113,31 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (onomatopoeia != null) {
-            Text(
-                onomatopoeia,
-                fontFamily = bangers(),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier =
-                    Modifier
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh, BalloonShape)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .semantics { },
-            )
+            // A tilted comic panel with halftone and the sound written across it (ADR-026).
+            val ink = MaterialTheme.colorScheme.onSurface
+            Box(
+                Modifier
+                    .rotate(-3f)
+                    .size(width = 150.dp, height = 110.dp)
+                    .drawBehind { drawRect(ink, topLeft = Offset(5.dp.toPx(), 5.dp.toPx())) }
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                    .border(3.dp, ink)
+                    .halftoneBehind(ink.copy(alpha = 0.22f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    onomatopoeia,
+                    fontFamily = bangers(),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = ink,
+                    modifier =
+                        Modifier
+                            .rotate(-4f)
+                            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                            .padding(horizontal = 6.dp)
+                            .semantics { },
+                )
+            }
         }
         Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
         Text(
@@ -154,20 +168,26 @@ fun InlineError(
     onSecondary: () -> Unit = {},
 ) {
     val stripe = MaterialTheme.colorScheme.error
-    Row(
+    Column(
         modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
             .drawBehind { drawRect(stripe, size = size.copy(width = 4.dp.toPx())) }
             .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp)
             .semantics { liveRegion = LiveRegionMode.Polite },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Icon(icon, contentDescription = null, tint = stripe, modifier = Modifier.size(20.dp))
-        Text(message, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-        if (secondary != null) TextButton(onClick = onSecondary) { Text(secondary) }
-        if (action != null) TextButton(onClick = onAction) { Text(action) }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(icon, contentDescription = null, tint = stripe, modifier = Modifier.size(20.dp))
+            Text(message, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(vertical = 4.dp))
+            // One action fits beside the sentence; two go on their own line.
+            if (action != null && secondary == null) TextButton(onClick = onAction) { Text(action) }
+        }
+        if (secondary != null) {
+            Row(Modifier.align(Alignment.End)) {
+                TextButton(onClick = onSecondary) { Text(secondary) }
+                if (action != null) TextButton(onClick = onAction) { Text(action) }
+            }
+        }
     }
 }
 
@@ -182,18 +202,40 @@ fun ErrorState(
     secondary: String? = null,
     onSecondary: () -> Unit = {},
 ) {
-    EmptyState(title, message, modifier, null, action, onAction, secondary, onSecondary)
+    Column(
+        modifier.fillMaxSize().padding(32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Burst("OPS!", size = 112.dp, container = MaterialTheme.colorScheme.error, content = MaterialTheme.colorScheme.onError)
+        Text(title, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+        Text(
+            message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (action != null) Button(onClick = onAction) { Text(action) }
+            if (secondary != null) OutlinedButton(onClick = onSecondary) { Text(secondary) }
+        }
+    }
 }
 
 /** The discreet offline banner (RF-87). */
 @Composable
 fun OfflineBanner(text: String) {
     Row(
-        Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 16.dp, vertical = 10.dp),
+        Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.inverseSurface).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(HqrIcons.Offline, contentDescription = null, modifier = Modifier.size(18.dp))
+        Icon(
+            HqrIcons.Offline,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.inverseOnSurface,
+        )
         Box(Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.bodySmall)
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.inverseOnSurface)
     }
 }

@@ -20,6 +20,15 @@ kotlin {
         }
         jvmMain.get().dependsOn(jvmShared)
         androidMain.get().dependsOn(jvmShared)
+        // jvmShared turns the default hierarchy off, so iosMain is declared here. The system zlib (CBZ pages compressed
+        // with DEFLATE) lives in shared/data for iOS. Only when the targets exist (-Phqr.ios=true).
+        val iosMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(project(":shared:data"))
+            }
+        }
+        matching { it.name == "iosArm64Main" || it.name == "iosSimulatorArm64Main" }.configureEach { dependsOn(iosMain) }
         jvmTest.dependencies {
             implementation(libs.okio.fakefilesystem)
         }

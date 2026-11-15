@@ -53,10 +53,10 @@ sealed interface Route {
     @SerialName("source-settings")
     data object SourceSettings : Route
 
-    /** SCR-WEB-001: the user's bridge, only in the browser (RF-108). */
+    /** SCR-SET-005: account and sync (RF-119 to RF-125). */
     @Serializable
-    @SerialName("bridge")
-    data object Bridge : Route
+    @SerialName("account")
+    data object Account : Route
 
     @Serializable
     @SerialName("backup")

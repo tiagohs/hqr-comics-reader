@@ -49,6 +49,63 @@ data class LibraryOptions(
         )
 
     val hasFilters: Boolean get() = this != withoutFilters()
+
+    /** The state filters of the "Filtrar" tab. */
+    enum class StateFilter { UNREAD, DOWNLOADED, STARTED, ONGOING, COMPLETED }
+
+    /** The marks on the covers of the "Exibir" tab. */
+    enum class Badge { UNREAD, DOWNLOADED, SOURCE }
+
+    fun isOn(filter: StateFilter): Boolean = state(filter) == TriState.ONLY
+
+    fun toggle(filter: StateFilter): LibraryOptions {
+        val next = if (isOn(filter)) TriState.OFF else TriState.ONLY
+        return when (filter) {
+            StateFilter.UNREAD -> copy(unread = next)
+            StateFilter.DOWNLOADED -> copy(downloaded = next)
+            StateFilter.STARTED -> copy(started = next)
+            StateFilter.ONGOING -> copy(ongoing = next)
+            StateFilter.COMPLETED -> copy(completed = next)
+        }
+    }
+
+    fun toggleSource(id: String): LibraryOptions = copy(sources = if (id in sources) sources - id else sources + id)
+
+    fun toggleCategory(id: Long): LibraryOptions = copy(categories = if (id in categories) categories - id else categories + id)
+
+    /** RF-55: A to Z starts ascending; the other orders start with the most recent or the most. */
+    fun withSort(value: LibrarySort): LibraryOptions =
+        copy(sort = value, ascending = if (value == sort) ascending else value == LibrarySort.TITLE)
+
+    fun withAscending(value: Boolean): LibraryOptions = copy(ascending = value)
+
+    fun withDisplay(value: LibraryDisplay): LibraryOptions = copy(display = value)
+
+    fun badgeOn(badge: Badge): Boolean =
+        when (badge) {
+            Badge.UNREAD -> unreadBadge
+            Badge.DOWNLOADED -> downloadedBadge
+            Badge.SOURCE -> sourceBadge
+        }
+
+    fun withBadge(
+        badge: Badge,
+        on: Boolean,
+    ): LibraryOptions =
+        when (badge) {
+            Badge.UNREAD -> copy(unreadBadge = on)
+            Badge.DOWNLOADED -> copy(downloadedBadge = on)
+            Badge.SOURCE -> copy(sourceBadge = on)
+        }
+
+    private fun state(filter: StateFilter): TriState =
+        when (filter) {
+            StateFilter.UNREAD -> unread
+            StateFilter.DOWNLOADED -> downloaded
+            StateFilter.STARTED -> started
+            StateFilter.ONGOING -> ongoing
+            StateFilter.COMPLETED -> completed
+        }
 }
 
 /** Where the options live; the platform keeps them with the other preferences. */

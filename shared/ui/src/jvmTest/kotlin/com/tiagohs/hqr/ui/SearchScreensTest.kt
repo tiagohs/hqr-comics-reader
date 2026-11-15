@@ -110,7 +110,7 @@ class SearchScreensTest {
             onAllNodes(hasText("Horror"))[0].performScrollTo().performClick()
             onAllNodes(hasText("Horror"))[0].performScrollTo().performClick()
             waitFor(hasText("Without Horror"))
-            onAllNodes(hasText("Completed"))[0].performScrollTo().performClick()
+            onAllNodes(hasText("Finished"))[0].performScrollTo().performClick()
             screenshot("demo-SCR-EXP-003")
             onAllNodes(hasText("Show results"))[0].performClick()
             waitFor(hasText("Filters · 2")) // tags and status: one per group

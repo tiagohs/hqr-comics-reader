@@ -4,31 +4,14 @@ import com.tiagohs.hqr.domain.model.SourceId
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * The answer of "Testar" on the bridge screen (RF-108). [OUTDATED]: it works, but a bridge published before the newer
- * sources refuses their hosts.
- */
-enum class BridgeCheck { OK, OUTDATED, INVALID_ADDRESS, TOKEN_REFUSED, UNREACHABLE }
-
-/**
- * The user's own bridge (ADR-023): only in the browser, where online sources send no CORS. Without one, those sources
- * stay listed with "Precisa da ponte" and nothing is asked of them (RF-108).
+ * The way to the online sources in the browser, where they send no CORS: the personal Worker's bridge, open only with
+ * the account's session (ADR-027). Signed out, those sources stay listed with "Entre para ler online" and nothing is
+ * asked of them (RF-108).
  */
 interface Bridge {
-    /** The saved address; null when there is none. */
-    val address: StateFlow<String?>
+    /** True while the browser is signed in, so the bridge answers. */
+    val ready: StateFlow<Boolean>
 
     /** Whether [id] can only be reached through the bridge. */
     fun needs(id: SourceId): Boolean
-
-    suspend fun test(
-        address: String,
-        token: String,
-    ): BridgeCheck
-
-    suspend fun save(
-        address: String,
-        token: String,
-    )
-
-    suspend fun clear()
 }

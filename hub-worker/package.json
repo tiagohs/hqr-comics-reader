@@ -1,0 +1,16 @@
+{
+  "name": "hqr-hub",
+  "private": true,
+  "type": "module",
+  "description": "HQR personal Worker: Google sign-in, sync, the online-source bridge and the web app",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "deploy": "npx --yes wrangler@4.42.0 d1 migrations apply hqr --remote && npx --yes wrangler@4.42.0 deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20251014.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}

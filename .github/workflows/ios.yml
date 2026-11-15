@@ -1,0 +1,256 @@
+# iPhone and iPad: tests and/or the IPA, by hand only (Actions › iOS › Run workflow).
+#
+# Runs on Tiago's Mac as a self-hosted runner (labels "self-hosted, macOS"), free; nothing runs on push and nothing is
+# uploaded as an Actions artifact. Test results stay on the Mac in ~/hqr-ci/<run id>/ and the errors are printed in the
+# log. The Mac provides Xcode, an iOS simulator runtime and a JDK (17 or 21).
+#
+# The IPA and its dSYM go to a draft GitHub release. Signing: with the secrets IOS_CERTIFICATE_P12_BASE64,
+# IOS_CERTIFICATE_PASSWORD, IOS_PROVISIONING_PROFILE_BASE64 and IOS_TEAM_ID the app is signed and exported for the App
+# Store (TestFlight). Without them the IPA is unsigned: it shows that the archive builds, but it does not install.
+name: iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      tests:
+        description: "Run the tests (core on the simulator and the app tests, iPhone)"
+        type: boolean
+        default: true
+      ipa:
+        description: "Build the IPA (Release) with the dSYM"
+        type: boolean
+        default: false
+      build_number:
+        description: "Override the build number (optional; empty uses HQR_BUILD in ios/Config/App.xcconfig)"
+        type: string
+        required: false
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  ios:
+    name: iOS
+    runs-on: [self-hosted, macOS]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Local toolchain (JDK, Homebrew) and results folder
+        run: |
+          JDK=$(/usr/libexec/java_home -v 21 2>/dev/null || /usr/libexec/java_home -v 17)
+          echo "JAVA_HOME=$JDK" >> "$GITHUB_ENV"
+          echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+          mkdir -p "$HOME/hqr-ci/${{ github.run_id }}"
+          echo "RESULTS=$HOME/hqr-ci/${{ github.run_id }}" >> "$GITHUB_ENV"
+          xcodebuild -version
+          xcrun simctl list runtimes | grep iOS
+
+      - name: Generated files are up to date
+        run: |
+          python3 scripts/ios/generate_strings.py --check
+          python3 scripts/ios/generate_assets.py --check
+          python3 scripts/ios/generate_tokens.py --check
+          python3 scripts/ios/generate_xcodeproj.py --check
+          python3 scripts/ios/check_previews.py --check
+
+      - name: Core tests on the simulator
+        if: inputs.tests
+        run: ./gradlew :shared:domain:iosSimulatorArm64Test :shared:data:iosSimulatorArm64Test :shared:presentation:iosSimulatorArm64Test :shared:app:iosSimulatorArm64Test --continue -Phqr.ios=true
+
+      - name: Pick the simulator
+        id: sim
+        if: inputs.tests
+        run: |
+          # A regular "iPhone NN Pro" on the newest runtime: the captures must show the common phone layout, never a
+          # foldable, an Air or a Max. When the Mac has none on that runtime, it is created (local, no cost).
+          UDID=$(python3 - <<'PY'
+          import json, re, subprocess, sys
+          run = lambda *a: json.loads(subprocess.check_output(["xcrun", "simctl", "list", *a, "-j"]))
+          runtimes = [r for r in run("runtimes")["runtimes"] if r["platform"] == "iOS" and r["isAvailable"]]
+          newest = sorted(runtimes, key=lambda r: [int(n) for n in r["version"].split(".")])[-1]
+          devices = run("devices", "available")["devices"].get(newest["identifier"], [])
+          print("available: " + ", ".join(d["name"] for d in devices), file=sys.stderr)
+          def rank(name):
+              for score, pattern in ((3, r"iPhone \d+ Pro"), (2, r"iPhone \d+"), (1, r"iPhone \d+e")):
+                  if re.fullmatch(pattern, name):
+                      return score
+              return 0
+          num = lambda name: int((re.findall(r"\d+", name) or ["0"])[0])
+          best = sorted(devices, key=lambda d: (rank(d["name"]), num(d["name"])))
+          if best and rank(best[-1]["name"]) == 3:
+              print(best[-1]["udid"])
+          else:
+              # The device types this runtime takes (an older type is refused), the regular Pro first.
+              supported = newest.get("supportedDeviceTypes") or run("devicetypes")["devicetypes"]
+              types = sorted((t for t in supported if rank(t["name"]) >= 2), key=lambda t: (rank(t["name"]), num(t["name"])), reverse=True)
+              created = None
+              for t in types:
+                  try:
+                      created = subprocess.check_output(["xcrun", "simctl", "create", t["name"], t["identifier"], newest["identifier"]], stderr=subprocess.DEVNULL).decode().strip()
+                      print("created " + t["name"], file=sys.stderr)
+                      break
+                  except subprocess.CalledProcessError:
+                      continue
+              print(created or best[-1]["udid"])
+          PY
+          )
+          xcrun simctl list devices available | grep "$UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+
+      - name: App tests
+        if: inputs.tests
+        shell: bash
+        run: |
+          # Keep going after a failure: the captures, crash reports and the error list come after the tests.
+          set +e
+          # A clean install every run: progress and favorites of an earlier run would change the screens.
+          UDID="${{ steps.sim.outputs.udid }}"
+          run_tests() {
+            rm -rf "$RESULTS/tests.xcresult"
+            xcrun simctl uninstall "$UDID" com.tiagohs.hqr.reader 2>/dev/null
+            xcodebuild test -project HQR.xcodeproj -scheme HQR \
+              -destination "id=$UDID" \
+              -derivedDataPath build -resultBundlePath "$RESULTS/tests.xcresult" \
+              CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$RESULTS/xcodebuild-tests.log" | tail -80
+            return ${PIPESTATUS[0]}
+          }
+          cd ios
+          run_tests; status=$?
+          # The simulator service sometimes dies while installing the runner (Mach error -308):
+          # restart it, boot the device again and try once more. App failures are not retried.
+          if [ "$status" -ne 0 ] && grep -q "Failed to install or launch the test runner" "$RESULTS/xcodebuild-tests.log"; then
+            echo "::warning::the simulator failed to launch the runner; restarting it and trying again"
+            xcrun simctl shutdown all 2>/dev/null
+            killall -9 com.apple.CoreSimulator.CoreSimulatorService 2>/dev/null
+            sleep 5
+            xcrun simctl boot "$UDID" 2>/dev/null
+            xcrun simctl bootstatus "$UDID" -b >/dev/null 2>&1
+            run_tests; status=$?
+          fi
+          # The Swift view of the Kotlin core, to check names against (kept with the results).
+          cp ../shared/app/build/xcode-frameworks/Debug/*/Shared.framework/Headers/Shared.h "$RESULTS/" 2>/dev/null || true
+          # The screen captures of the UI tests, named by screen ID, to compare with the canvas.
+          xcrun xcresulttool export attachments --path "$RESULTS/tests.xcresult" --output-path "$RESULTS/screens" || echo "::warning::could not export the captures"
+          # Crash reports of the app and the test runner during this run (the simulator writes them on the Mac).
+          find "$HOME/Library/Logs/DiagnosticReports" -newer "$RESULTS" \( -name 'HQR*' -o -name 'HQRUITests*' \) \
+            -exec cp {} "$RESULTS/" \; 2>/dev/null || true
+          # Compile errors and failed tests are above the tail: list them so the log shows the cause.
+          if [ "$status" -ne 0 ]; then
+            echo "::group::Errors and failures"
+            grep -E "error: |✘ Test|Test .* failed|failed \(" "$RESULTS/xcodebuild-tests.log" | sort -u | head -150 || true
+            grep -A12 "^Testing failed:" "$RESULTS/xcodebuild-tests.log" | head -40 || true
+            echo "::endgroup::"
+          fi
+          exit $status
+
+      - name: Signing
+        id: signing
+        if: inputs.ipa
+        env:
+          P12_BASE64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          if [ -z "$P12_BASE64" ] || [ -z "$PROFILE_BASE64" ] || [ -z "$TEAM_ID" ]; then
+            echo "No signing secrets: the IPA is unsigned (it only proves the archive builds)."
+            echo "with=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          echo "$P12_BASE64" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$PROFILE_BASE64" | base64 -d > "$RUNNER_TEMP/app.mobileprovision"
+          UUID=$(security cms -D -i "$RUNNER_TEMP/app.mobileprovision" | plutil -extract UUID raw -)
+          NAME=$(security cms -D -i "$RUNNER_TEMP/app.mobileprovision" | plutil -extract Name raw -)
+          cp "$RUNNER_TEMP/app.mobileprovision" "$HOME/Library/MobileDevice/Provisioning Profiles/$UUID.mobileprovision"
+          echo "TEAM_ID=$TEAM_ID" >> "$GITHUB_ENV"
+          echo "PROFILE_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+          echo "with=app-store" >> "$GITHUB_OUTPUT"
+
+      - name: Archive and export the IPA
+        if: inputs.ipa
+        run: |
+          cd ios
+          BUILD=""
+          if [ -n "${{ inputs.build_number }}" ]; then BUILD="HQR_BUILD=${{ inputs.build_number }}"; fi
+          if [ "${{ steps.signing.outputs.with }}" = "app-store" ]; then
+            xcodebuild archive -project HQR.xcodeproj -scheme HQR -configuration Release \
+              -destination "generic/platform=iOS" -archivePath "$RUNNER_TEMP/HQR.xcarchive" \
+              DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution" \
+              PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" $BUILD
+            cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key><dict><key>com.tiagohs.hqr.reader</key><string>$PROFILE_NAME</string></dict>
+          </dict></plist>
+          PLIST
+            xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/HQR.xcarchive" \
+              -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" -exportPath "$RUNNER_TEMP/export"
+          else
+            xcodebuild archive -project HQR.xcodeproj -scheme HQR -configuration Release \
+              -destination "generic/platform=iOS" -archivePath "$RUNNER_TEMP/HQR.xcarchive" \
+              CODE_SIGNING_ALLOWED=NO $BUILD
+            mkdir -p "$RUNNER_TEMP/export/Payload"
+            cp -R "$RUNNER_TEMP/HQR.xcarchive/Products/Applications/HQR.app" "$RUNNER_TEMP/export/Payload/"
+            (cd "$RUNNER_TEMP/export" && zip -qr HQR.ipa Payload)
+          fi
+
+      - name: Upload to the draft release
+        if: inputs.ipa
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          VERSION=$(grep -E '^HQR_VERSION' ios/Config/App.xcconfig | sed -E 's/.*= *//')
+          BUILD="${{ inputs.build_number }}"
+          if [ -z "$BUILD" ]; then BUILD=$(grep -E '^HQR_BUILD' ios/Config/App.xcconfig | sed -E 's/.*= *//'); fi
+          TAG="ios-v$VERSION-$BUILD"
+          SIGNED="assinado"
+          SUFFIX=""
+          if [ "${{ steps.signing.outputs.with }}" = "none" ]; then SIGNED="sem assinatura"; SUFFIX="-unsigned"; fi
+          TESTS="sem testes"
+          if [ "${{ inputs.tests }}" = "true" ]; then TESTS="testado"; fi
+          mkdir -p dist
+          cp "$RUNNER_TEMP"/export/*.ipa "dist/hqr-ios-v$VERSION-$BUILD$SUFFIX.ipa"
+          (cd "$RUNNER_TEMP/HQR.xcarchive/dSYMs" && zip -qr "$GITHUB_WORKSPACE/dist/hqr-ios-v$VERSION-$BUILD-dSYM.zip" .)
+          TITLE="HQR iOS $TAG ($TESTS · $SIGNED)"
+          if gh release view "$TAG" --json isDraft >/dev/null 2>&1; then
+            if [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" != "true" ]; then
+              echo "::error::A published release $TAG already exists. Bump the build number."
+              exit 1
+            fi
+            gh release edit "$TAG" --target "${{ github.sha }}" --title "$TITLE"
+          else
+            gh release create "$TAG" --draft --target "${{ github.sha }}" --title "$TITLE" \
+              --notes "Build of ${{ github.ref_name }} (${{ github.sha }}). Teste interno: não publicar."
+          fi
+          gh release upload "$TAG" dist/* --clobber
+          echo "Draft release: $(gh release view "$TAG" --json url -q .url)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clean up (keychain, build folders)
+        if: always()
+        run: |
+          if [ -n "$KEYCHAIN" ]; then security delete-keychain "$KEYCHAIN" || true; fi
+          rm -rf ios/build dist

@@ -208,22 +208,7 @@ private fun SortTab(
                 Modifier.selectable(
                     selected = options.sort == sort,
                     role = Role.RadioButton,
-                ) {
-                    // RF-55: A to Z starts ascending; the other orders start with the most recent or the most.
-                    onChange(
-                        options.copy(
-                            sort = sort,
-                            ascending =
-                                if (sort ==
-                                    options.sort
-                                ) {
-                                    options.ascending
-                                } else {
-                                    sort == LibrarySort.TITLE
-                                },
-                        ),
-                    )
-                },
+                ) { onChange(options.withSort(sort)) },
         )
     }
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {

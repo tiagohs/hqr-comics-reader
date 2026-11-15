@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.data.net
 
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.http.HttpHeaders
 
@@ -19,15 +20,22 @@ interface ChallengeCookies {
     }
 }
 
-/** RF-106: requests to a host with a clearance go with its cookies and the browser's User-Agent. */
+/**
+ * RF-106: requests to a host with a clearance go with its cookies and the browser's User-Agent. Set on every hop, so a
+ * redirect to another host never carries them.
+ */
 fun HttpClientConfig<*>.useChallengeCookies(provider: ChallengeCookies) {
     install(
         createClientPlugin("ChallengeCookies") {
-            onRequest { request, _ ->
-                val cookies = provider.cookies(request.url.buildString()) ?: return@onRequest
-                val existing = request.headers[HttpHeaders.Cookie]
-                request.headers[HttpHeaders.Cookie] = listOfNotNull(existing, cookies).joinToString("; ")
-                request.headers[HttpHeaders.UserAgent] = provider.userAgent
+            on(Send) { request ->
+                val cookies = provider.cookies(request.url.buildString())
+                if (cookies == null) {
+                    request.headers.remove(HttpHeaders.Cookie)
+                } else {
+                    request.headers[HttpHeaders.Cookie] = cookies
+                    request.headers[HttpHeaders.UserAgent] = provider.userAgent
+                }
+                proceed(request)
             }
         },
     )

@@ -27,6 +27,7 @@ import okio.use
  * The pages of downloaded chapters, one folder per chapter id — or one `.cbz` when the user asked for it (RF-67) — read
  * only by HQR (RF-65). One operation at a time: the queue writes while the screens list and read.
  */
+@Suppress("TooManyFunctions") // One small operation per question the queue and the reader ask of the disk.
 class DownloadFiles(
     private val fs: FileSystem,
     private val root: Path,
@@ -37,6 +38,8 @@ class DownloadFiles(
 
     /** The chapter as a single file (RF-67). */
     fun cbz(chapterId: Long): Path = root / "$chapterId.cbz"
+
+    suspend fun hasCbz(chapterId: Long): Boolean = lock.withLock { fs.exists(cbz(chapterId)) }
 
     private fun page(
         chapterId: Long,
@@ -307,6 +310,8 @@ class DownloadManager(
 
     /** The missing pages, one by one; a page that arrives after a pause is kept, after a removal it goes. */
     private suspend fun fetchPages(id: Long): Outcome {
+        // Packed before a pause took the chapter out of the run: nothing left to fetch.
+        if (files.hasCbz(id)) return finish(id)
         // A chapter without pages would be "downloaded" with nothing to read.
         val pages = pagesOf(id).ifEmpty { throw SourceException("Capítulo sem páginas", SourceException.Kind.NOT_FOUND) }
         var done = pages.count { files.has(id, it.index) }
@@ -328,9 +333,9 @@ class DownloadManager(
     private suspend fun finish(id: Long): Outcome {
         val packs = saveAsCbz() || folder() != null
         return when {
-            packs && lowSpace(id, needed = files.folderBytes(id)) -> Outcome.LOW_SPACE
             // Paused or removed right before: the pages stay as they are, for the next run.
             dao.get(id)?.state != RUNNING -> stopped(id)
+            packs && lowSpace(id, needed = files.folderBytes(id)) -> Outcome.LOW_SPACE
             else -> {
                 if (packs) files.pack(id)
                 if (dao.finish(id, (if (packs) files.cbz(id) else files.dir(id)).toString()) == 0) {

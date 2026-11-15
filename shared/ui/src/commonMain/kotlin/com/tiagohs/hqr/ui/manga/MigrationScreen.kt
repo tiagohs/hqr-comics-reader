@@ -1,5 +1,7 @@
 package com.tiagohs.hqr.ui.manga
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,8 +46,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.domain.model.SourceManga
@@ -55,6 +61,8 @@ import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_cancel
+import com.tiagohs.hqr.ui.resources.migrate_carries
+import com.tiagohs.hqr.ui.resources.migrate_carries_detail
 import com.tiagohs.hqr.ui.resources.migrate_confirm
 import com.tiagohs.hqr.ui.resources.migrate_confirm_message
 import com.tiagohs.hqr.ui.resources.migrate_confirm_title
@@ -99,6 +107,23 @@ fun MigrationScreen(
                         IconButton(onClick = viewModel::search) { Icon(HqrIcons.Search, stringResource(Res.string.migrate_query)) }
                     },
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
+                )
+            }
+            item {
+                // RF-70: what goes with the work, before the person picks a candidate.
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(stringResource(Res.string.migrate_carries) + " ") }
+                        append(stringResource(Res.string.migrate_carries_detail))
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                            .border(2.dp, MaterialTheme.colorScheme.onSurface)
+                            .padding(12.dp),
                 )
             }
             item { Heading(stringResource(Res.string.migrate_sources)) }

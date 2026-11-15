@@ -13,9 +13,9 @@ O que ordena o trabalho é **tirar risco cedo**: o motor do leitor (R-02), o Man
 | :-- | :-- | :-- |
 | 1.0 Android | Esqueleto + FEAT-001 a FEAT-024 | Os 60 Must; publicada como `v1.0.0` (RF-84) |
 | 1.1 Android | FEAT-025 a FEAT-041 | Should, incluindo as fontes adicionais |
-| Web | FEAT-050 a FEAT-054 | Requisitos da §3.1.19, depois do 1.0 |
+| Web | FEAT-050 a FEAT-054, FEAT-070 a FEAT-072 | Requisitos da §3.1.19 e §3.1.20; a web passa a morar no Worker pessoal |
 | Depois | FEAT-042 a FEAT-049 | Could |
-| iOS | Fora deste plano | Só depois que o Tiago aprovar as telas do Android (C-09); terá plano próprio sobre o mesmo núcleo |
+| iOS | FEAT-060 a FEAT-064, FEAT-068 | Começou com o OK do Tiago às telas do Android (C-09); mesmo núcleo, telas em SwiftUI |
 
 Dev solo (C-10), sem custo (C-01, C-08). As fases além da próxima são uma ordem viva, não um compromisso de datas.
 
@@ -153,15 +153,44 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-040 | Weeb Central | RF-103 | UC-001 | SCR-EXP-002, SCR-STA-001 | `sources/weebcentral`, `challenge` | — |
 | FEAT-041 | XOXO Comics | RF-104 | UC-001 | SCR-EXP-002 | `sources/xoxo` | — |
 
-### E15 · Web (`web`, `bridge`, `bridge-worker/`)
+### E15 · Web (`web`, `bridge`, `hub-worker/`)
 
 | ID | Fatia | RF | UC | Telas | Componentes | Dados |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
 | FEAT-050 | App web: PWA, endereço por tela e navegador sem suporte | RF-107, RF-113, RF-114 | UC-014 | SCR-WEB-004, SCR-LIB-001, SCR-OBR-001 | `web`, `ui` (ADR-022) | Room 3 no OPFS |
-| FEAT-051 | Ponte pessoal: Worker e configuração | RF-108, RF-109 | UC-014 | SCR-WEB-001, SCR-SRC-001 | `bridge`, `bridge-worker/` (ADR-023) | token no navegador |
+| FEAT-051 | Ponte das fontes online, hoje no Worker pessoal com a sessão da conta | RF-108, RF-109 | UC-014 | SCR-SET-005, SCR-SRC-001 | `bridge`, `hub-worker/` (ADR-023, ADR-027) | sessão no navegador |
 | FEAT-052 | Importar arquivos no navegador | RF-110 | UC-014, UC-008 | SCR-WEB-002 | `web`, `FileTree` sobre OPFS | — |
 | FEAT-053 | Servidores na web | RF-111 | UC-014, UC-009 | SCR-SRV-001 | `sources/opds`, `web` | `server` |
 | FEAT-054 | Leitor por teclado e mouse | RF-112 | UC-014, UC-004 | SCR-WEB-003, SCR-RDR-001 | `reader`, `web` | — |
+
+### E16 · iOS e iPadOS (`shared/app`, `ios/`)
+
+| ID | Fatia | RF | UC | Telas | Componentes | Dados |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| FEAT-060 | Núcleo no iOS: framework `Shared`, `SharedGraph`, peças do sistema por interface | RNF-13, RNF-15 | todos | — | `shared/app` (iosMain), `data` e `sources/local` (iosMain) | Room 3 em Application Support |
+| FEAT-061 | App base: projeto, textos, tokens, ícone, abas no iPhone e barra lateral no iPad | RNF-12, RNF-14, RF-76, RF-87 | UC-012 | SCR-LIB-001, SCR-SET-001 | `ios/` (scripts em `scripts/ios/`) | preferências |
+| FEAT-062 | Biblioteca, explorar, fonte, busca global, obra com a cor da capa | RF-21 a RF-35, RF-52 a RF-58, RF-98 | UC-001 a UC-005 | SCR-LIB-001 a 003, SCR-EXP-001 e 002, SCR-SRCH-001, SCR-OBR-001 | `ios/Features` | — |
+| FEAT-063 | Leitor: páginas com ImageIO, direita para esquerda, duas páginas no iPad, vertical, webtoon, fim do capítulo | RF-36 a RF-42 | UC-004 | SCR-RDR-001 a 003 | `ios/Features/Reader` | progresso |
+| FEAT-064 | Histórico, downloads, backup, fontes, servidores, migração e verificação do Cloudflare | RF-59 a RF-75, RF-106, RNF-28 | UC-006 a UC-011 | SCR-HIS-001, SCR-DL-001, SCR-SET-002 e 003, SCR-SRC-001, SCR-SRV-001 e 002, SCR-OBR-002 | `ios/Features` | — |
+
+### E17 · Linguagem de HQ, obra por partes e respostas guardadas (ADR-026)
+
+| ID | Fatia | RF | UC | Telas | Componentes | Dados |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| FEAT-065 | Papel e tinta, Bangers e título vertical, componentes de HQ (selo, explosão, retícula, linhas de velocidade, esqueleto suave) com controles do M3 | RF-29, RF-31, RF-81, RF-98 | todos | todas | `ui` (theme, components) | fonte recortada |
+| FEAT-066 | Obra abre na hora: detalhes e capítulos em paralelo, lista com esqueleto e erro próprio, validade de 6 horas | RF-117, RF-33 | UC-003 | SCR-OBR-001 | `presentation/manga`, `data/cache` | `CacheStore` |
+| FEAT-067 | Fontes favoritas e feed guardado por 30 minutos | RF-115, RF-116, RF-25 | UC-002 | SCR-EXP-001, SCR-EXP-002 | `presentation/feed`, `ui/explore` | `feed`, `CacheStore` |
+| FEAT-068 | iOS completo na linguagem de HQ: onboarding, opções e seleção da biblioteca, atualização com novidades, categorias, filtros, buscas salvas e recentes, editor do feed, ajustes do MangaDex, corte de bordas e página dividida no leitor | RF-06, RF-08, RF-22, RF-24, RF-25, RF-27, RF-44, RF-45, RF-51, RF-53 a RF-58, RF-73, RF-81, RF-115 a RF-117 | todos | todas | `ios/` | — |
+| FEAT-069 | Movimento de HQ: capa que voa até a obra, linhas de velocidade, título que se escreve, carimbo, cascata, primeiro acesso desenhado a traço; "reduzir movimento" | RF-118 | todos | SCR-OBR-001, SCR-LIB-001, SCR-ONB-001 | `ui/components` (ComicMotion), `ios/DesignSystem` | — |
+
+### E18 · Conta e sincronização (ADR-027 a ADR-029)
+
+| ID | Fatia | RF | UC | Telas | Componentes | Dados |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| FEAT-070 | Worker pessoal: D1, login Google com lista permitida, sessão, sincronização, ponte com sessão e a web nos assets; deploy pelo CI do Mac | RF-107 a RF-109, RF-119, RF-120, RNF-34 | UC-014, UC-015 | — | `hub-worker/` | `account`, `session`, `record` |
+| FEAT-071 | Núcleo da sincronização: fila, cursor, regras de junção, cliente da API, primeiro login sem duplicar | RF-121, RF-123, RF-124, RNF-35 | UC-015 | — | `sync`, `account` (domain, data) | `sync_outbox`, `sync_state` |
+| FEAT-072 | Android e web: entrar com Google, Conta e sincronização, ciclos automáticos, estado e aviso de falha | RF-119, RF-122, RF-125 | UC-015 | SCR-SET-005, SCR-LIB-001 | `ui`, `android`, `web` | sessão no `SecretStore` |
+| FEAT-073 | iOS: entrar com Google e Conta e sincronização em SwiftUI | RF-119, RF-122, RF-125 | UC-015 | SCR-SET-005 | `ios/`, `shared/app` | sessão no Keychain |
 
 ## 4. Ordem de construção
 

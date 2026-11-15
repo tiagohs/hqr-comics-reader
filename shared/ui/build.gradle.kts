@@ -5,9 +5,13 @@ plugins {
 }
 
 kotlin {
+    android {
+        // Without it the APK ships no composeResources and the app crashes at the first string (RNF-08).
+        androidResources { enable = true }
+    }
     sourceSets {
         commonMain.dependencies {
-            api(project(":shared:presentation"))
+            api(project(":shared:app"))
             implementation(project(":shared:data"))
             implementation(project(":sources:local"))
             implementation(project(":sources:opds"))

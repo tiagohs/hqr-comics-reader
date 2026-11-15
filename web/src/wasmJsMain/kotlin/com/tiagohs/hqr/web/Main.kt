@@ -3,7 +3,7 @@ package com.tiagohs.hqr.web
 import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.data.settings.SettingsSecretStore
 import com.tiagohs.hqr.domain.source.SecretStore
-import com.tiagohs.hqr.ui.di.AppVersion
+import com.tiagohs.hqr.app.AppVersion
 import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
 import com.tiagohs.hqr.data.sources.SourceListFetcher
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -25,8 +25,9 @@ import com.tiagohs.hqr.sources.local.ImportedFiles
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.data.settings.AppPreferences
-import com.tiagohs.hqr.ui.di.BuiltInSources
-import com.tiagohs.hqr.ui.di.coreModule
+import com.tiagohs.hqr.app.BuiltInSources
+import com.tiagohs.hqr.app.coreModule
+import com.tiagohs.hqr.ui.di.uiModule
 import com.tiagohs.hqr.ui.navigation.HqrApp
 import io.ktor.client.HttpClient
 import com.tiagohs.hqr.data.bridge.PersonalBridge
@@ -42,6 +43,19 @@ import com.tiagohs.hqr.sources.weebcentral.WeebCentralSource
 import com.tiagohs.hqr.sources.xoxo.XoxoSource
 import com.tiagohs.hqr.sources.yomu.YomuSource
 import kotlinx.browser.document
+import kotlinx.browser.window
+import com.tiagohs.hqr.app.DeviceName
+import com.tiagohs.hqr.data.sync.HubClient
+import com.tiagohs.hqr.data.sync.SyncAccount
+import com.tiagohs.hqr.domain.repository.AccountRepository
+import com.tiagohs.hqr.domain.repository.AccountState
+import com.tiagohs.hqr.domain.repository.GoogleIdTokens
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.w3c.dom.Worker
@@ -53,6 +67,7 @@ private fun sqliteWorker(): Worker = js("""new Worker(new URL('sqlite-worker.js'
 @OptIn(ExperimentalComposeUiApi::class)
 @Suppress("LongMethod") // One registration per line: the web app's whole wiring in one place.
 fun main() {
+    val origin = window.location.origin
     startKoin {
         modules(
             module {
@@ -60,9 +75,19 @@ fun main() {
                     Room.databaseBuilder<HqrDatabase>(HqrDatabase.NAME).setDriver(WebWorkerSQLiteDriver(sqliteWorker())).buildHqr()
                 }
                 single<Settings> { StorageSettings() }
-                // RF-108, ADR-023: requests for the online sources go through the user's bridge; the bridge's own test
-                // goes straight to it, with no retries ("Testar" answers at once).
-                single { PersonalBridge(get(), get(), httpClient()) }
+                // ADR-027: the app, the API and the bridge share one origin, the personal Worker.
+                single { HubClient(httpClient(), origin) }
+                single(DeviceName) { "Web" }
+                single<GoogleIdTokens> { BrowserGoogleSignIn(httpClient(), origin) }
+                // RF-108: requests for the online sources go through the Worker's bridge with the account's session.
+                single {
+                    val account = get<SyncAccount>()
+                    val signedIn =
+                        account.account
+                            .map { it is AccountState.SignedIn }
+                            .stateIn(MainScope(), SharingStarted.Eagerly, account.account.value is AccountState.SignedIn)
+                    PersonalBridge("$origin/bridge", signedIn) { account.token() }
+                }
                 single<Bridge> { get<PersonalBridge>() }
                 single<HttpClient> { hqrHttpClient(USER_AGENT) { routeThroughBridge(get()) } }
                 single<ImageCache> { MemoryImageCache() }
@@ -115,7 +140,14 @@ fun main() {
                 single(AppVersion) { "1.0.0" }
             },
             coreModule,
+            uiModule,
         )
+    }
+    // RF-122: coming back to the tab syncs.
+    document.addEventListener("visibilitychange") {
+        if (pageVisible()) MainScope().launch { GlobalContext.get().get<AccountRepository>().syncNow() }
     }
     ComposeViewport(document.body!!) { HqrApp(systemDark = isSystemInDarkTheme()) }
 }
+
+private fun pageVisible(): Boolean = js("document.visibilityState === 'visible'")

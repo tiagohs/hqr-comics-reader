@@ -33,7 +33,7 @@ fun condensed(): FontFamily =
         ),
     )
 
-/** Bangers: logo, long-loading onomatopoeia, empty states and chapter transition only. */
+/** Bangers: screen and work titles, chapter numbers, stamps and onomatopoeia (ADR-026). */
 @Composable
 fun bangers(): FontFamily = FontFamily(Font(Res.font.bangers_regular))
 
@@ -46,13 +46,17 @@ fun hqrTypography(): Typography {
     fun TextStyle.body() = copy(fontFamily = body)
 
     fun TextStyle.title() = copy(fontFamily = title, fontWeight = FontWeight.ExtraBold)
+
+    val comic = bangers()
+
+    fun TextStyle.comic() = copy(fontFamily = comic, fontWeight = FontWeight.Normal, letterSpacing = 1.sp)
     return Typography(
-        displayLarge = base.displayLarge.title(),
-        displayMedium = base.displayMedium.title(),
-        displaySmall = base.displaySmall.title(),
-        headlineLarge = base.headlineLarge.title().copy(fontSize = 30.sp, lineHeight = 36.sp),
-        headlineMedium = base.headlineMedium.title().copy(fontSize = 26.sp, lineHeight = 30.sp),
-        headlineSmall = base.headlineSmall.title().copy(fontSize = 22.sp, lineHeight = 26.sp),
+        displayLarge = base.displayLarge.comic(),
+        displayMedium = base.displayMedium.comic(),
+        displaySmall = base.displaySmall.comic(),
+        headlineLarge = base.headlineLarge.comic().copy(fontSize = 34.sp, lineHeight = 36.sp),
+        headlineMedium = base.headlineMedium.comic().copy(fontSize = 28.sp, lineHeight = 30.sp),
+        headlineSmall = base.headlineSmall.comic().copy(fontSize = 24.sp, lineHeight = 26.sp),
         titleLarge = base.titleLarge.title().copy(fontSize = 20.sp),
         titleMedium = base.titleMedium.body().copy(fontWeight = FontWeight.SemiBold),
         titleSmall = base.titleSmall.body().copy(fontWeight = FontWeight.SemiBold),

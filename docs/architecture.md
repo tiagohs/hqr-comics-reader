@@ -27,7 +27,9 @@ flowchart LR
   APP -->|seletor do sistema| FS[(Pastas do aparelho)]
   APP -.->|releases e APK| GH[(GitHub Releases)]
   APP -->|falhas · Android| FB[(Firebase Crashlytics)]
-  APP -->|web: fontes online, com token| PT[(Ponte do usuário<br/>Cloudflare Worker)]
+  APP -->|login, sincronização; web: ponte e o próprio app| PT[(Worker pessoal<br/>Cloudflare Worker + D1)]
+  APP -->|ID token| GO[(Google Identity)]
+  PT -->|confere o token| GO
   PT -->|repassa sem Via| MD
   PT --> HQ
   PT --> EX
@@ -41,7 +43,8 @@ flowchart LR
 | Pastas | Lemos arquivos locais; escrevemos só downloads e backups em pastas escolhidas |
 | GitHub Releases | Lemos a última versão e baixamos o APK |
 | Crashlytics | Rastro da falha, aparelho, id de instalação; desligável |
-| Ponte do usuário | Só na web: recebe os pedidos das fontes online com o token e os repassa (API e imagens); publicada pelo próprio usuário (ADR-023) |
+| Worker pessoal | Troca o ID token do Google por sessão; recebe e devolve as mudanças da sincronização; na web, serve o app e repassa os pedidos das fontes online (ADR-027 a ADR-029) |
+| Google Identity | Entrega o ID token do usuário no login; o Worker confere a assinatura pelas chaves públicas |
 
 ## 3. Containers e módulos (C4 nível 2)
 
@@ -77,6 +80,7 @@ flowchart TB
   UI --> PRES
   IUI --> PRES
   WST --> DATA
+  DATA -->|sync, auth, ponte · HTTPS + sessão| HUB[hub-worker/<br/>Cloudflare Worker + D1]
   PRES --> DOM
   DATA --> DOM
   sources --> DOM
@@ -108,19 +112,22 @@ Regra: `domain` não conhece rede, banco nem plataforma. O que muda por platafor
 | `sourceconfig` | data | Lê `sources.json` 1x por dia, guarda a última versão, aplica ligar/desligar e endereço | RF-105 |
 | `challenge` | android / ios | Navegador embutido para a verificação do Cloudflare e cookies compartilhados com o Ktor | RF-106 |
 | `updater` | android (github) | Releases, download, verificação, instalador | RF-82 |
+| `app` | shared | Montagem do Koin (repositórios, fontes, ViewModels) e início comum (`AppStartup`); no iOS vira o framework `Shared` | RNF-15 |
 | `ui` | shared (Android e web) | Telas, componentes, tema (violeta base) e leitor em Compose Multiplatform | RNF-11, RNF-12, RF-107 |
 | `contentcolor` | presentation | Extrai a cor da capa (MaterialKolor), aplica a regra do erro, monta o esquema claro e escuro e guarda por obra | RF-98 |
 | `web` | web | PWA, rotas por URL, importação para o OPFS, cota, atalhos, avisos do que não roda no navegador | RF-107, RF-110 a RF-114 |
-| `bridge` | data | Na web, reescreve os pedidos das fontes online para a ponte com o token; testa a ponte | RF-108 |
-| `bridge-worker/` | fora do app | Código da ponte (Cloudflare Worker) e passo a passo para o usuário publicar | RF-109 |
+| `bridge` | data | Na web, reescreve os pedidos das fontes online para a ponte do Worker com a sessão | RF-108 |
+| `account` | domain + data + presentation | Login (ID token por plataforma via `GoogleSignIn`), sessão no `SecretStore`, estado da conta | RF-119, RF-120 |
+| `sync` | domain + data | Fila de mudanças (`sync_outbox`), base da conta (`sync_state`), cursor, regras de junção puras, cliente `POST /api/v1/sync`, ciclos por plataforma | RF-121 a RF-125 |
+| `hub-worker/` | fora do app | Worker pessoal: `/api/v1/auth`, `/api/v1/sync`, `/bridge`, assets da web; D1 com migrações; vitest | RF-107 a RF-109, RF-119 a RF-125 |
 
-### 3.1 App iOS (depois)
+### 3.1 App iOS
 
-Mesmo desenho do Script Reader: `ios/HQR.xcodeproj` com pastas sincronizadas, framework `Shared` de `shared/presentation`, ponte `Screen<T>`/`ScreenModel` sem SKIE, uma pasta por área em `Features/`, prévias claras e escuras. O leitor usa o motor de `presentation` e desenha com SwiftUI e ImageIO. CBR e CB7 ficam fora no iOS (ADR-011). A cor da capa vem pronta de `contentcolor` e entra como tint do SwiftUI.
+Mesmo desenho do Script Reader: `ios/HQR.xcodeproj` gerado por `scripts/ios/generate_xcodeproj.py` com pastas sincronizadas, framework `Shared` de `shared/app` (exporta `domain`, `data` e `presentation`; `SharedGraph` entrega um ViewModel por tela), ponte `Screen<T>`/`ScreenModel` sem SKIE, uma pasta por área em `Features/`, prévias claras e escuras. Diferenças por interface: `FileTree` sobre a pasta Documentos do app (aparece como "HQR" no app Arquivos), `PdfPages` pelo Core Graphics, zlib do sistema para CBZ e backup, segredos no Keychain, banco em Application Support, rede pelo Network framework, cookies da verificação entregues pelo WKWebView. O leitor usa o motor de `presentation` e desenha com SwiftUI e ImageIO. CBR e CB7 ficam fora no iOS (ADR-011). A cor da capa vem pronta de `contentcolor` e entra como tint do SwiftUI.
 
 ### 3.2 App web (marco Web)
 
-`web/` é um alvo `wasmJs` que usa o mesmo `ui` do Android (ADR-022). Diferenças por interface: `FileTree` sobre o OPFS (importação por seletor ou arrastar e soltar), `PdfPages` pelo pdf.js, `ArchiveReader` só ZIP/CBZ (CBR e CB7 recusados com o motivo), `SecretStore` no armazenamento do navegador, Downloads só no app do celular por enquanto (mostrados com o motivo, RF-114), e o `bridge` na frente das fontes online (ADR-023). Fontes com verificação do Cloudflare (`challenge`), `updater` e Crashlytics não existem na web. Rotas da navegação viram o endereço do navegador (RF-113).
+`web/` é um alvo `wasmJs` que usa o mesmo `ui` do Android (ADR-022), servido como assets do Worker pessoal (ADR-027): um endereço só para o app, a API e a ponte, sem CORS. Diferenças por interface: `FileTree` sobre o OPFS (importação por seletor ou arrastar e soltar), `PdfPages` pelo pdf.js, `ArchiveReader` só ZIP/CBZ (CBR e CB7 recusados com o motivo), `SecretStore` no armazenamento do navegador, Downloads só no app do celular por enquanto (mostrados com o motivo, RF-114), e o `bridge` na frente das fontes online, autenticado pela sessão do login (ADR-027). Fontes com verificação do Cloudflare (`challenge`), `updater` e Crashlytics não existem na web. Rotas da navegação viram o endereço do navegador (RF-113).
 
 ## 4. Execução
 
@@ -206,6 +213,14 @@ erDiagram
 
 Regra de identidade (RF-90): obra = `(sourceId, key)`, capítulo = `(mangaId, key)`. `sourceId` é fixo no código de cada fonte; na local, `key` é o caminho relativo.
 
+Sincronização (ADR-029), no aparelho: `sync_state` guarda, por item (`kind`, `key`), o `payload` que a conta tem; um ciclo compara o banco com essa base e põe o que mudou em `sync_outbox` (`kind`, `key`, `payload` JSON, `changedAt`, `deleted`), também sem internet. Com rede, o ciclo traz primeiro o que mudou desde o cursor e junta (capítulos campo a campo, o resto pela versão mais nova), registra o que a junção mudou e só então envia a fila. O cursor e a hora do último ciclo ficam nas preferências; a sessão, no `SecretStore`. No Worker, o D1 tem:
+
+| Tabela | Campos principais |
+| :-- | :-- |
+| `account` | `id`, `email`, `seq` (o último número dado a uma mudança), `createdAt` |
+| `session` | `tokenHash` (SHA-256), `accountId`, `device`, `expiresAt`, `lastUsedAt` |
+| `record` | `accountId`, `kind` (`manga` com categorias e ajustes do leitor, `chapter` com progresso e histórico, `category`, `saved_search`, `feed` com as fontes favoritas, `server`, `setting`), `key`, `payload` JSON, `changedAt`, `deleted`, `seq` (crescente por conta); único em `(accountId, kind, key)`, índice em `(accountId, seq)` |
+
 ## 6. Privacidade e segurança
 
 | Tema | Como |
@@ -215,13 +230,14 @@ Regra de identidade (RF-90): obra = `(sourceId, key)`, capítulo = `(mangaId, ke
 | Arquivos | Leitor de ZIP com proteção contra caminhos com `..`, bombas de compressão e imagens gigantes; XML sem DTD (RNF-26) |
 | Dados enviados | Crashlytics no Android, desligável; nenhum analytics; iOS sem coleta |
 | Conteúdo | Créditos do MangaDex e dos grupos; classificação de conteúdo aplicada na própria fonte (ADR-008) |
-| Web | CSP restrita à origem, à ponte e aos servidores cadastrados; token da ponte só no navegador; ponte com allowlist de hosts, sem cache e sem registro (RNF-32) |
+| Web | CSP restrita à própria origem e aos servidores cadastrados; ponte com allowlist de hosts, sem cache e sem registro, só com sessão (RNF-32) |
+| Conta | Login Google com lista permitida no segredo `ALLOWED_EMAILS` do Worker; sessão aleatória de 32 bytes, só o hash no D1, 90 dias renováveis; `GOOGLE_CLIENT_IDS` como segredo; downloads e arquivos nunca saem do aparelho (RNF-33, RNF-34) |
 
 ## 7. Distribuição
 
 A 1.0 tem um sabor só, `github`: `com.tiagohs.hqr.reader`, fontes mangadex, hqnow, local e opds, e o `updater` com `REQUEST_INSTALL_PACKAGES`. Um sabor de loja futuro seria só `local` e `opds`, sem `updater`, ligado pelos mesmos módulos.
 
-A web é um site estático (`web/` compilado) publicado à mão no GitHub Pages do repositório, com service worker para o PWA (C-12). A ponte não faz parte da distribuição: o usuário publica a sua a partir de `bridge-worker/`.
+A web (`web/` compilado, com service worker para o PWA) vai nos assets do Worker pessoal, publicado pelo CI do Mac junto com as migrações do D1 (C-12, ADR-027).
 
 ## 8. Qualidade
 
@@ -231,7 +247,7 @@ A web é um site estático (`web/` compilado) publicado à mão no GitHub Pages 
 | Telas | Roborazzi claro e escuro nos tamanhos de RNF-12; prévias obrigatórias |
 | Desempenho | Macrobenchmark de abertura e de troca de página; perfil de base (baseline profile) |
 | Estilo | ktlint, detekt, lint |
-| CI | GitHub Actions no runner do Mac do Tiago (`[self-hosted, macOS]`, sem custo): a cada push em `rewrite/**` e à mão; APKs e web numa release rascunho, web publicada na `gh-pages` (C-08, C-12) |
+| CI | GitHub Actions no runner do Mac do Tiago (`[self-hosted, macOS]`, sem custo): a cada push em `rewrite/**` e à mão; APKs e web numa release rascunho, Worker com a web publicado no Cloudflare quando os secrets existem (C-08, C-12) |
 
 ## 9. Riscos
 
@@ -317,7 +333,24 @@ Contexto: o Tiago quer que a obra assuma as cores da capa sem sair do Material e
 Contexto: o Tiago quer um app web de verdade, sem servidor (C-01). Opções: Compose Multiplatform para Web (wasmJs); site separado em React/TypeScript consumindo um núcleo Kotlin/JS; só PWA do layout de celular. Decisão: as telas Compose saem do `android/` para o módulo `ui` (Compose Multiplatform, alvos Android e wasmJs); `web/` é só o shell. Consequências: uma tela serve Android e web; navegadores sem WasmGC ficam de fora (RNF-31); a web depende de uma tecnologia em Beta (R-08); o iOS segue em SwiftUI. Requisitos: RF-107, RF-112, RF-113, RNF-30, RNF-31.
 
 ### ADR-023 Fontes online na web por ponte pessoal
-Contexto: o MangaDex não envia CORS, exige que pedidos de navegador passem por servidor próprio, serve resposta errada para imagem em hotlink e proíbe o cabeçalho `Via` (https://api.mangadex.org/docs/2-limitations); HQ Now e os agregadores também não liberam CORS. Opções: ponte pública mantida pelo projeto (custo e risco legal, contra C-01); ponte pessoal publicada pelo usuário; web só com arquivos e servidores. Decisão: ponte pessoal num Cloudflare Worker do plano grátis, com código e passo a passo em `bridge-worker/`; o app web manda os pedidos das fontes online para ela com token; sem ponte, a web funciona com arquivos importados e servidores com CORS. Consequências: configurar a ponte exige uma conta no Cloudflare; o projeto não hospeda nem repassa conteúdo; o limite do plano grátis é do usuário. Requisitos: RF-108, RF-109, RF-111, RF-114, RNF-32.
+Substituída em parte pelo ADR-027: a ponte virou uma rota do Worker pessoal, autenticada pela sessão. Contexto: o MangaDex não envia CORS, exige que pedidos de navegador passem por servidor próprio, serve resposta errada para imagem em hotlink e proíbe o cabeçalho `Via` (https://api.mangadex.org/docs/2-limitations); HQ Now e os agregadores também não liberam CORS. Opções: ponte pública mantida pelo projeto (custo e risco legal, contra C-01); ponte pessoal publicada pelo usuário; web só com arquivos e servidores. Decisão: ponte pessoal num Cloudflare Worker do plano grátis, com código e passo a passo em `bridge-worker/`; o app web manda os pedidos das fontes online para ela com token; sem ponte, a web funciona com arquivos importados e servidores com CORS. Consequências: configurar a ponte exige uma conta no Cloudflare; o projeto não hospeda nem repassa conteúdo; o limite do plano grátis é do usuário. Requisitos: RF-108, RF-109, RF-111, RF-114, RNF-32.
 
 ### ADR-024 Fontes da 1.1 e verificação do Cloudflare
 Contexto: as fontes da 1.1 (RF-99 a RF-104) misturam API JSON (Internet Archive, NamiComi, MangaFlix, Yomu) e páginas HTML (Weeb Central, XOXO), e duas ficam atrás do Cloudflare. Decisão: um módulo por fonte em `sources/<nome>`; HTML lido com Ksoup (o mesmo parser do OPDS, roda no Android e na web); limites por fonte no `RateLimiter` (MangaFlix, Yomu e XOXO 1/s, Weeb Central 1 a cada 2 s, NamiComi 3/s, Internet Archive 2/s). No Internet Archive, além da licença de domínio público declarada no item, só entram itens de antes de 1964, porque a licença é declarada por quem envia; as páginas vêm do manifesto IIIF em JPEG. No NamiComi, capítulos pagos (portão `gating/check`) ficam de fora e "restricted" só entra com o conteúdo sugestivo ligado. A verificação do Cloudflare (RF-106): `ensureOk` reconhece o desafio pelo cabeçalho `cf-mitigated: challenge` (um bloqueio comum do WAF, sem esse cabeçalho, continua sendo acesso recusado) como `CHALLENGE`, sem repetir o pedido; a tela de erro oferece "Verificar", que abre a página num WebView; quando aparece um `cf_clearance` diferente do que havia ao abrir, o app volta e repete o pedido, e daí em diante os pedidos daquele host levam os cookies do WebView e o User-Agent dele, ao qual o Cloudflare amarra a liberação. Na web: MangaFlix manda CORS e vai direto; as outras passam pela ponte (hosts no `bridge-worker/`, versão 2; o app avisa quando a ponte publicada é anterior e recusa um host novo); a verificação só existe no app do celular. Consequências: a API do Yomu recusava pedidos de fora do Brasil quando a fonte foi escrita, então os testes usam respostas montadas pelo formato da extensão do Mihon até a conferência ao vivo; um bloqueio do WAF não tem saída dentro do app. Requisitos: RF-99 a RF-104, RF-106.
+
+### ADR-025 iOS: pasta do app, fila no processo e o grafo em `shared/app`
+Contexto: o iOS não tem Storage Access Framework nem WorkManager, e o Koin morava no módulo de telas Compose, que o app SwiftUI não usa. Opções para arquivos: pasta escolhida com marcador de segurança (bookmark) ou a pasta Documentos do app exposta no app Arquivos; para downloads: só `URLSession` em segundo plano ou a fila do núcleo rodando no processo. Decisão: o grafo vai para `shared/app` (vira o framework `Shared`); arquivos locais vêm de Documentos ("Arquivos › No meu iPhone › HQR", `UIFileSharingEnabled`), lidos pelo mesmo `OkioFileTree` dos testes; a fila de downloads do núcleo roda no processo enquanto o app está aberto, continua pelo tempo extra que o sistema dá ao sair (`beginBackgroundTask`) e num `BGProcessingTask` com rede; a cópia em pasta escolhida (RF-67) fica só no Android. Consequências: sem pasta externa no iOS por enquanto; a fila pode parar quando o sistema encerrar o app, e o motivo está na tela de downloads (RNF-28). Requisitos: RF-13 a RF-16, RF-62 a RF-68, RNF-28.
+
+
+### ADR-026 Linguagem de HQ com controles Material, e respostas guardadas com validade
+Contexto: o visual Material puro não lembrava HQ, e a versão toda em HQ (botões inclinados, sombras deslocadas) se afastava dos padrões do Android e do iOS. A obra demorava a abrir porque detalhes e capítulos vinham em sequência, e Explorar pedia tudo às fontes a cada abertura. Opções: só Material; só HQ; HQ nos títulos, selos, capas, painéis e fundos com controles do sistema. Para a espera: um carregamento só; detalhes e capítulos em paralelo, cada um com o seu estado. Para o cache: tabela nova no Room; o mesmo armazenamento chave-valor das preferências, com data. Decisão: papel e tinta fixos com o destaque da semente (ADR-021); Bangers nos títulos e Dela Gothic One recortada para o título vertical; botões, chips, campos e barras do M3 e da HIG. A obra pede detalhes e capítulos juntos e só reabre da fonte depois de 6 horas; o feed abre com a primeira página salva de cada item e renova os que têm mais de 30 minutos. O contrato `CacheStore` fica no domínio e a implementação (`SettingsCacheStore`) no `data`. Favoritar uma fonte é pôr os recentes dela no feed, sem tabela nova. Consequências: +0,8 MB de fonte; respostas pequenas no SharedPreferences, no localStorage e no NSUserDefaults; o feed pode mostrar obras de até 30 minutos atrás, com a idade na tela. Requisitos: RF-25, RF-29, RF-31, RF-81, RF-115 a RF-117, RF-98.
+
+### ADR-027 Um Worker pessoal para login, sincronização, ponte e web
+Contexto: o Tiago quer a mesma biblioteca no celular, no iPad e na web, para uso só dele; a web já dependia de uma ponte num Worker. Opções: serviço público do projeto (custo e dados de terceiros); um Worker por usuário, publicado por cada um; um Worker pessoal do Tiago com tudo. Decisão: `hub-worker/` (TypeScript, D1) no Cloudflare do Tiago atende `/api/v1/auth`, `/api/v1/sync`, `/bridge` e serve a web nos assets (`run_worker_first` para `/api/*` e `/bridge/*`), como o pnews; publicado pelo CI do Mac a cada push, com migrações numeradas. Consequências: um endereço só, sem CORS e sem token para colar; a publicação no GitHub Pages sai; `bridge-worker/` é absorvido; o app segue completo sem o Worker. Requisitos: RF-107 a RF-109, RF-119 a RF-125, C-01, C-12.
+
+### ADR-028 Login Google trocado por sessão própria, com lista permitida
+Contexto: só o Tiago usa a conta. Opções: código de pareamento entre aparelhos; Google com sessão própria; Cloudflare Access. Decisão: o app obtém o ID token do Google (Credential Manager no Android, Google Identity Services na web, `ASWebAuthenticationSession` no iOS, sem SDK do Google) e o Worker o confere pelas chaves públicas do Google, compara o e-mail com `ALLOWED_EMAILS` e devolve uma sessão de 90 dias renovável, guardada só como hash. Consequências: três clientes OAuth no Google Cloud (web, Android com o SHA-1 da chave nova, iOS); sair mantém os dados no aparelho. Requisitos: RF-119, RF-120, RNF-34.
+
+### ADR-029 Sincronização offline primeiro, por fila e cursor
+Contexto: o HQR lê sem internet e cada aparelho tem o seu banco; o pnews, ao contrário, lê do servidor. Opções: servidor como fonte da verdade; enviar o backup inteiro a cada vez; fila de mudanças por item com cursor. Decisão: cada mudança dos dados da conta entra em `sync_outbox` no formato do backup (obras por `sourceId` + `key`, RF-90); `POST /api/v1/sync` manda a fila e recebe o que mudou desde o cursor; as regras de junção (mais recente vence por item, "lido" não volta sozinho, página da leitura mais recente, marcas de exclusão) ficam puras no núcleo, com teste, iguais em Android, web e iOS; o Worker só guarda e ordena. Consequências: migração do Room para a fila; downloads, arquivos e ajustes do aparelho nunca sincronizam; o primeiro login junta sem duplicar. Requisitos: RF-121 a RF-125, RNF-35.
+

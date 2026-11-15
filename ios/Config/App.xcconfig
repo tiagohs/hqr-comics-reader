@@ -1,0 +1,10 @@
+// Settings of the app target. The version follows the Android app (android/build.gradle.kts).
+HQR_VERSION = 1.0.0
+HQR_BUILD = 1
+
+// The personal Worker's host and the Google iOS client (ADR-027, ADR-028), from Secrets.xcconfig (never in git):
+// HQR_HUB_HOST = hqr.<subdomain>.workers.dev
+// HQR_GOOGLE_IOS_CLIENT_ID = <id>.apps.googleusercontent.com
+HQR_HUB_HOST =
+HQR_GOOGLE_IOS_CLIENT_ID =
+#include? "Secrets.xcconfig"

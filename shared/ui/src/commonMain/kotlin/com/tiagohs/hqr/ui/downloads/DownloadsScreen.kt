@@ -2,10 +2,12 @@ package com.tiagohs.hqr.ui.downloads
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
@@ -70,7 +72,6 @@ import com.tiagohs.hqr.ui.resources.downloads_queue
 import com.tiagohs.hqr.ui.resources.downloads_resume_all
 import com.tiagohs.hqr.ui.resources.downloads_see_library
 import com.tiagohs.hqr.ui.resources.downloads_title
-import com.tiagohs.hqr.ui.resources.downloads_used
 import com.tiagohs.hqr.ui.resources.downloads_wifi_only
 import com.tiagohs.hqr.ui.resources.downloads_wifi_only_hint
 import com.tiagohs.hqr.ui.theme.HqrIcons
@@ -141,17 +142,13 @@ fun DownloadsScreen(
                     items(state.queue, key = { "q${it.chapterId}" }) { item ->
                         QueueRow(item, first = item == state.queue.first(), last = item == state.queue.last(), state.wifiOnly, viewModel)
                     }
+                    // RF-66: what the app takes on the device, split by what can be freed.
+                    item(key = "storage") { StoragePanel(state.usedBytes, state.done.size) }
                     if (state.done.isNotEmpty()) {
                         item {
                             Row(Modifier.fillMaxWidth()) {
                                 Section(Res.string.downloads_done)
                             }
-                            Text(
-                                stringResource(Res.string.downloads_used, formatBytes(state.usedBytes)),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                            )
                         }
                     }
                     // RF-66: grouped by work, each deletable as a whole or by chapter.

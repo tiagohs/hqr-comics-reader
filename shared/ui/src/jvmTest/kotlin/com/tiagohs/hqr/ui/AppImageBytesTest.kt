@@ -1,11 +1,11 @@
 package com.tiagohs.hqr.ui
 
+import com.tiagohs.hqr.app.AppImageBytes
 import com.tiagohs.hqr.data.net.MemoryImageCache
 import com.tiagohs.hqr.data.net.hqrHttpClient
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.source.ImageSource
 import com.tiagohs.hqr.domain.source.SourceRegistry
-import com.tiagohs.hqr.ui.di.AppImageBytes
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest

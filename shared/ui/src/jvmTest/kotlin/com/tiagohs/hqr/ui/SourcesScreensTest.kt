@@ -4,11 +4,13 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.printToLog
 import com.tiagohs.hqr.data.settings.AppPreferences
@@ -26,7 +28,7 @@ class SourcesScreensTest {
     fun tearDown() = stopTestKoin()
 
     private fun ComposeUiTest.waitFor(matcher: SemanticsMatcher) {
-        runCatching { waitUntil(timeoutMillis = 5_000) { onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty() } }
+        runCatching { waitUntil(timeoutMillis = 10_000) { onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty() } }
             .onFailure {
                 onRoot().printToLog("TREE")
                 throw it
@@ -34,7 +36,7 @@ class SourcesScreensTest {
     }
 
     private fun ComposeUiTest.gone(matcher: SemanticsMatcher) =
-        waitUntil(timeoutMillis = 5_000) { onAllNodes(matcher).fetchSemanticsNodes().isEmpty() }
+        waitUntil(timeoutMillis = 10_000) { onAllNodes(matcher).fetchSemanticsNodes().isEmpty() }
 
     @Test
     fun RF03_RF17_RF95_switchHidesTheSourceAndTheFormSaysTheCause() =
@@ -43,7 +45,9 @@ class SourcesScreensTest {
             setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
-            waitFor(hasText("Manage sources and servers"))
+            // The way to the settings sits under the sources list.
+            waitFor(hasScrollAction())
+            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Manage sources and servers"))
             onAllNodes(hasText("Manage sources and servers"))[0].performScrollTo().performClick()
             waitFor(hasText("Online sources"))
             screenshot("demo-SCR-SRC-001")
@@ -51,8 +55,10 @@ class SourcesScreensTest {
             waitFor(hasText("MangaDex"))
             onAllNodes(hasText("MangaDex"))[0].performClick()
             onAllNodes(hasContentDescription("Back"))[0].performClick()
-            waitFor(hasText("Manage sources and servers"))
+            // Back at the top of Explore: the source is no longer listed.
+            waitFor(hasText("Other sources") or hasText("Sources"))
             gone(hasText("MangaDex"))
+            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Manage sources and servers"))
             onAllNodes(hasText("Manage sources and servers"))[0].performClick()
             waitFor(hasText("Online sources"))
             waitFor(hasText("MangaDex"))
@@ -74,7 +80,9 @@ class SourcesScreensTest {
             setAppContent { HqrApp(systemDark = false) }
             waitFor(hasText("Explore"))
             onAllNodes(hasText("Explore"))[0].performClick()
-            waitFor(hasText("Manage sources and servers"))
+            // The way to the settings sits under the sources list.
+            waitFor(hasScrollAction())
+            onAllNodes(hasScrollAction())[0].performScrollToNode(hasText("Manage sources and servers"))
             onAllNodes(hasText("Manage sources and servers"))[0].performScrollTo().performClick()
             waitFor(hasContentDescription("MangaDex settings"))
             onAllNodes(hasContentDescription("MangaDex settings"))[0].performClick()

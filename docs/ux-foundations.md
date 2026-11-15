@@ -54,12 +54,12 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | SCR-LIB-001 | Biblioteca: abas de categoria, grade, "Continuar", seleção | RF-52 a RF-58 | UC-005 |
 | SCR-LIB-002 | Filtrar, ordenar e exibir (folha) | RF-54, RF-55 | UC-005 |
 | SCR-LIB-003 | Categorias: criar, renomear, ordenar | RF-53 | UC-005 |
-| SCR-EXP-001 | Explorar: Feed e lista de fontes | RF-03, RF-25 | UC-002 |
-| SCR-EXP-002 | Fonte: Populares, Recentes, busca com filtros, buscas salvas | RF-21, RF-22, RF-24 | UC-001, UC-002 |
+| SCR-EXP-001 | Explorar: Feed, fontes favoritas e lista de fontes | RF-03, RF-25, RF-115, RF-116 | UC-002 |
+| SCR-EXP-002 | Fonte: Populares, Recentes, busca com filtros, buscas salvas, favoritar | RF-21, RF-22, RF-24, RF-115 | UC-001, UC-002 |
 | SCR-EXP-003 | Filtros da fonte (folha) | RF-22, RF-24 | UC-001 |
 | SCR-EXP-004 | Montar o feed | RF-25 | UC-002 |
 | SCR-SRCH-001 | Busca global agrupada por fonte | RF-23, RF-26 a RF-28 | UC-001 |
-| SCR-OBR-001 | Obra: capa, dados, "Continuar", capítulos, cor da capa | RF-29 a RF-35, RF-07, RF-11, RF-12, RF-92, RF-93, RF-98 | UC-003 |
+| SCR-OBR-001 | Obra: capa, tags, "Continuar", capítulos que chegam depois, cor da capa | RF-29 a RF-35, RF-07, RF-11, RF-12, RF-92, RF-93, RF-98, RF-117 | UC-003 |
 | SCR-OBR-002 | Migrar ou juntar | RF-69 a RF-71 | UC-010 |
 | SCR-RDR-001 | Leitor: páginas, menu, barra de páginas, quadro a quadro | RF-36 a RF-41, RF-43 a RF-51, RF-97, RF-98, RF-113 | UC-004 |
 | SCR-RDR-002 | Ajustes do leitor (folha) | RF-36 a RF-39, RF-44 a RF-50, RF-98 | UC-004 |
@@ -75,7 +75,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | SCR-SET-003 | Sobre, créditos e licenças | RF-78, RF-79 | UC-012 |
 | SCR-SET-004 | Atualização do app | RF-82, RF-84 | UC-013 |
 | SCR-STA-001 | Estados: carregando, vazio, erro, sem conexão, verificação do Cloudflare | RF-86, RF-87, RF-05, RF-88, RF-106 | todos |
-| SCR-WEB-001 | Ponte: endereço, token, testar, passo a passo (web) | RF-108, RF-109 | UC-014 |
+| SCR-SET-005 | Conta e sincronização: entrar com Google, estado, "Sincronizar agora", sair | RF-119 a RF-125 | UC-015 |
 | SCR-WEB-002 | Importar arquivos: arrastar e soltar, cota usada e livre (web) | RF-110 | UC-014 |
 | SCR-WEB-003 | Atalhos do teclado (web) | RF-112 | UC-014 |
 | SCR-WEB-004 | Navegador sem suporte (web) | RF-107, RF-114, RNF-31 | UC-014 |
@@ -85,7 +85,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | Superfície | Diferenças |
 | :-- | :-- |
 | Android tablet e dobrável | Lista-detalhe (Biblioteca + Obra, Ajustes + página); leitor com painel lateral |
-| Web | Mesmas telas do Android em largura expandida ou maior; SCR-WEB-001 a 004 só aqui; sem SCR-SET-004 (atualização) e sem a verificação do Cloudflare de SCR-STA-001; Fontes (SCR-SRC-001) mostra "Precisa da ponte" e "Só no app do celular"; Downloads e relatórios de falha aparecem em Ajustes com "Só no app do celular" e o motivo |
+| Web | Mesmas telas do Android em largura expandida ou maior; SCR-WEB-002 a 004 só aqui; sem SCR-SET-004 (atualização) e sem a verificação do Cloudflare de SCR-STA-001; Fontes (SCR-SRC-001) mostra "Entre para ler online" sem login e "Só no app do celular"; Downloads e relatórios de falha aparecem em Ajustes com "Só no app do celular" e o motivo |
 | iPhone | Mesmos SCR com controles do iOS: `TabView`, listas agrupadas, folhas e menus do sistema |
 | iPad | `NavigationSplitView` com barra lateral (destinos), lista e detalhe; leitor em duas páginas em paisagem |
 
@@ -132,7 +132,7 @@ Dobrável: postura livro = duas páginas, nada sobre a dobra; postura mesa = pá
 
 | Estado | Como aparece |
 | :-- | :-- |
-| Carregando | Esqueletos com a forma final (capas com o corte de quadro); `LoadingIndicator` do M3 em cargas longas, com a onomatopeia da vez só acima de 1,5 s |
+| Carregando | Cada parte da tela carrega sozinha e o que já se sabe aparece na hora (RF-117); esqueletos suaves com a forma final (cantos de 6, sem borda, brilho de 1,6 s) e três pontos com "Buscando no <fonte>…"; ações que dependem da parte que falta esperam desativadas |
 | Vazio | Ilustração em quadro de HQ, título em balão, uma frase e uma ação. Biblioteca: "Sua estante está vazia" + "Explorar"; Downloads: "Nada baixado" + "Ver biblioteca"; Busca: "Nada para 'x'" + "Ver fontes" |
 | Erro de fonte | No grupo ou na tela da fonte: ícone, causa em uma frase, "Tentar de novo" e "Abrir no navegador" |
 | Sem conexão | Faixa discreta no topo "Sem conexão · mostrando o que está no aparelho"; ações de rede desligadas |
@@ -156,5 +156,6 @@ Mesmos SCR; `TabView` com os quatro destinos no iPhone, `NavigationSplitView` no
 - **Mesmas telas, outro meio:** Compose para Web desenha o mesmo Material do Android; nada de imitar site. O endereço acompanha a tela (`/obra/<id>`, `/ler/<capítulo>?p=8`).
 - **Mouse:** todo item clicável tem hover (camada de estado do M3) e menu de contexto com as ações do toque longo; capas mostram "Continuar" no hover.
 - **Teclado:** foco visível em tudo; "/" abre a busca; no leitor, setas, espaço, F e "?" (SCR-WEB-003).
-- **Ponte:** fontes online sem ponte ficam visíveis com o selo "Precisa da ponte" e levam a SCR-WEB-001; nada some sem explicação.
+- **Fontes online na web:** sem login ficam visíveis com o selo "Entre para ler online" e levam a SCR-SET-005; nada some sem explicação.
+- **Sincronização:** acontece sozinha e em silêncio; o estado mora em SCR-SET-005, e a biblioteca só avisa uma falha que dura mais de 24 h.
 - **Arquivos:** soltar CBZ ou PDF em qualquer tela importa e avisa no topo (SCR-WEB-002); o espaço do navegador e o botão "Importar arquivos" ficam em Fontes › Arquivos neste navegador.

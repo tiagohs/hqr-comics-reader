@@ -44,6 +44,10 @@ android {
         versionCode = providers.gradleProperty("hqr.versionCode").orNull?.toInt() ?: 100
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // ADR-027, ADR-028: the personal Worker and the Google web client (public ids, kept out of the code all the
+        // same). Without them the build has no account.
+        buildConfigField("String", "HUB_URL", "\"${secret("HQR_HUB_URL").orEmpty()}\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${secret("HQR_GOOGLE_WEB_CLIENT_ID").orEmpty()}\"")
     }
     androidResources {
         generateLocaleConfig = true
@@ -109,6 +113,9 @@ dependencies {
     implementation(libs.koin.compose.viewmodel)
     implementation(libs.androidx.profileinstaller)
     implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play)
+    implementation(libs.googleid)
     if (hasFirebase) {
         implementation(platform(libs.firebase.bom))
         implementation(libs.firebase.crashlytics)

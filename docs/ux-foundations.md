@@ -75,7 +75,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | SCR-SET-003 | Sobre, créditos e licenças | RF-78, RF-79 | UC-012 |
 | SCR-SET-004 | Atualização do app | RF-82, RF-84 | UC-013 |
 | SCR-STA-001 | Estados: carregando, vazio, erro, sem conexão, verificação do Cloudflare | RF-86, RF-87, RF-05, RF-88, RF-106 | todos |
-| SCR-WEB-001 | Ponte: endereço, token, testar, passo a passo (web) | RF-108, RF-109 | UC-014 |
+| SCR-SET-005 | Conta e sincronização: entrar com Google, estado, "Sincronizar agora", sair | RF-119 a RF-125 | UC-015 |
 | SCR-WEB-002 | Importar arquivos: arrastar e soltar, cota usada e livre (web) | RF-110 | UC-014 |
 | SCR-WEB-003 | Atalhos do teclado (web) | RF-112 | UC-014 |
 | SCR-WEB-004 | Navegador sem suporte (web) | RF-107, RF-114, RNF-31 | UC-014 |
@@ -85,7 +85,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | Superfície | Diferenças |
 | :-- | :-- |
 | Android tablet e dobrável | Lista-detalhe (Biblioteca + Obra, Ajustes + página); leitor com painel lateral |
-| Web | Mesmas telas do Android em largura expandida ou maior; SCR-WEB-001 a 004 só aqui; sem SCR-SET-004 (atualização) e sem a verificação do Cloudflare de SCR-STA-001; Fontes (SCR-SRC-001) mostra "Precisa da ponte" e "Só no app do celular"; Downloads e relatórios de falha aparecem em Ajustes com "Só no app do celular" e o motivo |
+| Web | Mesmas telas do Android em largura expandida ou maior; SCR-WEB-002 a 004 só aqui; sem SCR-SET-004 (atualização) e sem a verificação do Cloudflare de SCR-STA-001; Fontes (SCR-SRC-001) mostra "Entre para ler online" sem login e "Só no app do celular"; Downloads e relatórios de falha aparecem em Ajustes com "Só no app do celular" e o motivo |
 | iPhone | Mesmos SCR com controles do iOS: `TabView`, listas agrupadas, folhas e menus do sistema |
 | iPad | `NavigationSplitView` com barra lateral (destinos), lista e detalhe; leitor em duas páginas em paisagem |
 
@@ -156,5 +156,6 @@ Mesmos SCR; `TabView` com os quatro destinos no iPhone, `NavigationSplitView` no
 - **Mesmas telas, outro meio:** Compose para Web desenha o mesmo Material do Android; nada de imitar site. O endereço acompanha a tela (`/obra/<id>`, `/ler/<capítulo>?p=8`).
 - **Mouse:** todo item clicável tem hover (camada de estado do M3) e menu de contexto com as ações do toque longo; capas mostram "Continuar" no hover.
 - **Teclado:** foco visível em tudo; "/" abre a busca; no leitor, setas, espaço, F e "?" (SCR-WEB-003).
-- **Ponte:** fontes online sem ponte ficam visíveis com o selo "Precisa da ponte" e levam a SCR-WEB-001; nada some sem explicação.
+- **Fontes online na web:** sem login ficam visíveis com o selo "Entre para ler online" e levam a SCR-SET-005; nada some sem explicação.
+- **Sincronização:** acontece sozinha e em silêncio; o estado mora em SCR-SET-005, e a biblioteca só avisa uma falha que dura mais de 24 h.
 - **Arquivos:** soltar CBZ ou PDF em qualquer tela importa e avisa no topo (SCR-WEB-002); o espaço do navegador e o botão "Importar arquivos" ficam em Fontes › Arquivos neste navegador.

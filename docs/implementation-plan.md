@@ -13,7 +13,7 @@ O que ordena o trabalho é **tirar risco cedo**: o motor do leitor (R-02), o Man
 | :-- | :-- | :-- |
 | 1.0 Android | Esqueleto + FEAT-001 a FEAT-024 | Os 60 Must; publicada como `v1.0.0` (RF-84) |
 | 1.1 Android | FEAT-025 a FEAT-041 | Should, incluindo as fontes adicionais |
-| Web | FEAT-050 a FEAT-054 | Requisitos da §3.1.19, depois do 1.0 |
+| Web | FEAT-050 a FEAT-054, FEAT-070 a FEAT-072 | Requisitos da §3.1.19 e §3.1.20; a web passa a morar no Worker pessoal |
 | Depois | FEAT-042 a FEAT-049 | Could |
 | iOS | FEAT-060 a FEAT-064, FEAT-068 | Começou com o OK do Tiago às telas do Android (C-09); mesmo núcleo, telas em SwiftUI |
 
@@ -182,6 +182,15 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-067 | Fontes favoritas e feed guardado por 30 minutos | RF-115, RF-116, RF-25 | UC-002 | SCR-EXP-001, SCR-EXP-002 | `presentation/feed`, `ui/explore` | `feed`, `CacheStore` |
 | FEAT-068 | iOS completo na linguagem de HQ: onboarding, opções e seleção da biblioteca, atualização com novidades, categorias, filtros, buscas salvas e recentes, editor do feed, ajustes do MangaDex, corte de bordas e página dividida no leitor | RF-06, RF-08, RF-22, RF-24, RF-25, RF-27, RF-44, RF-45, RF-51, RF-53 a RF-58, RF-73, RF-81, RF-115 a RF-117 | todos | todas | `ios/` | — |
 | FEAT-069 | Movimento de HQ: capa que voa até a obra, linhas de velocidade, título que se escreve, carimbo, cascata, primeiro acesso desenhado a traço; "reduzir movimento" | RF-118 | todos | SCR-OBR-001, SCR-LIB-001, SCR-ONB-001 | `ui/components` (ComicMotion), `ios/DesignSystem` | — |
+
+### E18 · Conta e sincronização (ADR-027 a ADR-029)
+
+| ID | Fatia | RF | UC | Telas | Componentes | Dados |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| FEAT-070 | Worker pessoal: D1, login Google com lista permitida, sessão, sincronização, ponte com sessão e a web nos assets; deploy pelo CI do Mac | RF-107 a RF-109, RF-119, RF-120, RNF-34 | UC-014, UC-015 | — | `hub-worker/` | `account`, `session`, `record` |
+| FEAT-071 | Núcleo da sincronização: fila, cursor, regras de junção, cliente da API, primeiro login sem duplicar | RF-121, RF-123, RF-124, RNF-35 | UC-015 | — | `sync`, `account` (domain, data) | `sync_outbox`, `sync_state` |
+| FEAT-072 | Android e web: entrar com Google, Conta e sincronização, ciclos automáticos, estado e aviso de falha | RF-119, RF-122, RF-125 | UC-015 | SCR-SET-005, SCR-LIB-001 | `ui`, `android`, `web` | sessão no `SecretStore` |
+| FEAT-073 | iOS: entrar com Google e Conta e sincronização em SwiftUI | RF-119, RF-122, RF-125 | UC-015 | SCR-SET-005 | `ios/`, `shared/app` | sessão no Keychain |
 
 ## 4. Ordem de construção
 

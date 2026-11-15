@@ -67,7 +67,7 @@ Android 8.0 (API 26) ou superior; iOS e iPadOS 17 ou superior. Celulares, tablet
 
 | ID | Restrição |
 | :-- | :-- |
-| C-01 | Nenhum servidor próprio e nenhum custo recorrente. |
+| C-01 | Nenhum servidor público e nenhum custo novo: o único servidor é o Worker pessoal do Tiago (login, sincronização, ponte e web), no plano do Cloudflare que ele já paga; o app funciona completo sem ele. |
 | C-02 | App gratuito, sem anúncios, compras nem assinatura (política do MangaDex); doação é permitida. |
 | C-03 | A 1.0 é distribuída só pelo GitHub (APK). Cada fonte de terceiros fica num módulo próprio, para que um sabor de loja, se vier, compile sem elas. A distribuição do iOS está em aberto (Q-09). |
 | C-04 | O app não hospeda, altera nem redistribui conteúdo, e credita as fontes e os grupos de scan. |
@@ -78,7 +78,7 @@ Android 8.0 (API 26) ou superior; iOS e iPadOS 17 ou superior. Celulares, tablet
 | C-09 | Android primeiro. O iOS só começa depois que o Tiago aprovar as telas do Android. |
 | C-10 | Desenvolvedor solo. |
 | C-11 | Nova chave de assinatura e `applicationId` `com.tiagohs.hqr.reader`, registrados na verificação de desenvolvedor do Android; a chave da 0.0.5 nunca é registrada nem usada (ela está no histórico público). A 0.0.5 segue `com.tiagohs.hqr`, e os dois instalam lado a lado. |
-| C-12 | A web é hospedada de graça no GitHub Pages, publicada pelo CI do Mac do Tiago (branch `gh-pages`). O projeto não opera ponte nem proxy: cada usuário publica a sua no plano grátis do Cloudflare Workers. |
+| C-12 | A web é servida pelo Worker pessoal (ADR-027), publicado pelo CI do Mac do Tiago; não há publicação no GitHub Pages. |
 
 ### 2.5 Premissas e dependências
 
@@ -340,14 +340,29 @@ Prioridade: Must (lançamento), Should (importante), Could (desejável).
 
 | ID | Requisito | Prior. | Critério de aceite |
 | :-- | :-- | :-- | :-- |
-| RF-107 | O app deve rodar no navegador (Compose para Web) num endereço estático do GitHub Pages e poder ser instalado como PWA, com biblioteca, histórico, ajustes e backup guardados no próprio navegador. | Should | Dado o Chrome no computador, quando o usuário abre o endereço e instala, então o app abre em janela própria com a biblioteca da visita anterior. |
-| RF-108 | O app web deve permitir configurar uma ponte (endereço e token do proxy pessoal do usuário) com botão "Testar"; sem ponte válida, as fontes online aparecem em Explorar com o selo "Precisa da ponte" e a ação "Configurar ponte". | Should | Dado nenhuma ponte, quando o usuário abre o MangaDex, então vê "Precisa da ponte" e nenhum pedido sai para o MangaDex; dado um token errado, quando toca "Testar", então vê "Token recusado pela ponte". |
-| RF-109 | O repositório deve trazer o código da ponte (Cloudflare Worker) e um passo a passo para o usuário publicá-la na própria conta grátis; a ponte só aceita pedidos com o token, só repassa para os hosts das fontes, repassa também as imagens, não envia o cabeçalho `Via` e não guarda conteúdo. | Should | Dado a ponte publicada, quando chega um pedido sem token ou para um host fora da lista, então ela responde 403; quando repassa ao MangaDex, então o pedido sai sem `Via` e com o User-Agent do HQR. |
+| RF-107 | O app deve rodar no navegador (Compose para Web), servido pelo Worker pessoal, e poder ser instalado como PWA, com biblioteca, histórico, ajustes e backup guardados no próprio navegador. | Should | Dado o Chrome no computador, quando o usuário abre o endereço e instala, então o app abre em janela própria com a biblioteca da visita anterior. |
+| RF-108 | No app web, as fontes online devem passar pela ponte do Worker com a sessão do login (RF-119); sem login, elas aparecem em Explorar com o selo "Entre para ler online" e a ação "Entrar". | Should | Dado o app web sem login, quando o usuário abre o MangaDex, então vê "Entre para ler online" e nenhum pedido sai para o MangaDex; dado o login feito, quando abre o MangaDex, então os populares carregam pela ponte. |
+| RF-109 | A ponte é uma rota do Worker pessoal (ADR-027): só aceita pedidos com sessão válida, só repassa para os hosts das fontes, repassa também as imagens, não envia o cabeçalho `Via` e não guarda conteúdo. | Should | Dado um pedido sem sessão ou para um host fora da lista, então o Worker responde 401 ou 403; quando repassa ao MangaDex, então o pedido sai sem `Via` e com o User-Agent do HQR. |
 | RF-110 | O app web deve importar CBZ e PDF por seletor ou arrastar e soltar para o armazenamento do navegador (OPFS), pedir armazenamento persistente e mostrar o espaço usado e livre; CBR e CB7 são recusados com o motivo. | Should | Dado um CBZ de 80 MB, quando o usuário o solta na janela, então a obra aparece em Arquivos e o espaço usado sobe 80 MB; dado um CBR, quando importado, então aparece "CBR não abre no navegador; converta para CBZ". |
 | RF-111 | O app web deve conectar servidores OPDS, Komga e Kavita que liberem a origem do app (CORS); se o navegador bloquear, o teste da conexão explica como liberar a origem no servidor. | Should | Dado um Komga sem a origem liberada, quando o usuário testa, então vê "O servidor não liberou este endereço" com o valor a configurar; liberada a origem, quando testa de novo, então o catálogo abre. |
 | RF-112 | No app web, o leitor deve funcionar por teclado e mouse: setas e espaço viram a página, a roda rola no webtoon, F alterna tela cheia, "?" mostra os atalhos, e os controles aparecem ao mover o mouse e somem depois de 2 s parado. | Should | Dado o leitor aberto, quando o usuário aperta → três vezes, então avança três páginas no sentido da leitura; quando aperta "?", então a lista de atalhos aparece. |
 | RF-113 | O app web deve ter um endereço por tela, obra e capítulo, com voltar e avançar do navegador; recarregar mantém a tela e a página do leitor. | Should | Dado o capítulo 12 na página 8, quando o usuário recarrega, então volta ao capítulo 12 na página 8. |
 | RF-114 | No app web, fontes e recursos que não funcionam no navegador (fontes com verificação do Cloudflare, CBR e CB7, downloads para ler sem internet, relatórios de falha) devem aparecer com o motivo em vez de sumir. | Should | Dado o Weeb Central, quando o usuário abre Explorar na web, então ele aparece desativado com "Só no app do celular"; dado Ajustes na web, quando aberto, então Downloads aparece com "Só no app do celular" e o motivo. |
+
+#### 3.1.20 Conta e sincronização
+
+- **HU-23** Eu, como leitor, quero entrar com minha conta Google no celular, no iPad e na web para que todos mostrem a mesma biblioteca e o mesmo progresso.
+- **HU-24** Eu, como leitor, quero que o app continue funcionando sem internet e sem login para nunca depender de um servidor para ler.
+
+| ID | Requisito | Prior. | Critério de aceite |
+| :-- | :-- | :-- | :-- |
+| RF-119 | Em Ajustes › Conta e sincronização, o app deve permitir entrar com Google no Android, no iOS e na web; o Worker troca o token do Google por uma sessão do HQR que vale 90 dias e se renova com o uso. "Sair" encerra a sessão e mantém os dados no aparelho. | Should | Dado o app sem login, quando o usuário entra com a conta permitida, então vê "Sincronizado agora" e o e-mail da conta; quando toca "Sair", então a biblioteca continua no aparelho e a sincronização para. |
+| RF-120 | Só entram os e-mails da lista permitida, guardada como segredo do Worker; os demais recebem a explicação e nada é guardado. | Should | Dado um e-mail fora da lista, quando entra com Google, então vê "Esta conta não tem acesso a este HQR" e nenhuma sessão é criada. |
+| RF-121 | A sincronização deve levar biblioteca, categorias e categorias de cada obra, progresso (lido, página, quando leu), histórico, ajustes do leitor por obra e globais, buscas salvas, feed, fontes favoritas e servidores sem senha; ficam no aparelho downloads, arquivos importados, cache, tema, "Só no Wi-Fi" e a pasta de downloads. | Should | Dado o capítulo 12 lido até a página 8 no celular, quando a web sincroniza, então a obra abre com "Continuar · cap. 12" na página 8; dado um capítulo baixado no celular, quando a web sincroniza, então ele não aparece como baixado na web. |
+| RF-122 | O app deve sincronizar ao abrir, 5 s depois da última mudança, ao puxar para atualizar a biblioteca, ao voltar para a aba na web e a cada 6 h em segundo plano no Android; sem internet, as mudanças esperam na fila e saem quando a rede volta. | Should | Dado o celular sem internet, quando o usuário lê dois capítulos e a rede volta, então os dois aparecem lidos na web em até 1 min depois de a web sincronizar. |
+| RF-123 | Conflitos se resolvem por item, a mudança mais recente vence; "lido" só volta a não lido por ação do usuário; a página guardada é a da leitura mais recente; tirar da biblioteca ou apagar uma categoria vira marca de exclusão que também sincroniza. | Should | Dado um capítulo marcado como lido na web e, offline no celular, lido até a página 3, quando os dois sincronizam, então ele fica lido; dado uma obra tirada da biblioteca no iPad, quando o celular sincroniza, então ela sai da biblioteca do celular. |
+| RF-124 | O primeiro login deve juntar o que o aparelho tem com o que está na conta, sem duplicar obras (identidade de RF-90), e dizer quanto entrou. | Should | Dado 10 obras no celular e 12 na conta, 8 delas em comum, quando o usuário entra no celular, então a biblioteca fica com 14 obras e aparece "4 obras chegaram da conta". |
+| RF-125 | O estado da sincronização deve aparecer em Ajustes › Conta e sincronização ("Sincronizado há 2 min", "Sincronizando…", erro com o motivo e "Tentar de novo", "Sincronizar agora"); na biblioteca, só uma falha que dura mais de 24 h aparece, como aviso discreto. | Should | Dado o Worker fora do ar por 2 dias, quando o usuário abre a biblioteca, então vê "Não sincroniza há 2 dias" com "Ver detalhes". |
 
 ### 3.2 Interfaces externas
 
@@ -357,7 +372,8 @@ Prioridade: Must (lançamento), Should (importante), Could (desejável).
 | IF-02 | HQ Now GraphQL (`admin.hq-now.com/graphql`) | `getHqsByFilters`, `getRecentlyUpdatedHqs`, `getHqsByName`, `getHqsById`, `getChapterById` (RF-12) |
 | IF-09 | Internet Archive (advancedsearch, metadata), NamiComi (API), MangaFlix e Yomu (API JSON interna), Weeb Central e XOXO (HTML) | Fontes adicionais (RF-99 a RF-104) |
 | IF-10 | `sources.json` estático no repositório (raw do GitHub) | Desligar fonte ou trocar endereço (RF-105) |
-| IF-11 | Ponte do usuário (Cloudflare Worker, código no repositório) | Fontes online no app web (RF-108, RF-109) |
+| IF-11 | Worker pessoal do Tiago (Cloudflare Worker + D1, código em `hub-worker/`) | Login, sincronização, ponte das fontes online e a própria web (RF-107 a RF-109, RF-119 a RF-125) |
+| IF-13 | Google Identity (ID token; Credential Manager no Android, Google Identity Services na web, `ASWebAuthenticationSession` no iOS) | Quem é o usuário no login (RF-119, RF-120) |
 | IF-12 | Armazenamento do navegador (OPFS, File API, Storage API) | Banco, arquivos importados e cota na web (RF-107, RF-110) |
 | IF-03 | OPDS 1.2/2.0, OpenSearch e OPDS-PSE; APIs de progresso do Komga e do Kavita | Servidores do usuário (RF-17 a RF-20) |
 | IF-04 | Seletor de pastas do sistema (Storage Access Framework; `UIDocumentPickerViewController`) | Arquivos locais, pasta de downloads e backup (RF-13, RF-67, RF-72) |
@@ -401,13 +417,15 @@ Prioridade: Must (lançamento), Should (importante), Could (desejável).
 | RNF-29 | Conformidade | Distribuição | Política de privacidade publicada e citada no app; APK assinado pela identidade verificada; SHA-256 de cada APK na release; se houver loja ou iOS, manifesto de privacidade e classificação etária revisados antes |
 | RNF-30 | Desempenho | App web: download e primeira carga | Arquivos do app ≤ 12 MB comprimidos; primeira carga até a biblioteca utilizável ≤ 3 s com 50 Mbps num computador intermediário; com cache ≤ 1,5 s (Lighthouse, 5 medições) |
 | RNF-31 | Compatibilidade | Navegadores | Navegadores com WasmGC: Chrome e Edge 119+, Firefox 120+, Safari 18.2+ [verificar]; navegador sem suporte vê uma página com o motivo e o link do APK |
-| RNF-32 | Segurança | Ponte e app web | A ponte exige token de ≥ 32 caracteres aleatórios, aceita só os hosts das fontes, não faz cache nem registra endereços; o app web tem Content-Security-Policy restrita à própria origem, à ponte e aos servidores cadastrados; o token fica só no navegador |
-| RNF-33 | Privacidade | App web | Nenhuma coleta e nenhum relatório de falha; dados só no navegador (OPFS); limpar os dados do site apaga tudo, e o app diz isso ao lado do backup |
+| RNF-32 | Segurança | Worker e app web | A ponte só aceita pedidos com sessão válida, só os hosts das fontes, não faz cache nem registra endereços; o app web tem Content-Security-Policy restrita à própria origem e aos servidores cadastrados |
+| RNF-33 | Privacidade | App web e Worker | Nenhuma coleta e nenhum relatório de falha na web; sem login, dados só no navegador; com login, a cópia sincronizada fica só no D1 do Worker pessoal; limpar os dados do site apaga a cópia local, e o app diz isso ao lado do backup |
+| RNF-34 | Segurança | Login e sessão | O token do Google é conferido (assinatura pelas chaves públicas do Google, `aud` igual aos clientes do HQR, `iss`, validade, `email_verified`); a sessão tem 32 bytes aleatórios e o D1 guarda só o hash SHA-256; sessão no Keystore, no Keychain ou no armazenamento do navegador; tudo em HTTPS |
+| RNF-35 | Desempenho e custo | Sincronização | Uma sincronização com até 500 mudanças termina em ≤ 2 s numa rede 4G; um ciclo sem mudanças lê no máximo 2 linhas do D1 por aparelho; o uso de um leitor cabe com folga no plano pago de US$ 5 do Cloudflare |
 
 ### 3.4 Outros requisitos
 
 - **Conteúdo e lojas:** RNF-29.
-- **Política de privacidade:** publicada no site institucional (`website-cb5.pages.dev/hqr/privacidade/`), citando MangaDex, HQ Now, Crashlytics, a ausência de conta e, na web, a ponte do próprio usuário.
+- **Política de privacidade:** publicada no site institucional (`website-cb5.pages.dev/hqr/privacidade/`), citando MangaDex, HQ Now, Crashlytics e a conta opcional, que guarda a cópia sincronizada só no Worker pessoal.
 
 ## Apêndice A. Glossário
 

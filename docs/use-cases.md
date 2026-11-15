@@ -1,6 +1,6 @@
 # Casos de uso: HQR
 
-> Versão 1.0 · 2026-10-29 · Deriva de `docs/srs.md` · 14 casos de uso
+> Versão 1.0 · 2026-10-29 · Deriva de `docs/srs.md` · 15 casos de uso
 
 ## Diagrama
 
@@ -12,7 +12,8 @@ flowchart LR
   O([Servidor OPDS · Komga, Kavita])
   F([Pastas do aparelho])
   G([GitHub Releases])
-  P([Ponte do usuário])
+  P([Worker pessoal])
+  GO([Google])
 
   subgraph Sistema[HQR]
     UC001(UC-001 Buscar obra)
@@ -29,15 +30,17 @@ flowchart LR
     UC012(UC-012 Configurar fontes e app)
     UC013(UC-013 Atualizar o app)
     UC014(UC-014 Ler no navegador)
+    UC015(UC-015 Sincronizar entre aparelhos)
   end
 
-  U --- UC001 & UC002 & UC003 & UC004 & UC005 & UC006 & UC007 & UC008 & UC009 & UC010 & UC011 & UC012 & UC013 & UC014
+  U --- UC001 & UC002 & UC003 & UC004 & UC005 & UC006 & UC007 & UC008 & UC009 & UC010 & UC011 & UC012 & UC013 & UC014 & UC015
   UC001 & UC002 & UC003 & UC004 & UC007 --- M
   UC001 & UC002 & UC003 & UC004 & UC007 --- H
   UC009 & UC004 --- O
   UC008 & UC011 --- F
   UC013 --- G
   UC014 --- P
+  UC015 --- P & GO
 ```
 
 ## Especificações
@@ -133,8 +136,15 @@ flowchart LR
 - **Rastreia:** RF-82 a RF-84.
 
 ### UC-014 Ler no navegador
-- **Ator:** Usuário · **Secundário:** Ponte do usuário
-- **Fluxo principal:** 1. Usuário abre o endereço do app no navegador e, se quiser, instala como PWA. 2. Em Ajustes › Ponte, informa endereço e token da ponte que publicou e toca "Testar". 3. Explora e busca nas fontes online, que passam pela ponte. 4. Lê com teclado e mouse; o endereço guarda obra, capítulo e página.
-- **Alternativos:** 2a. Sem ponte: importa CBZ, CB7 ou PDF arrastando para a janela, ou conecta um servidor com a origem liberada.
-- **Exceções:** 2b. Token recusado ou ponte fora do ar: mensagem no teste e fontes online com "Precisa da ponte". 3a. Fonte com verificação do Cloudflare: aparece desativada com o motivo.
+- **Ator:** Usuário · **Secundário:** Worker pessoal
+- **Fluxo principal:** 1. Usuário abre o endereço do Worker no navegador e, se quiser, instala como PWA. 2. Entra com Google (UC-015). 3. Explora e busca nas fontes online, que passam pela ponte do Worker. 4. Lê com teclado e mouse; o endereço guarda obra, capítulo e página.
+- **Alternativos:** 2a. Sem login: importa CBZ, CB7 ou PDF arrastando para a janela, ou conecta um servidor com a origem liberada.
+- **Exceções:** 2b. Worker fora do ar: fontes online com o motivo e "Tentar de novo". 3a. Fonte com verificação do Cloudflare: aparece desativada com o motivo.
 - **Rastreia:** RF-107 a RF-114, RNF-30 a RNF-33.
+
+### UC-015 Sincronizar entre aparelhos
+- **Ator:** Usuário · **Secundários:** Worker pessoal, Google
+- **Fluxo principal:** 1. Em Ajustes › Conta e sincronização, usuário toca "Entrar com Google". 2. O Worker confere o token e o e-mail na lista permitida e devolve a sessão. 3. O app junta o que tem com o que está na conta e diz quanto entrou. 4. Daí em diante, cada mudança vai para a fila e sai sozinha; os outros aparelhos recebem ao abrir ou voltar.
+- **Alternativos:** 4a. Sem internet: a fila espera e sai quando a rede volta. 4b. "Sincronizar agora" força um ciclo.
+- **Exceções:** 2a. E-mail fora da lista: "Esta conta não tem acesso a este HQR", nada guardado. 4c. Sessão vencida ou recusada: o app pede para entrar de novo e mantém os dados. 4d. Worker fora do ar: estado com o motivo e "Tentar de novo".
+- **Rastreia:** RF-119 a RF-125, RNF-34, RNF-35.

@@ -23,6 +23,12 @@ Cada item custou tempo uma vez. Problema → solução.
 - **Animação barata:** leia o valor animado só na fase de desenho (`graphicsLayer {}` ou uma lambda no
   `drawBehind`), não na composição.
 
+## Web
+
+- **OPFS em duas abas:** o pool SAH do SQLite só abre numa aba; a segunda caía num banco vazio em memória e, com o
+  cursor da sincronização no `localStorage` (compartilhado), recebia "nada mudou". → Estado que descreve o banco mora
+  no banco (`sync_meta`), e o worker espera uma trava Web Locks antes de abrir o OPFS.
+
 ## Kotlin/Native e SwiftUI
 
 - **Nomes que mudam no Swift:**

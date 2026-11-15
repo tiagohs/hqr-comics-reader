@@ -3,6 +3,7 @@ package com.tiagohs.hqr.data.sync
 import androidx.room3.withWriteTransaction
 import com.russhwolf.settings.Settings
 import com.tiagohs.hqr.data.db.HqrDatabase
+import com.tiagohs.hqr.data.db.SyncMetaEntity
 import com.tiagohs.hqr.data.db.SyncOutboxEntity
 import com.tiagohs.hqr.data.db.SyncStateEntity
 import com.tiagohs.hqr.domain.repository.AccountRepository
@@ -64,13 +65,9 @@ class SyncAccount(
         return when (val result = hub.signIn(idToken, device)) {
             is HubResult.Ok -> {
                 mutex.withLock {
-                    db.withWriteTransaction {
-                        dao.clearState()
-                        dao.clearOutbox()
-                    }
+                    db.withWriteTransaction { clearSync() }
                     secrets.put(KEY_TOKEN, result.value.token)
                     settings.putString(KEY_EMAIL, result.value.email)
-                    settings.putLong(KEY_CURSOR, 0)
                     settings.putBoolean(KEY_INITIAL, true)
                     _account.value = AccountState.SignedIn(result.value.email)
                 }
@@ -88,11 +85,8 @@ class SyncAccount(
         mutex.withLock {
             val token = secrets.get(KEY_TOKEN)
             secrets.remove(KEY_TOKEN)
-            listOf(KEY_EMAIL, KEY_CURSOR, KEY_INITIAL, KEY_LAST_SUCCESS).forEach(settings::remove)
-            db.withWriteTransaction {
-                dao.clearState()
-                dao.clearOutbox()
-            }
+            listOf(KEY_EMAIL, KEY_INITIAL, KEY_LAST_SUCCESS).forEach(settings::remove)
+            db.withWriteTransaction { clearSync() }
             _account.value = AccountState.SignedOut
             _status.value = SyncStatus()
             // The data stays on the device; telling the Worker is best effort.
@@ -191,7 +185,7 @@ class SyncAccount(
     ): Outcome<Boolean> {
         val sent = outbox.mapNotNull { o -> SyncKind.of(o.kind)?.let { SyncChange(it, o.key, o.payload, o.changedAt, o.deleted) } }
         val result =
-            secrets.get(KEY_TOKEN)?.let { hub.sync(it, settings.getLong(KEY_CURSOR, 0), sent) } ?: HubResult.Session
+            secrets.get(KEY_TOKEN)?.let { hub.sync(it, dao.meta(META_CURSOR) ?: 0, sent) } ?: HubResult.Session
         val page =
             (result as? HubResult.Ok)?.value ?: return Outcome.Failed(
                 when (result) {
@@ -210,8 +204,9 @@ class SyncAccount(
             // The base becomes what the account has; what the merge changed here goes out in the next capture.
             dao.remember(incoming.filterNot { it.deleted }.map { SyncStateEntity(it.kind.wire, it.key, it.payload) })
             incoming.filter { it.deleted }.forEach { dao.forget(it.kind.wire, it.key) }
+            // The cursor moves with the data it describes (a fresh database starts from the beginning).
+            dao.putMeta(SyncMetaEntity(META_CURSOR, page.cursor))
         }
-        settings.putLong(KEY_CURSOR, page.cursor)
         return Outcome.Done(page.more)
     }
 
@@ -225,6 +220,12 @@ class SyncAccount(
         ) : Outcome<Nothing>
     }
 
+    private suspend fun clearSync() {
+        dao.clearState()
+        dao.clearOutbox()
+        dao.clearMeta()
+    }
+
     private suspend fun snapshot(): Map<SyncItemId, String> =
         dao.state().mapNotNull { s -> SyncKind.of(s.kind)?.let { SyncItemId(it, s.key) to s.payload } }.toMap()
 
@@ -233,7 +234,7 @@ class SyncAccount(
         private const val MAX_PAGES = 40
         private const val KEY_TOKEN = "sync.session"
         private const val KEY_EMAIL = "sync.email"
-        private const val KEY_CURSOR = "sync.cursor"
+        private const val META_CURSOR = "cursor"
         private const val KEY_INITIAL = "sync.initial"
         private const val KEY_LAST_SUCCESS = "sync.lastSuccess"
 

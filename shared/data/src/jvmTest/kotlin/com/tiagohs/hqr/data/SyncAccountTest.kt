@@ -109,9 +109,10 @@ class SyncAccountTest {
         hub: FakeHub,
         val clock: TestClock,
         name: String,
+        /** The browser's localStorage is shared by its tabs; each tab may still open its own database. */
+        val settings: MapSettings = MapSettings(),
     ) {
         val db = inMemoryDatabase()
-        val settings = MapSettings()
         val prefs = AppPreferences(settings)
         val mangas = RoomMangaRepository(db, clock)
         val chapters = RoomChapterRepository(db, clock)
@@ -186,6 +187,30 @@ class SyncAccountTest {
             web.account.syncNow()
             web.libraryKeys() shouldContainExactlyInAnyOrder phone.libraryKeys()
             phone.account.account.first() shouldBe AccountState.SignedIn("tiago@example.com")
+        }
+
+    @Test
+    fun RF121_a_second_tab_with_a_fresh_database_brings_the_whole_library() =
+        runTest {
+            // Bug: a tab that could not open the stored library (another tab held it) started empty and, reading the
+            // cursor the first tab left in the shared localStorage, got nothing from the account.
+            (1..3).forEach { phone.work("w$it") }
+            phone.account.signIn("tiago@example.com")
+            web.account.signIn("tiago@example.com")
+            web.libraryKeys().size shouldBe 3
+            val secondTab = Device(hub, clock, "Web", settings = web.settings)
+            try {
+                secondTab.account.syncNow()
+                secondTab.libraryKeys() shouldContainExactlyInAnyOrder listOf("w1", "w2", "w3")
+                // What the second tab sends still reaches the first one.
+                later()
+                secondTab.work("w4")
+                secondTab.account.syncNow()
+                web.account.syncNow()
+                web.libraryKeys() shouldContainExactlyInAnyOrder listOf("w1", "w2", "w3", "w4")
+            } finally {
+                secondTab.db.close()
+            }
         }
 
     @Test

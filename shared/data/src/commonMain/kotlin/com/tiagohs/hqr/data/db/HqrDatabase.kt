@@ -13,11 +13,11 @@ import androidx.room3.RoomDatabaseConstructor
         HiddenGroupEntity::class, ProgressEntity::class, HistoryEntity::class, CategoryEntity::class,
         MangaCategoryEntity::class, MergeEntity::class, MergeMemberEntity::class, DownloadEntity::class,
         SavedSearchEntity::class, FeedItemEntity::class, RecentSearchEntity::class, ServerEntity::class,
-        SyncOutboxEntity::class, SyncStateEntity::class,
+        SyncOutboxEntity::class, SyncStateEntity::class, SyncMetaEntity::class,
     ],
     version = HqrDatabase.VERSION,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4)],
 )
 @ConstructedBy(HqrDatabaseConstructor::class)
 abstract class HqrDatabase : RoomDatabase() {
@@ -45,7 +45,7 @@ abstract class HqrDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "library.db"
-        const val VERSION = 3
+        const val VERSION = 4
     }
 }
 

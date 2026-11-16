@@ -44,6 +44,8 @@ function fakeDrive(): typeof fetch {
       if (media === "notAnImage00001") return new Response("secret", { headers: { "content-type": "text/plain" } });
       return new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/png" } });
     }
+    const folder = /\/files\/([^/]+)$/.exec(url.pathname)?.[1];
+    if (folder) return folder === ROOT ? Response.json({ id: ROOT, mimeType: FOLDER }) : new Response("{}", { status: 404 });
     const q = url.searchParams.get("q") ?? "";
     const parents = [...q.matchAll(/'([^']+)' in parents/g)].map((m) => m[1]);
     const files = parents.flatMap((parent) => tree[parent] ?? []).filter((f) => !q.includes("name contains 'poster'") || f.name.startsWith("poster"));
@@ -125,6 +127,12 @@ describe("Meu Drive", () => {
     await get("/api/v1/drive/works");
     await get(`/api/v1/drive/chapters/${CHAPTER_1}`);
     expect(requests.filter((url) => url.includes("oauth2.googleapis.com")).length).toBe(1);
+  });
+
+  it("RF130_a_root_folder_not_shared_with_the_service_account_is_said_so", async () => {
+    const response = await get("/api/v1/drive/works", { DRIVE_SERVICE_ACCOUNT: account, DRIVE_ROOT_ID: "notSharedFolder01" });
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "root_not_shared" });
   });
 
   it("RF130_without_the_secrets_the_drive_is_not_configured", async () => {

@@ -38,6 +38,7 @@ import com.tiagohs.hqr.presentation.history.HistoryViewModel
 import com.tiagohs.hqr.presentation.library.CategoriesViewModel
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
+import com.tiagohs.hqr.presentation.manga.MarkReadingViewModel
 import com.tiagohs.hqr.presentation.migration.MigrationViewModel
 import com.tiagohs.hqr.presentation.reader.ReaderViewModel
 import com.tiagohs.hqr.presentation.settings.BackupViewModel
@@ -145,6 +146,9 @@ object SharedGraph {
     fun mangaViewModel(mangaId: Long): MangaViewModel = koin.screenViewModel(mangaId)
 
     fun migrationViewModel(mangaId: Long): MigrationViewModel = koin.screenViewModel(mangaId)
+
+    /** RF-126: the sheet's ViewModel, kept by the screen that opened it for "Desfazer". */
+    fun markReadingViewModel(mangaId: Long): MarkReadingViewModel = koin.screenViewModel(mangaId)
 
     fun readerViewModel(
         mangaId: Long,

@@ -51,14 +51,15 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | ID | Tela | Requisitos | UC |
 | :-- | :-- | :-- | :-- |
 | SCR-ONB-001 | Primeira abertura: idiomas de conteúdo e aviso | RF-81 | UC-012 |
-| SCR-LIB-001 | Biblioteca: abas de categoria, grade, "Continuar", seleção | RF-52 a RF-58 | UC-005 |
+| SCR-LIB-001 | Biblioteca: Tudo/HQs/Mangás, abas de categoria, grade com a leitura na capa, "Continuar", seleção | RF-52 a RF-58, RF-128, RF-129 | UC-005 |
 | SCR-LIB-002 | Filtrar, ordenar e exibir (folha) | RF-54, RF-55 | UC-005 |
 | SCR-LIB-003 | Categorias: criar, renomear, ordenar | RF-53 | UC-005 |
+| SCR-LIB-004 | Marcar leitura (folha): nenhum, até um capítulo, todos; buscando capítulos; várias obras | RF-126 | UC-005 |
 | SCR-EXP-001 | Explorar: Feed, fontes favoritas e lista de fontes | RF-03, RF-25, RF-115, RF-116 | UC-002 |
-| SCR-EXP-002 | Fonte: Populares, Recentes, busca com filtros, buscas salvas, favoritar | RF-21, RF-22, RF-24, RF-115 | UC-001, UC-002 |
+| SCR-EXP-002 | Fonte: Populares, Recentes, busca com filtros, buscas salvas, favoritar, pôr na biblioteca pela capa | RF-21, RF-22, RF-24, RF-115, RF-127 | UC-001, UC-002 |
 | SCR-EXP-003 | Filtros da fonte (folha) | RF-22, RF-24 | UC-001 |
 | SCR-EXP-004 | Montar o feed | RF-25 | UC-002 |
-| SCR-SRCH-001 | Busca global agrupada por fonte | RF-23, RF-26 a RF-28 | UC-001 |
+| SCR-SRCH-001 | Busca global agrupada por fonte, pôr na biblioteca pela capa | RF-23, RF-26 a RF-28, RF-127 | UC-001 |
 | SCR-OBR-001 | Obra: capa, tags, "Continuar", capítulos que chegam depois, cor da capa | RF-29 a RF-35, RF-07, RF-11, RF-12, RF-92, RF-93, RF-98, RF-117 | UC-003 |
 | SCR-OBR-002 | Migrar ou juntar | RF-69 a RF-71 | UC-010 |
 | SCR-RDR-001 | Leitor: páginas, menu, barra de páginas, quadro a quadro | RF-36 a RF-41, RF-43 a RF-51, RF-97, RF-98, RF-113 | UC-004 |

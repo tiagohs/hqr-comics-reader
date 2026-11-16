@@ -7,16 +7,16 @@ import Foundation
 @MainActor
 final class GoogleSignIn: NSObject, ASWebAuthenticationPresentationContextProviding {
     /// The Worker's address from the build settings (Secrets.xcconfig); empty when the build has no account.
-    static var hubURL: String {
+    nonisolated static var hubURL: String {
         let host = (Bundle.main.object(forInfoDictionaryKey: "HQRHubHost") as? String ?? "").trimmingCharacters(in: .whitespaces)
         return host.isEmpty ? "" : "https://" + host
     }
 
-    static var clientID: String {
+    nonisolated static var clientID: String {
         (Bundle.main.object(forInfoDictionaryKey: "HQRGoogleClientID") as? String ?? "").trimmingCharacters(in: .whitespaces)
     }
 
-    static var available: Bool { !hubURL.isEmpty && !clientID.isEmpty }
+    nonisolated static var available: Bool { !hubURL.isEmpty && !clientID.isEmpty }
 
     private var session: ASWebAuthenticationSession?
 

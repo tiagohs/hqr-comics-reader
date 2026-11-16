@@ -23,10 +23,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -55,22 +53,19 @@ import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel.GroupState
 import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.EmptyState
-import com.tiagohs.hqr.ui.components.InLibraryBadge
 import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.Skeleton
 import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sharedCover
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.components.sourceMessage
+import com.tiagohs.hqr.ui.library.MarkReadingSheetHost
+import com.tiagohs.hqr.ui.library.rememberMarkReadingHost
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
-import com.tiagohs.hqr.ui.resources.action_undo
-import com.tiagohs.hqr.ui.resources.browse_added
-import com.tiagohs.hqr.ui.resources.browse_in_library
 import com.tiagohs.hqr.ui.resources.browse_no_results_message
-import com.tiagohs.hqr.ui.resources.library_removed
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_remove_library
 import com.tiagohs.hqr.ui.resources.search_group_empty
@@ -82,7 +77,6 @@ import com.tiagohs.hqr.ui.resources.search_recent_remove
 import com.tiagohs.hqr.ui.resources.search_see_sources
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -100,6 +94,8 @@ fun GlobalSearchScreen(
     val scope = rememberCoroutineScope()
     val focus = remember { FocusRequester() }
     val snackbar = remember { SnackbarHostState() }
+    val marking = rememberMarkReadingHost()
+    MarkReadingSheetHost(marking, snackbar)
     val uriHandler = LocalUriHandler.current
     LaunchedEffect(Unit) { if (state.query.isEmpty()) focus.requestFocus() }
     Scaffold(
@@ -172,16 +168,9 @@ fun GlobalSearchScreen(
                         onOpen = { manga -> scope.launch { onOpenManga(viewModel.open(manga)) } },
                         onBrowser = viewModel.webUrl(group.sourceId)?.let { url -> { uriHandler.openUri(url) } },
                         onLongPress = { manga ->
-                            // RF-52: as in the source screen, with "Desfazer".
+                            // RF-52, RF-127: as in the source screen.
                             scope.launch {
-                                val removal = viewModel.toggleLibrary(manga)
-                                val result =
-                                    snackbar.showSnackbar(
-                                        getString(if (removal == null) Res.string.browse_added else Res.string.library_removed),
-                                        getString(Res.string.action_undo),
-                                        duration = SnackbarDuration.Long,
-                                    )
-                                if (result == SnackbarResult.ActionPerformed) viewModel.undoToggle(manga, removal)
+                                toggleInLibrary(manga, snackbar, marking, viewModel::toggleLibrary, viewModel::undoToggle, viewModel::open)
                             }
                         },
                     )
@@ -253,7 +242,7 @@ private fun SourceGroup(
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 Cover(manga, Modifier.sharedCover(manga)) {
-                                    if (manga.key in group.inLibrary) InLibraryBadge(stringResource(Res.string.browse_in_library))
+                                    LibraryToggleButton(manga.title, inLibrary) { onLongPress(manga) }
                                 }
                                 Text(
                                     manga.title,

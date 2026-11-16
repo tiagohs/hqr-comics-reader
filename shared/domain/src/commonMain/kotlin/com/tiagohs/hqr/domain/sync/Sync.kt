@@ -55,6 +55,8 @@ data class MangaRecord(
     val addedAt: Long? = null,
     val categories: List<String> = emptyList(),
     val reader: ReaderRecord? = null,
+    /** RF-128: "COMICS" or "MANGA" when the user chose; absent follows the source. */
+    val shelf: String? = null,
 )
 
 @Serializable

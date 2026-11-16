@@ -16,6 +16,7 @@ import com.tiagohs.hqr.data.repository.RoomHistoryRepository
 import com.tiagohs.hqr.data.repository.RoomMangaRepository
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.SettingsSecretStore
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
@@ -63,7 +64,7 @@ class BackupServiceTest {
     }
 
     @Test
-    fun RF72_RF74_everythingTravelsExceptThePassword() =
+    fun RF72_RF74_RF128_everythingTravelsExceptThePassword() =
         runTest {
             val (id, chs) = phone.work(SourceId.MANGADEX, "frieren")
             phone.mangas.setInLibrary(id, true)
@@ -75,6 +76,8 @@ class BackupServiceTest {
             phone.db.serverDao().upsert(ServerEntity("opds-1", "opds", "Casa", "https://komga.casa/opds", "tiago", null))
             SettingsSecretStore(phone.settings).put("server.password.opds-1", "segredo")
             AppPreferences(phone.settings).setCoverColor(false)
+            phone.mangas.setShelf(id, Shelf.COMICS)
+            AppPreferences(phone.settings).setSourceShelf("hqnow", Shelf.MANGA)
             val file = phone.backups.create()
             gunzip(file).decodeToString() shouldNotContain "segredo"
 
@@ -92,6 +95,8 @@ class BackupServiceTest {
                 .first()
                 .size shouldBe 1
             AppPreferences(tablet.settings).coverColor.value shouldBe false
+            restored.shelf shouldBe Shelf.COMICS
+            AppPreferences(tablet.settings).sourceShelves.value shouldBe mapOf("hqnow" to Shelf.MANGA)
             tablet.db
                 .serverDao()
                 .list()

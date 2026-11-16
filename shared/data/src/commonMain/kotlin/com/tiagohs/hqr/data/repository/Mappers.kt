@@ -7,6 +7,7 @@ import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.PublicationStatus
 import com.tiagohs.hqr.domain.model.ReadingKind
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
@@ -39,7 +40,14 @@ internal fun MangaEntity.toSource(): SourceManga =
     )
 
 internal fun MangaEntity.toDomain(): Manga =
-    Manga(id = id, source = toSource(), inLibrary = inLibrary, addedAtEpochMs = addedAt, coverColor = coverColor)
+    Manga(
+        id = id,
+        source = toSource(),
+        inLibrary = inLibrary,
+        addedAtEpochMs = addedAt,
+        coverColor = coverColor,
+        shelf = shelf?.let { name -> Shelf.entries.firstOrNull { it.name == name } },
+    )
 
 internal fun SourceManga.toEntity(now: Long): MangaEntity =
     MangaEntity(

@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.data.settings
 
 import com.russhwolf.settings.Settings
+import com.tiagohs.hqr.domain.model.Shelf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,6 +68,20 @@ class AppPreferences(
 
     private val _wifiOnlyDownloads = MutableStateFlow(settings.getBoolean(WIFI_ONLY, true))
     val wifiOnlyDownloads: StateFlow<Boolean> = _wifiOnlyDownloads.asStateFlow()
+
+    // RF-128: the library area of each source's works, when the user changed it; the rest follow Shelf.sourceDefault.
+    private val _sourceShelves = MutableStateFlow(Shelf.decode(settings.getStringOrNull(SOURCE_SHELVES)))
+    val sourceShelves: StateFlow<Map<String, Shelf>> = _sourceShelves.asStateFlow()
+
+    fun setSourceShelf(
+        sourceId: String,
+        shelf: Shelf,
+    ) = setSourceShelves(_sourceShelves.value + (sourceId to shelf))
+
+    fun setSourceShelves(value: Map<String, Shelf>) {
+        settings.putString(SOURCE_SHELVES, Shelf.encode(value))
+        _sourceShelves.value = value
+    }
 
     // RF-66: off by default.
     private val _deleteAfterRead = MutableStateFlow(settings.getBoolean(DELETE_AFTER_READ, false))
@@ -208,5 +223,6 @@ class AppPreferences(
         const val DOWNLOAD_FOLDER = "downloads_folder"
         const val MANGADEX_LANGUAGES = "mangadex_languages"
         const val MANGADEX_DATA_SAVER = "mangadex_data_saver"
+        const val SOURCE_SHELVES = "source_shelves"
     }
 }

@@ -37,17 +37,24 @@ struct CoverCard: View {
     let manga: SourceManga
     var badge: String? = nil
     var inLibrary: Bool = false
+    /// RF-129: the library work, for its reading on the cover.
+    var reading: Shared.LibraryItem? = nil
+    /// RF-127: the button that puts the work in the library (results only).
+    var onToggleLibrary: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             CoverImage(manga: manga)
                 // RF-118: the work screen zooms out of this cover.
                 .coverSource(coverTransitionId(sourceId: manga.sourceKey, key: manga.key))
+                .overlay { if let reading { ReadingOnCover(item: reading) } }
                 .overlay(alignment: .topTrailing) {
-                    // Unread count in a burst; "Na biblioteca" in an ink tag.
+                    // Unread count in a burst; "Na biblioteca" in an ink tag, or the button that changes it.
                     VStack(alignment: .trailing, spacing: 4) {
                         if let badge { Burst(text: badge, size: 34) }
-                        if inLibrary {
+                        if let onToggleLibrary {
+                            LibraryToggleButton(title: manga.title, inLibrary: inLibrary, action: onToggleLibrary).padding(-4)
+                        } else if inLibrary {
                             Text(L("browse_in_library")).font(ComicFont.bangers(13, relativeTo: .caption2))
                                 .padding(.horizontal, 6).padding(.vertical, 1)
                                 .background(Palette.onSurface).foregroundStyle(Palette.background)

@@ -33,7 +33,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.data.settings.AppPreferences
-import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.source.Bridge
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
@@ -82,7 +81,7 @@ fun SourcesScreen(
     onEditServer: (String) -> Unit = {},
     onOpenServer: (String) -> Unit = {},
     onBridge: () -> Unit = {},
-    onSourceSettings: () -> Unit = {},
+    onSourceSettings: (sourceId: String) -> Unit = {},
     viewModel: SourcesViewModel = koinViewModel(),
     prefs: AppPreferences = koinInject(),
 ) {
@@ -129,11 +128,9 @@ fun SourcesScreen(
                     leadingContent = { SourceMonogram(row.name) },
                     trailingContent = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // RF-06: MangaDex has its own settings (SCR-SRC-002).
-                            if (row.id == SourceId.MANGADEX) {
-                                val label = stringResource(Res.string.source_settings_open, row.name)
-                                IconButton(onClick = onSourceSettings) { Icon(HqrIcons.Tune, label) }
-                            }
+                            // SCR-SRC-002: every source has its library area (RF-128); MangaDex also its own options (RF-06).
+                            val label = stringResource(Res.string.source_settings_open, row.name)
+                            IconButton(onClick = { onSourceSettings(row.id.value) }) { Icon(HqrIcons.Tune, label) }
                             Switch(checked = row.on, onCheckedChange = null, enabled = !offByList)
                         }
                     },

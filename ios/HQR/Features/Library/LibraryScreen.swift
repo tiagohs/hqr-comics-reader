@@ -13,6 +13,12 @@ struct LibraryScreen: View {
     @State private var showOptions = false
     @State private var moving = false
     @State private var updateNotice: String?
+    // RF-126: one work opens the sheet; several, only all or none.
+    @State private var marking: MarkReadingModel?
+    @State private var markingSheet = false
+    @State private var markingMany = false
+    @State private var markNotice: String?
+    @State private var markedMany: LibraryViewModel.Marked?
     @Environment(\.scenePhase) private var scenePhase
 
     private var model: ScreenModel<LibraryViewModel, LibraryViewModel.State> { models.screen }
@@ -26,6 +32,7 @@ struct LibraryScreen: View {
                     SyncStaleNotice(days: days).padding(.horizontal, Metrics.spaceMarginCompact)
                 }
                 if let progress = models.update.value.firstObject as? UpdateProgress { updating(progress) }
+                if !state.isEmpty { areas(state) }
                 if state.tabs.count > 1 { tabs(state) }
                 if let entry = state.continueReading, query.isEmpty, picked.isEmpty { continueCard(entry) }
                 if !state.loading && state.items.isEmpty {
@@ -80,6 +87,18 @@ struct LibraryScreen: View {
         .sheet(isPresented: $showOptions) {
             LibraryOptionsSheet(state: model.state) { model.viewModel.setOptions(value: $0) }
         }
+        .sheet(isPresented: $markingSheet) {
+            if let marking {
+                MarkReadingSheet(model: marking) { saved in markNotice = markReadingDone(saved) }
+            }
+        }
+        .confirmationDialog(L("mark_many_title", picked.count), isPresented: $markingMany, titleVisibility: .visible) {
+            Button(L("mark_many_read")) { markMany(read: true) }
+            Button(L("mark_many_none")) { markMany(read: false) }
+            Button(L("action_cancel"), role: .cancel) {}
+        } message: {
+            Text(L("mark_many_one_hint"))
+        }
         .sheet(isPresented: $moving) {
             CategoryPicker(categories: state.categories, assigned: []) { ids in
                 IosBridge.shared.moveSelected(viewModel: model.viewModel, categoryIds: ids.map { KotlinLong(value: $0) })
@@ -92,6 +111,16 @@ struct LibraryScreen: View {
                     removed = nil
                 } dismiss: { removed = nil }
                 .id(ObjectIdentifier(removal))
+            } else if let notice = markNotice {
+                UndoBar(text: notice) {
+                    marking?.viewModel.undo()
+                    markNotice = nil
+                } dismiss: { markNotice = nil }
+            } else if let marked = markedMany {
+                UndoBar(text: L(marked.read ? "mark_many_done_read" : "mark_many_done_unread", Int(marked.works))) {
+                    model.viewModel.undoMark(marked: marked)
+                    markedMany = nil
+                } dismiss: { markedMany = nil }
             } else if !removedMany.isEmpty {
                 UndoBar(text: L("library_removed_many", removedMany.count)) {
                     model.viewModel.undoRemoveAll(removals: removedMany)
@@ -133,7 +162,15 @@ struct LibraryScreen: View {
                     if !state.categories.isEmpty {
                         Button { moving = true } label: { Label(L("library_move"), systemImage: "folder") }
                     }
-                    Button { model.viewModel.markSelectedRead() } label: { Label(L("library_mark_read"), systemImage: "eye") }
+                    Button {
+                        if picked.count == 1, let id = picked.first {
+                            marking = MarkReadingModel(mangaId: id)
+                            markingSheet = true
+                            model.viewModel.clearSelection()
+                        } else {
+                            markingMany = true
+                        }
+                    } label: { Label(L("mark_reading"), systemImage: "book") }
                     Button { model.viewModel.downloadSelectedUnread() } label: {
                         Label(L("library_download_unread"), systemImage: "arrow.down.circle")
                     }
@@ -146,6 +183,29 @@ struct LibraryScreen: View {
                     Image(systemName: "ellipsis.circle").accessibilityLabel(L("action_more"))
                 }
             }
+    }
+
+    private func markMany(read: Bool) {
+        model.viewModel.markSelected(read: read) { marked in markedMany = marked }
+    }
+
+    /// RF-128: "Tudo", "HQs" and "Mangás", with their counts.
+    private func areas(_ state: LibraryViewModel.State) -> some View {
+        Picker(L("library_area_label"), selection: Binding(get: { state.area }, set: { model.viewModel.selectArea(area: $0) })) {
+            ForEach([LibraryArea.all, LibraryArea.comics, LibraryArea.manga], id: \.self) { area in
+                Text("\(L(Self.areaKey(area))) \((state.areaCounts[area] as? KotlinInt)?.intValue ?? 0)").tag(area)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, Metrics.spaceMarginCompact)
+    }
+
+    static func areaKey(_ area: LibraryArea) -> String {
+        switch area {
+        case .comics: "library_area_comics"
+        case .manga: "library_area_manga"
+        default: "library_area_all"
+        }
     }
 
     /// RF-57: a long press picks a work; while some are picked, a tap picks or unpicks.
@@ -186,6 +246,7 @@ struct LibraryScreen: View {
         if options.display == .compactGrid {
             CoverImage(manga: item.manga.source)
                 .coverSource(coverTransitionId(sourceId: item.manga.source.sourceKey, key: item.manga.source.key))
+                .overlay { ReadingOnCover(item: item) }
                 .overlay(alignment: .topTrailing) { badges(item, options: options).padding(4) }
                 .overlay(alignment: .bottomLeading) {
                     // ADR-026: the title in a yellow caption box, like a comic panel's narration.
@@ -197,10 +258,12 @@ struct LibraryScreen: View {
                         .background(Self.caption)
                         .overlay(Rectangle().stroke(Self.captionInk, lineWidth: 2))
                         .padding(.trailing, 16)
+                        // RF-129: above the reading bar.
+                        .padding(.bottom, Self.showsReadBar(item) ? 6 : 0)
                 }
                 .accessibilityElement(children: .combine)
         } else {
-            CoverCard(manga: item.manga.source, badge: badge(item, options: options))
+            CoverCard(manga: item.manga.source, badge: badge(item, options: options), reading: item)
                 .overlay(alignment: .topLeading) { sideBadges(item, options: options).padding(4) }
         }
     }
@@ -242,6 +305,11 @@ struct LibraryScreen: View {
                     .background(Palette.onSurface).foregroundStyle(Palette.surface)
             }
         }
+    }
+
+    static func showsReadBar(_ item: Shared.LibraryItem) -> Bool {
+        let read = Int(IosBridge.shared.readCount(item: item))
+        return item.totalChapters > 0 && read > 0 && read < Int(item.totalChapters)
     }
 
     private static let caption = Color(red: 1, green: 0xF1 / 255, blue: 0xA8 / 255)

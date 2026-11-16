@@ -17,7 +17,12 @@ import androidx.room3.RoomDatabaseConstructor
     ],
     version = HqrDatabase.VERSION,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4)],
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4),
+        AutoMigration(from = 4, to = 5),
+    ],
 )
 @ConstructedBy(HqrDatabaseConstructor::class)
 abstract class HqrDatabase : RoomDatabase() {
@@ -45,7 +50,7 @@ abstract class HqrDatabase : RoomDatabase() {
 
     companion object {
         const val NAME = "library.db"
-        const val VERSION = 4
+        const val VERSION = 5
     }
 }
 

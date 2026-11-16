@@ -13,6 +13,10 @@ enum class LibraryDisplay { COMPACT_GRID, COMFORTABLE_GRID, LIST }
 @Serializable
 enum class LibrarySort { TITLE, LAST_READ, LATEST_CHAPTER, TOTAL_CHAPTERS, UNREAD, DATE_ADDED }
 
+/** RF-128: the library areas; "Tudo" shows every work. */
+@Serializable
+enum class LibraryArea { ALL, COMICS, MANGA }
+
 /** A filter that is off, required or excluded (tri-state, like the source filters). */
 @Serializable
 enum class TriState { OFF, ONLY, EXCLUDE }
@@ -35,6 +39,7 @@ data class LibraryOptions(
     val sources: Set<String> = emptySet(),
     val sort: LibrarySort = LibrarySort.TITLE,
     val ascending: Boolean = true,
+    val area: LibraryArea = LibraryArea.ALL,
 ) {
     /** "Limpar filtros" keeps the order and the display. */
     fun withoutFilters(): LibraryOptions =

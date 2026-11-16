@@ -61,6 +61,7 @@ import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadAction
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.domain.repository.DownloadItem
@@ -77,6 +78,9 @@ import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.rememberOpening
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.downloads.rememberNotificationPermission
+import com.tiagohs.hqr.ui.library.MarkReadingSheetHost
+import com.tiagohs.hqr.ui.library.ShelfDialog
+import com.tiagohs.hqr.ui.library.rememberMarkReadingHost
 import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
@@ -119,7 +123,9 @@ import com.tiagohs.hqr.ui.resources.manga_removed_from_source
 import com.tiagohs.hqr.ui.resources.manga_searching_source
 import com.tiagohs.hqr.ui.resources.manga_select
 import com.tiagohs.hqr.ui.resources.manga_selected
+import com.tiagohs.hqr.ui.resources.mark_reading
 import com.tiagohs.hqr.ui.resources.migrate_action
+import com.tiagohs.hqr.ui.resources.shelf_title
 import com.tiagohs.hqr.ui.resources.source_content_error
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import com.tiagohs.hqr.ui.theme.HqrTheme
@@ -211,6 +217,23 @@ private fun MangaContent(
             }
         }
     }
+    // RF-126, RF-128: from the menu, without going through the chapter list.
+    val marking = rememberMarkReadingHost()
+    MarkReadingSheetHost(marking, snackbar)
+    var choosingShelf by remember { mutableStateOf(false) }
+    if (choosingShelf) {
+        val shelves by koinInject<AppPreferences>().sourceShelves.collectAsStateWithLifecycle()
+        ShelfDialog(
+            title = manga.title,
+            sourceName = sourceDisplayName(manga.sourceId, manga.sourceId.value),
+            sourceShelf = Shelf.of(null, manga.sourceId, shelves),
+            current = manga.shelf,
+            onDismiss = { choosingShelf = false },
+        ) {
+            choosingShelf = false
+            viewModel.setShelf(it)
+        }
+    }
     if (picking) {
         CategoryPicker(categoryChoice.first, categoryChoice.second, onDismiss = { picking = false }) {
             viewModel.setCategories(it)
@@ -294,6 +317,22 @@ private fun MangaContent(
                                         },
                                     )
                                 }
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.mark_reading)) },
+                                    leadingIcon = { Icon(HqrIcons.MarkRead, null) },
+                                    onClick = {
+                                        overflow = false
+                                        marking.open(manga.id)
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.shelf_title)) },
+                                    leadingIcon = { Icon(HqrIcons.Library, null) },
+                                    onClick = {
+                                        overflow = false
+                                        choosingShelf = true
+                                    },
+                                )
                                 // RF-69: local files have no other source to go to.
                                 if (!isLocal) {
                                     DropdownMenuItem(

@@ -70,6 +70,12 @@ interface MangaDao {
         at: Long,
     )
 
+    @Query("UPDATE manga SET shelf = :shelf WHERE id = :id")
+    suspend fun setShelf(
+        id: Long,
+        shelf: String?,
+    )
+
     @Query("UPDATE manga SET coverColor = :color WHERE id = :id")
     suspend fun setCoverColor(
         id: Long,

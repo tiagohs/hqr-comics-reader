@@ -1,11 +1,9 @@
 package com.tiagohs.hqr.app
 
-import kotlinx.coroutines.flow.stateIn
-
-import kotlinx.coroutines.flow.map
-
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
+import com.tiagohs.hqr.domain.model.ReadingMark
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.model.SourcePage
@@ -14,8 +12,11 @@ import com.tiagohs.hqr.domain.source.Server
 import com.tiagohs.hqr.domain.source.SourceRegistry
 import com.tiagohs.hqr.presentation.browse.GlobalSearchViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
+import com.tiagohs.hqr.presentation.manga.MarkReadingViewModel
 import com.tiagohs.hqr.presentation.migration.MigrationViewModel
 import com.tiagohs.hqr.presentation.sources.SourcesViewModel
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import platform.Foundation.NSData
 
 /**
@@ -43,6 +44,8 @@ object IosBridge {
 
     /** "10", "10.5": the number of a chapter as people write it. */
     fun chapterNumber(chapter: Chapter): String = chapter.source.number.chapterLabel()
+
+    fun chapterLabel(number: Double): String = number.chapterLabel()
 
     fun migrationResults(
         state: MigrationViewModel.State,
@@ -261,6 +264,70 @@ object IosBridge {
             read,
             0,
             SAMPLE_PAGES,
+        )
+
+    /** RF-126: the sheet's state as one item (a Kotlin sealed state is a protocol in Swift), with its ViewModel. */
+    fun markReadingScreen(viewModel: MarkReadingViewModel): Screen<List<MarkReadingViewModel.State>> =
+        Screen(
+            viewModel,
+            viewModel.state
+                .map { listOf(it) }
+                .stateIn(kotlinx.coroutines.MainScope(), kotlinx.coroutines.flow.SharingStarted.Eagerly, listOf(viewModel.state.value)),
+        )
+
+    // RF-126: the marks as Swift can build and read them.
+    fun markNone(): ReadingMark = ReadingMark.None
+
+    fun markAll(): ReadingMark = ReadingMark.All
+
+    /** 0 nothing, 1 up to a chapter, 2 all: a plain switch in Swift. */
+    fun markKind(mark: ReadingMark): Int =
+        when (mark) {
+            ReadingMark.None -> 0
+            is ReadingMark.UpTo -> 1
+            ReadingMark.All -> 2
+        }
+
+    // RF-128: a work's library area and a source's, by the user's choices.
+    fun shelfOf(
+        manga: Manga,
+        shelves: Map<String, Shelf>,
+    ): Shelf = Shelf.of(manga.shelf, manga.sourceId, shelves)
+
+    fun sourceShelf(
+        sourceId: String,
+        shelves: Map<String, Shelf>,
+    ): Shelf = Shelf.of(null, SourceId(sourceId), shelves)
+
+    fun setSourceShelf(
+        prefs: com.tiagohs.hqr.data.settings.AppPreferences,
+        sourceId: String,
+        shelf: Shelf,
+    ) = prefs.setSourceShelf(sourceId, shelf)
+
+    /** The work's own choice; null follows the source. */
+    fun setShelf(
+        viewModel: MangaViewModel,
+        shelf: Shelf?,
+    ) = viewModel.setShelf(shelf)
+
+    /** Chapters read of a work in the library (RF-129). */
+    fun readCount(item: com.tiagohs.hqr.domain.repository.LibraryItem): Int = (item.totalChapters - item.unread).coerceAtLeast(0)
+
+    /** A library entry for the previews: [read] of [total] chapters read. */
+    fun sampleLibraryItem(
+        title: String,
+        read: Int,
+        total: Int,
+    ): com.tiagohs.hqr.domain.repository.LibraryItem =
+        com.tiagohs.hqr.domain.repository.LibraryItem(
+            manga = sampleWork(1, title),
+            unread = total - read,
+            downloaded = 0,
+            categoryIds = emptySet(),
+            lastReadAtEpochMs = null,
+            latestChapterAtEpochMs = null,
+            totalChapters = total,
         )
 
     private const val SAMPLE_PAGES = 20

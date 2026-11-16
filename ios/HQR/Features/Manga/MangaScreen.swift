@@ -16,6 +16,10 @@ struct MangaScreen: View {
     @State private var missingSource: String?
     /// RF-53: choosing the work's categories.
     @State private var picking = false
+    // RF-126: the sheet and its message, with "Undo".
+    @State private var marking: MarkReadingModel?
+    @State private var markingSheet = false
+    @State private var markNotice: String?
     /// RF-118: the panel draws itself in as the work opens.
     @State private var heroIn = 0.0
     /// RF-118: the chapters cascade in once, as the work opens.
@@ -110,6 +114,17 @@ struct MangaScreen: View {
         }
         .overlay {
             if state.manga == nil && state.refreshing { ProgressView() }
+        }
+        .sheet(isPresented: $markingSheet) {
+            if let marking { MarkReadingSheet(model: marking) { saved in markNotice = markReadingDone(saved) } }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let notice = markNotice {
+                UndoBar(text: notice) {
+                    marking?.viewModel.undo()
+                    markNotice = nil
+                } dismiss: { markNotice = nil }
+            }
         }
     }
 
@@ -420,6 +435,28 @@ struct MangaScreen: View {
                 }
                 if state.manga?.inLibrary == true && !categories.isEmpty {
                     Button { picking = true } label: { Label(L("manga_edit_categories"), systemImage: "folder") }
+                }
+                Button {
+                    marking = MarkReadingModel(mangaId: mangaId)
+                    markingSheet = true
+                } label: {
+                    Label(L("mark_reading"), systemImage: "book")
+                }
+                // RF-128: where the work goes in the library, inline as a menu picker (HIG).
+                if let manga = state.manga {
+                    let shelves = Core.graph.preferences().sourceShelves.value as? [String: Shelf] ?? [:]
+                    let sourceShelf = IosBridge.shared.sourceShelf(sourceId: manga.source.sourceKey, shelves: shelves)
+                    Picker(selection: Binding(
+                        get: { manga.shelf?.name ?? "" },
+                        set: { name in IosBridge.shared.setShelf(viewModel: model.viewModel, shelf: name == "COMICS" ? .comics : name == "MANGA" ? .manga : nil) }
+                    )) {
+                        Text(L("shelf_follow_hint", L("shelf_follow"), L(sourceShelf == .manga ? "library_area_manga" : "library_area_comics"))).tag("")
+                        Text(L("library_area_comics")).tag("COMICS")
+                        Text(L("library_area_manga")).tag("MANGA")
+                    } label: {
+                        Label(L("shelf_title"), systemImage: "books.vertical")
+                    }
+                    .pickerStyle(.menu)
                 }
                 Button { navigator.open(.migrate(mangaId)) } label: {
                     Label(L("migrate_action"), systemImage: "arrow.left.arrow.right")

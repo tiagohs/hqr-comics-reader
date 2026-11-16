@@ -13,6 +13,7 @@ import com.tiagohs.hqr.data.db.ProgressEntity
 import com.tiagohs.hqr.data.db.SavedSearchEntity
 import com.tiagohs.hqr.data.db.ServerEntity
 import com.tiagohs.hqr.data.settings.AppPreferences
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.sync.CategoryRecord
 import com.tiagohs.hqr.domain.sync.ChapterRecord
 import com.tiagohs.hqr.domain.sync.FeedRecord
@@ -93,6 +94,7 @@ class SyncLocalData(
                     addedAt = m.addedAt,
                     categories = assignments[m.id].orEmpty().mapNotNull { categoryNames[it] }.sorted(),
                     reader = db.readerSettingsDao().get(m.id)?.toRecord(),
+                    shelf = m.shelf,
                 )
             items[id] = encode(MangaRecord.serializer(), record)
             read.forEach { c ->
@@ -180,6 +182,7 @@ class SyncLocalData(
         if (record.inLibrary != wasIn) dao.setInLibrary(id, record.inLibrary, if (record.inLibrary) record.addedAt ?: now else null)
         assignCategories(id, record.categories)
         record.reader?.let { db.readerSettingsDao().upsert(it.toEntity(id)) }
+        if (record.shelf != local?.shelf) dao.setShelf(id, record.shelf)
         return record.inLibrary && !wasIn
     }
 
@@ -321,6 +324,7 @@ class SyncLocalData(
             AppPreferences.LANGUAGES -> prefs.setContentLanguages(value.split(',').filter { it.isNotBlank() }.toSet())
             AppPreferences.MANGADEX_SUGGESTIVE -> value.toBooleanStrictOrNull()?.let(prefs::setMangaDexSuggestive)
             AppPreferences.MANGADEX_LANGUAGES -> prefs.setMangaDexLanguages(value.split(',').filter { it.isNotBlank() }.toSet())
+            AppPreferences.SOURCE_SHELVES -> prefs.setSourceShelves(Shelf.decode(value))
             else -> settings.putString(change.key, value)
         }
     }
@@ -389,6 +393,7 @@ class SyncLocalData(
                 AppPreferences.LANGUAGES,
                 AppPreferences.MANGADEX_SUGGESTIVE,
                 AppPreferences.MANGADEX_LANGUAGES,
+                AppPreferences.SOURCE_SHELVES,
             )
 
         fun categoryKey(name: String): String = name.trim().lowercase()

@@ -60,6 +60,11 @@ object HqrIcons {
     val Lock = stroke("lock", "M6 11h12v9H6z", "M8.5 11V8a3.5 3.5 0 0 1 7 0v3")
     val Phone = stroke("phone", "M7 2.5h10v19H7z", "M11 18.5h2")
 
+    // RF-126, RF-127: put in the library, mark as read, mark as unread.
+    val BookmarkAdd = stroke("bookmark-add", "M6 3h12v18l-6-4-6 4z", "M12 7.5v6M9 10.5h6")
+    val MarkRead = stroke("mark-read", "M4 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z", "M20 5h-5a2 2 0 0 0-2 2", "M14 15l2 2 4-4")
+    val MarkUnread = stroke("mark-unread", "M4 5h7a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4z", "M20 5h-7a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h7z")
+
     /** Google's "G", in its colors, as its sign-in button guidelines ask (a mark, not an app icon). */
     val GoogleMark: ImageVector =
         ImageVector

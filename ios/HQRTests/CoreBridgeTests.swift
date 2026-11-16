@@ -34,6 +34,17 @@ final class CoreBridgeTests: XCTestCase {
         XCTAssertEqual(ago(nil), L("time_just_now"))
     }
 
+    func test_RF129_the_cover_reads_how_much_was_read() {
+        let partly = IosBridge.shared.sampleLibraryItem(title: "Lâmina do Norte", read: 22, total: 120)
+        XCTAssertEqual(IosBridge.shared.readCount(item: partly), 22)
+        XCTAssertEqual(IosBridge.shared.readCount(item: IosBridge.shared.sampleLibraryItem(title: "Kaiju", read: 0, total: 12)), 0)
+    }
+
+    func test_RF126_the_three_marks_cross_the_bridge() {
+        XCTAssertEqual(IosBridge.shared.markKind(mark: IosBridge.shared.markNone()), 0)
+        XCTAssertEqual(IosBridge.shared.markKind(mark: IosBridge.shared.markAll()), 2)
+    }
+
     func test_RF81_onboarding_saves_the_languages_and_does_not_come_back() async throws {
         try await Core.graph.finishOnboarding(languages: ["en", "pt-br"], webtoon: false)
         XCTAssertEqual((Core.graph.preferences().onboarded.value as? KotlinBoolean)?.boolValue, true)

@@ -8,6 +8,8 @@ data class Manga(
     val addedAtEpochMs: Long?,
     /** Seed color extracted from the cover (RF-98); null means the violet base. */
     val coverColor: Int? = null,
+    /** RF-128: the user's choice for this work; null follows the source. */
+    val shelf: Shelf? = null,
 ) {
     val sourceId: SourceId get() = source.sourceId
     val key: String get() = source.key

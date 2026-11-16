@@ -44,6 +44,8 @@ data class MangaEntity(
     val updatedAt: Long,
     // Version 2: when the work screen was last opened, for the "new" chapters (RF-33).
     @ColumnInfo(defaultValue = "NULL") val lastOpenedAt: Long? = null,
+    // Version 5: the user's library area for this work (RF-128); null follows the source.
+    @ColumnInfo(defaultValue = "NULL") val shelf: String? = null,
 )
 
 @Entity(

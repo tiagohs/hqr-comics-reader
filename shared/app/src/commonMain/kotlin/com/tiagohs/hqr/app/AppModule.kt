@@ -55,6 +55,7 @@ import com.tiagohs.hqr.presentation.library.LibraryOptionsStore
 import com.tiagohs.hqr.presentation.library.LibraryUpdater
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
 import com.tiagohs.hqr.presentation.manga.MangaViewModel
+import com.tiagohs.hqr.presentation.manga.MarkReadingViewModel
 import com.tiagohs.hqr.presentation.migration.MigrationViewModel
 import com.tiagohs.hqr.presentation.migration.WorkMigration
 import com.tiagohs.hqr.presentation.reader.ChapterPages
@@ -157,8 +158,11 @@ val coreModule: Module =
                 chapters = get(),
                 downloads = getOrNull(),
                 updater = LibraryUpdater(get(), get(), get()),
+                sourceShelves = get<AppPreferences>().sourceShelves,
             )
         }
+        // RF-126: one per work and screen, so "Desfazer" still works after the sheet closes.
+        viewModel { (id: Long) -> MarkReadingViewModel(id, get(), get(), get(), getOrNull()) }
         viewModel { CategoriesViewModel(get(), get()) }
         viewModel { HistoryViewModel(get(), get()) }
         viewModel { (id: SourceId, query: String?) -> BrowseSourceViewModel(id, get(), get(), query, get(), get()) }

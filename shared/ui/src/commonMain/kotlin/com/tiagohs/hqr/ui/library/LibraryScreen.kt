@@ -106,13 +106,13 @@ import com.tiagohs.hqr.ui.resources.library_categories
 import com.tiagohs.hqr.ui.resources.library_clear_filters
 import com.tiagohs.hqr.ui.resources.library_clear_selection
 import com.tiagohs.hqr.ui.resources.library_continue_reading
+import com.tiagohs.hqr.ui.resources.library_cover_read
 import com.tiagohs.hqr.ui.resources.library_download_unread
 import com.tiagohs.hqr.ui.resources.library_empty_message
 import com.tiagohs.hqr.ui.resources.library_empty_title
 import com.tiagohs.hqr.ui.resources.library_filter_downloaded
 import com.tiagohs.hqr.ui.resources.library_filtered_message
 import com.tiagohs.hqr.ui.resources.library_filtered_title
-import com.tiagohs.hqr.ui.resources.library_mark_read
 import com.tiagohs.hqr.ui.resources.library_move
 import com.tiagohs.hqr.ui.resources.library_new_many
 import com.tiagohs.hqr.ui.resources.library_new_none
@@ -131,6 +131,9 @@ import com.tiagohs.hqr.ui.resources.library_update_failed
 import com.tiagohs.hqr.ui.resources.library_updating
 import com.tiagohs.hqr.ui.resources.manga_continue_chapter
 import com.tiagohs.hqr.ui.resources.manga_select
+import com.tiagohs.hqr.ui.resources.mark_many_done_read
+import com.tiagohs.hqr.ui.resources.mark_many_done_unread
+import com.tiagohs.hqr.ui.resources.mark_reading
 import com.tiagohs.hqr.ui.resources.nav_explore
 import com.tiagohs.hqr.ui.resources.nav_library
 import com.tiagohs.hqr.ui.resources.onomatopoeia_empty
@@ -177,6 +180,9 @@ fun LibraryScreen(
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var moving by remember { mutableStateOf(false) }
+    // RF-126: one work opens the full sheet; several, only "all read" or "none".
+    val marking = rememberMarkReadingHost()
+    var markingMany by remember { mutableStateOf(0) }
     // RF-58: leaving the app stops the update; what arrived stays.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.stopUpdate() }
     updated?.let { result ->
@@ -216,9 +222,14 @@ fun LibraryScreen(
                         if (state.categories.isNotEmpty()) {
                             IconButton(onClick = { moving = true }) { Icon(HqrIcons.Folder, stringResource(Res.string.library_move)) }
                         }
-                        IconButton(
-                            onClick = viewModel::markSelectedRead,
-                        ) { Icon(HqrIcons.Check, stringResource(Res.string.library_mark_read)) }
+                        IconButton(onClick = {
+                            if (picked.size == 1) {
+                                marking.open(picked.single())
+                                viewModel.clearSelection()
+                            } else {
+                                markingMany = picked.size
+                            }
+                        }) { Icon(HqrIcons.MarkRead, stringResource(Res.string.mark_reading)) }
                         if (downloads != null) {
                             IconButton(onClick = viewModel::downloadSelectedUnread) {
                                 Icon(HqrIcons.Download, stringResource(Res.string.library_download_unread))
@@ -349,6 +360,13 @@ fun LibraryScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }
+                        // RF-128: the areas above the categories, once there is something in the library.
+                        LibraryAreaRow(
+                            state.area,
+                            state.areaCounts,
+                            viewModel::selectArea,
+                            Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        )
                         if (state.tabs.size > 1) {
                             PrimaryScrollableTabRow(
                                 selectedTabIndex = state.tabs.indexOfFirst { it.id == state.selectedTab }.coerceAtLeast(0),
@@ -391,6 +409,20 @@ fun LibraryScreen(
                         }
                     }
                 }
+        }
+    }
+    MarkReadingSheetHost(marking, snackbar)
+    if (markingMany > 0) {
+        val readText = stringResource(Res.string.mark_many_done_read, markingMany)
+        val unreadText = stringResource(Res.string.mark_many_done_unread, markingMany)
+        MarkManySheet(markingMany, onDismiss = { markingMany = 0 }) { read ->
+            markingMany = 0
+            viewModel.markSelected(read) { marked ->
+                scope.launch {
+                    val result = snackbar.showSnackbar(if (read) readText else unreadText, undoText, duration = SnackbarDuration.Long)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoMark(marked)
+                }
+            }
         }
     }
     if (optionsOpen) {
@@ -455,7 +487,9 @@ private fun LibraryItems(
                     stringResource(Res.string.library_up_to_date)
                 }
             val downloadedLabel = if (item.downloaded > 0) ", " + stringResource(Res.string.library_filter_downloaded).lowercase() else ""
-            val description = "${item.manga.title}, $unreadLabel$downloadedLabel"
+            val readLabel =
+                if (item.showsReadBar()) ", " + stringResource(Res.string.library_cover_read, item.readCount, item.totalChapters) else ""
+            val description = "${item.manga.title}, $unreadLabel$readLabel$downloadedLabel"
             when (options.display) {
                 LibraryDisplay.LIST ->
                     Row(
@@ -514,6 +548,7 @@ private fun LibraryItems(
                                 modifier =
                                     Modifier
                                         .align(Alignment.BottomStart)
+                                        .padding(bottom = if (item.showsReadBar()) 6.dp else 0.dp)
                                         .fillMaxWidth(CAPTION_WIDTH)
                                         .background(CAPTION)
                                         .border(2.dp, CAPTION_INK)
@@ -546,6 +581,8 @@ private fun BoxScope.Badges(
     item: LibraryItem,
     options: LibraryOptions,
 ) {
+    // RF-129: how far the work was read, always shown.
+    ReadingOnCover(item)
     if (options.unreadBadge) UnreadBalloon(item.unread)
     Column(Modifier.align(Alignment.TopStart).padding(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         // RF-73: always shown, whatever the badge options: the work can't be refreshed or read online.

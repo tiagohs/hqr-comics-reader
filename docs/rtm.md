@@ -130,6 +130,10 @@
 | RF-123 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | SyncAccountTest, SyncRulesTest, hub-worker/hub.test.ts |
 | RF-124 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-071 | AccountScreensTest, AccountViewModelTest, SyncAccountTest, SyncRulesTest |
 | RF-125 | Should | UC-015 | sync, hub-worker/, ADR-027, ADR-029 | SCR-SET-005 | FEAT-072, FEAT-073 | AccountScreensTest, AccountViewModelTest, SyncAccountTest, SyncRulesTest |
+| RF-126 | Must | — | — | SCR-LIB-004 | FEAT-074, FEAT-077 | MarkReadingViewModelTest, ReadingMarksTest, ReadingScreensTest, SyncAccountTest |
+| RF-127 | Must | — | — | SCR-EXP-002, SCR-SRCH-001 | FEAT-075 | ReadingScreensTest |
+| RF-128 | Must | — | — | SCR-LIB-001 | FEAT-076 | BackupServiceTest, MarkReadingViewModelTest, ReadingMarksTest, ReadingScreensTest |
+| RF-129 | Should | — | — | SCR-LIB-001 | FEAT-074, FEAT-076, FEAT-077 | ReadingScreensTest, SyncAccountTest |
 
 ## Requisitos não funcionais
 

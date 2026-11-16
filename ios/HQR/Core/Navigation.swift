@@ -10,7 +10,7 @@ enum Route: Hashable {
     case categories
     case downloads
     case sources
-    case sourceSettings
+    case sourceSettings(sourceId: String)
     case addServer(serverId: String)
     case serverCatalog(serverId: String)
     case backup
@@ -95,7 +95,7 @@ extension View {
             case .categories: CategoriesScreen()
             case .downloads: DownloadsScreen()
             case .sources: SourcesScreen()
-            case .sourceSettings: SourceSettingsScreen()
+            case .sourceSettings(let id): SourceSettingsScreen(sourceId: id)
             case .addServer(let id): AddServerScreen(serverId: id)
             case .serverCatalog(let id): ServerCatalogScreen(serverId: id)
             case .backup: BackupScreen()

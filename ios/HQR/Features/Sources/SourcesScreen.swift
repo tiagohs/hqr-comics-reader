@@ -27,9 +27,20 @@ struct SourcesScreen: View {
                         }
                     }
                     .disabled(row.status == .offByList)
-                    // RF-06: MangaDex has its own settings (SCR-SRC-002).
+                    // SCR-SRC-002: every source has its library area (RF-128); a swipe or a long press opens it.
+                    .swipeActions {
+                        NavigationLink(value: Route.sourceSettings(sourceId: id)) {
+                            Label(L("source_settings_open", row.name), systemImage: "slider.horizontal.3")
+                        }
+                    }
+                    .contextMenu {
+                        NavigationLink(value: Route.sourceSettings(sourceId: id)) {
+                            Label(L("source_settings_open", row.name), systemImage: "slider.horizontal.3")
+                        }
+                    }
+                    // RF-06: MangaDex's own settings, in sight (SCR-SRC-002).
                     if id == "mangadex" {
-                        NavigationLink(value: Route.sourceSettings) {
+                        NavigationLink(value: Route.sourceSettings(sourceId: id)) {
                             Label(L("source_settings_open", row.name), systemImage: "slider.horizontal.3")
                         }
                     }

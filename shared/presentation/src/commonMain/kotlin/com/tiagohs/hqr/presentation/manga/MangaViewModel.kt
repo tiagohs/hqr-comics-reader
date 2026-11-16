@@ -7,6 +7,7 @@ import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.ReadAction
 import com.tiagohs.hqr.domain.model.ReadingRules
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.CacheStore
 import com.tiagohs.hqr.domain.repository.CategoryRepository
@@ -305,6 +306,11 @@ class MangaViewModel(
         val queue = downloads ?: return
         viewModelScope.launch { queue.remove(ids) }
         clearSelection()
+    }
+
+    /** RF-128: null follows the source again. */
+    fun setShelf(shelf: Shelf?) {
+        viewModelScope.launch { mangas.setShelf(mangaId, shelf) }
     }
 
     /** RF-32: every chapter before [chapter] becomes read. */

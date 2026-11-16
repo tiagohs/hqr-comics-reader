@@ -1,14 +1,47 @@
 import Shared
 import SwiftUI
 
-/// SCR-SRC-002: MangaDex's own settings — chapter languages, image quality and suggestive content (RF-06, RF-08).
+/// SCR-SRC-002: a source's library area (RF-128) and, for MangaDex, chapter languages, image quality and suggestive
+/// content (RF-06, RF-08).
 struct SourceSettingsScreen: View {
+    var sourceId = "mangadex"
     private let prefs = Core.graph.preferences()
     @State private var override: Set<String>?
     @State private var dataSaver = false
+    @State private var shelf: Shelf?
 
     var body: some View {
         Form {
+            // RF-128: where this source's works go in the library.
+            Section {
+                Picker(L("source_settings_shelf_label"), selection: Binding(
+                    get: { shelf ?? IosBridge.shared.sourceShelf(sourceId: sourceId, shelves: prefs.sourceShelves.value as? [String: Shelf] ?? [:]) },
+                    set: { value in
+                        shelf = value
+                        IosBridge.shared.setSourceShelf(prefs: prefs, sourceId: sourceId, shelf: value)
+                    }
+                )) {
+                    Text(L("library_area_comics")).tag(Shelf.comics)
+                    Text(L("library_area_manga")).tag(Shelf.manga)
+                }
+                .pickerStyle(.segmented)
+            } header: {
+                Text(L("source_settings_shelf_label"))
+            } footer: {
+                Text(L("source_settings_shelf_hint"))
+            }
+            if sourceId == "mangadex" { mangaDex }
+        }
+        .navigationTitle(sourceDisplayName(sourceId))
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            override = (prefs.mangaDexLanguagesOverride.value).map { Self.set($0) }
+            dataSaver = (prefs.mangaDexDataSaver.value as? KotlinBoolean)?.boolValue ?? false
+        }
+    }
+
+    @ViewBuilder
+    private var mangaDex: some View {
             Section(L("source_settings_languages")) {
                 Toggle(isOn: Binding(get: { override == nil }, set: { follow in
                     let next: Set<String>? = follow ? nil : Self.set(prefs.contentLanguages.value)
@@ -49,13 +82,6 @@ struct SourceSettingsScreen: View {
             Section(L("source_settings_content")) {
                 SuggestiveToggle(title: L("source_settings_suggestive"))
             }
-        }
-        .navigationTitle("MangaDex")
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            override = (prefs.mangaDexLanguagesOverride.value).map { Self.set($0) }
-            dataSaver = (prefs.mangaDexDataSaver.value as? KotlinBoolean)?.boolValue ?? false
-        }
     }
 
     static func set(_ value: Any?) -> Set<String> {

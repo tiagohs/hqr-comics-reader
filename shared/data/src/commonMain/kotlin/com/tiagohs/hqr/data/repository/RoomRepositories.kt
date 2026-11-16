@@ -9,7 +9,9 @@ import com.tiagohs.hqr.data.db.MangaCategoryEntity
 import com.tiagohs.hqr.data.db.ProgressEntity
 import com.tiagohs.hqr.domain.model.Category
 import com.tiagohs.hqr.domain.model.Chapter
+import com.tiagohs.hqr.domain.model.ChapterReadState
 import com.tiagohs.hqr.domain.model.Manga
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
@@ -135,6 +137,11 @@ class RoomMangaRepository(
     ) = dao.setCoverColor(id, color)
 
     override fun observeLibraryKeys(sourceId: SourceId): Flow<Set<String>> = dao.observeLibraryKeys(sourceId.value).map { it.toSet() }
+
+    override suspend fun setShelf(
+        id: Long,
+        shelf: Shelf?,
+    ) = dao.setShelf(id, shelf?.name)
 }
 
 private fun SourceManga.mergeOver(old: SourceManga): SourceManga =
@@ -300,6 +307,16 @@ class RoomChapterRepository(
     ) {
         // The download queue owns the row; this only exists for sources whose files are already local.
         if (!downloaded) downloads.delete(chapterId)
+    }
+
+    override suspend fun readStates(mangaId: Long): List<ChapterReadState> =
+        list(mangaId).map { ChapterReadState(it.id, it.read, it.lastPage, it.pageCount) }
+
+    override suspend fun restore(states: List<ChapterReadState>) {
+        val now = clock.now().toEpochMilliseconds()
+        db.withWriteTransaction {
+            states.forEach { progress.upsert(ProgressEntity(it.chapterId, it.page, it.pageCount, it.read, now)) }
+        }
     }
 
     companion object {

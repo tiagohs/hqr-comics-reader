@@ -7,6 +7,11 @@ struct GlobalSearchScreen: View {
     @EnvironmentObject private var navigator: Navigator
     @StateObject private var models = GlobalSearchModels()
     @State private var query: String
+    // RF-127: what was just put in the library, with "Marcar leitura"; RF-126: its sheet.
+    @State private var added: (title: String, id: Int64)?
+    @State private var marking: MarkReadingModel?
+    @State private var markingSheet = false
+    @State private var markNotice: String?
 
     private var model: ScreenModel<GlobalSearchViewModel, GlobalSearchViewModel.State> { models.screen }
     private var recent: [String] { (models.recent.value as? [String]) ?? [] }
@@ -37,6 +42,35 @@ struct GlobalSearchScreen: View {
         .onSubmit(of: .search) { model.viewModel.submit() }
         .onAppear {
             if !query.isEmpty && model.state.searched.isEmpty { model.viewModel.searchAgain(query: query) }
+        }
+        .sheet(isPresented: $markingSheet) {
+            if let marking { MarkReadingSheet(model: marking) { saved in markNotice = markReadingDone(saved) } }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let notice = markNotice {
+                UndoBar(text: notice) {
+                    marking?.viewModel.undo()
+                    markNotice = nil
+                } dismiss: { markNotice = nil }
+            } else if let added {
+                ActionBar(text: L("browse_added_named", added.title), actionLabel: L("mark_reading")) {
+                    marking = MarkReadingModel(mangaId: added.id)
+                    markingSheet = true
+                    self.added = nil
+                } dismiss: { self.added = nil }
+                .id(added.id)
+            }
+        }
+    }
+
+    /// RF-52, RF-127: in or out of the library; put in, the bar offers "Marcar leitura".
+    private func toggle(_ manga: SourceManga) {
+        launch {
+            let removal = try await model.viewModel.toggleLibrary(manga: manga)
+            if removal == nil {
+                let id = try await model.viewModel.open(manga: manga)
+                added = (manga.title, id.int64Value)
+            }
         }
     }
 
@@ -87,7 +121,8 @@ struct GlobalSearchScreen: View {
                         LazyHStack(alignment: .top, spacing: Metrics.spaceCoverGap) {
                             ForEach(items, id: \.listId) { manga in
                                 Button { open(manga) } label: {
-                                    CoverCard(manga: manga, inLibrary: group.inLibrary.contains(manga.key)).frame(width: 112)
+                                    CoverCard(manga: manga, inLibrary: group.inLibrary.contains(manga.key)) { toggle(manga) }
+                                        .frame(width: 112)
                                 }
                                 .buttonStyle(.plain)
                             }

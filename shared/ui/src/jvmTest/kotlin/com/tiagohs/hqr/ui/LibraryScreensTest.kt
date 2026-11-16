@@ -45,7 +45,7 @@ class LibraryScreensTest {
             // Long press adds to the library (RF-52).
             listOf("Kaiju Express", "Céu de Papel", "Moça do Farol").forEach { title ->
                 onAllNodes(hasText(title))[0].performTouchInput { longClick() }
-                waitFor(hasText("Added to the library"))
+                waitFor(hasText("$title is in the library"))
                 mainClock.advanceTimeBy(5_000)
             }
             onAllNodes(hasContentDescription("Back"))[0].performClick()

@@ -192,6 +192,15 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-072 | Android e web: entrar com Google, Conta e sincronização, ciclos automáticos, estado e aviso de falha | RF-119, RF-122, RF-125 | UC-015 | SCR-SET-005, SCR-LIB-001 | `ui`, `android`, `web` | sessão no `SecretStore` |
 | FEAT-073 | iOS: entrar com Google e Conta e sincronização em SwiftUI | RF-119, RF-122, RF-125 | UC-015 | SCR-SET-005 | `ios/`, `shared/app` | sessão no Keychain |
 
+### E19 · Leitura marcada à mão e tipos da biblioteca
+
+| ID | Fatia | RF | UC | Telas | Componentes | Dados |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| FEAT-074 | Marcar leitura sem abrir: até um capítulo, nenhum, todos; capítulos buscados na fonte quando faltam; várias obras; "Desfazer" | RF-126, RF-129 | UC-005 | SCR-LIB-001, SCR-LIB-004, SCR-OBR-001 | `library`, `manga` (presentation, ui) | `chapter`, `progress` |
+| FEAT-075 | Botão de pôr na biblioteca nas capas da fonte e da busca, com "Marcar leitura" no aviso | RF-127 | UC-003 | SCR-EXP-002, SCR-SRCH-001 | `explore` (presentation, ui) | `manga` |
+| FEAT-076 | Tudo, HQs e Mangás: tipo por fonte e por obra, sincronizados | RF-128, RF-129 | UC-005 | SCR-LIB-001, SCR-OBR-001, SCR-SRC-002 | `library`, `sources`, `sync` | `manga.shelf` (banco v5), preferência por fonte |
+| FEAT-077 | iOS: as mesmas três fatias em SwiftUI | RF-126 a RF-129 | UC-003, UC-005 | as mesmas | `ios/` | — |
+
 ## 4. Ordem de construção
 
 ```mermaid

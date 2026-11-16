@@ -39,6 +39,7 @@ import coil3.compose.setSingletonImageLoaderFactory
 import com.tiagohs.hqr.data.settings.AppPreferences
 import com.tiagohs.hqr.data.settings.ThemeMode
 import com.tiagohs.hqr.data.sources.SourceConfig
+import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.Updates
@@ -51,6 +52,7 @@ import com.tiagohs.hqr.presentation.reader.ReaderSettingsStore
 import com.tiagohs.hqr.ui.components.DroppedFilesBanner
 import com.tiagohs.hqr.ui.components.OfflineBanner
 import com.tiagohs.hqr.ui.components.hqrImageLoader
+import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.downloads.DownloadsScreen
 import com.tiagohs.hqr.ui.explore.BrowseSourceScreen
 import com.tiagohs.hqr.ui.explore.ExploreScreen
@@ -271,10 +273,18 @@ private fun AppNavigation(dark: Boolean) {
                             onEditServer = { nav.navigate(Route.AddServer(it)) },
                             onOpenServer = { nav.navigate(Route.ServerCatalog(it)) },
                             onBridge = { nav.navigate(Route.Account) },
-                            onSourceSettings = { nav.navigate(Route.SourceSettings) },
+                            onSourceSettings = { id -> nav.navigate(Route.SourceSettings(id)) },
                         )
                     }
-                    screen<Route.SourceSettings> { SourceSettingsScreen(onBack = { nav.popBackStack() }) }
+                    screen<Route.SourceSettings> { back ->
+                        val id = back.toRoute<Route.SourceSettings>().sourceId
+                        val name = koinInject<SourceRegistry>().everything.firstOrNull { it.id.value == id }?.name ?: id
+                        SourceSettingsScreen(
+                            onBack = { nav.popBackStack() },
+                            sourceId = id,
+                            sourceName = sourceDisplayName(SourceId(id), name),
+                        )
+                    }
                     screen<Route.Account> { AccountScreen(onBack = { nav.popBackStack() }) }
                     screen<Route.AddServer> { back -> AddServerScreen(back.toRoute<Route.AddServer>().id, onDone = { nav.popBackStack() }) }
                     screen<Route.ServerCatalog> { back ->

@@ -48,10 +48,12 @@ sealed interface Route {
     @SerialName("downloads")
     data object Downloads : Route
 
-    /** SCR-SRC-002: MangaDex's own settings (RF-06). */
+    /** SCR-SRC-002: a source's settings: its library area (RF-128) and, for MangaDex, its own options (RF-06). */
     @Serializable
     @SerialName("source-settings")
-    data object SourceSettings : Route
+    data class SourceSettings(
+        val sourceId: String = "mangadex",
+    ) : Route
 
     /** SCR-SET-005: account and sync (RF-119 to RF-125). */
     @Serializable

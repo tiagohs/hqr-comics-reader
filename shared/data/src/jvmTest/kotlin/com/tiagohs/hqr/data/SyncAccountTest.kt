@@ -11,6 +11,7 @@ import com.tiagohs.hqr.data.settings.SettingsSecretStore
 import com.tiagohs.hqr.data.sync.HubClient
 import com.tiagohs.hqr.data.sync.SyncAccount
 import com.tiagohs.hqr.data.sync.SyncLocalData
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
@@ -312,6 +313,65 @@ class SyncAccountTest {
             phone.account.syncNow()
             web.account.syncNow()
             web.db.categoryDao().list() shouldBe emptyList()
+        }
+
+    @Test
+    fun RF129_the_shelf_of_a_work_and_of_a_source_follow_the_account() =
+        runTest {
+            val (id, _) = phone.work("x")
+            phone.mangas.setShelf(id, Shelf.COMICS)
+            phone.prefs.setSourceShelf("hqnow", Shelf.MANGA)
+            phone.account.signIn("tiago@example.com")
+            web.account.signIn("tiago@example.com")
+            web.db
+                .mangaDao()
+                .find("mangadex", "x")!!
+                .shelf shouldBe "COMICS"
+            web.prefs.sourceShelves.value shouldBe mapOf("hqnow" to Shelf.MANGA)
+            later()
+            web.mangas.setShelf(
+                web.db
+                    .mangaDao()
+                    .find("mangadex", "x")!!
+                    .id,
+                null,
+            )
+            web.account.syncNow()
+            phone.account.syncNow()
+            phone.db
+                .mangaDao()
+                .find("mangadex", "x")!!
+                .shelf shouldBe null
+        }
+
+    @Test
+    fun RF126_undo_puts_back_the_reading_and_the_pages() =
+        runTest {
+            val (_, chs) = phone.work("x")
+            phone.chapters.saveProgress(chs[2], 7, 20)
+            phone.chapters.setRead(listOf(chs[0], chs[1]), true)
+            val before =
+                phone.chapters.readStates(
+                    phone.db
+                        .mangaDao()
+                        .find("mangadex", "x")!!
+                        .id,
+                )
+            phone.chapters.setRead(chs, false)
+            phone.chapters.restore(before)
+            phone.progress("x", "c3")!!.page shouldBe 7
+            phone.chapter("x", "c1").let {
+                phone.db
+                    .progressDao()
+                    .get(it.id)!!
+                    .read
+            } shouldBe true
+            phone.chapter("x", "c12").let {
+                phone.db
+                    .progressDao()
+                    .get(it.id)!!
+                    .read
+            } shouldBe false
         }
 
     @Test

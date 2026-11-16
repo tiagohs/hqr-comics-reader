@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tiagohs.hqr.domain.model.Category
+import com.tiagohs.hqr.domain.model.ChapterReadState
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.repository.CategoryRepository
 import com.tiagohs.hqr.domain.repository.ChapterRepository
 import com.tiagohs.hqr.domain.repository.Downloads
@@ -31,6 +33,8 @@ class LibraryViewModel(
     private val chapters: ChapterRepository? = null,
     private val downloads: Downloads? = null,
     private val updater: LibraryUpdater? = null,
+    /** RF-128: each source's area as the user set it; the rest follow [Shelf.sourceDefault]. */
+    private val sourceShelves: StateFlow<Map<String, Shelf>> = MutableStateFlow(emptyMap()),
 ) : ViewModel() {
     // RF-57: works picked with a long press.
     private val _picked = MutableStateFlow<Set<Long>>(emptySet())
@@ -54,6 +58,35 @@ class LibraryViewModel(
         val ids = _picked.value
         viewModelScope.launch { ids.forEach { categories.setCategories(it, categoryIds) } }
         clearSelection()
+    }
+
+    /** What a mark of several works changed, for the message and "Desfazer" (RF-126). */
+    data class Marked(
+        val works: Int,
+        val read: Boolean,
+        val states: List<ChapterReadState>,
+    )
+
+    /** RF-126: every chapter of the selected works becomes read, or unread with no page kept. */
+    fun markSelected(
+        read: Boolean,
+        onMarked: (Marked) -> Unit = {},
+    ) {
+        val repo = chapters ?: return
+        val ids = _picked.value
+        viewModelScope.launch {
+            val states = ids.flatMap { repo.readStates(it) }
+            val all = states.map { it.chapterId }
+            repo.setRead(all, read)
+            if (read) downloads?.chaptersRead(all)
+            onMarked(Marked(ids.size, read, states))
+        }
+        clearSelection()
+    }
+
+    fun undoMark(marked: Marked) {
+        val repo = chapters ?: return
+        viewModelScope.launch { repo.restore(marked.states) }
     }
 
     /** RF-57: every chapter of the selected works becomes read. */
@@ -148,8 +181,11 @@ class LibraryViewModel(
         val query: String = "",
         val categories: List<Category> = emptyList(),
         val sourceIds: List<String> = emptyList(),
+        val area: LibraryArea = LibraryArea.ALL,
+        /** RF-128: works in each area, for the counts beside "Tudo", "HQs" and "Mangás". */
+        val areaCounts: Map<LibraryArea, Int> = emptyMap(),
     ) {
-        val isEmpty: Boolean get() = !loading && tabs.firstOrNull()?.count == 0
+        val isEmpty: Boolean get() = !loading && (areaCounts[LibraryArea.ALL] ?: 0) == 0
 
         /** Works exist but the filters or the search hide all of them. */
         val isFilteredOut: Boolean get() = !loading && !isEmpty && items.isEmpty()
@@ -169,21 +205,34 @@ class LibraryViewModel(
 
     val state: StateFlow<State> =
         combine(
-            combine(mangas.observeLibrary(), categories.observe(), ::Pair),
+            combine(mangas.observeLibrary(), categories.observe(), sourceShelves, ::Triple),
             history.observeLatestPerManga(),
             selected,
             options,
             query,
-        ) { (items, cats), latest, tab, opts, text ->
+        ) { (library, cats, shelves), latest, tab, opts, text ->
+            val areaOf = { item: LibraryItem -> Shelf.of(item.manga.shelf, item.manga.sourceId, shelves) }
+            val counts =
+                mapOf(
+                    LibraryArea.ALL to library.size,
+                    LibraryArea.COMICS to library.count { areaOf(it) == Shelf.COMICS },
+                    LibraryArea.MANGA to library.count { areaOf(it) == Shelf.MANGA },
+                )
+            val items =
+                when (opts.area) {
+                    LibraryArea.ALL -> library
+                    LibraryArea.COMICS -> library.filter { areaOf(it) == Shelf.COMICS }
+                    LibraryArea.MANGA -> library.filter { areaOf(it) == Shelf.MANGA }
+                }
             val tabs = tabs(items, cats)
             // A filter on a category or source that no longer exists is dropped, never left hiding everything.
-            val sources = items.map { it.manga.sourceId.value }.toSet()
+            val sources = library.map { it.manga.sourceId.value }.toSet()
             val valid =
                 opts.copy(
                     categories = opts.categories.filter { id -> id == Category.DEFAULT_ID || cats.any { it.id == id } }.toSet(),
                     sources = opts.sources.intersect(sources),
                 )
-            val libraryIds = items.mapTo(HashSet()) { it.manga.id }
+            val libraryIds = library.mapTo(HashSet()) { it.manga.id }
             val current = tabs.firstOrNull { it.id == tab }?.id ?: ALL
             val inTab =
                 items.filter {
@@ -199,6 +248,8 @@ class LibraryViewModel(
                 query = text,
                 categories = cats,
                 sourceIds = items.map { it.manga.sourceId.value }.distinct().sorted(),
+                area = opts.area,
+                areaCounts = counts,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), State())
 
@@ -211,6 +262,9 @@ class LibraryViewModel(
         options.value = value
         optionsStore?.save(value)
     }
+
+    /** RF-128: kept with the other library options. */
+    fun selectArea(area: LibraryArea) = setOptions(options.value.copy(area = area))
 
     /** RF-56. */
     fun search(text: String) {

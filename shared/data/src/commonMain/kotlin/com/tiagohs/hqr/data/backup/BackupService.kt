@@ -111,6 +111,7 @@ class BackupService(
                                     )
                                 },
                         reader = db.readerSettingsDao().get(m.id)?.toBackup(),
+                        shelf = m.shelf,
                     )
                 },
             servers = db.serverDao().list().map { BackupServer(it.sourceId, it.kind, it.name, it.url, it.username) },
@@ -199,6 +200,8 @@ class BackupService(
             }
             read += mergeChapters(mangaId, b.chapters, now)
             if (b.reader != null && db.readerSettingsDao().get(mangaId) == null) db.readerSettingsDao().upsert(b.reader.toEntity(mangaId))
+            // RF-128: a work's own shelf on this device stays.
+            if (b.shelf != null && db.mangaDao().get(mangaId)?.shelf == null) db.mangaDao().setShelf(mangaId, b.shelf)
         }
         val serverDao = db.serverDao()
         val savedServers = serverDao.list().map { it.sourceId }.toSet()
@@ -390,6 +393,7 @@ class BackupService(
                 AppPreferences.DELETE_AFTER_READ to Type.BOOLEAN,
                 AppPreferences.MANGADEX_SUGGESTIVE to Type.BOOLEAN,
                 LIBRARY_OPTIONS to Type.STRING,
+                AppPreferences.SOURCE_SHELVES to Type.STRING,
             )
     }
 }

@@ -364,6 +364,19 @@ Prioridade: Must (lançamento), Should (importante), Could (desejável).
 | RF-124 | O primeiro login deve juntar o que o aparelho tem com o que está na conta, sem duplicar obras (identidade de RF-90), e dizer quanto entrou. | Should | Dado 10 obras no celular e 12 na conta, 8 delas em comum, quando o usuário entra no celular, então a biblioteca fica com 14 obras e aparece "4 obras chegaram da conta". |
 | RF-125 | O estado da sincronização deve aparecer em Ajustes › Conta e sincronização ("Sincronizado há 2 min", "Sincronizando…", erro com o motivo e "Tentar de novo", "Sincronizar agora"); na biblioteca, só uma falha que dura mais de 24 h aparece, como aviso discreto. | Should | Dado o Worker fora do ar por 2 dias, quando o usuário abre a biblioteca, então vê "Não sincroniza há 2 dias" com "Ver detalhes". |
 
+#### 3.1.21 Leitura marcada à mão e tipos da biblioteca
+
+- **HU-25** Eu, como leitor, quero marcar o que já li antes de usar o app (nada, até um capítulo ou tudo) sem abrir o leitor, para a biblioteca mostrar onde estou.
+- **HU-26** Eu, como leitor, quero pôr uma obra na biblioteca direto da grade da fonte ou da busca, sem abrir a obra.
+- **HU-27** Eu, como leitor, quero ver a biblioteca inteira ou só as HQs ou só os mangás.
+
+| ID | Requisito | Prior. | Critério de aceite |
+| :-- | :-- | :-- | :-- |
+| RF-126 | O app deve marcar a leitura de uma obra sem abrir o leitor, numa folha com três opções: nenhum lido, lido até um capítulo (escolhido por botões − e + e por um controle deslizante, com número e título) ou todos lidos. Até um capítulo: os anteriores e ele ficam lidos, os seguintes ficam não lidos e perdem a página guardada. A folha abre pela seleção da biblioteca (uma obra), pelo aviso depois de pôr a obra na biblioteca e pelo menu da obra; sem a lista de capítulos, busca na fonte antes e só libera "Salvar" com ela. Com várias obras selecionadas, oferece só "Li todas" e "Não li nenhuma". Ao salvar, mostra o resultado com "Desfazer". | Must | Dado uma obra com 120 capítulos e nenhum lido, quando o usuário escolhe "lido até o cap. 64" e salva, então os caps. 1 a 64 ficam lidos, a capa mostra a barra em 53% e "56 A LER", e "Desfazer" volta ao estado anterior. |
+| RF-127 | Cada capa nas grades da fonte e da busca global deve ter um botão de 44 pt que põe a obra na biblioteca (ícone de marcador com +) ou mostra que ela já está (círculo cheio com ✓, que tira com "Desfazer"). Ao pôr, o app avisa com a ação "Marcar leitura" (RF-126). O toque longo continua fazendo o mesmo. | Must | Dado "Ronin 2099" fora da biblioteca, quando o usuário toca o botão da capa, então a obra entra na biblioteca, o botão vira ✓ e o aviso oferece "Marcar leitura". |
+| RF-128 | A biblioteca deve ter as áreas Tudo, HQs e Mangás, com a contagem de cada uma, combinadas com as abas de categoria; a escolha fica guardada. O tipo de uma obra vem da fonte (padrão de fábrica: MangaDex, NamiComi, Yomu, Weeb Central e MangaFlix são mangás; o resto, HQs) e pode ser trocado em Ajustes da fonte e, por obra, em "Onde fica na biblioteca" no menu da obra ("Como a fonte", HQs, Mangás). | Must | Dado o MangaDex como mangá e uma obra dele marcada como HQ, quando o usuário escolhe "HQs", então a obra aparece ali e não em "Mangás". |
+| RF-129 | A capa na biblioteca deve mostrar a leitura: barra no pé com a fração lida quando há capítulos lidos e não lidos, o selo "N A LER" com os não lidos e "LIDA!" quando tudo foi lido; o leitor de tela anuncia "64 de 120 lidos". O tipo da obra e o tipo padrão de cada fonte seguem pela conta (RF-121). | Should | Dado uma obra com 3 de 8 lidos, quando a biblioteca abre, então a capa mostra a barra em 38% e "5 A LER". |
+
 ### 3.2 Interfaces externas
 
 | ID | Interface | Uso |

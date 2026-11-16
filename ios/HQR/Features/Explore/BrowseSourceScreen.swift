@@ -16,6 +16,11 @@ struct BrowseSourceScreen: View {
     @State private var naming: SavedSearch??
     @State private var name = ""
     @State private var notice: String?
+    // RF-127: what was just put in the library, with "Marcar leitura"; RF-126: its sheet.
+    @State private var added: (title: String, id: Int64)?
+    @State private var marking: MarkReadingModel?
+    @State private var markingSheet = false
+    @State private var markNotice: String?
 
     private var model: ScreenModel<BrowseSourceViewModel, BrowseSourceViewModel.State> { models.screen }
     private var savedSearches: [SavedSearch] { (models.saved.value as? [SavedSearch]) ?? [] }
@@ -85,6 +90,24 @@ struct BrowseSourceScreen: View {
             Button(L("action_ok"), role: .cancel) {}
         }
         .alert(L("feed_full_favorite"), isPresented: $favorites.feedFull) { Button(L("action_ok"), role: .cancel) {} }
+        .sheet(isPresented: $markingSheet) {
+            if let marking { MarkReadingSheet(model: marking) { saved in markNotice = markReadingDone(saved) } }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let notice = markNotice {
+                UndoBar(text: notice) {
+                    marking?.viewModel.undo()
+                    markNotice = nil
+                } dismiss: { markNotice = nil }
+            } else if let added {
+                ActionBar(text: L("browse_added_named", added.title), actionLabel: L("mark_reading")) {
+                    marking = MarkReadingModel(mangaId: added.id)
+                    markingSheet = true
+                    self.added = nil
+                } dismiss: { self.added = nil }
+                .id(added.id)
+            }
+        }
         .modifier(SearchIf(enabled: state.canSearch, query: $query, prompt: L("search_hint")) {
             model.viewModel.search(query: query, filters: state.filters)
         })
@@ -131,7 +154,7 @@ struct BrowseSourceScreen: View {
         } else {
             CoverGrid(items: state.items) { manga in
                 Button { open(manga) } label: {
-                    CoverCard(manga: manga, inLibrary: state.inLibrary.contains(manga.key))
+                    CoverCard(manga: manga, inLibrary: state.inLibrary.contains(manga.key)) { toggle(manga) }
                 }
                 .buttonStyle(.plain)
                 .contextMenu {
@@ -214,8 +237,15 @@ struct BrowseSourceScreen: View {
         }
     }
 
+    /// RF-52, RF-127: in or out of the library; put in, the bar offers "Marcar leitura".
     private func toggle(_ manga: SourceManga) {
-        launch { _ = try await model.viewModel.toggleLibrary(manga: manga) }
+        launch {
+            let removal = try await model.viewModel.toggleLibrary(manga: manga)
+            if removal == nil {
+                let id = try await model.viewModel.open(manga: manga)
+                added = (manga.title, id.int64Value)
+            }
+        }
     }
 }
 

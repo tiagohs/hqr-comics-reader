@@ -2,7 +2,9 @@ package com.tiagohs.hqr.domain.repository
 
 import com.tiagohs.hqr.domain.model.Category
 import com.tiagohs.hqr.domain.model.Chapter
+import com.tiagohs.hqr.domain.model.ChapterReadState
 import com.tiagohs.hqr.domain.model.Manga
+import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
@@ -46,6 +48,12 @@ interface MangaRepository {
 
     /** Keys already in the library for one source: the "Na biblioteca" badge (RF-26). */
     fun observeLibraryKeys(sourceId: SourceId): Flow<Set<String>>
+
+    /** RF-128: null puts the work back to its source's shelf. */
+    suspend fun setShelf(
+        id: Long,
+        shelf: Shelf?,
+    )
 }
 
 /** What one removal from the library took away. */
@@ -99,6 +107,12 @@ interface ChapterRepository {
         chapterId: Long,
         downloaded: Boolean,
     )
+
+    /** RF-126: the reading of each chapter of a work, for "Desfazer". */
+    suspend fun readStates(mangaId: Long): List<ChapterReadState>
+
+    /** RF-126: puts back what [readStates] returned. */
+    suspend fun restore(states: List<ChapterReadState>)
 }
 
 interface CategoryRepository {

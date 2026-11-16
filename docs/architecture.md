@@ -199,7 +199,7 @@ erDiagram
 | Tabela | Campos principais |
 | :-- | :-- |
 | `source` | `id` (constante no código; servidor OPDS: UUID gerado no cadastro), `kind`, `name`, `lang`, `schemaVersion`, `enabled`, `settings` (JSON) |
-| `manga` | `id`, `sourceId`, `key` (único com `sourceId`), `url`, título, títulos alternativos, capa, autores, artistas, status, gêneros e tags, idioma original, sinopse, `inLibrary`, `addedAt`, `lastFetchedAt`, `coverColor` (cor-semente da capa e hash da capa usada; `null` = violeta) |
+| `manga` | `id`, `sourceId`, `key` (único com `sourceId`), `url`, título, títulos alternativos, capa, autores, artistas, status, gêneros e tags, idioma original, sinopse, `inLibrary`, `addedAt`, `lastFetchedAt`, `coverColor` (cor-semente da capa e hash da capa usada; `null` = violeta), `shelf` (HQs ou Mangás escolhido na obra; `null` segue a fonte, RF-128) |
 | `manga_reader_settings` | `mangaId`, modo, escala, zonas, fundo, página dupla, cortar bordas (só o que a obra muda; o resto vem do padrão global) |
 | `chapter` | `id`, `mangaId`, `key`, `number` (decimal), título, idioma, grupo e `groupUrl`, `uploadedAt`, `fetchedAt` (novo até a obra ser aberta de novo), `removedAtSource`, `externalUrl` |
 | `hidden_group` | `mangaId`, grupo |

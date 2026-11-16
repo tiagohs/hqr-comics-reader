@@ -33,10 +33,8 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -61,6 +59,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tiagohs.hqr.domain.model.SourceId
+import com.tiagohs.hqr.domain.model.SourceManga
 import com.tiagohs.hqr.domain.repository.SavedSearch
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel
 import com.tiagohs.hqr.presentation.browse.BrowseSourceViewModel.Listing
@@ -72,7 +71,6 @@ import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.DotsLoader
 import com.tiagohs.hqr.ui.components.EmptyState
 import com.tiagohs.hqr.ui.components.ErrorState
-import com.tiagohs.hqr.ui.components.InLibraryBadge
 import com.tiagohs.hqr.ui.components.InlineError
 import com.tiagohs.hqr.ui.components.Skeleton
 import com.tiagohs.hqr.ui.components.importMessage
@@ -80,6 +78,8 @@ import com.tiagohs.hqr.ui.components.message
 import com.tiagohs.hqr.ui.components.sharedCover
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.components.sourceMessage
+import com.tiagohs.hqr.ui.library.MarkReadingSheetHost
+import com.tiagohs.hqr.ui.library.rememberMarkReadingHost
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_cancel
@@ -89,11 +89,8 @@ import com.tiagohs.hqr.ui.resources.action_open_browser
 import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.action_save
 import com.tiagohs.hqr.ui.resources.action_search
-import com.tiagohs.hqr.ui.resources.action_undo
 import com.tiagohs.hqr.ui.resources.bridge_configure
 import com.tiagohs.hqr.ui.resources.bridge_needed
-import com.tiagohs.hqr.ui.resources.browse_added
-import com.tiagohs.hqr.ui.resources.browse_in_library
 import com.tiagohs.hqr.ui.resources.browse_latest
 import com.tiagohs.hqr.ui.resources.browse_no_results
 import com.tiagohs.hqr.ui.resources.browse_no_results_message
@@ -113,7 +110,6 @@ import com.tiagohs.hqr.ui.resources.files_empty_title
 import com.tiagohs.hqr.ui.resources.files_import
 import com.tiagohs.hqr.ui.resources.filter_active
 import com.tiagohs.hqr.ui.resources.filter_title
-import com.tiagohs.hqr.ui.resources.library_removed
 import com.tiagohs.hqr.ui.resources.local_no_folder
 import com.tiagohs.hqr.ui.resources.local_no_folder_message
 import com.tiagohs.hqr.ui.resources.manga_add_library
@@ -130,7 +126,6 @@ import com.tiagohs.hqr.ui.resources.source_unfavorite
 import com.tiagohs.hqr.ui.settings.rememberFolderPicker
 import com.tiagohs.hqr.ui.theme.HqrIcons
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.getKoin
 import org.koin.compose.viewmodel.koinViewModel
@@ -185,6 +180,11 @@ fun BrowseSourceScreen(
     }
 
     val snackbar = remember { SnackbarHostState() }
+    val marking = rememberMarkReadingHost()
+    val toggle: suspend (SourceManga) -> Unit = { manga ->
+        toggleInLibrary(manga, snackbar, marking, viewModel::toggleLibrary, viewModel::undoToggle, viewModel::open)
+    }
+    MarkReadingSheetHost(marking, snackbar)
     var menu by remember { mutableStateOf(false) }
     val savedSearches by viewModel.savedSearches.collectAsStateWithLifecycle()
     var naming by remember { mutableStateOf<SavedName?>(null) }
@@ -419,26 +419,7 @@ fun BrowseSourceScreen(
                                     // RF-52: a long press puts the work in the library or takes it out, with "Desfazer".
                                     Modifier.combinedClickable(
                                         onClick = { scope.launch { onOpenManga(viewModel.open(manga)) } },
-                                        onLongClick = {
-                                            scope.launch {
-                                                val removal = viewModel.toggleLibrary(manga)
-                                                val result =
-                                                    snackbar.showSnackbar(
-                                                        getString(
-                                                            if (removal ==
-                                                                null
-                                                            ) {
-                                                                Res.string.browse_added
-                                                            } else {
-                                                                Res.string.library_removed
-                                                            },
-                                                        ),
-                                                        getString(Res.string.action_undo),
-                                                        duration = SnackbarDuration.Long,
-                                                    )
-                                                if (result == SnackbarResult.ActionPerformed) viewModel.undoToggle(manga, removal)
-                                            }
-                                        },
+                                        onLongClick = { scope.launch { toggle(manga) } },
                                         onLongClickLabel =
                                             stringResource(
                                                 if (manga.key in
@@ -453,7 +434,8 @@ fun BrowseSourceScreen(
                                     verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
                                     Cover(manga, Modifier.sharedCover(manga)) {
-                                        if (manga.key in state.inLibrary) InLibraryBadge(stringResource(Res.string.browse_in_library))
+                                        // RF-127: in or out of the library without opening the work.
+                                        LibraryToggleButton(manga.title, manga.key in state.inLibrary) { scope.launch { toggle(manga) } }
                                     }
                                     Text(
                                         manga.title,

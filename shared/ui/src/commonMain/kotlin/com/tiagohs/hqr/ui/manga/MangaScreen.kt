@@ -226,7 +226,7 @@ private fun MangaContent(
         ShelfDialog(
             title = manga.title,
             sourceName = sourceDisplayName(manga.sourceId, manga.sourceId.value),
-            sourceShelf = Shelf.of(null, manga.sourceId, shelves),
+            sourceShelf = Shelf.of(null, manga.sourceId, shelves, manga.source.kind),
             current = manga.shelf,
             onDismiss = { choosingShelf = false },
         ) {

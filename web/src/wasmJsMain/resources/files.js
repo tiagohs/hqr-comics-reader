@@ -95,21 +95,46 @@
 
   // PDF pages by pdf.js (ADR-011), the open document kept for the next pages.
   let openPdf = null;
-  function pdfDocument(name) {
+  function pdfDocumentFrom(key, load) {
     // The promise is kept, so pages asked together share one load and never destroy each other's document.
-    if (openPdf && openPdf.name === name) return openPdf.promise;
+    if (openPdf && openPdf.name === key) return openPdf.promise;
     const previous = openPdf;
     const promise = (async () => {
       const lib = await import(new URL('pdf.min.mjs', document.baseURI).href);
       lib.GlobalWorkerOptions.workerSrc = new URL('pdf.worker.min.mjs', document.baseURI).href;
-      const dir = await folder();
-      const file = await (await dir.getFileHandle(name)).getFile();
-      return lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
+      return lib.getDocument({ data: await load(), isEvalSupported: false }).promise;
     })();
-    openPdf = { name, promise };
+    openPdf = { name: key, promise };
     if (previous) previous.promise.then((doc) => doc.destroy(), () => {});
     promise.catch(() => { if (openPdf && openPdf.promise === promise) openPdf = null; });
     return promise;
+  }
+
+  function pdfDocument(name) {
+    return pdfDocumentFrom(name, async () => {
+      const dir = await folder();
+      const file = await (await dir.getFileHandle(name)).getFile();
+      return new Uint8Array(await file.arrayBuffer());
+    });
+  }
+
+  // The Drive's PDFs come from the Worker (RF-131), with the account's session.
+  function pdfRemote(url, token) {
+    return pdfDocumentFrom('url:' + url, async () => {
+      const response = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+      if (!response.ok) throw new Error('PDF ' + response.status);
+      return new Uint8Array(await response.arrayBuffer());
+    });
+  }
+
+  async function renderPage(doc, index) {
+    const page = await doc.getPage(index + 1);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = new OffscreenCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    page.cleanup();
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+    return new Int8Array(await blob.arrayBuffer());
   }
 
   async function pdfPageCount(name) {
@@ -117,13 +142,15 @@
   }
 
   async function pdfRender(name, index) {
-    const page = await (await pdfDocument(name)).getPage(index + 1);
-    const viewport = page.getViewport({ scale: 2 });
-    const canvas = new OffscreenCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-    page.cleanup();
-    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
-    return new Int8Array(await blob.arrayBuffer());
+    return renderPage(await pdfDocument(name), index);
+  }
+
+  async function pdfPageCountUrl(url, token) {
+    return (await pdfRemote(url, token)).numPages;
+  }
+
+  async function pdfRenderUrl(url, token, index) {
+    return renderPage(await pdfRemote(url, token), index);
   }
 
   async function persist() {
@@ -143,7 +170,7 @@
 
   window.hqrFiles = {
     available: !!(navigator.storage && navigator.storage.getDirectory),
-    pick, list, read, remove, usage, persist, pdfPageCount, pdfRender,
+    pick, list, read, remove, usage, persist, pdfPageCount, pdfRender, pdfPageCountUrl, pdfRenderUrl,
     onChange: (cb) => listeners.push(cb),
     onDrop: (cb) => window.addEventListener('hqr-dropped', (e) => cb(e.detail)),
   };

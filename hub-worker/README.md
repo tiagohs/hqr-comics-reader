@@ -9,6 +9,7 @@ aparelhos, a ponte das fontes online na web e o próprio app web nos assets. Só
 | `POST /api/v1/auth/signout` | Encerra a sessão |
 | `POST /api/v1/sync` | `{cursor, changes}` → `{cursor, changes, more}` |
 | `GET /api/v1/config` | O client id web do Google (público) |
+| `GET /api/v1/drive/works`, `works/:id`, `chapters/:id`, `files/:id` | O Meu Drive (ADR-030), com a sessão |
 | `GET\|HEAD\|POST /bridge/fetch?url=…` | A ponte, com a sessão |
 | o resto | O app web (`web/build/dist/wasmJs/productionExecutable`) |
 
@@ -29,6 +30,21 @@ aparelhos, a ponte das fontes online na web e o próprio app web nos assets. Só
    `HQR_GOOGLE_IOS_CLIENT_ID = <id>.apps.googleusercontent.com`.
 
 Sem esses passos, o app funciona como antes, só que sem conta.
+
+## Meu Drive (ADR-030)
+
+1. **Google Cloud:** ative a *Google Drive API* e crie uma conta de serviço (IAM › Contas de serviço); em *Chaves*, crie uma chave JSON.
+2. **Drive:** em `Documentos/hqr`, *Compartilhar* com o e-mail da conta de serviço (`…@….iam.gserviceaccount.com`) como **Leitor**.
+3. **Secrets do Worker:**
+   ```bash
+   cd hub-worker
+   npx wrangler@4.42.0 secret put DRIVE_SERVICE_ACCOUNT < caminho/da/chave.json
+   npx wrangler@4.42.0 secret put DRIVE_ROOT_ID     # o id da pasta hqr: o trecho final de drive.google.com/drive/folders/<id>
+   ```
+4. **Pastas:** `hqr/mangas/<obra>/` e `hqr/hqs/<obra>/`, cada obra com `poster.png` (ou `.jpg`), `info.json` e os capítulos: pastas `01`, `02`… com as páginas (qualquer nome; a ordem é a dos números) ou um PDF por capítulo (`01.pdf`, `02.pdf`…). Pode misturar.
+
+`info.json`, tudo opcional: `title`, `alternativeTitles`, `authors`, `artists`, `status` (`ongoing`, `completed`, `hiatus`, `cancelled`),
+`genres`, `description`, `language` (`pt-br`), `chapters` (`{"01": "Título"}`).
 
 ## Desenvolvimento
 

@@ -1,6 +1,7 @@
 // HQR personal Worker (ADR-027): Google sign-in, sync, the bridge to the online sources and the web app.
 
 import { handleBridgeFetch } from "./bridge";
+import { type DriveEnv, handleDrive } from "./drive";
 import { googleKeys, type KeySource, verifyGoogleIdToken } from "./google";
 import { createSession, deleteSession, findSession } from "./session";
 import { parseSyncRequest, sync } from "./sync";
@@ -8,7 +9,7 @@ import { parseSyncRequest, sync } from "./sync";
 export const HUB_VERSION = 1;
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
 
-export interface Env {
+export interface Env extends DriveEnv {
   DB: D1Database;
   ASSETS?: Fetcher;
   /** Comma-separated emails allowed to sign in (secret). */
@@ -95,6 +96,7 @@ export async function handle(request: Request, env: Env, deps: Deps): Promise<Re
     if (path === "/bridge/fetch") return handleBridgeFetch(request, env.HOSTS, deps.fetch, json);
     return json(404, { error: "path" });
   }
+  if (path.startsWith("/api/v1/drive/")) return handleDrive(request, env, deps.fetch, deps.now, json);
   switch (path) {
     case "/api/v1/me":
       return json(200, { email: session.email });

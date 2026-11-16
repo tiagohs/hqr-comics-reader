@@ -1,6 +1,7 @@
 package com.tiagohs.hqr.domain
 
 import com.tiagohs.hqr.domain.model.Chapter
+import com.tiagohs.hqr.domain.model.ReadingKind
 import com.tiagohs.hqr.domain.model.ReadingMark
 import com.tiagohs.hqr.domain.model.ReadingMarks
 import com.tiagohs.hqr.domain.model.Shelf
@@ -56,6 +57,16 @@ class ReadingMarksTest {
         Shelf.of(null, SourceId.LOCAL, emptyMap()) shouldBe Shelf.COMICS
         Shelf.of(null, SourceId.MANGADEX, mapOf("mangadex" to Shelf.COMICS)) shouldBe Shelf.COMICS
         Shelf.of(Shelf.MANGA, SourceId.HQ_NOW, mapOf("hqnow" to Shelf.COMICS)) shouldBe Shelf.MANGA
+    }
+
+    @Test
+    fun RF130_a_drive_work_takes_its_shelf_from_the_folder_it_is_in() {
+        val drive = SourceId("drive")
+        Shelf.of(null, drive, emptyMap(), ReadingKind.MANGA) shouldBe Shelf.MANGA
+        Shelf.of(null, drive, emptyMap(), ReadingKind.COMIC) shouldBe Shelf.COMICS
+        // The user's own choice for the work still wins; other sources ignore the kind.
+        Shelf.of(Shelf.COMICS, drive, emptyMap(), ReadingKind.MANGA) shouldBe Shelf.COMICS
+        Shelf.of(null, SourceId.HQ_NOW, emptyMap(), ReadingKind.MANGA) shouldBe Shelf.COMICS
     }
 
     @Test

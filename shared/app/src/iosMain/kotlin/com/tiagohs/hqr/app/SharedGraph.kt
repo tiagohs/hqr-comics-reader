@@ -48,6 +48,8 @@ import com.tiagohs.hqr.presentation.sources.SourcesViewModel
 import com.tiagohs.hqr.sources.archive.InternetArchiveSource
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import com.tiagohs.hqr.sources.local.FileTree
+import com.tiagohs.hqr.sources.drive.DownloadedPdfRenderer
+import com.tiagohs.hqr.sources.drive.DriveSource
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.local.OkioFileTree
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
@@ -262,6 +264,15 @@ private fun accountModule(hubUrl: String): Module =
         single(DeviceName) { if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) "iPad" else "iPhone" }
         if (hubUrl.isNotBlank()) {
             single { HubClient(com.tiagohs.hqr.data.net.httpClient(), hubUrl.trimEnd('/')) }
+            // RF-130: the Drive is read by the Worker, so it exists where the account does.
+            single {
+                DriveSource(
+                    get(),
+                    hubUrl = { hubUrl.trimEnd('/') },
+                    session = { get<com.tiagohs.hqr.data.sync.SyncAccount>().token() },
+                    pdf = DownloadedPdfRenderer(get(), IosPdfEngine()),
+                )
+            }
             single<GoogleIdTokens> { GoogleIdTokens { null } }
         }
     }
@@ -328,8 +339,9 @@ private fun iosModule(
                 get<YomuSource>(),
                 get<WeebCentralSource>(),
                 get<XoxoSource>(),
+                getOrNull<DriveSource>(),
                 get<LocalSource>(),
-            )
+            ).filterNotNull()
         }
         single<SourceListFetcher> { if (uiTest) SourceListFetcher { null } else HttpSourceListFetcher(get()) }
         // RF-17: server passwords in the Keychain, never in the backup (RF-72).

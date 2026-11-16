@@ -13,14 +13,29 @@ enum class Shelf {
         /** Sources whose works are mangás out of the box; every other source (and files, servers) is HQs. */
         val MANGA_SOURCES = setOf("mangadex", "namicomi", "yomu", "weebcentral", "mangaflix")
 
+        /** Sources that say the area of each work themselves (the Drive's `mangas` and `hqs` folders, RF-130). */
+        val KIND_SOURCES = setOf("drive")
+
         fun sourceDefault(sourceId: SourceId): Shelf = if (sourceId.value in MANGA_SOURCES) MANGA else COMICS
 
-        /** The work's own choice, else the source's (set by the user), else the factory default. */
+        /** The work's own choice, else the kind a [KIND_SOURCES] source gave it, else the source's, else the factory default. */
         fun of(
             own: Shelf?,
             sourceId: SourceId,
             sourceShelves: Map<String, Shelf>,
-        ): Shelf = own ?: sourceShelves[sourceId.value] ?: sourceDefault(sourceId)
+            kind: ReadingKind = ReadingKind.UNKNOWN,
+        ): Shelf = own ?: byKind(sourceId, kind) ?: sourceShelves[sourceId.value] ?: sourceDefault(sourceId)
+
+        private fun byKind(
+            sourceId: SourceId,
+            kind: ReadingKind,
+        ): Shelf? =
+            when {
+                sourceId.value !in KIND_SOURCES -> null
+                kind == ReadingKind.MANGA || kind == ReadingKind.MANHWA -> MANGA
+                kind == ReadingKind.COMIC -> COMICS
+                else -> null
+            }
 
         /** "mangadex=COMICS,hqnow=MANGA": one preference that follows the account. */
         fun encode(map: Map<String, Shelf>): String = map.entries.sortedBy { it.key }.joinToString(",") { "${it.key}=${it.value.name}" }

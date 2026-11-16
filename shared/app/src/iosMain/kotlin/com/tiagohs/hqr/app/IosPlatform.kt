@@ -8,6 +8,7 @@ import com.tiagohs.hqr.data.download.FreeSpace
 import com.tiagohs.hqr.data.net.ChallengeCookies
 import com.tiagohs.hqr.domain.repository.Connectivity
 import com.tiagohs.hqr.domain.repository.DownloadScheduler
+import com.tiagohs.hqr.sources.drive.PdfEngine
 import com.tiagohs.hqr.sources.local.PdfPages
 import io.ktor.http.Url
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -30,6 +31,7 @@ import platform.CoreGraphics.CGContextConcatCTM
 import platform.CoreGraphics.CGContextDrawPDFPage
 import platform.CoreGraphics.CGContextScaleCTM
 import platform.CoreGraphics.CGContextTranslateCTM
+import platform.CoreGraphics.CGDataProviderCreateWithData
 import platform.CoreGraphics.CGDataProviderCreateWithFilename
 import platform.CoreGraphics.CGDataProviderRelease
 import platform.CoreGraphics.CGPDFDocumentCreateWithProvider
@@ -142,33 +144,7 @@ class IosPdfPages(
         path: String,
         page: Int,
     ): ByteArray =
-        withDocument(path) { document ->
-            val pdfPage = CGPDFDocumentGetPage(document, (page + 1).convert()) ?: error("Página $page ausente")
-            val (boxWidth, boxHeight) = CGPDFPageGetBoxRect(pdfPage, kCGPDFCropBox).useContents { size.width to size.height }
-            // A page turned 90° is drawn upright: its width is the box's height.
-            val turned = CGPDFPageGetRotationAngle(pdfPage) % HALF_TURN != 0
-            val width = (if (turned) boxHeight else boxWidth).takeIf { it > 0 } ?: WIDTH
-            val height = (if (turned) boxWidth else boxHeight).takeIf { it > 0 } ?: WIDTH
-            val outHeight = height * WIDTH / width
-            val format = UIGraphicsImageRendererFormat().apply { setScale(1.0) }
-            val renderer = UIGraphicsImageRenderer(CGSizeMake(WIDTH, outHeight), format)
-            val image =
-                renderer.imageWithActions { context ->
-                    UIColor.whiteColor.setFill()
-                    UIRectFill(CGRectMake(0.0, 0.0, WIDTH, outHeight))
-                    val cg = context?.CGContext
-                    CGContextTranslateCTM(cg, 0.0, outHeight)
-                    CGContextScaleCTM(cg, 1.0, -1.0)
-                    // The system's transform places the crop box (origin and rotation) in the rectangle.
-                    val transform = CGPDFPageGetDrawingTransform(pdfPage, kCGPDFCropBox, CGRectMake(0.0, 0.0, WIDTH, outHeight), 0, true)
-                    CGContextConcatCTM(cg, transform)
-                    CGContextDrawPDFPage(cg, pdfPage)
-                }
-            val data = UIImageJPEGRepresentation(image, QUALITY) ?: error("Página $page sem imagem")
-            ByteArray(data.length.toInt()).also { bytes ->
-                if (bytes.isNotEmpty()) bytes.usePinned { memcpy(it.addressOf(0), data.bytes, data.length) }
-            }
-        }
+        withDocument(path) { document -> renderPdfPage(document, page) }
 
     private suspend fun <T> withDocument(
         path: String,
@@ -185,12 +161,75 @@ class IosPdfPages(
                 CGPDFDocumentRelease(document)
             }
         }
+}
 
-    private companion object {
-        const val WIDTH = 1600.0
-        const val QUALITY = 0.9
-        const val HALF_TURN = 180
+/** One page of a PDF as JPEG, at most [PDF_WIDTH] pixels wide, upright and on white. */
+private fun renderPdfPage(
+    document: CGPDFDocumentRef,
+    page: Int,
+): ByteArray {
+    val pdfPage = CGPDFDocumentGetPage(document, (page + 1).convert()) ?: error("Página $page ausente")
+    val (boxWidth, boxHeight) = CGPDFPageGetBoxRect(pdfPage, kCGPDFCropBox).useContents { size.width to size.height }
+    // A page turned 90° is drawn upright: its width is the box's height.
+    val turned = CGPDFPageGetRotationAngle(pdfPage) % PDF_HALF_TURN != 0
+    val width = (if (turned) boxHeight else boxWidth).takeIf { it > 0 } ?: PDF_WIDTH
+    val height = (if (turned) boxWidth else boxHeight).takeIf { it > 0 } ?: PDF_WIDTH
+    val outHeight = height * PDF_WIDTH / width
+    val format = UIGraphicsImageRendererFormat().apply { setScale(1.0) }
+    val renderer = UIGraphicsImageRenderer(CGSizeMake(PDF_WIDTH, outHeight), format)
+    val image =
+        renderer.imageWithActions { context ->
+            UIColor.whiteColor.setFill()
+            UIRectFill(CGRectMake(0.0, 0.0, PDF_WIDTH, outHeight))
+            val cg = context?.CGContext
+            CGContextTranslateCTM(cg, 0.0, outHeight)
+            CGContextScaleCTM(cg, 1.0, -1.0)
+            // The system's transform places the crop box (origin and rotation) in the rectangle.
+            val transform = CGPDFPageGetDrawingTransform(pdfPage, kCGPDFCropBox, CGRectMake(0.0, 0.0, PDF_WIDTH, outHeight), 0, true)
+            CGContextConcatCTM(cg, transform)
+            CGContextDrawPDFPage(cg, pdfPage)
+        }
+    val data = UIImageJPEGRepresentation(image, PDF_QUALITY) ?: error("Página $page sem imagem")
+    return ByteArray(data.length.toInt()).also { bytes ->
+        if (bytes.isNotEmpty()) bytes.usePinned { memcpy(it.addressOf(0), data.bytes, data.length) }
     }
+}
+
+private const val PDF_WIDTH = 1600.0
+private const val PDF_QUALITY = 0.9
+private const val PDF_HALF_TURN = 180
+
+/** RF-131: the PDF of the Drive, in memory, drawn with Core Graphics like the PDFs of the folder. */
+class IosPdfEngine : PdfEngine {
+    override suspend fun pageCount(
+        key: String,
+        bytes: ByteArray,
+    ): Int = withDocument(bytes) { CGPDFDocumentGetNumberOfPages(it).toInt() }
+
+    override suspend fun render(
+        key: String,
+        bytes: ByteArray,
+        page: Int,
+    ): ByteArray = withDocument(bytes) { renderPdfPage(it, page) }
+
+    private suspend fun <T> withDocument(
+        bytes: ByteArray,
+        block: (CGPDFDocumentRef) -> T,
+    ): T =
+        withContext(Dispatchers.IO) {
+            if (bytes.isEmpty()) error("PDF vazio")
+            bytes.usePinned { pinned ->
+                val provider = CGDataProviderCreateWithData(null, pinned.addressOf(0), bytes.size.convert(), null) ?: error("PDF ilegível")
+                val document = CGPDFDocumentCreateWithProvider(provider)
+                CGDataProviderRelease(provider)
+                if (document == null) error("PDF ilegível")
+                try {
+                    block(document)
+                } finally {
+                    CGPDFDocumentRelease(document)
+                }
+            }
+        }
 }
 
 /**

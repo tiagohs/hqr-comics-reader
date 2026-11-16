@@ -292,7 +292,7 @@ object IosBridge {
     fun shelfOf(
         manga: Manga,
         shelves: Map<String, Shelf>,
-    ): Shelf = Shelf.of(manga.shelf, manga.sourceId, shelves)
+    ): Shelf = Shelf.of(manga.shelf, manga.sourceId, shelves, manga.source.kind)
 
     fun sourceShelf(
         sourceId: String,

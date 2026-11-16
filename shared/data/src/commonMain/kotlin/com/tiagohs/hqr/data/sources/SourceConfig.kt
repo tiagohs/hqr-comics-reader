@@ -219,6 +219,7 @@ class SourceConfig(
     { "id": "yomu", "enabled": true, "baseUrl": "https://api.yomumangas.com" },
     { "id": "weebcentral", "enabled": true },
     { "id": "xoxo", "enabled": true },
+    { "id": "drive", "enabled": true },
     { "id": "local", "enabled": true }
   ]
 }

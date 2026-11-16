@@ -200,6 +200,7 @@ Coluna "RF": "(parc.)" quando a fatia entrega só parte do requisito. As telas s
 | FEAT-075 | Botão de pôr na biblioteca nas capas da fonte e da busca, com "Marcar leitura" no aviso | RF-127 | UC-003 | SCR-EXP-002, SCR-SRCH-001 | `explore` (presentation, ui) | `manga` |
 | FEAT-076 | Tudo, HQs e Mangás: tipo por fonte e por obra, sincronizados | RF-128, RF-129 | UC-005 | SCR-LIB-001, SCR-OBR-001, SCR-SRC-002 | `library`, `sources`, `sync` | `manga.shelf` (banco v5), preferência por fonte |
 | FEAT-077 | iOS: as mesmas três fatias em SwiftUI | RF-126 a RF-129 | UC-003, UC-005 | as mesmas | `ios/` | — |
+| FEAT-078 | Meu Drive: fonte das pastas `hqr/mangas` e `hqr/hqs`, lida pelo Worker; o tipo vem da pasta | RF-130, RF-128 | UC-002, UC-003 | SCR-EXP-002, SCR-SRC-001 | `sources/drive`, `hub-worker` | `Shelf.of` com o tipo da obra |
 
 ## 4. Ordem de construção
 

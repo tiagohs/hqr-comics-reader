@@ -67,7 +67,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | SCR-RDR-003 | Transição entre capítulos | RF-42, RF-98 | UC-004 |
 | SCR-HIS-001 | Histórico por dia | RF-59 a RF-61 | UC-006 |
 | SCR-DL-001 | Downloads: fila e baixados | RF-62 a RF-68, RF-94 | UC-007 |
-| SCR-SRC-001 | Fontes, pastas e servidores | RF-03, RF-13 a RF-16, RF-17, RF-85, RF-99 a RF-105, RF-114 | UC-008, UC-009, UC-012, UC-014 |
+| SCR-SRC-001 | Fontes, pastas e servidores | RF-03, RF-13 a RF-16, RF-17, RF-85, RF-99 a RF-105, RF-114, RF-130 | UC-008, UC-009, UC-012, UC-014 |
 | SCR-SRV-001 | Adicionar servidor | RF-17 a RF-19, RF-95, RF-96, RF-111 | UC-009 |
 | SCR-SRV-002 | Catálogo do servidor: pastas, busca, volumes | RF-18, RF-20 | UC-009 |
 | SCR-SRC-002 | Ajustes da fonte (idiomas, qualidade; conteúdo sugestivo após 18+) | RF-06, RF-08, RF-10 | UC-012 |

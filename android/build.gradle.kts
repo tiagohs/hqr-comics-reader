@@ -104,6 +104,7 @@ dependencies {
     implementation(project(":sources:archive"))
     implementation(project(":sources:namicomi"))
     implementation(project(":sources:mangaflix"))
+    implementation(project(":sources:drive"))
     implementation(project(":sources:yomu"))
     implementation(project(":sources:weebcentral"))
     implementation(project(":sources:xoxo"))

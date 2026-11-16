@@ -24,6 +24,7 @@ import com.tiagohs.hqr.data.sources.HttpSourceListFetcher
 import com.tiagohs.hqr.data.sources.SourceConfig
 import com.tiagohs.hqr.data.sources.SourceListFetcher
 import com.tiagohs.hqr.data.sync.HubClient
+import com.tiagohs.hqr.data.sync.SyncAccount
 import com.tiagohs.hqr.data.update.ReleaseChecker
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.repository.Connectivity
@@ -33,6 +34,7 @@ import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.archive.InternetArchiveSource
+import com.tiagohs.hqr.sources.drive.DriveSource
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import com.tiagohs.hqr.sources.local.AndroidPdfPages
 import com.tiagohs.hqr.sources.local.FileTree
@@ -74,7 +76,11 @@ class HqrApplication : Application() {
     private fun accountModule() =
         module {
             single(DeviceName) { "Android" }
-            if (BuildConfig.HUB_URL.isNotBlank()) single { HubClient(httpClient(), BuildConfig.HUB_URL.trimEnd('/')) }
+            if (BuildConfig.HUB_URL.isNotBlank()) {
+                single { HubClient(httpClient(), BuildConfig.HUB_URL.trimEnd('/')) }
+                // RF-130: the Drive is read by the Worker, so it exists where the account does.
+                single { DriveSource(get(), hubUrl = { BuildConfig.HUB_URL.trimEnd('/') }, session = { get<SyncAccount>().token() }) }
+            }
             if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
                 single<GoogleIdTokens> { CredentialManagerSignIn(BuildConfig.GOOGLE_WEB_CLIENT_ID, currentActivity::get) }
             }
@@ -150,8 +156,9 @@ class HqrApplication : Application() {
                     get<YomuSource>(),
                     get<WeebCentralSource>(),
                     get<XoxoSource>(),
+                    getOrNull<DriveSource>(),
                     get<LocalSource>(),
-                )
+                ).filterNotNull()
             }
         }
 

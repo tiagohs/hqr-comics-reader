@@ -22,6 +22,7 @@ import com.tiagohs.hqr.data.net.httpClient
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.local.FileTree
 import com.tiagohs.hqr.sources.local.ImportedFiles
+import com.tiagohs.hqr.sources.drive.DriveSource
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.mangadex.MangaDexSource
 import com.tiagohs.hqr.data.settings.AppPreferences
@@ -121,6 +122,8 @@ fun main() {
                 single { YomuSource(get(), apiUrl = { get<SourceConfig>().baseUrl(YomuSource.ID) ?: YomuSource.API }) }
                 single { WeebCentralSource(get()) }
                 single { XoxoSource(get()) }
+                // RF-130: the Drive, read by the Worker the app is served from.
+                single { DriveSource(get(), hubUrl = { origin }, session = { get<SyncAccount>().token() }) }
                 single<List<Source>>(BuiltInSources) {
                     listOf(
                             get<MangaDexSource>(),
@@ -131,6 +134,7 @@ fun main() {
                             get<YomuSource>(),
                             get<WeebCentralSource>(),
                             get<XoxoSource>(),
+                            get<DriveSource>(),
                             get<LocalSource>(),
                         )
                 }

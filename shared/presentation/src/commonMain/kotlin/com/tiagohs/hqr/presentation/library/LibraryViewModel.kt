@@ -211,7 +211,7 @@ class LibraryViewModel(
             options,
             query,
         ) { (library, cats, shelves), latest, tab, opts, text ->
-            val areaOf = { item: LibraryItem -> Shelf.of(item.manga.shelf, item.manga.sourceId, shelves) }
+            val areaOf = { item: LibraryItem -> Shelf.of(item.manga.shelf, item.manga.sourceId, shelves, item.manga.source.kind) }
             val counts =
                 mapOf(
                     LibraryArea.ALL to library.size,

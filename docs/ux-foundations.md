@@ -62,7 +62,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | SCR-SRCH-001 | Busca global agrupada por fonte, pôr na biblioteca pela capa | RF-23, RF-26 a RF-28, RF-127 | UC-001 |
 | SCR-OBR-001 | Obra: capa, tags, "Continuar", capítulos que chegam depois, cor da capa | RF-29 a RF-35, RF-07, RF-11, RF-12, RF-92, RF-93, RF-98, RF-117 | UC-003 |
 | SCR-OBR-002 | Migrar ou juntar | RF-69 a RF-71 | UC-010 |
-| SCR-RDR-001 | Leitor: páginas, menu, barra de páginas, quadro a quadro | RF-36 a RF-41, RF-43 a RF-51, RF-97, RF-98, RF-113 | UC-004 |
+| SCR-RDR-001 | Leitor: páginas, menu, barra de páginas, quadro a quadro | RF-36 a RF-41, RF-43 a RF-51, RF-97, RF-98, RF-113, RF-131 | UC-004 |
 | SCR-RDR-002 | Ajustes do leitor (folha) | RF-36 a RF-39, RF-44 a RF-50, RF-98 | UC-004 |
 | SCR-RDR-003 | Transição entre capítulos | RF-42, RF-98 | UC-004 |
 | SCR-HIS-001 | Histórico por dia | RF-59 a RF-61 | UC-006 |

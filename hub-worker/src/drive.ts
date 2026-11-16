@@ -1,6 +1,6 @@
 // "Meu Drive" (RF-130): reads the user's own folder through a Google service account and serves it to the app.
 // The folder `hqr` (DRIVE_ROOT_ID) holds `mangas/` and `hqs/`; each work is a folder with a poster, an info JSON and
-// one subfolder per chapter ("01", "02"…) full of page images. No Google SDK: a signed JWT for the token, REST for the rest.
+// one subfolder per chapter ("01", "02"…) full of page images, or one PDF per chapter ("01.pdf"). No Google SDK: a signed JWT for the token, REST for the rest.
 
 const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -8,6 +8,7 @@ const SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 const FOLDER = "application/vnd.google-apps.folder";
 const ID_PATTERN = /^[A-Za-z0-9_-]{10,100}$/;
 const POSTER_PATTERN = /^poster\.(png|jpe?g|webp)$/i;
+const PDF_PATTERN = /\.pdf$/i;
 const IMAGE_PATTERN = /\.(png|jpe?g|webp|gif|avif)$/i;
 const SHELVES = ["mangas", "hqs"] as const;
 const PARENTS_PER_QUERY = 40;
@@ -136,6 +137,7 @@ async function listFiles(query: string, token: string, fetchImpl: typeof fetch):
 
 const children = (parentId: string) => `'${parentId}' in parents`;
 const isFolder = (file: DriveFile) => file.mimeType === FOLDER;
+const isPdf = (file: DriveFile) => !isFolder(file) && (file.mimeType === "application/pdf" || PDF_PATTERN.test(file.name));
 
 interface WorkSummary {
   id: string;
@@ -184,26 +186,35 @@ async function workDetails(workId: string, token: string, fetchImpl: typeof fetc
       }
     }
   }
+  // A chapter is a folder of pages or one PDF named after it ("01.pdf").
   const chapters = files
-    .filter(isFolder)
-    .sort((a, b) => naturalCompare(a.name, b.name))
-    .map((folder) => ({ id: folder.id, name: folder.name, modifiedTime: folder.modifiedTime ?? null }));
+    .filter((file) => isFolder(file) || isPdf(file))
+    .map((file) => ({
+      id: file.id,
+      name: isFolder(file) ? file.name : file.name.replace(PDF_PATTERN, ""),
+      modifiedTime: file.modifiedTime ?? null,
+      kind: isFolder(file) ? "folder" : "pdf",
+    }))
+    .sort((a, b) => naturalCompare(a.name, b.name));
   return { info, posterId: poster?.id ?? null, chapters };
 }
 
 async function chapterPages(chapterId: string, token: string, fetchImpl: typeof fetch) {
   const files = await listFiles(children(chapterId), token, fetchImpl);
-  return files
+  const pages = files
     .filter((file) => !isFolder(file) && (file.mimeType.startsWith("image/") || IMAGE_PATTERN.test(file.name)))
     .sort((a, b) => naturalCompare(a.name, b.name))
     .map((file) => ({ id: file.id, name: file.name }));
+  // A folder with no images but a PDF is read as that PDF.
+  const pdf = pages.length === 0 ? (files.filter(isPdf).sort((a, b) => naturalCompare(a.name, b.name))[0]?.id ?? null) : null;
+  return { pages, pdf };
 }
 
 async function fileBytes(fileId: string, token: string, fetchImpl: typeof fetch): Promise<Response | null> {
   const response = await driveGet(`${DRIVE_API}/${fileId}?alt=media`, token, fetchImpl);
   const type = response.headers.get("content-type") ?? "";
-  // Only pictures leave through here, whatever else the folder holds.
-  if (!response.ok || !type.startsWith("image/")) return null;
+  // Only pictures and PDFs leave through here, whatever else the folder holds.
+  if (!response.ok || !(type.startsWith("image/") || type === "application/pdf")) return null;
   return new Response(response.body, { status: 200, headers: { "Content-Type": type, "Cache-Control": IMAGE_CACHE } });
 }
 
@@ -228,7 +239,7 @@ export async function handleDrive(
       case "works":
         return id === undefined ? json(200, { works: await listWorks(rootId, token, fetchImpl) }) : json(200, await workDetails(id, token, fetchImpl));
       case "chapters":
-        return json(200, { pages: await chapterPages(id, token, fetchImpl) });
+        return json(200, await chapterPages(id, token, fetchImpl));
       case "files": {
         const image = await fileBytes(id, token, fetchImpl);
         return image ?? json(404, { error: "file" });

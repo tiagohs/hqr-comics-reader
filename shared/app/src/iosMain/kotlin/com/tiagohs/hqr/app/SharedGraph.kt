@@ -48,6 +48,7 @@ import com.tiagohs.hqr.presentation.sources.SourcesViewModel
 import com.tiagohs.hqr.sources.archive.InternetArchiveSource
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import com.tiagohs.hqr.sources.local.FileTree
+import com.tiagohs.hqr.sources.drive.DownloadedPdfRenderer
 import com.tiagohs.hqr.sources.drive.DriveSource
 import com.tiagohs.hqr.sources.local.LocalSource
 import com.tiagohs.hqr.sources.local.OkioFileTree
@@ -265,7 +266,12 @@ private fun accountModule(hubUrl: String): Module =
             single { HubClient(com.tiagohs.hqr.data.net.httpClient(), hubUrl.trimEnd('/')) }
             // RF-130: the Drive is read by the Worker, so it exists where the account does.
             single {
-                DriveSource(get(), hubUrl = { hubUrl.trimEnd('/') }, session = { get<com.tiagohs.hqr.data.sync.SyncAccount>().token() })
+                DriveSource(
+                    get(),
+                    hubUrl = { hubUrl.trimEnd('/') },
+                    session = { get<com.tiagohs.hqr.data.sync.SyncAccount>().token() },
+                    pdf = DownloadedPdfRenderer(get(), IosPdfEngine()),
+                )
             }
             single<GoogleIdTokens> { GoogleIdTokens { null } }
         }

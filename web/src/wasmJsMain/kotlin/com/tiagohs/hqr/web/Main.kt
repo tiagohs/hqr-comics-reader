@@ -123,7 +123,7 @@ fun main() {
                 single { WeebCentralSource(get()) }
                 single { XoxoSource(get()) }
                 // RF-130: the Drive, read by the Worker the app is served from.
-                single { DriveSource(get(), hubUrl = { origin }, session = { get<SyncAccount>().token() }) }
+                single { DriveSource(get(), hubUrl = { origin }, session = { get<SyncAccount>().token() }, pdf = BrowserPdfRenderer()) }
                 single<List<Source>>(BuiltInSources) {
                     listOf(
                             get<MangaDexSource>(),

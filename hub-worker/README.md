@@ -41,7 +41,7 @@ Sem esses passos, o app funciona como antes, só que sem conta.
    npx wrangler@4.42.0 secret put DRIVE_SERVICE_ACCOUNT < caminho/da/chave.json
    npx wrangler@4.42.0 secret put DRIVE_ROOT_ID     # o id da pasta hqr: o trecho final de drive.google.com/drive/folders/<id>
    ```
-4. **Pastas:** `hqr/mangas/<obra>/` e `hqr/hqs/<obra>/`, cada obra com `poster.png` (ou `.jpg`), `info.json` e as pastas de capítulo `01`, `02`… com as páginas (qualquer nome; a ordem é a dos números).
+4. **Pastas:** `hqr/mangas/<obra>/` e `hqr/hqs/<obra>/`, cada obra com `poster.png` (ou `.jpg`), `info.json` e os capítulos: pastas `01`, `02`… com as páginas (qualquer nome; a ordem é a dos números) ou um PDF por capítulo (`01.pdf`, `02.pdf`…). Pode misturar.
 
 `info.json`, tudo opcional: `title`, `alternativeTitles`, `authors`, `artists`, `status` (`ongoing`, `completed`, `hiatus`, `cancelled`),
 `genres`, `description`, `language` (`pt-br`), `chapters` (`{"01": "Título"}`).

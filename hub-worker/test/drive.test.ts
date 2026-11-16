@@ -40,6 +40,7 @@ function fakeDrive(): typeof fetch {
     const media = /\/files\/([^/]+)$/.exec(url.pathname)?.[1];
     if (media && url.searchParams.get("alt") === "media") {
       if (media === "infoJsonFile0001") return new Response('{"title":"Turma da Mônica Jovem"}', { headers: { "content-type": "application/json" } });
+      if (media === "pdfChapter0010") return new Response("%PDF-1.4", { headers: { "content-type": "application/pdf" } });
       if (media === "notAnImage00001") return new Response("secret", { headers: { "content-type": "text/plain" } });
       return new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/png" } });
     }
@@ -67,9 +68,11 @@ beforeEach(async () => {
       file("infoJsonFile0001", "info.json", WORK, "application/json"),
       { id: CHAPTER_2, name: "02", mimeType: FOLDER, parents: [WORK] },
       { id: CHAPTER_1, name: "01", mimeType: FOLDER, parents: [WORK] },
+      file("pdfChapter0010", "10.pdf", WORK, "application/pdf"),
     ],
     [CHAPTER_1]: [file("page000000010", "pagina-10.png", CHAPTER_1), file("page000000002", "pagina-2.png", CHAPTER_1), file("page000000001", "Pagina-1.jpg", CHAPTER_1)],
     [CHAPTER_2]: [],
+    pdfOnlyFolder01: [file("onlyPdfFile0001", "capitulo.pdf", "pdfOnlyFolder01", "application/pdf")],
   };
 });
 
@@ -92,15 +95,23 @@ describe("Meu Drive", () => {
   });
 
   it("RF130_work_details_bring_the_info_and_the_chapters_in_order", async () => {
-    const body = (await (await get(`/api/v1/drive/works/${WORK}`)).json()) as { info: { title: string }; chapters: { name: string }[]; posterId: string };
+    const body = (await (await get(`/api/v1/drive/works/${WORK}`)).json()) as { info: { title: string }; chapters: { name: string; kind: string }[]; posterId: string };
     expect(body.info.title).toBe("Turma da Mônica Jovem");
-    expect(body.chapters.map((c) => c.name)).toEqual(["01", "02"]);
+    expect(body.chapters.map((c) => c.name)).toEqual(["01", "02", "10"]);
+    expect(body.chapters.map((c) => c.kind)).toEqual(["folder", "folder", "pdf"]);
     expect(body.posterId).toBe("posterFile00001");
   });
 
   it("RF130_chapter_pages_are_sorted_naturally", async () => {
-    const body = (await (await get(`/api/v1/drive/chapters/${CHAPTER_1}`)).json()) as { pages: { name: string }[] };
+    const body = (await (await get(`/api/v1/drive/chapters/${CHAPTER_1}`)).json()) as { pages: { name: string }[]; pdf: null };
     expect(body.pages.map((p) => p.name)).toEqual(["Pagina-1.jpg", "pagina-2.png", "pagina-10.png"]);
+  });
+
+  it("RF131_a_chapter_can_be_one_pdf_and_a_folder_with_only_a_pdf_reads_as_it", async () => {
+    const folder = (await (await get("/api/v1/drive/chapters/pdfOnlyFolder01")).json()) as { pages: unknown[]; pdf: string };
+    expect(folder).toEqual({ pages: [], pdf: "onlyPdfFile0001" });
+    const pdf = await get("/api/v1/drive/files/pdfChapter0010");
+    expect(pdf.headers.get("content-type")).toBe("application/pdf");
   });
 
   it("RF130_only_images_leave_through_files", async () => {

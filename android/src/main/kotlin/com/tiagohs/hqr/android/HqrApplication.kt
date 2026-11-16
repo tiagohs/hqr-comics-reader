@@ -34,6 +34,7 @@ import com.tiagohs.hqr.domain.repository.Updates
 import com.tiagohs.hqr.domain.source.SecretStore
 import com.tiagohs.hqr.domain.source.Source
 import com.tiagohs.hqr.sources.archive.InternetArchiveSource
+import com.tiagohs.hqr.sources.drive.DownloadedPdfRenderer
 import com.tiagohs.hqr.sources.drive.DriveSource
 import com.tiagohs.hqr.sources.hqnow.HqNowSource
 import com.tiagohs.hqr.sources.local.AndroidPdfPages
@@ -79,7 +80,14 @@ class HqrApplication : Application() {
             if (BuildConfig.HUB_URL.isNotBlank()) {
                 single { HubClient(httpClient(), BuildConfig.HUB_URL.trimEnd('/')) }
                 // RF-130: the Drive is read by the Worker, so it exists where the account does.
-                single { DriveSource(get(), hubUrl = { BuildConfig.HUB_URL.trimEnd('/') }, session = { get<SyncAccount>().token() }) }
+                single {
+                    DriveSource(
+                        get(),
+                        hubUrl = { BuildConfig.HUB_URL.trimEnd('/') },
+                        session = { get<SyncAccount>().token() },
+                        pdf = DownloadedPdfRenderer(get(), DrivePdfEngine(java.io.File(cacheDir, "drive-pdf"))),
+                    )
+                }
             }
             if (BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()) {
                 single<GoogleIdTokens> { CredentialManagerSignIn(BuildConfig.GOOGLE_WEB_CLIENT_ID, currentActivity::get) }

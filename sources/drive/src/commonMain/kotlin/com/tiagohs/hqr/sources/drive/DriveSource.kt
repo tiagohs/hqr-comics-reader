@@ -42,6 +42,8 @@ class DriveSource(
     /** The account's session; null signed out. */
     private val session: suspend () -> String?,
     private val clock: Clock = Clock.System,
+    /** RF-131: turns a chapter that is a PDF into page images; null where the platform can't. */
+    private val pdf: PdfRenderer? = null,
 ) : CatalogSource,
     SearchSource,
     ImageSource {
@@ -122,7 +124,7 @@ class DriveSource(
         val details = detailsOf(manga.key)
         return details.chapters.mapIndexed { index, folder ->
             SourceChapter(
-                key = folder.id,
+                key = if (folder.kind == "pdf") "$PDF_KEY${folder.id}" else folder.id,
                 number = chapterNumber(folder.name) ?: (index + 1).toDouble(),
                 title = details.info.chapters[folder.name]?.takeIf { it.isNotBlank() },
                 language = details.info.language,
@@ -134,18 +136,34 @@ class DriveSource(
     override suspend fun pages(
         manga: SourceManga,
         chapter: SourceChapter,
-    ): List<SourcePage> =
-        json
-            .parseSource(PagesDto.serializer(), getText("/chapters/${chapter.key}"))
-            .pages
-            .mapIndexed { index, page -> SourcePage(index, fileUrl(page.id)) }
+    ): List<SourcePage> {
+        if (chapter.key.startsWith(PDF_KEY)) return pdfPages(chapter.key.removePrefix(PDF_KEY))
+        val dto = json.parseSource(PagesDto.serializer(), getText("/chapters/${chapter.key}"))
+        // A folder holding just a PDF is that PDF.
+        if (dto.pages.isEmpty() && dto.pdf != null) return pdfPages(dto.pdf)
+        return dto.pages.mapIndexed { index, page -> SourcePage(index, fileUrl(page.id)) }
+    }
+
+    private suspend fun pdfPages(fileId: String): List<SourcePage> {
+        val renderer = pdf ?: throw SourceException("PDF não abre aqui", SourceException.Kind.UNAVAILABLE)
+        val token = session() ?: throw SourceException("Entre na conta para abrir o seu Drive", SourceException.Kind.AUTH)
+        val count = networkCall { renderer.pageCount(filesUrl(fileId), token) }
+        return (0 until count).map { SourcePage(it, "$PDF_SCHEME$fileId#$it") }
+    }
+
+    private fun filesUrl(fileId: String) = "${hubUrl()}$API/files/$fileId"
 
     override suspend fun image(
         url: String,
         headers: Map<String, String>,
     ): ByteArray {
-        val fileId = url.removePrefix(SCHEME)
         val token = session() ?: throw SourceException("Entre na conta para abrir o seu Drive", SourceException.Kind.AUTH)
+        if (url.startsWith(PDF_SCHEME)) {
+            val (fileId, page) = url.removePrefix(PDF_SCHEME).split('#').let { it[0] to it.getOrElse(1) { "0" }.toInt() }
+            val renderer = pdf ?: throw SourceException("PDF não abre aqui", SourceException.Kind.UNAVAILABLE)
+            return networkCall { renderer.render(filesUrl(fileId), token, page) }
+        }
+        val fileId = url.removePrefix(SCHEME)
         return networkCall {
             http
                 .get("${hubUrl()}$API/files/$fileId") { header(HttpHeaders.Authorization, "Bearer $token") }
@@ -186,6 +204,8 @@ class DriveSource(
         val id: String,
         val name: String,
         val modifiedTime: String? = null,
+        /** "folder" (pages inside) or "pdf" (the chapter is the file). */
+        val kind: String = "folder",
     )
 
     @Serializable
@@ -197,6 +217,7 @@ class DriveSource(
     @Serializable
     private data class PagesDto(
         val pages: List<PageDto> = emptyList(),
+        val pdf: String? = null,
     )
 
     @Serializable
@@ -208,6 +229,8 @@ class DriveSource(
     companion object {
         val ID = SourceId("drive")
         const val SCHEME = "drive://file/"
+        const val PDF_SCHEME = "drive://pdf/"
+        private const val PDF_KEY = "pdf:"
         private const val API = "/api/v1/drive"
         private const val CACHE_MS = 60_000L
         private val NUMBER = Regex("""\d+(?:[.,]\d+)?""")

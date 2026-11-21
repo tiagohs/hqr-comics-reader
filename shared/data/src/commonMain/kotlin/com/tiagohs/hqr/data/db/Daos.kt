@@ -70,6 +70,13 @@ interface MangaDao {
         at: Long,
     )
 
+    @Query("UPDATE manga SET timesRead = :timesRead, rereadChapter = :rereadChapter WHERE id = :id")
+    suspend fun setReadingCount(
+        id: Long,
+        timesRead: Int,
+        rereadChapter: Double?,
+    )
+
     @Query("UPDATE manga SET shelf = :shelf WHERE id = :id")
     suspend fun setShelf(
         id: Long,

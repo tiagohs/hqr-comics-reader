@@ -52,6 +52,27 @@ class LibraryRepositoriesTest {
     ) = SourceChapter(key = "c$n-$group", number = n, group = group)
 
     @Test
+    fun RF135_readingsAreCountedAndAReadingAgainFollowsTheReader() =
+        runTest {
+            val work = mangas.upsert(naruto)
+            val list = chapters.sync(work.id, (1..3).map { chapter(it.toDouble()) }).sortedBy { it.number }
+            chapters.setRead(list.take(2).map { it.id }, true)
+            mangas.get(work.id)!!.timesRead shouldBe 0
+            chapters.saveProgress(list[2].id, 9, 10)
+            mangas.get(work.id)!!.timesRead shouldBe 1
+            mangas.startRereading(work.id, 1.0)
+            chapters.saveProgress(list[0].id, 9, 10)
+            mangas.get(work.id)!!.rereadChapter shouldBe 2.0
+            // The chapters stay read during the reading again.
+            chapters.list(work.id).all { it.read } shouldBe true
+            chapters.saveProgress(list[2].id, 9, 10)
+            mangas.get(work.id)!!.let {
+                it.timesRead shouldBe 2
+                it.rereadChapter shouldBe null
+            }
+        }
+
+    @Test
     fun RF90_workIsIdentifiedBySourceAndKey() =
         runTest {
             val first = mangas.upsert(naruto)

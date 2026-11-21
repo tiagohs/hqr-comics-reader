@@ -1,9 +1,12 @@
 package com.tiagohs.hqr.presentation.library
 
+import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
 import com.tiagohs.hqr.domain.model.PublicationStatus
+import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
 import com.tiagohs.hqr.domain.model.SourceManga
+import com.tiagohs.hqr.domain.repository.HistoryEntry
 import com.tiagohs.hqr.domain.repository.LibraryItem
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -19,17 +22,24 @@ class LibraryProgressTest {
         lastRead: Long? = null,
         latest: Long? = null,
         times: Int = 0,
+        again: Double? = null,
         status: PublicationStatus = PublicationStatus.ONGOING,
         genres: List<String> = emptyList(),
     ) = LibraryItem(
-        Manga(id, SourceManga(SourceId.MANGADEX, "k$id", title, status = status, genres = genres), true, id),
+        Manga(
+            id,
+            SourceManga(SourceId.MANGADEX, "k$id", title, status = status, genres = genres),
+            true,
+            id,
+            timesRead = times,
+            rereadChapter = again,
+        ),
         unread,
         0,
         emptySet(),
         lastRead,
         latest,
         total,
-        times,
     )
 
     @Test
@@ -64,11 +74,13 @@ class LibraryProgressTest {
 
     @Test
     fun RF135_reading_again_counts_from_the_second_reading_and_keeps_the_chapters_read() {
-        val again = item(1, unread = 4, lastRead = 5, times = 1)
+        val again = item(1, unread = 0, lastRead = 5, times = 1, again = 2.0)
         assertEquals(2, LibraryProgress.readingNumber(again))
-        assertEquals(6, LibraryProgress.chaptersRead(again))
+        assertEquals(ReadingState.READING, LibraryProgress.state(again))
+        assertEquals(10, LibraryProgress.chaptersRead(again))
         assertNull(LibraryProgress.readingNumber(item(2, unread = 4, lastRead = 5)))
-        assertEquals(3, LibraryProgress.readingNumber(item(3, unread = 4, lastRead = 5, times = 2)))
+        assertEquals(3, LibraryProgress.readingNumber(item(3, unread = 0, lastRead = 5, times = 2, again = 1.0)))
+        assertEquals(2, LibraryProgress.timesFinished(item(4, unread = 0, lastRead = 5, times = 2)))
     }
 
     @Test
@@ -77,7 +89,7 @@ class LibraryProgressTest {
             LibraryProgress.summary(
                 listOf(
                     item(1, unread = 0, lastRead = 1),
-                    item(2, unread = 6, lastRead = 2, times = 1),
+                    item(2, unread = 0, lastRead = 2, times = 1, again = 4.0),
                     item(3, unread = 10),
                     item(4, unread = 5, lastRead = 3),
                 ),
@@ -85,13 +97,33 @@ class LibraryProgressTest {
         assertEquals(2, summary.worksRead)
         assertEquals(50, summary.percent)
         assertEquals(40, summary.chaptersTotal)
-        assertEquals(19, summary.chaptersRead)
+        assertEquals(25, summary.chaptersRead)
         assertEquals(1, summary.byState[ReadingState.PENDING])
     }
 
     @Test
     fun RF132_an_empty_library_is_zero_percent() {
         assertEquals(0, LibraryProgress.summary(emptyList()).percent)
+    }
+
+    @Test
+    fun RF133_RF135_continue_lists_the_area_most_recent_first_and_a_read_chapter_only_in_a_reading_again() {
+        fun entry(
+            work: LibraryItem,
+            read: Boolean,
+            at: Long,
+        ) = HistoryEntry(
+            work.manga,
+            Chapter(at, work.manga.id, SourceChapter("c$at", 1.0), read, 0, null),
+            at,
+        )
+        val comic = item(1, unread = 5)
+        val again = item(2, unread = 0, times = 1, again = 1.0)
+        val done = item(3, unread = 0)
+        val other = item(4, unread = 5)
+        val list = listOf(entry(comic, false, 10), entry(again, true, 30), entry(done, true, 40), entry(other, false, 50))
+        val shown = LibraryProgress.continueReading(list, setOf(1, 2, 3))
+        assertEquals(listOf(2L, 1L), shown.map { it.manga.id })
     }
 
     @Test

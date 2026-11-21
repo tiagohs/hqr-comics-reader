@@ -40,26 +40,25 @@ object LibraryProgress {
         val read = chaptersRead(item)
         val everything = item.totalChapters > 0 && item.unread == 0
         return when {
+            item.manga.isRereading -> ReadingState.READING
             everything && item.manga.source.status == PublicationStatus.COMPLETED -> ReadingState.FINISHED
             everything -> ReadingState.UP_TO_DATE
-            read == 0 && item.lastReadAtEpochMs == null && item.timesRead == 0 -> ReadingState.PENDING
-            item.timesRead > 0 && read == 0 -> ReadingState.READING
-            item.timesRead > 0 && newSinceLastRead(item) && read > 0 -> ReadingState.NEW_CHAPTERS
+            read == 0 && !item.inProgress -> ReadingState.PENDING
+            item.manga.timesRead > 0 && newSinceLastRead(item) -> ReadingState.NEW_CHAPTERS
             else -> ReadingState.READING
         }
     }
 
-    /** 2 for the second reading and so on; null on the first one, which needs no label. */
-    fun readingNumber(item: LibraryItem): Int? = if (item.timesRead > 0 && state(item) == ReadingState.READING) item.timesRead + 1 else null
+    /** RF-135: 2 for the second reading and so on; null on the first one, which needs no label. */
+    fun readingNumber(item: LibraryItem): Int? = if (item.manga.isRereading) item.manga.timesRead + 1 else null
+
+    /** RF-135: "Lida 2×" once more than one reading ended; null for a single reading. */
+    fun timesFinished(item: LibraryItem): Int? = item.manga.timesRead.takeIf { it > 1 }
 
     fun summary(items: List<LibraryItem>): ProgressSummary {
         val states = items.map(::state)
         val worksRead =
-            items.indices.count {
-                states[it] == ReadingState.UP_TO_DATE ||
-                    states[it] == ReadingState.FINISHED ||
-                    items[it].timesRead > 0
-            }
+            items.indices.count { states[it] in DONE || items[it].manga.timesRead > 0 }
         val total = items.sumOf { it.totalChapters }
         return ProgressSummary(
             works = items.size,
@@ -71,12 +70,19 @@ object LibraryProgress {
         )
     }
 
-    /** RF-133: the last work read among [items]; the screen passes the works of the area it shows. */
+    /**
+     * RF-133: the last readings among the works of the area on show, most recent first; a chapter read to the end
+     * only counts while its work is read again (RF-135).
+     */
     fun continueReading(
         latest: List<HistoryEntry>,
-        libraryIds: Set<Long>,
         areaIds: Set<Long>,
-    ): HistoryEntry? = latest.firstOrNull { !it.chapter.read && it.manga.id in libraryIds && it.manga.id in areaIds }
+        limit: Int = CONTINUE_LIMIT,
+    ): List<HistoryEntry> =
+        latest
+            .filter { (!it.chapter.read || it.manga.isRereading) && it.manga.id in areaIds }
+            .sortedByDescending { it.readAtEpochMs }
+            .take(limit)
 
     /** RF-134: the characters of [catalog] a work is about, from its title and genres. */
     fun characters(
@@ -92,7 +98,12 @@ object LibraryProgress {
         return latest > (item.lastReadAtEpochMs ?: 0L)
     }
 
+    private val LibraryItem.inProgress: Boolean get() = lastReadAtEpochMs != null
+
+    private val DONE = setOf(ReadingState.UP_TO_DATE, ReadingState.FINISHED)
+
     private const val PERCENT = 100
+    private const val CONTINUE_LIMIT = 5
 
     /** Name shown to the user → lower-case words that point to it; the user can edit this later. */
     val HERO_CATALOG: Map<String, List<String>> =

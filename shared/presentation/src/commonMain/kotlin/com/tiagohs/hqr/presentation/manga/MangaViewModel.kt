@@ -108,7 +108,7 @@ class MangaViewModel(
             State(
                 manga = manga,
                 chapters = visible,
-                action = ReadingRules.readAction(list),
+                action = ReadingRules.readAction(list, manga?.rereadChapter),
                 refreshing = busy,
                 error = err,
                 // Saved chapters show at once; the skeleton only covers an empty list (RF-117).
@@ -306,6 +306,17 @@ class MangaViewModel(
         val queue = downloads ?: return
         viewModelScope.launch { queue.remove(ids) }
         clearSelection()
+    }
+
+    /** RF-135: opening a chapter of a work read to the end, outside a reading again, asks "Ler de novo?" first. */
+    fun asksReadAgain(chapter: Chapter): Boolean {
+        // "Ler de novo" on the main button means every chapter is read and no reading again is on.
+        return chapter.read && state.value.action is ReadAction.ReadAgain
+    }
+
+    /** RF-135: "Ler de novo": a new reading starts at [chapter]; the chapters stay read. */
+    fun readAgain(chapter: Chapter) {
+        viewModelScope.launch { mangas.startRereading(mangaId, chapter.number) }
     }
 
     /** RF-128: null follows the source again. */

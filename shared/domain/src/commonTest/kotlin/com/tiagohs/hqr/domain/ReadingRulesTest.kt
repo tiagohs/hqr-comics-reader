@@ -45,6 +45,12 @@ class ReadingRulesTest {
     }
 
     @Test
+    fun RF135_aReadingAgainContinuesFromItsChapter() {
+        val action = ReadingRules.readAction(listOf(ch(1.0, read = true), ch(2.0, read = true), ch(3.0, read = true)), 2.0)
+        action.shouldBeInstanceOf<ReadAction.Continue>().chapter.number shouldBe 2.0
+    }
+
+    @Test
     fun RF31_allReadSaysReadAgain() {
         val action = ReadingRules.readAction(listOf(ch(1.0, read = true), ch(2.0, read = true)))
         action.shouldBeInstanceOf<ReadAction.ReadAgain>().chapter.number shouldBe 1.0

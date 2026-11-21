@@ -57,6 +57,9 @@ data class MangaRecord(
     val reader: ReaderRecord? = null,
     /** RF-128: "COMICS" or "MANGA" when the user chose; absent follows the source. */
     val shelf: String? = null,
+    /** RF-135: readings finished and the chapter of a reading again. */
+    val timesRead: Int = 0,
+    val rereadChapter: Double? = null,
 )
 
 @Serializable

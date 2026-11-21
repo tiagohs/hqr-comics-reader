@@ -49,6 +49,12 @@ interface MangaRepository {
     /** Keys already in the library for one source: the "Na biblioteca" badge (RF-26). */
     fun observeLibraryKeys(sourceId: SourceId): Flow<Set<String>>
 
+    /** RF-135: "Ler de novo" from [chapterNumber]; the chapters stay read. */
+    suspend fun startRereading(
+        id: Long,
+        chapterNumber: Double,
+    )
+
     /** RF-128: null puts the work back to its source's shelf. */
     suspend fun setShelf(
         id: Long,
@@ -72,8 +78,6 @@ data class LibraryItem(
     val lastReadAtEpochMs: Long?,
     val latestChapterAtEpochMs: Long?,
     val totalChapters: Int,
-    /** RF-132: how many times the user finished the work; 0 until the first time. */
-    val timesRead: Int = 0,
 )
 
 interface ChapterRepository {

@@ -169,6 +169,32 @@ class BrowseAndMangaViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF135_openingAChapterOfAWorkReadToTheEndAsksReadAgain() =
+        runTest {
+            val id = db.mangas.upsert(source.popular(1).items.first()).id
+            val vm = track(MangaViewModel(id, registry, db.mangas, db.chapters))
+            val chapters =
+                vm.state
+                    .first { it.chapters.size == 3 }
+                    .chapters
+                    .sortedBy { it.number }
+            vm.asksReadAgain(chapters[0]) shouldBe false
+            db.chapters.setRead(chapters.map { it.id }, true)
+            val read =
+                vm.state
+                    .first { s -> s.chapters.all { it.read } }
+                    .chapters
+                    .sortedBy { it.number }
+            vm.asksReadAgain(read[1]) shouldBe true
+            vm.readAgain(read[1])
+            // "2ª leitura": the main button continues from chapter 2 and nothing is asked again.
+            val again = vm.state.first { it.manga?.isRereading == true }
+            (again.action as com.tiagohs.hqr.domain.model.ReadAction.Continue).chapter.number shouldBe read[1].number
+            vm.asksReadAgain(read[1]) shouldBe false
+            again.manga!!.timesRead shouldBe 1
+        }
+
+    @Test
     fun RF62_downloadOneSelectedNextUnreadAndDelete() =
         runTest {
             val id = db.mangas.upsert(source.popular(1).items.first()).id

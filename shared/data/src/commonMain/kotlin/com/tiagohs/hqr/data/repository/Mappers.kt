@@ -47,6 +47,8 @@ internal fun MangaEntity.toDomain(): Manga =
         addedAtEpochMs = addedAt,
         coverColor = coverColor,
         shelf = shelf?.let { name -> Shelf.entries.firstOrNull { it.name == name } },
+        timesRead = timesRead,
+        rereadChapter = rereadChapter,
     )
 
 internal fun SourceManga.toEntity(now: Long): MangaEntity =

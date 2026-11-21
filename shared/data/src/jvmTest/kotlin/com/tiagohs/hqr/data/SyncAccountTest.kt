@@ -345,6 +345,23 @@ class SyncAccountTest {
         }
 
     @Test
+    fun RF135_the_count_of_readings_follows_the_account() =
+        runTest {
+            val (id, chs) = phone.work("x")
+            phone.chapters.setRead(chs, true)
+            phone.mangas.startRereading(id, 3.0)
+            phone.account.signIn("tiago@example.com")
+            web.account.signIn("tiago@example.com")
+            web.db
+                .mangaDao()
+                .find("mangadex", "x")!!
+                .let {
+                    it.timesRead shouldBe 1
+                    it.rereadChapter shouldBe 3.0
+                }
+        }
+
+    @Test
     fun RF126_undo_puts_back_the_reading_and_the_pages() =
         runTest {
             val (_, chs) = phone.work("x")

@@ -72,6 +72,8 @@ data class LibraryItem(
     val lastReadAtEpochMs: Long?,
     val latestChapterAtEpochMs: Long?,
     val totalChapters: Int,
+    /** RF-132: how many times the user finished the work; 0 until the first time. */
+    val timesRead: Int = 0,
 )
 
 interface ChapterRepository {

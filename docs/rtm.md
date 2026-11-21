@@ -136,6 +136,10 @@
 | RF-129 | Should | — | — | SCR-LIB-001 | FEAT-074, FEAT-076, FEAT-077 | ReadingScreensTest, SyncAccountTest |
 | RF-130 | Should | — | ADR-030 | SCR-SRC-001 | FEAT-078 | DriveSourceTest, ReadingMarksTest, hub-worker/drive.test.ts |
 | RF-131 | Should | — | — | SCR-RDR-001 | FEAT-079 | DriveSourceTest, hub-worker/drive.test.ts |
+| RF-132 | Should | — | — | SCR-LIB-001 | FEAT-080 | LibraryProgressTest, LibraryViewModelTest |
+| RF-133 | Should | — | — | SCR-LIB-001 | — | — |
+| RF-134 | Could | — | — | SCR-LIB-001 | — | LibraryProgressTest |
+| RF-135 | Should | — | — | SCR-LIB-001 | FEAT-080 | LibraryProgressTest |
 
 ## Requisitos não funcionais
 

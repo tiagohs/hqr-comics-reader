@@ -51,7 +51,7 @@ Downloads também tem atalho no topo da Biblioteca, com selo enquanto a fila rod
 | ID | Tela | Requisitos | UC |
 | :-- | :-- | :-- | :-- |
 | SCR-ONB-001 | Primeira abertura: idiomas de conteúdo e aviso | RF-81 | UC-012 |
-| SCR-LIB-001 | Biblioteca: Tudo/HQs/Mangás, abas de categoria, grade com a leitura na capa, "Continuar", seleção | RF-52 a RF-58, RF-128, RF-129 | UC-005 |
+| SCR-LIB-001 | Biblioteca: Tudo/HQs/Mangás, abas de categoria, grade com a leitura na capa, "Continuar", seleção | RF-52 a RF-58, RF-128, RF-129, RF-132 a RF-135 | UC-005 |
 | SCR-LIB-002 | Filtrar, ordenar e exibir (folha) | RF-54, RF-55 | UC-005 |
 | SCR-LIB-003 | Categorias: criar, renomear, ordenar | RF-53 | UC-005 |
 | SCR-LIB-004 | Marcar leitura (folha): nenhum, até um capítulo, todos; buscando capítulos; várias obras | RF-126 | UC-005 |

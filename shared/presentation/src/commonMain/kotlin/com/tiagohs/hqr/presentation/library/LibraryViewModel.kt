@@ -184,6 +184,8 @@ class LibraryViewModel(
         val area: LibraryArea = LibraryArea.ALL,
         /** RF-128: works in each area, for the counts beside "Tudo", "HQs" and "Mangás". */
         val areaCounts: Map<LibraryArea, Int> = emptyMap(),
+        /** RF-132: the tracking numbers of the works in [area], whatever the tab, filters or search. */
+        val progress: ProgressSummary = LibraryProgress.summary(emptyList()),
     ) {
         val isEmpty: Boolean get() = !loading && (areaCounts[LibraryArea.ALL] ?: 0) == 0
 
@@ -232,7 +234,7 @@ class LibraryViewModel(
                     categories = opts.categories.filter { id -> id == Category.DEFAULT_ID || cats.any { it.id == id } }.toSet(),
                     sources = opts.sources.intersect(sources),
                 )
-            val libraryIds = library.mapTo(HashSet()) { it.manga.id }
+            val areaIds = items.mapTo(HashSet()) { it.manga.id }
             val current = tabs.firstOrNull { it.id == tab }?.id ?: ALL
             val inTab =
                 items.filter {
@@ -243,13 +245,15 @@ class LibraryViewModel(
                 tabs = tabs,
                 selectedTab = current,
                 items = LibraryRules.apply(inTab, valid, text),
-                continueReading = latest.firstOrNull { entry -> !entry.chapter.read && entry.manga.id in libraryIds },
+                // RF-133: "Continuar" is the last reading of the area on show: Tudo, HQs or Mangás.
+                continueReading = LibraryProgress.continueReading(latest, areaIds, areaIds),
                 options = valid,
                 query = text,
                 categories = cats,
                 sourceIds = items.map { it.manga.sourceId.value }.distinct().sorted(),
                 area = opts.area,
                 areaCounts = counts,
+                progress = LibraryProgress.summary(items),
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), State())
 

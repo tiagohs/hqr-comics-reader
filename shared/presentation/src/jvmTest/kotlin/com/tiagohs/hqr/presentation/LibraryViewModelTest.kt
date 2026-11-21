@@ -60,6 +60,21 @@ class LibraryViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF132_theSummaryFollowsTheAreaOnShow() =
+        runTest {
+            val (a, _) = addWorks()
+            db.mangas.setShelf(a, com.tiagohs.hqr.domain.model.Shelf.MANGA)
+            val vm = track(LibraryViewModel(db.mangas, db.categories, db.history))
+            vm.state
+                .first { it.progress.works == 2 }
+                .progress.percent shouldBe 0
+            vm.selectArea(com.tiagohs.hqr.presentation.library.LibraryArea.MANGA)
+            vm.state
+                .first { it.progress.works == 1 }
+                .progress.worksRead shouldBe 0
+        }
+
+    @Test
     fun RF53_deletingACategoryMovesItsWorksToUncategorized() =
         runTest {
             val (a, b) = addWorks()

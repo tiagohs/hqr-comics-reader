@@ -33,7 +33,7 @@ class LibraryScreensTest {
     private fun ComposeUiTest.tap(text: String) = onAllNodes(hasText(text))[0].performClick()
 
     @Test
-    fun RF52_RF53_RF54_libraryCategoriesAndDisplay() =
+    fun RF52_RF53_RF54_RF132_libraryCategoriesAndDisplay() =
         screenTest {
             startTestKoin()
             setAppContent { HqrApp(systemDark = false) }
@@ -57,6 +57,11 @@ class LibraryScreensTest {
                 throw it
             }
             screenshot("demo-SCR-LIB-001-light")
+            // RF-132: nothing read is pending, never up to date; the chip opens the shelf in that situation.
+            waitFor(hasContentDescription("0% read"))
+            onAllNodes(hasText("Not started 3"))[0].performClick()
+            waitFor(hasText("Moça do Farol"))
+            tap("All 3")
             // Categories (RF-53).
             onAllNodes(hasContentDescription("More options"))[0].performClick()
             tap("Categories")

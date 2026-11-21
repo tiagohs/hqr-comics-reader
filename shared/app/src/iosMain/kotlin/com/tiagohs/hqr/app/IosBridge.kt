@@ -2,6 +2,7 @@ package com.tiagohs.hqr.app
 
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.Manga
+import com.tiagohs.hqr.domain.repository.HistoryEntry
 import com.tiagohs.hqr.domain.model.ReadingMark
 import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceId
@@ -325,10 +326,64 @@ object IosBridge {
             unread = total - read,
             downloaded = 0,
             categoryIds = emptySet(),
-            lastReadAtEpochMs = null,
+            lastReadAtEpochMs = if (read > 0) 1 else null,
             latestChapterAtEpochMs = null,
             totalChapters = total,
         )
+
+    // RF-132 to RF-135: the tracking numbers in plain types for SwiftUI.
+    fun stateCount(
+        progress: com.tiagohs.hqr.presentation.library.ProgressSummary,
+        state: com.tiagohs.hqr.presentation.library.ReadingState,
+    ): Int = progress.byState[state] ?: 0
+
+    fun summaryOf(
+        perArea: Map<com.tiagohs.hqr.presentation.library.LibraryArea, com.tiagohs.hqr.presentation.library.ProgressSummary>,
+        area: com.tiagohs.hqr.presentation.library.LibraryArea,
+    ): com.tiagohs.hqr.presentation.library.ProgressSummary? = perArea[area]
+
+    /** 0 when it is not a reading again; 2 for the second reading and so on. */
+    fun readingNumber(item: com.tiagohs.hqr.domain.repository.LibraryItem): Int =
+        com.tiagohs.hqr.presentation.library.LibraryProgress
+            .readingNumber(item) ?: 0
+
+    /** 0 for a single reading; 2 for "Lida 2×". */
+    fun timesFinished(item: com.tiagohs.hqr.domain.repository.LibraryItem): Int =
+        com.tiagohs.hqr.presentation.library.LibraryProgress
+            .timesFinished(item) ?: 0
+
+    /** The chapter of a reading again, 0 when there is none. */
+    fun rereadChapter(manga: Manga): Double = manga.rereadChapter ?: 0.0
+
+    fun asksReadAgain(
+        viewModel: MangaViewModel,
+        chapter: Chapter,
+    ): Boolean = viewModel.asksReadAgain(chapter)
+
+    /** RF-134: the character names and their counts, in order. */
+    fun characterNames(state: com.tiagohs.hqr.presentation.library.LibraryViewModel.State): List<String> = state.characters.map { it.first }
+
+    fun characterCounts(state: com.tiagohs.hqr.presentation.library.LibraryViewModel.State): List<Int> = state.characters.map { it.second }
+
+    fun characterList(options: com.tiagohs.hqr.presentation.library.LibraryOptions): List<String> = options.characters.keys.sorted()
+
+    /** Previews: a library in every situation, its summary and a reading to continue. */
+    @Suppress("MagicNumber")
+    fun sampleLibrary(): List<com.tiagohs.hqr.domain.repository.LibraryItem> =
+        listOf(
+            sampleLibraryItem("Ronin 2099", 9, 20),
+            sampleLibraryItem("Gato Astronauta", 12, 12),
+            sampleLibraryItem("Céu de Papel", 0, 30),
+            sampleLibraryItem("Tinta e Osso", 8, 8).let { it.copy(manga = it.manga.copy(timesRead = 2)) },
+            sampleLibraryItem("Noite Ciana", 14, 14).let { it.copy(manga = it.manga.copy(timesRead = 1, rereadChapter = 4.0)) },
+        )
+
+    fun sampleProgress(): com.tiagohs.hqr.presentation.library.ProgressSummary =
+        com.tiagohs.hqr.presentation.library.LibraryProgress
+            .summary(sampleLibrary())
+
+    @Suppress("MagicNumber")
+    fun sampleHistory(title: String): HistoryEntry = HistoryEntry(sampleWork(1, title), sampleChapter(1, 1, 12.0, false), 0)
 
     private const val SAMPLE_PAGES = 20
 }

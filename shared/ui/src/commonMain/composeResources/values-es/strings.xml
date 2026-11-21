@@ -613,4 +613,5 @@
     <string name="read_again_message">Empieza la %1$dª lectura. La anterior sigue contada.</string>
     <string name="read_again_confirm">Volver a leer</string>
     <string name="read_again_just_open">Solo abrir</string>
+    <string name="manga_reading_at">cap. %1$s de %2$d</string>
 </resources>

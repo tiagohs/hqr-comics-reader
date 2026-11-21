@@ -24,6 +24,8 @@ struct MangaScreen: View {
     @State private var heroIn = 0.0
     /// RF-118: the chapters cascade in once, as the work opens.
     @State private var opened = Date()
+    /// RF-135: a chapter of a work read to the end, waiting for "Ler de novo?".
+    @State private var askingAgain: Chapter?
 
     init(mangaId: Int64) {
         self.mangaId = mangaId
@@ -102,6 +104,21 @@ struct MangaScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .tint(tint(state.manga))
         .toolbar { toolbar(state) }
+        // RF-135: start a new reading or only open the chapter.
+        .alert(L("read_again_title"), isPresented: Binding(get: { askingAgain != nil }, set: { if !$0 { askingAgain = nil } })) {
+            Button(L("read_again_confirm")) {
+                if let chapter = askingAgain {
+                    model.viewModel.readAgain(chapter: chapter)
+                    navigator.read(mangaId: mangaId, chapterId: chapter.id, page: 0)
+                }
+            }
+            Button(L("read_again_just_open")) {
+                if let chapter = askingAgain { navigator.read(mangaId: mangaId, chapterId: chapter.id, page: 0) }
+            }
+            Button(L("action_cancel"), role: .cancel) {}
+        } message: {
+            Text(L("read_again_message", max(Int(model.state.manga?.timesRead ?? 0), 1) + 1))
+        }
         .zoomFromCover(navigator.coverIds[mangaId])
         .task(id: state.manga?.source.sourceKey) {
             if let id = state.manga?.source.sourceKey { missingSource = try? await Core.graph.unavailableSourceName(sourceId: id) }
@@ -265,7 +282,16 @@ struct MangaScreen: View {
         if let chapter = bridge.actionChapter(action: state.action) {
             let kind = bridge.actionKind(action: state.action)
             let page = bridge.actionPage(action: state.action)
+            // RF-135: "2ª leitura · cap. 2 de 12" while the work is read again.
+            if let manga = state.manga, manga.isRereading {
+                Text(L("library_reading_number", Int(manga.timesRead) + 1) + " · "
+                    + L("manga_reading_at", IosBridge.shared.chapterLabel(number: IosBridge.shared.rereadChapter(manga: manga)), state.chapters.count))
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.tint)
+            }
             Button {
+                // RF-135: "Ler de novo" on the main button starts the next reading.
+                if kind == "again" { model.viewModel.readAgain(chapter: chapter) }
                 navigator.read(mangaId: mangaId, chapterId: chapter.id, page: page)
             } label: {
                 Group {
@@ -296,6 +322,8 @@ struct MangaScreen: View {
                 model.viewModel.toggleSelected(id: chapter.id)
             } else if let external = chapter.source.externalUrl, let url = URL(string: external) {
                 UIApplication.shared.open(url)
+            } else if IosBridge.shared.asksReadAgain(viewModel: model.viewModel, chapter: chapter) {
+                askingAgain = chapter
             } else {
                 navigator.read(mangaId: mangaId, chapterId: chapter.id, page: chapter.read ? 0 : chapter.lastPage)
             }

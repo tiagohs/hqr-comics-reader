@@ -1,13 +1,11 @@
 package com.tiagohs.hqr.ui.library
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -34,14 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.repository.LibraryItem
 import com.tiagohs.hqr.presentation.library.LibraryArea
@@ -52,7 +48,6 @@ import com.tiagohs.hqr.ui.resources.library_area_all
 import com.tiagohs.hqr.ui.resources.library_area_comics
 import com.tiagohs.hqr.ui.resources.library_area_label
 import com.tiagohs.hqr.ui.resources.library_area_manga
-import com.tiagohs.hqr.ui.resources.library_cover_done
 import com.tiagohs.hqr.ui.resources.mark_many_none
 import com.tiagohs.hqr.ui.resources.mark_many_none_hint
 import com.tiagohs.hqr.ui.resources.mark_many_one_hint
@@ -64,7 +59,6 @@ import com.tiagohs.hqr.ui.resources.shelf_follow_hint
 import com.tiagohs.hqr.ui.resources.shelf_hint
 import com.tiagohs.hqr.ui.resources.shelf_title
 import com.tiagohs.hqr.ui.theme.HqrIcons
-import com.tiagohs.hqr.ui.theme.bangers
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -106,23 +100,9 @@ fun LibraryItem.showsReadBar(): Boolean = totalChapters > 0 && readCount in 1 un
 fun BoxScope.ReadingOnCover(item: LibraryItem) {
     val total = item.totalChapters
     if (total == 0) return
-    if (item.unread == 0) {
-        Box(Modifier.fillMaxSize().background(STAMP_SCRIM), contentAlignment = Alignment.Center) {
-            Text(
-                stringResource(Res.string.library_cover_done),
-                fontFamily = bangers(),
-                fontSize = 20.sp,
-                letterSpacing = 1.sp,
-                color = STAMP_INK,
-                modifier =
-                    Modifier
-                        .rotate(STAMP_TILT)
-                        .background(STAMP_PAPER)
-                        .border(2.dp, STAMP_INK)
-                        .padding(horizontal = 8.dp, vertical = 2.dp),
-            )
-        }
-    } else if (item.showsReadBar()) {
+    // RF-132: the corner says the situation (✓, "2×", "+3", "47%"); the bar shows how far.
+    StateCorner(item)
+    if (item.showsReadBar()) {
         Box(
             Modifier
                 .align(Alignment.BottomStart)
@@ -181,11 +161,7 @@ fun MarkManySheet(
 }
 
 private val READ_BAR = 6.dp
-private const val STAMP_TILT = -8f
 private val BAR_TRACK = Color(0x8C000000)
-private val STAMP_SCRIM = Color(0x7316161A)
-private val STAMP_PAPER = Color(0xFFF6F1E7)
-private val STAMP_INK = Color(0xFF16161A)
 
 /** RF-128: "Onde fica na biblioteca" for one work: like its source, HQs or Mangás. */
 @Composable

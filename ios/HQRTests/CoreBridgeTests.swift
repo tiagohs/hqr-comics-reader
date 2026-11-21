@@ -40,6 +40,19 @@ final class CoreBridgeTests: XCTestCase {
         XCTAssertEqual(IosBridge.shared.readCount(item: IosBridge.shared.sampleLibraryItem(title: "Kaiju", read: 0, total: 12)), 0)
     }
 
+    func test_RF132_RF135_the_tracking_crosses_the_bridge() {
+        let library = IosBridge.shared.sampleLibrary()
+        let progress = IosBridge.shared.sampleProgress()
+        // Up to date, read twice and read again count as read: 3 of 5.
+        XCTAssertEqual(progress.worksRead, 3)
+        XCTAssertEqual(progress.percent, 60)
+        XCTAssertEqual(IosBridge.shared.stateCount(progress: progress, state: .pending), 1)
+        XCTAssertEqual(LibraryProgress.shared.state(item: library[2]), .pending)
+        XCTAssertEqual(IosBridge.shared.timesFinished(item: library[3]), 2)
+        XCTAssertEqual(IosBridge.shared.readingNumber(item: library[4]), 2)
+        XCTAssertEqual(IosBridge.shared.readingNumber(item: library[0]), 0)
+    }
+
     func test_RF126_the_three_marks_cross_the_bridge() {
         XCTAssertEqual(IosBridge.shared.markKind(mark: IosBridge.shared.markNone()), 0)
         XCTAssertEqual(IosBridge.shared.markKind(mark: IosBridge.shared.markAll()), 2)

@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridItemSpanScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -26,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -58,8 +57,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -73,19 +70,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.tiagohs.hqr.domain.model.chapterLabel
 import com.tiagohs.hqr.domain.repository.DownloadState
 import com.tiagohs.hqr.domain.repository.Downloads
 import com.tiagohs.hqr.domain.repository.HistoryEntry
 import com.tiagohs.hqr.domain.repository.LibraryItem
 import com.tiagohs.hqr.domain.source.SourceRegistry
+import com.tiagohs.hqr.presentation.library.LibraryArea
 import com.tiagohs.hqr.presentation.library.LibraryDisplay
 import com.tiagohs.hqr.presentation.library.LibraryOptions
 import com.tiagohs.hqr.presentation.library.LibraryViewModel
-import com.tiagohs.hqr.ui.components.ComicTitle
+import com.tiagohs.hqr.presentation.library.ReadingState
 import com.tiagohs.hqr.ui.components.Cover
 import com.tiagohs.hqr.ui.components.EmptyState
-import com.tiagohs.hqr.ui.components.HalftoneProgress
 import com.tiagohs.hqr.ui.components.LoadingState
 import com.tiagohs.hqr.ui.components.UnreadBalloon
 import com.tiagohs.hqr.ui.components.cascadeIn
@@ -93,11 +89,9 @@ import com.tiagohs.hqr.ui.components.rememberOpening
 import com.tiagohs.hqr.ui.components.sharedCover
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.components.unavailableSourceName
-import com.tiagohs.hqr.ui.navigation.RESUME
 import com.tiagohs.hqr.ui.resources.Res
 import com.tiagohs.hqr.ui.resources.action_back
 import com.tiagohs.hqr.ui.resources.action_cancel
-import com.tiagohs.hqr.ui.resources.action_continue
 import com.tiagohs.hqr.ui.resources.action_more
 import com.tiagohs.hqr.ui.resources.action_ok
 import com.tiagohs.hqr.ui.resources.action_undo
@@ -105,7 +99,6 @@ import com.tiagohs.hqr.ui.resources.downloads_title
 import com.tiagohs.hqr.ui.resources.library_categories
 import com.tiagohs.hqr.ui.resources.library_clear_filters
 import com.tiagohs.hqr.ui.resources.library_clear_selection
-import com.tiagohs.hqr.ui.resources.library_continue_reading
 import com.tiagohs.hqr.ui.resources.library_cover_read
 import com.tiagohs.hqr.ui.resources.library_download_unread
 import com.tiagohs.hqr.ui.resources.library_empty_message
@@ -123,13 +116,13 @@ import com.tiagohs.hqr.ui.resources.library_remove_picked
 import com.tiagohs.hqr.ui.resources.library_removed_many
 import com.tiagohs.hqr.ui.resources.library_search_hint
 import com.tiagohs.hqr.ui.resources.library_select_all
+import com.tiagohs.hqr.ui.resources.library_shelf
 import com.tiagohs.hqr.ui.resources.library_tab_all
 import com.tiagohs.hqr.ui.resources.library_tab_uncategorized
 import com.tiagohs.hqr.ui.resources.library_unread
 import com.tiagohs.hqr.ui.resources.library_up_to_date
 import com.tiagohs.hqr.ui.resources.library_update_failed
 import com.tiagohs.hqr.ui.resources.library_updating
-import com.tiagohs.hqr.ui.resources.manga_continue_chapter
 import com.tiagohs.hqr.ui.resources.manga_select
 import com.tiagohs.hqr.ui.resources.mark_many_done_read
 import com.tiagohs.hqr.ui.resources.mark_many_done_unread
@@ -183,6 +176,7 @@ fun LibraryScreen(
     // RF-126: one work opens the full sheet; several, only "all read" or "none".
     val marking = rememberMarkReadingHost()
     var markingMany by remember { mutableStateOf(0) }
+    var editingCharacters by remember { mutableStateOf(false) }
     // RF-58: leaving the app stops the update; what arrived stays.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.stopUpdate() }
     updated?.let { result ->
@@ -389,24 +383,21 @@ fun LibraryScreen(
                                 }
                             }
                         }
-                        if (state.isFilteredOut) {
-                            EmptyState(
-                                title = stringResource(Res.string.library_filtered_title),
-                                message = stringResource(Res.string.library_filtered_message),
-                                action = if (state.options.hasFilters) stringResource(Res.string.library_clear_filters) else null,
-                                onAction = { viewModel.setOptions(state.options.withoutFilters()) },
-                            )
-                        } else {
-                            LibraryItems(
-                                state.items,
-                                state.options,
-                                if (state.query.isBlank() && picked.isEmpty()) state.continueReading else null,
-                                onOpenManga,
-                                onContinue,
-                                picked,
-                                viewModel::toggleSelected,
-                            )
-                        }
+                        LibraryItems(
+                            state,
+                            if (state.query.isBlank() && picked.isEmpty()) state.recent else emptyList(),
+                            onOpenManga,
+                            onContinue,
+                            picked,
+                            viewModel::toggleSelected,
+                            onShelfState = viewModel::selectShelfState,
+                            onCharacter = viewModel::selectCharacter,
+                            onEditCharacters = { editingCharacters = true },
+                            onClearFilters = {
+                                viewModel.setOptions(state.options.withoutFilters())
+                                viewModel.selectShelfState(null)
+                            },
+                        )
                     }
                 }
         }
@@ -425,6 +416,15 @@ fun LibraryScreen(
             }
         }
     }
+    if (editingCharacters) {
+        CharactersDialog(
+            state.options.characters.keys
+                .toList(),
+            onAdd = { viewModel.setOptions(state.options.withCharacter(it)) },
+            onRemove = { viewModel.setOptions(state.options.withoutCharacter(it)) },
+            onDismiss = { editingCharacters = false },
+        )
+    }
     if (optionsOpen) {
         val names = registry.everything.associate { it.id.value to it.name }
         LibraryOptionsSheet(state, names, viewModel::setOptions) { optionsOpen = false }
@@ -432,15 +432,22 @@ fun LibraryScreen(
 }
 
 @Composable
+@Suppress("LongParameterList")
 private fun LibraryItems(
-    items: List<LibraryItem>,
-    options: LibraryOptions,
-    continueReading: HistoryEntry?,
+    state: LibraryViewModel.State,
+    recent: List<HistoryEntry>,
     onOpenManga: (Long) -> Unit,
     onContinue: (Long, Long, Int) -> Unit,
     picked: Set<Long>,
     onToggle: (Long) -> Unit,
+    onShelfState: (ReadingState?) -> Unit,
+    onCharacter: (String?) -> Unit,
+    onEditCharacters: () -> Unit,
+    onClearFilters: () -> Unit,
 ) {
+    val items = state.items
+    val options = state.options
+    val header = state.query.isBlank() && picked.isEmpty()
     val selectLabel = stringResource(Res.string.manga_select)
 
     // RF-57: a long press picks a work; while some are picked, a tap picks or unpicks.
@@ -470,13 +477,58 @@ private fun LibraryItems(
     val opening = rememberOpening()
     LazyVerticalGrid(
         columns = columns,
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(GRID_SIDE),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(if (options.display == LibraryDisplay.LIST) 8.dp else 16.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
-        if (continueReading != null) {
-            item(span = { GridItemSpan(maxLineSpan) }) { ContinueCard(continueReading, onContinue) }
+        // RF-132 to RF-134: personagens (HQs), progresso, continuar, saiu capítulo and the shelf by situation.
+        val full: LazyGridItemSpanScope.() -> GridItemSpan = { GridItemSpan(maxLineSpan) }
+        if (header && state.area == LibraryArea.COMICS && state.characters.isNotEmpty()) {
+            item(key = "characters", span = full) {
+                CharacterChips(state.characters, state.character, onCharacter, onEditCharacters, Modifier.fullBleed(GRID_SIDE))
+            }
+        }
+        if (header) {
+            item(key = "progress", span = full) {
+                ProgressCard(
+                    state.progress,
+                    if (state.area == LibraryArea.ALL) state.perArea else null,
+                    state.shelfState,
+                    onShelfState,
+                )
+            }
+        }
+        if (recent.isNotEmpty()) {
+            item(key = "continue", span = full) { ContinueCarousel(recent, onContinue, Modifier.fullBleed(GRID_SIDE)) }
+        }
+        if (header && state.newChapters.isNotEmpty() && state.shelfState == null) {
+            item(key = "new", span = full) {
+                NewChaptersSection(
+                    state.newChapters,
+                    onOpenManga,
+                    onSeeAll = { onShelfState(ReadingState.NEW_CHAPTERS) },
+                    modifier = Modifier.fullBleed(GRID_SIDE),
+                )
+            }
+        }
+        if (header) {
+            item(key = "shelf", span = full) {
+                Column(Modifier.fullBleed(GRID_SIDE)) {
+                    SectionTitle(stringResource(Res.string.library_shelf))
+                    ShelfStateChips(state.progress, state.shelfState, onShelfState)
+                }
+            }
+        }
+        if (state.isFilteredOut) {
+            item(key = "filtered", span = full) {
+                EmptyState(
+                    title = stringResource(Res.string.library_filtered_title),
+                    message = stringResource(Res.string.library_filtered_message),
+                    action = if (options.hasFilters || state.shelfState != null) stringResource(Res.string.library_clear_filters) else null,
+                    onAction = onClearFilters,
+                )
+            }
         }
         itemsIndexed(items, key = { _, work -> work.manga.id }) { index, item ->
             val cascade = Modifier.cascadeIn(index, opening)
@@ -628,75 +680,13 @@ private fun BoxScope.Badges(
     }
 }
 
+private val GRID_SIDE = 16.dp
 private val COMPACT_CELL = 96.dp
 private val COMFORTABLE_CELL = 108.dp
 private val LIST_COVER = 56.dp
 private const val CAPTION_WIDTH = 0.88f
 private val CAPTION = Color(0xFFFFF1A8)
 private val CAPTION_INK = Color(0xFF16161A)
-
-/** "Continuar lendo" as a speech balloon: an ink-framed panel with a shadow and the tail below (ADR-026). */
-@Composable
-private fun ContinueCard(
-    entry: HistoryEntry,
-    onContinue: (Long, Long, Int) -> Unit,
-) {
-    val chapter = entry.chapter
-    val total = chapter.pageCount ?: 0
-    val ink = MaterialTheme.colorScheme.onSurface
-    Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .drawBehind { drawRect(ink, topLeft = Offset(4.dp.toPx(), 4.dp.toPx()), size = size) }
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-                .border(3.dp, ink)
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.width(60.dp)) { Cover(entry.manga.source, shape = HqrShapes.coverSmall) }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    stringResource(Res.string.library_continue_reading),
-                    fontFamily = bangers(),
-                    fontSize = 15.sp,
-                    letterSpacing = 1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                ComicTitle(entry.manga.title, style = MaterialTheme.typography.headlineSmall, maxLines = 2)
-                Text(
-                    stringResource(Res.string.manga_continue_chapter, chapter.number.chapterLabel(), chapter.lastPage + 1),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (total > 0) HalftoneProgress((chapter.lastPage + 1f) / total)
-            }
-        }
-        Row(Modifier.fillMaxWidth().padding(start = 24.dp, end = 8.dp), verticalAlignment = Alignment.Top) {
-            // The balloon's tail.
-            Box(
-                Modifier
-                    .size(18.dp)
-                    .drawBehind {
-                        val path =
-                            androidx.compose.ui.graphics.Path().apply {
-                                moveTo(0f, 0f)
-                                lineTo(size.width, 0f)
-                                lineTo(0f, size.height)
-                                close()
-                            }
-                        drawPath(path, ink)
-                    },
-            )
-            Box(Modifier.weight(1f))
-            Button(
-                onClick = { onContinue(entry.manga.id, chapter.id, RESUME) },
-                modifier = Modifier.offset(y = (-20).dp),
-            ) { Text(stringResource(Res.string.action_continue)) }
-        }
-    }
-}
 
 /** RF-57: the categories the picked works go to (all of them replace what each had). */
 @Composable

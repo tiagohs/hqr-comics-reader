@@ -95,6 +95,8 @@ class SyncLocalData(
                     categories = assignments[m.id].orEmpty().mapNotNull { categoryNames[it] }.sorted(),
                     reader = db.readerSettingsDao().get(m.id)?.toRecord(),
                     shelf = m.shelf,
+                    timesRead = m.timesRead,
+                    rereadChapter = m.rereadChapter,
                 )
             items[id] = encode(MangaRecord.serializer(), record)
             read.forEach { c ->
@@ -183,7 +185,20 @@ class SyncLocalData(
         assignCategories(id, record.categories)
         record.reader?.let { db.readerSettingsDao().upsert(it.toEntity(id)) }
         if (record.shelf != local?.shelf) dao.setShelf(id, record.shelf)
+        applyReadingCount(id, record, local)
         return record.inLibrary && !wasIn
+    }
+
+    /** RF-135: a finished reading is never lost; the reading again follows the last device. */
+    private suspend fun applyReadingCount(
+        id: Long,
+        record: MangaRecord,
+        local: MangaEntity?,
+    ) {
+        val times = maxOf(record.timesRead, local?.timesRead ?: 0)
+        if (times != local?.timesRead || record.rereadChapter != local.rereadChapter) {
+            db.mangaDao().setReadingCount(id, times, record.rereadChapter)
+        }
     }
 
     /** The work's categories by name; a category not here yet is created after the others. */

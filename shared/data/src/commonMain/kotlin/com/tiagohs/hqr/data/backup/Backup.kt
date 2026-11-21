@@ -51,6 +51,9 @@ data class BackupManga(
     val reader: BackupReaderSettings? = null,
     /** RF-128: "COMICS" or "MANGA" when the user chose; absent follows the source. */
     val shelf: String? = null,
+    /** RF-135. */
+    val timesRead: Int = 0,
+    val rereadChapter: Double? = null,
 )
 
 @Serializable

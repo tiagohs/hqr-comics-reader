@@ -46,6 +46,9 @@ data class MangaEntity(
     @ColumnInfo(defaultValue = "NULL") val lastOpenedAt: Long? = null,
     // Version 5: the user's library area for this work (RF-128); null follows the source.
     @ColumnInfo(defaultValue = "NULL") val shelf: String? = null,
+    // Version 6: readings finished and where a reading again is (RF-135).
+    @ColumnInfo(defaultValue = "0") val timesRead: Int = 0,
+    @ColumnInfo(defaultValue = "NULL") val rereadChapter: Double? = null,
 )
 
 @Entity(

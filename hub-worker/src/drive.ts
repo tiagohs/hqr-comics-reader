@@ -147,7 +147,12 @@ interface WorkSummary {
   modifiedTime: string | null;
 }
 
+class RootNotShared extends Error {}
+
 async function listWorks(rootId: string, token: string, fetchImpl: typeof fetch): Promise<WorkSummary[]> {
+  // Drive answers a list of a folder it can't see with an empty list, not an error: ask for the folder itself first.
+  const root = await driveGet(`${DRIVE_API}/${rootId}?fields=id,mimeType`, token, fetchImpl);
+  if (root.status === 404) throw new RootNotShared();
   const top = (await listFiles(children(rootId), token, fetchImpl)).filter(isFolder);
   const works: WorkSummary[] = [];
   for (const shelf of SHELVES) {
@@ -248,6 +253,8 @@ export async function handleDrive(
         return json(404, { error: "path" });
     }
   } catch (error) {
+    // The id is wrong, or the folder was not shared with the service account (as reader).
+    if (error instanceof RootNotShared) return json(404, { error: "root_not_shared" });
     // Google refused the service account (401/403): the sharing or the key needs attention.
     if (error instanceof DriveError && (error.status === 401 || error.status === 403)) return json(502, { error: "drive_access" });
     return json(502, { error: "drive" });

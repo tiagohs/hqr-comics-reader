@@ -26,8 +26,14 @@ object ReadingRules {
      * unread one after the last read; "Ler de novo" when all are read. Repeated numbers from different groups count
      * as one chapter.
      */
-    fun readAction(chapters: List<Chapter>): ReadAction {
+    fun readAction(
+        chapters: List<Chapter>,
+        rereadChapter: Double? = null,
+    ): ReadAction {
         val ordered = chapters.sortedBy { it.number }.distinctByNumberPreferringProgress()
+        // RF-135: a reading again continues where it is, even though every chapter is read.
+        val again = rereadChapter?.let { n -> ordered.firstOrNull { it.number >= n } }
+        if (again != null) return ReadAction.Continue(again, if (again.inProgress) again.lastPage else 0)
         val inProgress = ordered.lastOrNull { it.inProgress }
         val lastRead = ordered.indexOfLast { it.read }
         val nextUnread = ordered.drop(lastRead + 1).firstOrNull { !it.read } ?: ordered.firstOrNull { !it.read }

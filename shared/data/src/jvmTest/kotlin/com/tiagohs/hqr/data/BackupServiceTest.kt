@@ -64,7 +64,7 @@ class BackupServiceTest {
     }
 
     @Test
-    fun RF72_RF74_RF128_everythingTravelsExceptThePassword() =
+    fun RF72_RF74_RF128_RF135_everythingTravelsExceptThePassword() =
         runTest {
             val (id, chs) = phone.work(SourceId.MANGADEX, "frieren")
             phone.mangas.setInLibrary(id, true)
@@ -78,6 +78,7 @@ class BackupServiceTest {
             AppPreferences(phone.settings).setCoverColor(false)
             phone.mangas.setShelf(id, Shelf.COMICS)
             AppPreferences(phone.settings).setSourceShelf("hqnow", Shelf.MANGA)
+            phone.mangas.startRereading(id, 2.0)
             val file = phone.backups.create()
             gunzip(file).decodeToString() shouldNotContain "segredo"
 
@@ -96,6 +97,7 @@ class BackupServiceTest {
                 .size shouldBe 1
             AppPreferences(tablet.settings).coverColor.value shouldBe false
             restored.shelf shouldBe Shelf.COMICS
+            restored.timesRead shouldBe 1
             AppPreferences(tablet.settings).sourceShelves.value shouldBe mapOf("hqnow" to Shelf.MANGA)
             tablet.db
                 .serverDao()

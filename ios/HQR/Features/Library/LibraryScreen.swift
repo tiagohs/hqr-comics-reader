@@ -19,6 +19,7 @@ struct LibraryScreen: View {
     @State private var markingMany = false
     @State private var markNotice: String?
     @State private var markedMany: LibraryViewModel.Marked?
+    @State private var editingCharacters = false
     @Environment(\.scenePhase) private var scenePhase
 
     private var model: ScreenModel<LibraryViewModel, LibraryViewModel.State> { models.screen }
@@ -34,7 +35,7 @@ struct LibraryScreen: View {
                 if let progress = models.update.value.firstObject as? UpdateProgress { updating(progress) }
                 if !state.isEmpty { areas(state) }
                 if state.tabs.count > 1 { tabs(state) }
-                if let entry = state.continueReading, query.isEmpty, picked.isEmpty { continueCard(entry) }
+                if !state.isEmpty && query.isEmpty && picked.isEmpty { tracking(state) }
                 if !state.loading && state.items.isEmpty {
                     if state.isEmpty {
                         EmptyState(title: L("library_empty_title"), message: L("library_empty_message"), onomatopoeia: L("onomatopoeia_empty"))
@@ -83,6 +84,13 @@ struct LibraryScreen: View {
         }
         .alert(updateNotice ?? "", isPresented: Binding(get: { updateNotice != nil }, set: { if !$0 { updateNotice = nil } })) {
             Button(L("action_ok"), role: .cancel) {}
+        }
+        .sheet(isPresented: $editingCharacters) {
+            CharactersSheet(
+                names: IosBridge.shared.characterList(options: model.state.options),
+                onAdd: { model.viewModel.setOptions(value: model.state.options.withCharacter(name: $0)) },
+                onRemove: { model.viewModel.setOptions(value: model.state.options.withoutCharacter(name: $0)) }
+            )
         }
         .sheet(isPresented: $showOptions) {
             LibraryOptionsSheet(state: model.state) { model.viewModel.setOptions(value: $0) }
@@ -352,39 +360,54 @@ struct LibraryScreen: View {
         return tab.id == LibraryViewModel.Companion.shared.ALL ? L("library_tab_all") : L("library_tab_uncategorized")
     }
 
-    private func continueCard(_ entry: HistoryEntry) -> some View {
-        Button {
-            navigator.read(mangaId: entry.manga.id, chapterId: entry.chapter.id, page: entry.chapter.lastPage)
-        } label: {
-            HStack(spacing: 12) {
-                CoverImage(manga: entry.manga.source, width: 52)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(L("library_continue_reading")).font(ComicFont.bangers(15, relativeTo: .caption))
-                        .foregroundStyle(Palette.onSurfaceVariant)
-                    ComicTitle(text: entry.manga.source.title, size: 24).lineLimit(2)
-                    Text(L("manga_continue_chapter", entry.chapter.numberText, Int(entry.chapter.lastPage) + 1))
-                        .font(.subheadline).foregroundStyle(Palette.onSurfaceVariant)
-                }
-                Spacer()
-                Image(systemName: "play.fill").foregroundStyle(Palette.primary)
-            }
-            .padding(12)
-            // ADR-026: "Continuar lendo" as a speech balloon: an ink panel with its tail.
-            .inkPanel()
-            .overlay(alignment: .bottomLeading) {
-                Path { path in
-                    path.move(to: .zero)
-                    path.addLine(to: CGPoint(x: 18, y: 0))
-                    path.addLine(to: CGPoint(x: 0, y: 18))
-                    path.closeSubpath()
-                }
-                .fill(Palette.onSurface)
-                .frame(width: 18, height: 18)
-                .offset(x: 24, y: 18)
-            }
-            .padding(.bottom, 18)
+    /// RF-132 to RF-134: personagens (HQs), progresso, continuar, saiu capítulo and the shelf by situation.
+    @ViewBuilder
+    private func tracking(_ state: LibraryViewModel.State) -> some View {
+        let names = IosBridge.shared.characterNames(state: state)
+        if state.area == .comics && !names.isEmpty {
+            CharacterButtons(
+                names: names,
+                counts: IosBridge.shared.characterCounts(state: state).map { Int(truncating: $0) },
+                selected: state.character,
+                onSelect: { model.viewModel.selectCharacter(name: $0) },
+                onEdit: { editingCharacters = true }
+            )
         }
-        .buttonStyle(.plain)
+        let all = state.area == .all
+        ProgressCard(
+            progress: state.progress,
+            comics: all ? IosBridge.shared.summaryOf(perArea: state.perArea, area: .comics) : nil,
+            manga: all ? IosBridge.shared.summaryOf(perArea: state.perArea, area: .manga) : nil,
+            selected: state.shelfState,
+            onSelect: { model.viewModel.selectShelfState(value: $0) }
+        )
+        .padding(.horizontal, Metrics.spaceMarginCompact)
+        if !state.recent.isEmpty {
+            Text(L("library_continue")).font(.title3.weight(.bold)).accessibilityAddTraits(.isHeader)
+                .padding(.horizontal, Metrics.spaceMarginCompact).padding(.top, 8)
+            ContinueCarousel(entries: state.recent) { entry in
+                navigator.read(mangaId: entry.manga.id, chapterId: entry.chapter.id, page: entry.chapter.lastPage)
+            }
+        }
+        if !state.newChapters.isEmpty && state.shelfState == nil {
+            NewChaptersSection(
+                items: state.newChapters,
+                onOpen: { navigator.openWork($0.manga.id, from: $0.manga.source) },
+                onSeeAll: { model.viewModel.selectShelfState(value: .theNewChapters) }
+            )
+            .padding(.horizontal, Metrics.spaceMarginCompact)
+        }
+        Text(L("library_shelf")).font(.title3.weight(.bold)).accessibilityAddTraits(.isHeader)
+            .padding(.horizontal, Metrics.spaceMarginCompact).padding(.top, 8)
+        StateButtons(
+            parts: shelfOrder.compactMap { s in
+                let n = Int(IosBridge.shared.stateCount(progress: state.progress, state: s))
+                return n > 0 ? (s, n) : nil
+            },
+            selected: state.shelfState,
+            allCount: Int(state.progress.works),
+            onSelect: { model.viewModel.selectShelfState(value: $0) }
+        )
         .padding(.horizontal, Metrics.spaceMarginCompact)
     }
 }

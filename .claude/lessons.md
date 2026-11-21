@@ -35,6 +35,7 @@ Cada item custou tempo uma vez. Problema → solução.
   - Classe aninhada vira nome colado (`SourceFilter.Option` → `SourceFilterOption`).
   - O companion vira `.Companion.shared` ou `SourceFilterCompanion.shared`.
   - Palavras reservadas de C/Swift ganham `_` (`AUTO` → `.auto_`, `DEFAULT` → `.default_`).
+  - Nomes que começam com `new`, `copy`, `alloc` ou `init` ganham `the`/`do` (`NEW_CHAPTERS` → `.theNewChapters`, `copy()` → `doCopy`).
 - **Nomes ambíguos:** `Category` e `LibraryItem` colidem com tipos do sistema. → Use `Shared.Category`.
 - **Parâmetros com valor padrão:** o Swift não os enxerga, nem o `copy()` de data class.
   → Funções de edição no núcleo (`withSort`, `toggle`, `cycle`) ou uma função na ponte.

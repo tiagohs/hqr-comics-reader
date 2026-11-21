@@ -112,6 +112,8 @@ class BackupService(
                                 },
                         reader = db.readerSettingsDao().get(m.id)?.toBackup(),
                         shelf = m.shelf,
+                        timesRead = m.timesRead,
+                        rereadChapter = m.rereadChapter,
                     )
                 },
             servers = db.serverDao().list().map { BackupServer(it.sourceId, it.kind, it.name, it.url, it.username) },
@@ -202,6 +204,10 @@ class BackupService(
             if (b.reader != null && db.readerSettingsDao().get(mangaId) == null) db.readerSettingsDao().upsert(b.reader.toEntity(mangaId))
             // RF-128: a work's own shelf on this device stays.
             if (b.shelf != null && db.mangaDao().get(mangaId)?.shelf == null) db.mangaDao().setShelf(mangaId, b.shelf)
+            // RF-135: the larger count of readings wins; a reading again on this device stays.
+            db.mangaDao().get(mangaId)?.let { m ->
+                if (b.timesRead > m.timesRead) db.mangaDao().setReadingCount(mangaId, b.timesRead, m.rereadChapter ?: b.rereadChapter)
+            }
         }
         val serverDao = db.serverDao()
         val savedServers = serverDao.list().map { it.sourceId }.toSet()

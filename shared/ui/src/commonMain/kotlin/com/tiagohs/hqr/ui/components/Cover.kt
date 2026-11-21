@@ -60,19 +60,28 @@ fun Cover(
             // ADR-026: every cover is a comic panel with an ink frame.
             .border(2.dp, MaterialTheme.colorScheme.onSurface, shape),
     ) {
-        val url = manga.coverUrl
-        if (url != null) {
-            SubcomposeAsyncImage(
-                model = ImageRef(manga.sourceId, url),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-                error = { CoverFallback(manga.title) },
-            )
-        } else {
-            CoverFallback(manga.title)
-        }
+        CoverImage(manga)
         overlay()
+    }
+}
+
+/** The cover picture alone, filling its box; for places with their own shape, like the carousel (RF-133). */
+@Composable
+fun CoverImage(
+    manga: SourceManga,
+    modifier: Modifier = Modifier,
+) {
+    val url = manga.coverUrl
+    if (url != null) {
+        SubcomposeAsyncImage(
+            model = ImageRef(manga.sourceId, url),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = modifier.fillMaxSize(),
+            error = { CoverFallback(manga.title) },
+        )
+    } else {
+        Box(modifier.fillMaxSize()) { CoverFallback(manga.title) }
     }
 }
 

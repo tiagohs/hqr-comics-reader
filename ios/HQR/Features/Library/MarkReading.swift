@@ -187,18 +187,16 @@ struct ReadingOnCover: View {
     var body: some View {
         let total = Int(item.totalChapters)
         let read = Int(IosBridge.shared.readCount(item: item))
-        if total > 0 && item.unread == 0 {
-            ZStack {
-                Color.black.opacity(0.45)
-                Text(L("library_cover_done"))
-                    .font(ComicFont.bangers(20, relativeTo: .headline))
-                    .foregroundStyle(Self.ink)
-                    .padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Self.paper)
-                    .overlay(Rectangle().stroke(Self.ink, lineWidth: 2))
-                    .rotationEffect(.degrees(-8))
-            }
-        } else if total > 0 && read > 0 && read < total {
+        // RF-132: the corner says the situation (✓, "2×", "+3", "47%"); the bar shows how far.
+        ZStack(alignment: .bottomTrailing) {
+            Color.clear
+            StateCorner(item: item)
+            if total > 0 && read > 0 && read < total { bar(read: read, total: total) }
+        }
+    }
+
+    private func bar(read: Int, total: Int) -> some View {
+        Group {
             VStack {
                 Spacer()
                 GeometryReader { geo in
@@ -214,8 +212,6 @@ struct ReadingOnCover: View {
         }
     }
 
-    private static let paper = Color(red: 0xF6 / 255, green: 0xF1 / 255, blue: 0xE7 / 255)
-    private static let ink = Color(red: 0x16 / 255, green: 0x16 / 255, blue: 0x1A / 255)
     /// The light violet on the dark track reads on any cover (docs/tokens.json, primary in the dark scheme).
     private static let bar = Color(red: 0xC7 / 255, green: 0xBF / 255, blue: 0xFF / 255)
 }

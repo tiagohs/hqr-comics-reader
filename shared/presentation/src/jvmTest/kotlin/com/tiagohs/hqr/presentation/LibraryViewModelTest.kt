@@ -60,6 +60,60 @@ class LibraryViewModelTest : MainDispatcherTest() {
         }
 
     @Test
+    fun RF132_theSummaryFollowsTheAreaOnShow() =
+        runTest {
+            val (a, _) = addWorks()
+            db.mangas.setShelf(a, com.tiagohs.hqr.domain.model.Shelf.MANGA)
+            val vm = track(LibraryViewModel(db.mangas, db.categories, db.history))
+            vm.state
+                .first { it.progress.works == 2 }
+                .progress.percent shouldBe 0
+            vm.selectArea(com.tiagohs.hqr.presentation.library.LibraryArea.MANGA)
+            vm.state
+                .first { it.progress.works == 1 }
+                .progress.worksRead shouldBe 0
+        }
+
+    @Test
+    fun RF132_RF134_theShelfFiltersBySituationAndTheHqsByCharacter() =
+        runTest {
+            val ids =
+                listOf("Batman: Ano Um", "Batman: Silêncio", "Akira").map { title ->
+                    db.mangas
+                        .upsert(
+                            com.tiagohs.hqr.domain.model
+                                .SourceManga(source.id, title, title),
+                        ).id
+                        .also {
+                            db.mangas.setInLibrary(it, true)
+                            db.mangas.setShelf(it, com.tiagohs.hqr.domain.model.Shelf.COMICS)
+                        }
+                }
+            val chapters =
+                db.chapters.sync(
+                    ids[0],
+                    listOf(
+                        com.tiagohs.hqr.domain.model
+                            .SourceChapter("c1", 1.0),
+                    ),
+                )
+            db.chapters.setRead(chapters.map { it.id }, true)
+            val vm = track(LibraryViewModel(db.mangas, db.categories, db.history))
+            vm.selectArea(com.tiagohs.hqr.presentation.library.LibraryArea.COMICS)
+            vm.state.first { it.characters.isNotEmpty() }.characters shouldContainExactly listOf("Batman" to 2)
+            vm.selectCharacter("Batman")
+            vm.state
+                .first { it.character == "Batman" }
+                .progress.works shouldBe 2
+            vm.selectShelfState(com.tiagohs.hqr.presentation.library.ReadingState.UP_TO_DATE)
+            vm.state
+                .first { it.shelfState != null && it.items.size == 1 }
+                .items
+                .single()
+                .manga.title shouldBe "Batman: Ano Um"
+        }
+
+    @Test
     fun RF53_deletingACategoryMovesItsWorksToUncategorized() =
         runTest {
             val (a, b) = addWorks()

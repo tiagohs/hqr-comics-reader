@@ -40,6 +40,8 @@ data class LibraryOptions(
     val sort: LibrarySort = LibrarySort.TITLE,
     val ascending: Boolean = true,
     val area: LibraryArea = LibraryArea.ALL,
+    /** RF-134: the characters of the HQs filter, name → words that point to it; the user edits this list. */
+    val characters: Map<String, List<String>> = LibraryProgress.HERO_CATALOG,
 ) {
     /** "Limpar filtros" keeps the order and the display. */
     fun withoutFilters(): LibraryOptions =
@@ -85,6 +87,15 @@ data class LibraryOptions(
     fun withAscending(value: Boolean): LibraryOptions = copy(ascending = value)
 
     fun withDisplay(value: LibraryDisplay): LibraryOptions = copy(display = value)
+
+    /** RF-134: a new character, found by its own name. */
+    fun withCharacter(name: String): LibraryOptions {
+        val clean = name.trim()
+        if (clean.isEmpty() || characters.keys.any { it.equals(clean, ignoreCase = true) }) return this
+        return copy(characters = characters + (clean to listOf(clean.lowercase())))
+    }
+
+    fun withoutCharacter(name: String): LibraryOptions = copy(characters = characters - name)
 
     fun badgeOn(badge: Badge): Boolean =
         when (badge) {

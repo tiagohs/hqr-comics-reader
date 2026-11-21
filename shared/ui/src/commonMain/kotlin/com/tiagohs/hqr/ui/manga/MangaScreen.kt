@@ -79,6 +79,7 @@ import com.tiagohs.hqr.ui.components.rememberOpening
 import com.tiagohs.hqr.ui.components.sourceDisplayName
 import com.tiagohs.hqr.ui.downloads.rememberNotificationPermission
 import com.tiagohs.hqr.ui.library.MarkReadingSheetHost
+import com.tiagohs.hqr.ui.library.ReadAgainDialog
 import com.tiagohs.hqr.ui.library.ShelfDialog
 import com.tiagohs.hqr.ui.library.rememberMarkReadingHost
 import com.tiagohs.hqr.ui.navigation.RESUME
@@ -92,6 +93,7 @@ import com.tiagohs.hqr.ui.resources.action_retry
 import com.tiagohs.hqr.ui.resources.action_undo
 import com.tiagohs.hqr.ui.resources.date_short
 import com.tiagohs.hqr.ui.resources.error_title
+import com.tiagohs.hqr.ui.resources.library_reading_number
 import com.tiagohs.hqr.ui.resources.library_removed
 import com.tiagohs.hqr.ui.resources.manga_add_library
 import com.tiagohs.hqr.ui.resources.manga_chapter_label
@@ -117,6 +119,7 @@ import com.tiagohs.hqr.ui.resources.manga_order
 import com.tiagohs.hqr.ui.resources.manga_page_of
 import com.tiagohs.hqr.ui.resources.manga_read
 import com.tiagohs.hqr.ui.resources.manga_read_chapter
+import com.tiagohs.hqr.ui.resources.manga_reading_at
 import com.tiagohs.hqr.ui.resources.manga_refresh
 import com.tiagohs.hqr.ui.resources.manga_refresh_failed
 import com.tiagohs.hqr.ui.resources.manga_removed_from_source
@@ -192,6 +195,22 @@ private fun MangaContent(
     val snackbar = remember { SnackbarHostState() }
     val categoryChoice by viewModel.categoryChoice.collectAsStateWithLifecycle()
     var picking by remember { mutableStateOf(false) }
+    var askingAgain by remember { mutableStateOf<Chapter?>(null) }
+    askingAgain?.let { chapter ->
+        ReadAgainDialog(
+            nextReading = maxOf(manga.timesRead, 1) + 1,
+            onReadAgain = {
+                askingAgain = null
+                viewModel.readAgain(chapter)
+                onRead(manga.id, chapter.id, 0)
+            },
+            onJustOpen = {
+                askingAgain = null
+                onRead(manga.id, chapter.id, 0)
+            },
+            onDismiss = { askingAgain = null },
+        )
+    }
     val downloadStates by viewModel.downloadStates.collectAsStateWithLifecycle()
     val selected by viewModel.selected.collectAsStateWithLifecycle()
     val canDownload = viewModel.canDownload
@@ -385,8 +404,13 @@ private fun MangaContent(
                         manga = manga,
                         action = state.action,
                         waiting = state.chaptersLoading,
-                        onRead = { chapter, page -> onRead(manga.id, chapter.id, page) },
+                        onRead = { chapter, page ->
+                            // RF-135: "Ler de novo" on the main button starts the next reading.
+                            if (state.action is ReadAction.ReadAgain) viewModel.readAgain(chapter)
+                            onRead(manga.id, chapter.id, page)
+                        },
                         onToggleLibrary = toggleLibrary,
+                        chapterCount = state.chapters.size,
                     )
                 }
                 // RF-117: a failure of the details stays here; a failure of the list stays in the list.
@@ -486,6 +510,8 @@ private fun MangaContent(
                                 selected.isNotEmpty() -> viewModel.toggleSelected(chapter.id)
                                 // RF-11: a chapter only on the publisher's site opens there.
                                 external != null -> uri.openUri(external)
+                                // RF-135: a chapter of a work read to the end asks first.
+                                viewModel.asksReadAgain(chapter) -> askingAgain = chapter
                                 else -> onRead(manga.id, chapter.id, if (chapter.read) 0 else RESUME)
                             }
                         },
@@ -519,6 +545,7 @@ private fun Actions(
     waiting: Boolean,
     onRead: (Chapter, Int) -> Unit,
     onToggleLibrary: () -> Unit,
+    chapterCount: Int = 0,
 ) {
     val (label, target) =
         when (action) {
@@ -530,6 +557,15 @@ private fun Actions(
             ReadAction.Nothing -> stringResource(Res.string.action_read) to null
         }
     Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // RF-135: "2ª leitura · cap. 2 de 12" while the work is read again.
+        manga.rereadChapter?.let { at ->
+            Text(
+                stringResource(Res.string.library_reading_number, manga.timesRead + 1) + " · " +
+                    stringResource(Res.string.manga_reading_at, at.chapterLabel(), chapterCount),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             // RF-117: the button waits for the chapters; until then it cannot know where to open.
             Button(

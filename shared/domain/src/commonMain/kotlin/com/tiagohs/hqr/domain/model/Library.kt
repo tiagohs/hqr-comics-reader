@@ -10,7 +10,12 @@ data class Manga(
     val coverColor: Int? = null,
     /** RF-128: the user's choice for this work; null follows the source. */
     val shelf: Shelf? = null,
+    /** RF-135: readings the user finished; the first full reading counts as one. */
+    val timesRead: Int = 0,
+    /** RF-135: the chapter number reached in a reading again; null when not reading again. */
+    val rereadChapter: Double? = null,
 ) {
+    val isRereading: Boolean get() = rereadChapter != null
     val sourceId: SourceId get() = source.sourceId
     val key: String get() = source.key
     val title: String get() = source.title

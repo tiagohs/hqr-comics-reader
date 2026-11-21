@@ -11,6 +11,7 @@ import com.tiagohs.hqr.domain.model.Category
 import com.tiagohs.hqr.domain.model.Chapter
 import com.tiagohs.hqr.domain.model.ChapterReadState
 import com.tiagohs.hqr.domain.model.Manga
+import com.tiagohs.hqr.domain.model.ReadingCount
 import com.tiagohs.hqr.domain.model.Shelf
 import com.tiagohs.hqr.domain.model.SourceChapter
 import com.tiagohs.hqr.domain.model.SourceId
@@ -142,6 +143,15 @@ class RoomMangaRepository(
         id: Long,
         shelf: Shelf?,
     ) = dao.setShelf(id, shelf?.name)
+
+    override suspend fun startRereading(
+        id: Long,
+        chapterNumber: Double,
+    ) {
+        val current = dao.get(id) ?: return
+        val next = ReadingCount(current.timesRead, current.rereadChapter).start(chapterNumber)
+        dao.setReadingCount(id, next.timesRead, next.rereadChapter)
+    }
 }
 
 private fun SourceManga.mergeOver(old: SourceManga): SourceManga =
@@ -278,6 +288,22 @@ class RoomChapterRepository(
                 updatedAt = clock.now().toEpochMilliseconds(),
             ),
         )
+        val mangaId = chapters.get(chapterId)?.mangaId ?: return
+        countReadings(mangaId, chapterId, reachedEnd)
+    }
+
+    /** RF-135: the first full reading counts one, and a reading again follows the reader. */
+    private suspend fun countReadings(
+        mangaId: Long,
+        openedId: Long?,
+        finished: Boolean,
+    ) {
+        val mangaDao = db.mangaDao()
+        val manga = mangaDao.get(mangaId) ?: return
+        val list = list(mangaId)
+        val current = ReadingCount(manga.timesRead, manga.rereadChapter)
+        val next = current.after(list, list.firstOrNull { it.id == openedId }, finished)
+        if (next != current) mangaDao.setReadingCount(mangaId, next.timesRead, next.rereadChapter)
     }
 
     override suspend fun setRead(
@@ -299,6 +325,7 @@ class RoomChapterRepository(
                 )
             }
         }
+        if (read) chapterIds.mapNotNull { chapters.get(it)?.mangaId }.distinct().forEach { countReadings(it, null, false) }
     }
 
     override suspend fun setDownloaded(

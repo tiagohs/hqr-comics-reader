@@ -177,6 +177,8 @@ class LibraryViewModel(
         val selectedTab: Long = ALL,
         val items: List<LibraryItem> = emptyList(),
         val continueReading: HistoryEntry? = null,
+        /** RF-133: the last readings of the area, for the "Continuar" carousel; the first is [continueReading]. */
+        val recent: List<HistoryEntry> = emptyList(),
         val options: LibraryOptions = LibraryOptions(),
         val query: String = "",
         val categories: List<Category> = emptyList(),
@@ -184,6 +186,17 @@ class LibraryViewModel(
         val area: LibraryArea = LibraryArea.ALL,
         /** RF-128: works in each area, for the counts beside "Tudo", "HQs" and "Mangás". */
         val areaCounts: Map<LibraryArea, Int> = emptyMap(),
+        /** RF-132: the tracking numbers of the works in [area] (and [character]), whatever the tab, filters or search. */
+        val progress: ProgressSummary = LibraryProgress.summary(emptyList()),
+        /** RF-132: HQs and Mangás apart, for "Tudo". */
+        val perArea: Map<LibraryArea, ProgressSummary> = emptyMap(),
+        /** RF-132: the works whose source added chapters after a full reading, for "Saiu capítulo". */
+        val newChapters: List<LibraryItem> = emptyList(),
+        /** RF-132: the shelf shows only works in this situation; null shows all. */
+        val shelfState: ReadingState? = null,
+        /** RF-134: characters found in the HQs with their counts, most first; empty outside HQs. */
+        val characters: List<Pair<String, Int>> = emptyList(),
+        val character: String? = null,
     ) {
         val isEmpty: Boolean get() = !loading && (areaCounts[LibraryArea.ALL] ?: 0) == 0
 
@@ -202,15 +215,17 @@ class LibraryViewModel(
     private val selected = saved.getStateFlow(KEY_TAB, ALL)
     private val options = MutableStateFlow(optionsStore?.load() ?: LibraryOptions())
     private val query = saved.getStateFlow(KEY_QUERY, "")
+    private val shelfState = saved.getStateFlow(KEY_STATE, "")
+    private val character = saved.getStateFlow(KEY_CHARACTER, "")
 
     val state: StateFlow<State> =
         combine(
             combine(mangas.observeLibrary(), categories.observe(), sourceShelves, ::Triple),
             history.observeLatestPerManga(),
-            selected,
+            combine(selected, shelfState, character, ::Triple),
             options,
             query,
-        ) { (library, cats, shelves), latest, tab, opts, text ->
+        ) { (library, cats, shelves), latest, (tab, stateName, hero), opts, text ->
             val areaOf = { item: LibraryItem -> Shelf.of(item.manga.shelf, item.manga.sourceId, shelves, item.manga.source.kind) }
             val counts =
                 mapOf(
@@ -218,12 +233,31 @@ class LibraryViewModel(
                     LibraryArea.COMICS to library.count { areaOf(it) == Shelf.COMICS },
                     LibraryArea.MANGA to library.count { areaOf(it) == Shelf.MANGA },
                 )
-            val items =
+            val comics = library.filter { areaOf(it) == Shelf.COMICS }
+            val manga = library.filter { areaOf(it) == Shelf.MANGA }
+            val inArea =
                 when (opts.area) {
                     LibraryArea.ALL -> library
-                    LibraryArea.COMICS -> library.filter { areaOf(it) == Shelf.COMICS }
-                    LibraryArea.MANGA -> library.filter { areaOf(it) == Shelf.MANGA }
+                    LibraryArea.COMICS -> comics
+                    LibraryArea.MANGA -> manga
                 }
+            // RF-134: the characters only filter the HQs; one that no work has any more is dropped.
+            val found =
+                if (opts.area != LibraryArea.COMICS) {
+                    emptyList()
+                } else {
+                    inArea
+                        .flatMap { LibraryProgress.characters(it, opts.characters) }
+                        .groupingBy { it }
+                        .eachCount()
+                        .entries
+                        .sortedWith(compareByDescending<Map.Entry<String, Int>> { it.value }.thenBy { it.key })
+                        .map { it.key to it.value }
+                }
+            val chosen = hero.takeIf { name -> found.any { it.first == name } }
+            val items = if (chosen == null) inArea else inArea.filter { chosen in LibraryProgress.characters(it, opts.characters) }
+            val situation = ReadingState.entries.firstOrNull { it.name == stateName }
+            val recent = LibraryProgress.continueReading(latest, items.mapTo(HashSet()) { it.manga.id })
             val tabs = tabs(items, cats)
             // A filter on a category or source that no longer exists is dropped, never left hiding everything.
             val sources = library.map { it.manga.sourceId.value }.toSet()
@@ -232,7 +266,6 @@ class LibraryViewModel(
                     categories = opts.categories.filter { id -> id == Category.DEFAULT_ID || cats.any { it.id == id } }.toSet(),
                     sources = opts.sources.intersect(sources),
                 )
-            val libraryIds = library.mapTo(HashSet()) { it.manga.id }
             val current = tabs.firstOrNull { it.id == tab }?.id ?: ALL
             val inTab =
                 items.filter {
@@ -242,14 +275,26 @@ class LibraryViewModel(
                 loading = false,
                 tabs = tabs,
                 selectedTab = current,
-                items = LibraryRules.apply(inTab, valid, text),
-                continueReading = latest.firstOrNull { entry -> !entry.chapter.read && entry.manga.id in libraryIds },
+                items = LibraryRules.apply(inTab, valid, text).filter { situation == null || LibraryProgress.state(it) == situation },
+                // RF-133: "Continuar" is the last reading of the area on show: Tudo, HQs or Mangás.
+                continueReading = recent.firstOrNull(),
+                recent = recent,
                 options = valid,
                 query = text,
                 categories = cats,
                 sourceIds = items.map { it.manga.sourceId.value }.distinct().sorted(),
                 area = opts.area,
                 areaCounts = counts,
+                progress = LibraryProgress.summary(items),
+                perArea =
+                    mapOf(
+                        LibraryArea.COMICS to LibraryProgress.summary(comics),
+                        LibraryArea.MANGA to LibraryProgress.summary(manga),
+                    ),
+                newChapters = items.filter { LibraryProgress.state(it) == ReadingState.NEW_CHAPTERS },
+                shelfState = situation,
+                characters = found,
+                character = chosen,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), State())
 
@@ -265,6 +310,16 @@ class LibraryViewModel(
 
     /** RF-128: kept with the other library options. */
     fun selectArea(area: LibraryArea) = setOptions(options.value.copy(area = area))
+
+    /** RF-132: the shelf by situation; null shows every work. */
+    fun selectShelfState(value: ReadingState?) {
+        saved[KEY_STATE] = value?.name.orEmpty()
+    }
+
+    /** RF-134: one character of the HQs, or null for all. */
+    fun selectCharacter(name: String?) {
+        saved[KEY_CHARACTER] = name.orEmpty()
+    }
 
     /** RF-56. */
     fun search(text: String) {
@@ -301,5 +356,7 @@ class LibraryViewModel(
         const val UNCATEGORIZED = Category.DEFAULT_ID
         private const val KEY_TAB = "library.tab"
         private const val KEY_QUERY = "library.query"
+        private const val KEY_STATE = "library.state"
+        private const val KEY_CHARACTER = "library.character"
     }
 }
